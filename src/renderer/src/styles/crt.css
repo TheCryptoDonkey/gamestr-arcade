@@ -1,0 +1,112 @@
+/* ============================================================================
+   gamestr-arcade — CRT overlay.
+
+   A toggleable arcade-monitor layer over the whole cabinet: scanlines, aperture
+   grille, tube vignette and a faint flicker + slow scan-roll. Deliberately
+   restrained — hairline lines and low opacity so neon text stays crisp. Mounted
+   last inside `.crt-anchor`, above the hero, showcase and leaderboard.
+   ============================================================================ */
+
+.crt {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+.crt.crt-on {
+  opacity: 1;
+}
+
+.crt-scanlines,
+.crt-grille,
+.crt-vignette,
+.crt-flicker,
+.crt-roll {
+  position: absolute;
+  inset: 0;
+}
+
+/* Horizontal scanlines — a 3px cycle (1px dark gap) kept very subtle. */
+.crt-scanlines {
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.22) 3px
+  );
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+}
+
+/* Vertical aperture-grille tint — faint RGB stripes for "phosphor" colour. */
+.crt-grille {
+  background: repeating-linear-gradient(
+    to right,
+    rgba(255, 0, 60, 0.05) 0px,
+    rgba(0, 255, 120, 0.04) 1px,
+    rgba(40, 120, 255, 0.05) 2px,
+    rgba(0, 0, 0, 0) 3px
+  );
+  mix-blend-mode: screen;
+  opacity: 0.5;
+}
+
+/* Tube vignette — darkened, slightly bulged corners. */
+.crt-vignette {
+  background: radial-gradient(120% 120% at 50% 50%, rgba(0, 0, 0, 0) 58%, rgba(0, 0, 0, 0.55) 100%);
+  box-shadow:
+    inset 0 0 120px rgba(0, 0, 0, 0.45),
+    inset 0 0 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Faint global flicker — tiny brightness wobble, very low amplitude. */
+.crt-flicker {
+  background: rgba(126, 243, 255, 0.015);
+  mix-blend-mode: screen;
+  animation: crt-flicker 0.13s steps(2, jump-none) infinite;
+}
+@keyframes crt-flicker {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0.78;
+  }
+}
+
+/* Slow bright scan-roll sweeping down the screen — the classic CRT refresh band. */
+.crt-roll {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.025) 45%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.025) 55%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 100% 38%;
+  background-repeat: no-repeat;
+  mix-blend-mode: screen;
+  animation: crt-roll 7s linear infinite;
+}
+@keyframes crt-roll {
+  0% {
+    background-position: 0 -40%;
+  }
+  100% {
+    background-position: 0 140%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crt-flicker,
+  .crt-roll {
+    animation: none !important;
+    opacity: 0.4;
+  }
+}
