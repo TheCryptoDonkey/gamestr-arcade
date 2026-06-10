@@ -1,0 +1,135 @@
+/* ============================================================================
+   gamestr-arcade — attract mode overlay.
+
+   Raised after idle. The carousel keeps cycling beneath (visible), with a gentle
+   darkening veil and a big blinking "● INSERT COIN ● PRESS START" banner low on
+   screen. Accent-themed, condensed, unmistakably "demo mode". Any input exits.
+   ============================================================================ */
+
+.attract {
+  position: absolute;
+  inset: 0;
+  z-index: 40; /* above content, below the CRT (z 50) */
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.5s ease,
+    visibility 0s linear 0.5s;
+}
+.attract.attract-on {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.5s ease,
+    visibility 0s;
+}
+
+/* A soft vignette pulse so the cycling art still reads but the banner pops.
+   A focused dark band sits behind the marquee zone (lower-centre) so the words
+   read cleanly over whatever game art is cycling underneath. */
+.attract-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(75% 32% at 50% 80%, rgba(3, 4, 10, 0.9), transparent 70%),
+    radial-gradient(130% 100% at 50% 120%, rgba(3, 4, 10, 0.72), transparent 62%),
+    linear-gradient(180deg, rgba(3, 4, 10, 0.42) 0%, rgba(3, 4, 10, 0) 26%);
+  animation: attract-veil 3.4s ease-in-out infinite;
+}
+@keyframes attract-veil {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Lifted clear of the filmstrip into the lower-centre "marquee" band. */
+.attract-banner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: clamp(7rem, 17vh, 12rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  text-align: center;
+}
+
+.attract-coin {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(0.8rem, 1.6vw, 1.6rem);
+  padding: 0.6rem 1.6rem;
+  animation: attract-blink 1.05s steps(2, jump-none) infinite;
+}
+.attract-text {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 3.2vw, 3rem);
+  letter-spacing: 0.16em;
+  text-indent: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-shadow:
+    0 0 18px var(--accent-glow),
+    0 0 50px var(--accent-soft);
+}
+/* The alternate phrase is tinted to the accent for a two-tone "marquee" read. */
+.attract-text-alt {
+  color: var(--accent);
+}
+.attract-bullet {
+  font-size: clamp(0.9rem, 1.6vw, 1.4rem);
+  color: var(--accent);
+  text-shadow: 0 0 14px var(--accent-glow);
+  animation: attract-bullet 1.4s ease-in-out infinite;
+}
+.attract-bullet:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.attract-bullet:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+.attract-sub {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: clamp(0.7rem, 1.1vw, 0.95rem);
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+@keyframes attract-blink {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.28;
+  }
+}
+@keyframes attract-bullet {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.7);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .attract-veil,
+  .attract-coin,
+  .attract-bullet {
+    animation: none !important;
+  }
+}
