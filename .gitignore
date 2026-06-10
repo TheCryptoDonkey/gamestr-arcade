@@ -5,3 +5,6 @@ release/
 /games/
 .DS_Store
 *.AppImage
+
+# Design verification screenshots (local only)
+.design-shots/

@@ -1,50 +1,85 @@
 /**
  * gamestr-arcade — renderer entry point.
  *
- * Bootstraps the UI. The attract-mode carousel, leaderboard panel,
- * and game launcher will be added in subsequent tasks.
+ * Boots the hero carousel and wires keyboard + gamepad input to it.
  *
- * For now: fetches the games list via IPC and renders a temporary
- * placeholder so we can verify the media protocol + IPC bridge work.
+ * Data source:
+ *   - Electron: real games via `window.arcade.listGames()` (IPC → folder scan).
+ *   - Plain browser (Vite preview, no `window.arcade`): a mock list, so the
+ *     carousel can be screenshotted at 1920×1080 during design work. The guard
+ *     ensures the mock is never reached — nor even imported — on the Electron path.
  */
 
-const app = document.getElementById('app')
+import './styles/carousel.css'
+import { Carousel } from './ui/carousel'
+import { InputController } from './ui/input'
+import type { Game } from '../../shared/types'
 
-if (app) {
-  app.textContent = 'gamestr arcade — loading…'
+const inElectron = typeof window.arcade !== 'undefined'
 
-  window.arcade.listGames().then(games => {
-    app.innerHTML = ''
-
-    if (games.length === 0) {
-      app.textContent = 'No games found.'
-      return
-    }
-
-    const list = document.createElement('ul')
-    list.style.cssText = 'list-style:none;margin:2rem;padding:0;font-family:monospace;color:#7cf3ff'
-
-    for (const game of games) {
-      const item = document.createElement('li')
-      item.style.cssText = 'display:flex;align-items:center;gap:1rem;margin:0.5rem 0'
-
-      if (game.logo) {
-        const img = document.createElement('img')
-        img.src = game.logo
-        img.alt = game.name
-        img.style.cssText = 'width:48px;height:48px;object-fit:contain'
-        item.appendChild(img)
-      }
-
-      const label = document.createElement('span')
-      label.textContent = game.name
-      item.appendChild(label)
-
-      list.appendChild(item)
-    }
-
-    app.appendChild(list)
-  }).catch(err => {
-    if (app) app.textContent = `Error loading games: ${err}`
-  })
+async function loadGames(): Promise<Game[]> {
+  if (inElectron) return window.arcade.listGames()
+  // Browser design-preview fallback — dynamically imported so it is tree-shaken
+  // out of the Electron bundle entirely.
+  const { MOCK_GAMES } = await import('./mock-games')
+  return MOCK_GAMES
 }
+
+function showMessage(host: HTMLElement, text: string): void {
+  host.classList.add('arcade')
+  host.innerHTML = `<div class="boot-message">${text}</div>`
+}
+
+async function boot(): Promise<void> {
+  const host = document.getElementById('app')
+  if (!host) return
+
+  showMessage(host, 'GAMESTR ARCADE<span class="boot-dim">booting…</span>')
+
+  let games: Game[]
+  try {
+    games = await loadGames()
+  } catch (err) {
+    showMessage(host, `Failed to load games<span class="boot-dim">${String(err)}</span>`)
+    return
+  }
+
+  if (games.length === 0) {
+    showMessage(host, 'NO GAMES FOUND<span class="boot-dim">drop a game into the games folder</span>')
+    return
+  }
+
+  const carousel = new Carousel(games, host)
+
+  const launch = (): void => {
+    const game = carousel.current()
+    if (inElectron) {
+      void window.arcade.launch(game.id)
+    } else {
+      // No-op in the browser preview; pulse the CTA so the press is visible.
+      host.classList.add('cta-fired')
+      window.setTimeout(() => host.classList.remove('cta-fired'), 320)
+    }
+  }
+
+  const input = new InputController({
+    onPrev: () => carousel.prev(),
+    onNext: () => carousel.next(),
+    onLaunch: launch,
+    onBack: () => {
+      /* reserved for in-app web-game view (later task) */
+    },
+  })
+  input.start()
+
+  // Returning from a launched game re-focuses the window; nothing else needed yet.
+  if (inElectron) window.arcade.onReturn(() => host.focus())
+
+  // Expose a tiny hook so design-verification scripts can drive selection
+  // deterministically without synthesising key events. Browser-only.
+  if (!inElectron) {
+    ;(window as unknown as { __carousel?: Carousel }).__carousel = carousel
+  }
+}
+
+void boot()
