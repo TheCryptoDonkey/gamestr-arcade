@@ -1,0 +1,8 @@
+{
+  "url":     "https://example.com/my-game",
+  "name":    "Example Web Game",
+  "tagline": "A demo web game loaded in an overlay",
+  "gameId":  "example-web",
+  "accent":  "#ff6a00",
+  "order":   99
+}

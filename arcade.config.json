@@ -9,7 +9,7 @@
   "kiosk": true,
   "leaderboard": {
     "provider": "gamestr",
-    "relays": ["wss://relay.trotters.cc"],
+    "relays": ["wss://relay.trotters.cc", "wss://nos.lol"],
     "topN": 5
   }
 }

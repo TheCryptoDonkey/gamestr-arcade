@@ -1,0 +1,47 @@
+# gamestr-arcade.service — user systemd unit for the booth kiosk.
+#
+# Install:
+#   cp systemd/gamestr-arcade.service ~/.config/systemd/user/gamestr-arcade.service
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now gamestr-arcade
+#
+# Disable screen blanking / DPMS / screensaver (run once in your session, or
+# add to ~/.xsessionrc / ~/.profile so it survives reboots):
+#   xset s off -dpms
+#   xset s noblank
+# On GNOME, use:
+#   gsettings set org.gnome.desktop.session idle-delay 0
+#   gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout 0
+#
+# The service expects:
+#   - The AppImage at: /home/booth/gamestr-arcade.AppImage  (← update this path)
+#   - Games folder at: /home/booth/games                    (← update this path)
+#   - A running X / Wayland session owned by the same user
+#     (DISPLAY / WAYLAND_DISPLAY are inherited from the user session).
+
+[Unit]
+Description=gamestr arcade kiosk
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+# ── PATHS — update both of these for your booth laptop ───────────────────────
+ExecStart=/home/booth/gamestr-arcade.AppImage
+Environment=ARCADE_GAMES_DIR=/home/booth/games
+# ─────────────────────────────────────────────────────────────────────────────
+
+Environment=ARCADE_KIOSK=1
+
+# Crash recovery: restart within 2 s — booth never shows a black screen.
+Restart=always
+RestartSec=2
+
+# Give the app 10 s to shut down cleanly before SIGKILL.
+TimeoutStopSec=10
+
+# Inherit DISPLAY/WAYLAND_DISPLAY from the user session via the environment
+# block that systemd --user picks up automatically when the graphical target
+# is active (see `systemctl --user import-environment`).
+
+[Install]
+WantedBy=graphical-session.target
