@@ -6,13 +6,31 @@
  * so the renderer can load assets identically in dev and production.
  */
 
-import { join } from 'node:path'
+import { join, resolve, sep } from 'node:path'
 import { app } from 'electron'
 import { scanGames } from './scanner'
 import { resolveIcon, realIconDeps } from './icons'
 import type { Game } from '../shared/types'
 
 export const MEDIA_SCHEME = 'media'
+
+/**
+ * Decide whether a resolved absolute path may be served by the media protocol.
+ *
+ * A path is permitted only if it equals, or is nested under, one of the allowed
+ * roots. The separator is appended before the prefix test so a sibling root that
+ * merely shares a string prefix (e.g. "/games-old" vs "/games") cannot slip
+ * through — guarding against both path traversal and prefix-confusion.
+ *
+ * Pure and dependency-free so the security decision is unit-testable.
+ */
+export function isPathAllowed(absPath: string, roots: readonly string[]): boolean {
+  const canonical = resolve(absPath)
+  return roots.some(root => {
+    const canonicalRoot = resolve(root)
+    return canonical === canonicalRoot || canonical.startsWith(canonicalRoot + sep)
+  })
+}
 
 /**
  * Convert an absolute local path to a `media://local/<path>` URL.

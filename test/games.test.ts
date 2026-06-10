@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import { join } from 'node:path'
-import { buildGamesList, pathToMediaUrl, mediaUrlToPath, MEDIA_SCHEME } from '../src/main/games'
+import {
+  buildGamesList,
+  isPathAllowed,
+  pathToMediaUrl,
+  mediaUrlToPath,
+  MEDIA_SCHEME,
+} from '../src/main/games'
 
 const FIXTURES_DIR = join(import.meta.dirname, 'fixtures/games')
 const FAKE_CACHE = '/tmp/arcade-test-cache'
@@ -36,6 +42,39 @@ describe('mediaUrlToPath', () => {
 describe(`${MEDIA_SCHEME} constant`, () => {
   it('is "media"', () => {
     expect(MEDIA_SCHEME).toBe('media')
+  })
+})
+
+describe('isPathAllowed', () => {
+  const roots = ['/srv/games', '/srv/cache', '/app/resources']
+
+  it('allows files nested under an allowed root', () => {
+    expect(isPathAllowed('/srv/games/neon/logo.png', roots)).toBe(true)
+    expect(isPathAllowed('/srv/cache/pallasite.png', roots)).toBe(true)
+  })
+
+  it('allows the placeholder icon under the app resources dir (the dev-403 fix)', () => {
+    // Every AppImage game on macOS falls back to resources/icon.png; that path
+    // must be servable or logos 403 in dev.
+    expect(isPathAllowed('/app/resources/icon.png', roots)).toBe(true)
+  })
+
+  it('allows a root path exactly (no trailing segment)', () => {
+    expect(isPathAllowed('/srv/games', roots)).toBe(true)
+  })
+
+  it('rejects paths outside every allowed root', () => {
+    expect(isPathAllowed('/etc/passwd', roots)).toBe(false)
+    expect(isPathAllowed('/srv/secret/data', roots)).toBe(false)
+  })
+
+  it('rejects a sibling dir that merely shares a string prefix', () => {
+    // "/srv/games-old" must NOT be permitted by the "/srv/games" root.
+    expect(isPathAllowed('/srv/games-old/leak.png', roots)).toBe(false)
+  })
+
+  it('rejects path-traversal that escapes an allowed root', () => {
+    expect(isPathAllowed('/srv/games/../secret/key.pem', roots)).toBe(false)
   })
 })
 

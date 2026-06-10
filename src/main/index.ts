@@ -8,7 +8,7 @@
 import { app, BrowserWindow, globalShortcut, ipcMain, net, protocol } from 'electron'
 import { join, resolve } from 'node:path'
 import { is } from '@electron-toolkit/utils'
-import { buildGamesList, mediaUrlToPath, MEDIA_SCHEME } from './games'
+import { buildGamesList, isPathAllowed, mediaUrlToPath, MEDIA_SCHEME } from './games'
 
 // GPU flags: keep the hardware path active on booth hardware.
 app.commandLine.appendSwitch('ignore-gpu-blocklist')
@@ -71,20 +71,25 @@ function createWindow(): void {
 app.whenReady().then(() => {
   const gamesDir = resolveGamesDir()
   const cacheDir = join(app.getPath('userData'), 'icon-cache')
+  // App resources dir (holds the bundled placeholder icon used for every
+  // AppImage game where `.DirIcon` extraction cannot run — e.g. on macOS dev).
+  const resourcesDir = resolve(app.getAppPath(), 'resources')
+
+  // Roots the media protocol is permitted to serve from.
+  const allowedRoots = [gamesDir, cacheDir, resourcesDir]
 
   // ── Media protocol handler ──────────────────────────────────────────────
-  // Serves files from the games dir only; rejects path-traversal attempts.
+  // Serves files from the allowed roots only; rejects path-traversal attempts.
   protocol.handle(MEDIA_SCHEME, async req => {
     const absPath = mediaUrlToPath(req.url)
     if (!absPath) {
       return new Response('Bad request', { status: 400 })
     }
-    const canonical = resolve(absPath)
-    // Sandbox: only allow paths inside gamesDir or cacheDir.
-    if (!canonical.startsWith(gamesDir) && !canonical.startsWith(cacheDir)) {
+    // Sandbox: only allow paths inside an allowed root (path-traversal safe).
+    if (!isPathAllowed(absPath, allowedRoots)) {
       return new Response('Forbidden', { status: 403 })
     }
-    return net.fetch(`file://${canonical}`)
+    return net.fetch(`file://${resolve(absPath)}`)
   })
 
   // ── IPC handlers ────────────────────────────────────────────────────────
