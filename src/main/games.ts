@@ -1,0 +1,84 @@
+/**
+ * gamestr-arcade — games list builder.
+ *
+ * Assembles the full games list by combining the folder scanner with the icon
+ * resolver, then rewrites every local file path to a servable `media://` URL
+ * so the renderer can load assets identically in dev and production.
+ */
+
+import { join } from 'node:path'
+import { app } from 'electron'
+import { scanGames } from './scanner'
+import { resolveIcon, realIconDeps } from './icons'
+import type { Game } from '../shared/types'
+
+export const MEDIA_SCHEME = 'media'
+
+/**
+ * Convert an absolute local path to a `media://local/<path>` URL.
+ * Passes empty string through unchanged (no logo case).
+ */
+export function pathToMediaUrl(absPath: string): string {
+  if (!absPath) return ''
+  // Strip the leading slash so the URL host is "local" and path is the rest.
+  // e.g. /games/neon/logo.png → media://local/games/neon/logo.png
+  return `${MEDIA_SCHEME}://local${absPath.startsWith('/') ? absPath : '/' + absPath}`
+}
+
+/**
+ * Extract the absolute file path from a `media://local/<path>` URL.
+ * Returns empty string for any non-media URL.
+ */
+export function mediaUrlToPath(url: string): string {
+  if (!url.startsWith(`${MEDIA_SCHEME}://local`)) return ''
+  return url.slice(`${MEDIA_SCHEME}://local`.length) || ''
+}
+
+function rewriteGame(game: Game): Game {
+  return {
+    ...game,
+    logo: game.logo ? pathToMediaUrl(game.logo) : game.logo,
+    hero: game.hero ? pathToMediaUrl(game.hero) : game.hero,
+    sounds: game.sounds
+      ? {
+          music: game.sounds.music ? pathToMediaUrl(game.sounds.music) : game.sounds.music,
+          voice: game.sounds.voice ? pathToMediaUrl(game.sounds.voice) : game.sounds.voice,
+        }
+      : game.sounds,
+  }
+}
+
+/**
+ * Build the full games list for the IPC handler.
+ *
+ * 1. Scans `gamesDir` for game folders / AppImages.
+ * 2. Resolves logos via the icon resolver (sibling logo.png → cached extract → placeholder).
+ * 3. Rewrites all local file paths to `media://` URLs so the renderer can load
+ *    them via the registered protocol handler regardless of origin.
+ *
+ * Unit-testable: pass `FAKE_CACHE` for `cacheDir`; the icon resolver will fall
+ * back to placeholder for any game without a `logo.png` sibling.
+ */
+export async function buildGamesList(gamesDir: string, cacheDir: string): Promise<Game[]> {
+  const placeholderPng = resourcePlaceholder()
+  const iconDeps = realIconDeps(placeholderPng)
+
+  const logoResolver = (g: { slug: string; appImagePath?: string; siblingLogo?: string }) =>
+    resolveIcon(g, cacheDir, iconDeps)
+
+  const games = await scanGames(gamesDir, logoResolver)
+  return games.map(rewriteGame)
+}
+
+/**
+ * Return the path to the bundled placeholder icon PNG.
+ * Works in both dev (project root / resources/) and packaged (app.asar resources).
+ */
+function resourcePlaceholder(): string {
+  try {
+    // app may not be ready in tests — fall back gracefully.
+    return join(app.getAppPath(), 'resources', 'icon.png')
+  } catch {
+    return join(process.cwd(), 'resources', 'icon.png')
+  }
+}
