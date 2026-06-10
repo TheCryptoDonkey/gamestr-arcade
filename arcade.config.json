@@ -1,0 +1,15 @@
+{
+  "gamesDir": "games",
+  "theme": {
+    "title": "gamestr arcade",
+    "accent": "#7cf3ff",
+    "crt": true
+  },
+  "attractTimeoutMs": 20000,
+  "kiosk": true,
+  "leaderboard": {
+    "provider": "gamestr",
+    "relays": ["wss://relay.trotters.cc"],
+    "topN": 5
+  }
+}

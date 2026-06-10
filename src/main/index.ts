@@ -6,9 +6,12 @@
  */
 
 import { app, BrowserWindow, globalShortcut, ipcMain, net, protocol } from 'electron'
+import { readFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { is } from '@electron-toolkit/utils'
 import { buildGamesList, isPathAllowed, mediaUrlToPath, MEDIA_SCHEME } from './games'
+import { DEFAULT_CONFIG, parseConfig } from './config'
+import type { ArcadeConfig } from '../shared/types'
 
 // GPU flags: keep the hardware path active on booth hardware.
 app.commandLine.appendSwitch('ignore-gpu-blocklist')
@@ -39,6 +42,27 @@ function resolveGamesDir(): string {
   if (process.env.ARCADE_GAMES_DIR) return resolve(process.env.ARCADE_GAMES_DIR)
   const base = is.dev ? app.getAppPath() : process.resourcesPath
   return join(base, 'games')
+}
+
+// ── Config resolution ───────────────────────────────────────────────────────
+// `arcade.config.json` lives at the app root (project root in dev, resources in
+// prod). Missing / malformed files fall back to DEFAULT_CONFIG so the booth
+// always boots — a typo in the config must never leave a blank cabinet.
+function resolveConfigPath(): string {
+  if (process.env.ARCADE_CONFIG) return resolve(process.env.ARCADE_CONFIG)
+  const base = is.dev ? app.getAppPath() : process.resourcesPath
+  return join(base, 'arcade.config.json')
+}
+
+async function loadConfig(): Promise<ArcadeConfig> {
+  const path = resolveConfigPath()
+  try {
+    const raw = await readFile(path, 'utf8')
+    return parseConfig(JSON.parse(raw))
+  } catch (err) {
+    console.warn(`[arcade] config: using defaults (${path}): ${String(err)}`)
+    return DEFAULT_CONFIG
+  }
 }
 
 let win: BrowserWindow | null = null
@@ -93,6 +117,12 @@ app.whenReady().then(() => {
   })
 
   // ── IPC handlers ────────────────────────────────────────────────────────
+  ipcMain.handle('config:get', async () => {
+    const config = await loadConfig()
+    console.log(`[arcade] config: leaderboard=${config.leaderboard.provider}, crt=${config.theme.crt}`)
+    return config
+  })
+
   ipcMain.handle('games:list', async () => {
     const games = await buildGamesList(gamesDir, cacheDir)
     console.log(`[arcade] games dir: ${gamesDir} — ${games.length} game(s)`)

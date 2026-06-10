@@ -8,6 +8,13 @@ directories:
 files:
   - out/**
 
+# Ship the cabinet config alongside the binary so a booth operator can retune
+# the leaderboard / attract timeout / CRT without rebuilding (read from
+# process.resourcesPath at runtime).
+extraResources:
+  - from: arcade.config.json
+    to: arcade.config.json
+
 linux:
   target: [AppImage]
   category: Game
