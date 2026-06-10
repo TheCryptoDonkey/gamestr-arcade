@@ -5,13 +5,17 @@
  * Set ARCADE_KIOSK=0 for a normal windowed build during development.
  */
 
-import { app, BrowserWindow, globalShortcut, ipcMain, net, protocol } from 'electron'
+import { app, BrowserWindow, globalShortcut, ipcMain, net, protocol, WebContentsView } from 'electron'
+import { chmod } from 'node:fs/promises'
 import { readFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
+import { spawn as nodeSpawn } from 'node:child_process'
 import { is } from '@electron-toolkit/utils'
 import { buildGamesList, isPathAllowed, mediaUrlToPath, MEDIA_SCHEME } from './games'
 import { DEFAULT_CONFIG, parseConfig } from './config'
-import type { ArcadeConfig } from '../shared/types'
+import { Launcher } from './launch'
+import type { LaunchDeps } from './launch'
+import type { ArcadeConfig, Game } from '../shared/types'
 
 // GPU flags: keep the hardware path active on booth hardware.
 app.commandLine.appendSwitch('ignore-gpu-blocklist')
@@ -66,6 +70,145 @@ async function loadConfig(): Promise<ArcadeConfig> {
 }
 
 let win: BrowserWindow | null = null
+
+// ── Games cache ───────────────────────────────────────────────────────────────
+// `games:list` populates this so `game:launch` can resolve id → Game without a
+// second filesystem scan.  Set to null until the first `games:list` call.
+let cachedGames: Game[] | null = null
+
+// ── Web-game view ─────────────────────────────────────────────────────────────
+// A `WebContentsView` layered over the shell window when a web game is running.
+// Created on first web launch, reused thereafter.
+let webView: WebContentsView | null = null
+
+// Back-hint overlay text shown while a web game is active.
+const WEB_BACK_HINT = 'Hold START / press Esc to return to the menu'
+
+/** Lay out `webView` to cover the full window client area. */
+function sizeWebView(): void {
+  if (!win || !webView) return
+  const [w, h] = win.getContentSize()
+  webView.setBounds({ x: 0, y: 0, width: w, height: h })
+}
+
+/** Create the web view and attach it to `win`. Called at most once. */
+function ensureWebView(): WebContentsView {
+  if (webView) return webView
+
+  if (!win) throw new Error('ensureWebView called before window exists')
+
+  webView = new WebContentsView({
+    webPreferences: { sandbox: true, nodeIntegration: false },
+  })
+
+  win.contentView.addChildView(webView)
+  sizeWebView()
+
+  // Resize the overlay whenever the window resizes.
+  win.on('resize', sizeWebView)
+
+  // Navigation failure: notify the renderer so the user can escape.
+  webView.webContents.on('did-fail-load', (_e, code, desc, url, isMain) => {
+    if (!isMain) return // ignore sub-frame failures
+    console.error(`[arcade] web game load failed: ${code} ${desc} ${url}`)
+    win?.webContents.send('game:error', `Web game failed to load (${desc})`)
+    // Show the shell back; the launcher's back() will also close the view but
+    // we've already surfaced the error so the user can navigate away.
+    win?.show()
+    win?.focus()
+    if (webView) {
+      win?.contentView.removeChildView(webView)
+      webView.webContents.loadURL('about:blank').catch(() => {})
+    }
+    win?.webContents.send('game:returned')
+  })
+
+  return webView
+}
+
+/** Build the real `LaunchDeps` for production use. */
+function buildLaunchDeps(): LaunchDeps {
+  return {
+    spawn(exec) {
+      const child = nodeSpawn(exec, [], { detached: false })
+      return {
+        onExit(cb) {
+          child.on('exit', (code) => cb(code))
+        },
+        onError(cb) {
+          child.on('error', (err) => cb(err))
+        },
+      }
+    },
+
+    chmodExec: (path) => chmod(path, 0o755),
+
+    hideShell() {
+      win?.hide()
+    },
+
+    showShell() {
+      win?.show()
+      win?.focus()
+    },
+
+    notifyReturned() {
+      win?.webContents.send('game:returned')
+    },
+
+    notifyError(msg) {
+      win?.webContents.send('game:error', msg)
+    },
+
+    loadWeb(url) {
+      const view = ensureWebView()
+      sizeWebView()
+      view.webContents.loadURL(url).catch(err => {
+        console.error(`[arcade] loadURL error: ${err}`)
+      })
+      // Bring the view to the front and inject the back-hint overlay.
+      if (win) {
+        win.contentView.addChildView(view) // addChildView is idempotent for existing children
+        // Inject a minimal back-hint bar once the page finishes loading.
+        view.webContents.once('did-finish-load', () => {
+          view.webContents
+            .executeJavaScript(`
+              (function(){
+                const existing = document.getElementById('__arcade_back_hint');
+                if (existing) existing.remove();
+                const bar = document.createElement('div');
+                bar.id = '__arcade_back_hint';
+                Object.assign(bar.style, {
+                  position:'fixed', bottom:'0', left:'0', right:'0',
+                  padding:'6px 16px', background:'rgba(5,7,15,0.85)',
+                  color:'#7cf3ff', fontFamily:'monospace', fontSize:'12px',
+                  textAlign:'center', zIndex:'2147483647', pointerEvents:'none',
+                  letterSpacing:'0.1em',
+                });
+                bar.textContent = ${JSON.stringify(WEB_BACK_HINT)};
+                document.body.appendChild(bar);
+              })();
+            `)
+            .catch(() => {})
+        })
+      }
+      // Register global Escape while web game is active.
+      globalShortcut.register('Escape', () => launcher.back())
+    },
+
+    closeWeb() {
+      // Unregister the Escape shortcut (back to normal kiosk navigation).
+      globalShortcut.unregister('Escape')
+      if (webView && win) {
+        win.contentView.removeChildView(webView)
+        webView.webContents.loadURL('about:blank').catch(() => {})
+      }
+    },
+  }
+}
+
+// Lazy-initialised singleton launcher; created after app is ready.
+let launcher: Launcher
 
 function createWindow(): void {
   win = new BrowserWindow({
@@ -125,16 +268,34 @@ app.whenReady().then(() => {
 
   ipcMain.handle('games:list', async () => {
     const games = await buildGamesList(gamesDir, cacheDir)
+    cachedGames = games
     console.log(`[arcade] games dir: ${gamesDir} — ${games.length} game(s)`)
     return games
   })
 
-  // Placeholder: real launch impl is a later task.
-  ipcMain.handle('game:launch', async (_event, _id: string) => {
-    // TODO: Task 10 — launch AppImage or open web game.
+  ipcMain.handle('game:launch', async (_event, id: string) => {
+    // Resolve the game from the cache; rebuild if not yet populated.
+    if (!cachedGames) {
+      cachedGames = await buildGamesList(gamesDir, cacheDir)
+    }
+    const game = cachedGames.find(g => g.id === id)
+    if (!game) {
+      console.error(`[arcade] game:launch — unknown id "${id}"`)
+      win?.webContents.send('game:error', `Unknown game id: ${id}`)
+      return
+    }
+    console.log(`[arcade] launching "${game.name}" (${game.kind})`)
+    launcher.launch(game)
+  })
+
+  ipcMain.handle('game:back', () => {
+    launcher.back()
   })
 
   createWindow()
+
+  // Initialise the launcher after the window exists.
+  launcher = new Launcher(buildLaunchDeps())
 
   // Admin escape hatches — kiosk hides all browser chrome so these are
   // the only way out during a booth deployment.

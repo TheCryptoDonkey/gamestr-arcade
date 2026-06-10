@@ -100,6 +100,15 @@ export class Carousel {
     return () => this.external.delete(listener)
   }
 
+  /**
+   * Re-render the current game in place (no animation).
+   * Called when returning from a web game — the overlay is gone but the carousel
+   * DOM is intact; this ensures the hero and content are freshly painted.
+   */
+  refocus(): void {
+    this.renderImmediate(this.model.current(), this.model.currentIndex)
+  }
+
   // ── DOM construction ─────────────────────────────────────────────────────────
 
   private build(): void {

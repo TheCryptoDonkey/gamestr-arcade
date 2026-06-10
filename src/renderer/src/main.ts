@@ -94,11 +94,29 @@ async function boot(): Promise<void> {
   // Seed the board with the initial selection (onChange only fires on movement).
   showBoard?.(carousel.current().gameId)
 
+  // ── Toast for launch errors ──────────────────────────────────────────────────
+  function showErrorToast(msg: string): void {
+    const existing = host.querySelector<HTMLElement>('.launch-error-toast')
+    if (existing) existing.remove()
+    const el = document.createElement('div')
+    el.className = 'launch-error-toast'
+    el.textContent = msg
+    host.appendChild(el)
+    window.setTimeout(() => el.remove(), 5000)
+  }
+
+  // ── Launch / back ────────────────────────────────────────────────────────────
+  // `inWebGame` tracks whether a web game is currently running so that the
+  // input controller routes Back/Escape to the exit path while in-game.
+  let inWebGame = false
+
   const launch = (): void => {
+    if (inWebGame) return
     audio.playSelect()
     const game = carousel.current()
     if (inElectron) {
       void window.arcade.launch(game.id)
+      if (game.kind === 'web') inWebGame = true
     } else {
       // No-op in the browser preview; pulse the CTA so the press is visible.
       host.classList.add('cta-fired')
@@ -106,14 +124,20 @@ async function boot(): Promise<void> {
     }
   }
 
+  const backFromGame = (): void => {
+    if (!inElectron || !inWebGame) {
+      audio.playBack()
+      return
+    }
+    audio.playBack()
+    void window.arcade.back()
+  }
+
   const input = new InputController({
     onPrev: () => carousel.prev(),
     onNext: () => carousel.next(),
     onLaunch: launch,
-    onBack: () => {
-      audio.playBack()
-      /* reserved for in-app web-game view (later task) */
-    },
+    onBack: backFromGame,
     onActivity: () => {
       // First real input resumes the audio context (browser autoplay gate).
       audio.resume()
@@ -129,8 +153,15 @@ async function boot(): Promise<void> {
     else if (e.key === 'm' || e.key === 'M') audio.toggleMute()
   })
 
-  // Returning from a launched game re-focuses the window; nothing else needed yet.
-  if (inElectron) window.arcade.onReturn(() => host.focus())
+  // Returning from a launched game re-focuses the carousel.
+  if (inElectron) {
+    window.arcade.onReturn(() => {
+      inWebGame = false
+      carousel.refocus()
+      host.focus()
+    })
+    window.arcade.onError(msg => showErrorToast(msg))
+  }
 
   // Expose tiny hooks so design-verification scripts can drive the cabinet
   // deterministically without synthesising key events. Browser-only.
