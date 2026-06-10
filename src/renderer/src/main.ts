@@ -11,9 +11,16 @@
  */
 
 import './styles/carousel.css'
+import './styles/leaderboard.css'
+import './styles/attract.css'
+import './styles/crt.css'
 import { Carousel } from './ui/carousel'
 import { InputController } from './ui/input'
-import type { Game } from '../../shared/types'
+import { mountLeaderboard } from './ui/leaderboard-panel'
+import { ArcadeAudio } from './ui/audio'
+import { AttractMode } from './ui/attract'
+import { CrtOverlay } from './ui/crt'
+import type { ArcadeConfig, Game } from '../../shared/types'
 
 const inElectron = typeof window.arcade !== 'undefined'
 
@@ -23,6 +30,12 @@ async function loadGames(): Promise<Game[]> {
   // out of the Electron bundle entirely.
   const { MOCK_GAMES } = await import('./mock-games')
   return MOCK_GAMES
+}
+
+async function loadConfig(): Promise<ArcadeConfig> {
+  if (inElectron) return window.arcade.getConfig()
+  const { MOCK_CONFIG } = await import('./mock-config')
+  return MOCK_CONFIG
 }
 
 function showMessage(host: HTMLElement, text: string): void {
@@ -37,8 +50,9 @@ async function boot(): Promise<void> {
   showMessage(host, 'GAMESTR ARCADE<span class="boot-dim">booting…</span>')
 
   let games: Game[]
+  let config: ArcadeConfig
   try {
-    games = await loadGames()
+    ;[games, config] = await Promise.all([loadGames(), loadConfig()])
   } catch (err) {
     showMessage(host, `Failed to load games<span class="boot-dim">${String(err)}</span>`)
     return
@@ -51,7 +65,37 @@ async function boot(): Promise<void> {
 
   const carousel = new Carousel(games, host)
 
+  // ── Wow-layer: audio, leaderboard, attract, CRT ────────────────────────────
+  // In kiosk mode autoplay is permitted (see main), so SFX start un-muted; in a
+  // browser preview they stay silent until the first gesture resumes the ctx.
+  const audio = new ArcadeAudio({ muted: false })
+
+  // Leaderboard board on the right (null when provider is 'none').
+  const showBoard = mountLeaderboard(host, config, inElectron)
+
+  // CRT overlay mounted at the carousel's `.crt-anchor`, gated by config.
+  const crtAnchor = host.querySelector<HTMLElement>('.crt-anchor') ?? host
+  const crt = new CrtOverlay(crtAnchor, { enabled: config.theme.crt })
+
+  // Attract mode (idle demo loop). Overlays the cabinet under the CRT.
+  const attract = new AttractMode(crtAnchor, {
+    timeoutMs: config.attractTimeoutMs,
+    carousel,
+    audio,
+  })
+  attract.start()
+
+  // Drive the board + SFX off carousel selection. Suppress the move blip while
+  // attract is auto-advancing so only the drone is heard in demo mode.
+  carousel.onChange(game => {
+    showBoard?.(game.gameId)
+    if (!attract.isActive) audio.playMove()
+  })
+  // Seed the board with the initial selection (onChange only fires on movement).
+  showBoard?.(carousel.current().gameId)
+
   const launch = (): void => {
+    audio.playSelect()
     const game = carousel.current()
     if (inElectron) {
       void window.arcade.launch(game.id)
@@ -67,18 +111,36 @@ async function boot(): Promise<void> {
     onNext: () => carousel.next(),
     onLaunch: launch,
     onBack: () => {
+      audio.playBack()
       /* reserved for in-app web-game view (later task) */
+    },
+    onActivity: () => {
+      // First real input resumes the audio context (browser autoplay gate).
+      audio.resume()
+      attract.onActivity()
     },
   })
   input.start()
 
+  // Demo / admin keys: `c` toggles the CRT, `m` toggles mute. These are
+  // intentionally outside InputController (they are not game-navigation intents).
+  window.addEventListener('keydown', e => {
+    if (e.key === 'c' || e.key === 'C') crt.toggle()
+    else if (e.key === 'm' || e.key === 'M') audio.toggleMute()
+  })
+
   // Returning from a launched game re-focuses the window; nothing else needed yet.
   if (inElectron) window.arcade.onReturn(() => host.focus())
 
-  // Expose a tiny hook so design-verification scripts can drive selection
+  // Expose tiny hooks so design-verification scripts can drive the cabinet
   // deterministically without synthesising key events. Browser-only.
   if (!inElectron) {
-    ;(window as unknown as { __carousel?: Carousel }).__carousel = carousel
+    Object.assign(window as unknown as Record<string, unknown>, {
+      __carousel: carousel,
+      __crt: crt,
+      __attract: attract,
+      __audio: audio,
+    })
   }
 }
 
