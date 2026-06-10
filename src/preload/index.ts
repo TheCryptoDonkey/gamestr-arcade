@@ -6,14 +6,10 @@
  * Never leak Node / Electron internals to the renderer.
  */
 
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron'
 
-// Expose the toolkit API under `window.electron` for the renderer.
-if (process.contextIsolated) {
-  try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-  } catch (err) {
-    console.error('[preload] contextBridge.exposeInMainWorld failed:', err)
-  }
-}
+contextBridge.exposeInMainWorld('arcade', {
+  listGames: () => ipcRenderer.invoke('games:list'),
+  launch: (id: string) => ipcRenderer.invoke('game:launch', id),
+  onReturn: (cb: () => void) => ipcRenderer.on('game:returned', () => cb()),
+})
