@@ -1,0 +1,15 @@
+appId: dev.forgesworn.gamestr-arcade
+productName: gamestr arcade
+
+directories:
+  output: release
+  buildResources: resources
+
+files:
+  - out/**
+
+linux:
+  target: [AppImage]
+  category: Game
+  icon: resources/icon.png
+  artifactName: gamestr-arcade-${version}-${arch}.AppImage
