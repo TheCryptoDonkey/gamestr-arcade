@@ -1,5 +1,19 @@
 export type GameKind = 'appimage' | 'web'
 
+/**
+ * Per-game gamepad→keyboard mapping.
+ *
+ * Each value is a key string as used in `KeyboardEvent.key` (e.g. `"ArrowLeft"`,
+ * `"Space"`, `"a"`). Omitted entries fall back to the global DEFAULT_CONTROLS.
+ */
+export interface GameControls {
+  up?: string
+  down?: string
+  left?: string
+  right?: string
+  fire?: string
+}
+
 export interface Game {
   id: string            // stable slug (folder or filename)
   name: string
@@ -15,6 +29,7 @@ export interface Game {
   hero?: string         // absolute path to hero png|mp4
   accent?: string       // hex colour
   sounds?: { music?: string; voice?: string }
+  controls?: GameControls  // gamepad→keyboard overrides for this game
   order: number
 }
 

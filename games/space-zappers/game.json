@@ -4,5 +4,10 @@
   "url": "https://www.spacezappers.com/",
   "gameId": "space-zappers",
   "order": 11,
-  "accent": "#06b6d4"
+  "accent": "#06b6d4",
+  "controls": {
+    "left": "ArrowLeft",
+    "right": "ArrowRight",
+    "fire": "Space"
+  }
 }

@@ -17,7 +17,7 @@ import type { LocalServer } from './local-server'
 import { DEFAULT_CONFIG, parseConfig } from './config'
 import { Launcher } from './launch'
 import type { LaunchDeps } from './launch'
-import type { ArcadeConfig, Game } from '../shared/types'
+import type { ArcadeConfig, Game, GameControls } from '../shared/types'
 
 // GPU flags: keep the hardware path active on booth hardware.
 app.commandLine.appendSwitch('ignore-gpu-blocklist')
@@ -172,9 +172,20 @@ function buildLaunchDeps(): LaunchDeps {
       win?.webContents.send('game:error', msg)
     },
 
-    loadWeb(url) {
+    loadWeb(url, controls?: GameControls) {
       const view = ensureWebView()
       sizeWebView()
+
+      // Send the resolved controls mapping to the webgame preload once the page
+      // has finished loading (and again on any subsequent reload so remaps take
+      // effect). The preload merges the per-game overrides with DEFAULT_CONTROLS.
+      const sendControls = () => {
+        view.webContents.send('arcade:controls', controls ?? {})
+      }
+      // Remove any previous listener to avoid accumulation across launches.
+      view.webContents.removeAllListeners('did-finish-load')
+      view.webContents.on('did-finish-load', sendControls)
+
       view.webContents.loadURL(url).catch(err => {
         console.error(`[arcade] loadURL error: ${err}`)
       })

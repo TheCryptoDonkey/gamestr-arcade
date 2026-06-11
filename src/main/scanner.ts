@@ -81,6 +81,7 @@ async function build(
     accent: meta?.accent,
     sounds: { music: (await exists(join(dir, 'music.ogg'))) ? join(dir, 'music.ogg') : undefined,
               voice: (await exists(join(dir, 'voice.ogg'))) ? join(dir, 'voice.ogg') : undefined },
+    controls: meta?.controls ?? undefined,
     order: typeof meta?.order === 'number' ? meta.order : 999
   }
 }

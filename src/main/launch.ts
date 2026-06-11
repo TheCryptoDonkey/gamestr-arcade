@@ -13,7 +13,7 @@
  * logic path only; actual execution is unverified on macOS.
  */
 
-import type { Game } from '../shared/types'
+import type { Game, GameControls } from '../shared/types'
 
 // ── Deps interface ────────────────────────────────────────────────────────────
 
@@ -44,8 +44,8 @@ export interface LaunchDeps {
   notifyReturned(): void
   /** Notify the renderer of a launch error with a human-readable message. */
   notifyError(msg: string): void
-  /** Load `url` into the web view (creates it if needed). */
-  loadWeb(url: string): void
+  /** Load `url` into the web view (creates it if needed). Send `controls` to the preload after load. */
+  loadWeb(url: string, controls?: GameControls): void
   /** Close the web view and reveal the shell. */
   closeWeb(): void
 }
@@ -143,7 +143,7 @@ export class Launcher {
       this.running = false
       return
     }
-    this.deps.loadWeb(url)
+    this.deps.loadWeb(url, game.controls)
     // The shell stays visible; the web view is layered on top.
     // back() returns control to the grid.
   }
