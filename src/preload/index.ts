@@ -13,6 +13,14 @@ contextBridge.exposeInMainWorld('arcade', {
   listGames: () => ipcRenderer.invoke('games:list'),
   launch: (id: string) => ipcRenderer.invoke('game:launch', id),
   back: () => ipcRenderer.invoke('game:back'),
-  onReturn: (cb: () => void) => ipcRenderer.on('game:returned', () => cb()),
-  onError: (cb: (msg: string) => void) => ipcRenderer.on('game:error', (_e, msg: string) => cb(msg)),
+  onReturn: (cb: () => void) => {
+    // F5 (admin rescan) re-runs the preload — removeAllListeners ensures only
+    // one handler survives each reload (prevents stacking across hot-reloads).
+    ipcRenderer.removeAllListeners('game:returned')
+    ipcRenderer.on('game:returned', () => cb())
+  },
+  onError: (cb: (msg: string) => void) => {
+    ipcRenderer.removeAllListeners('game:error')
+    ipcRenderer.on('game:error', (_e, msg: string) => cb(msg))
+  },
 })
