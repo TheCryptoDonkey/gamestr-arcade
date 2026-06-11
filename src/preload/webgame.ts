@@ -1,12 +1,12 @@
 /**
  * gamestr-arcade — web-game view preload.
  *
- * Injected into the `WebContentsView` that hosts third-party web games.
- * The game view has focus while it runs, so the launcher's renderer can no
- * longer poll `navigator.getGamepads()`.  This preload bridges the gap:
+ * Injected into the `WebContentsView` that hosts a launched web game. The game
+ * view has focus while it runs, so the launcher's renderer can no longer poll
+ * `navigator.getGamepads()`. This preload bridges the gap:
  *   - Polls gamepads via `requestAnimationFrame` (inside the focused view).
- *   - Detects a hold of the Start button (index 9, ≥ 700 ms) and sends
- *     `game:back` to the main process.
+ *   - A single press of a MENU button sends `game:back` to the main process,
+ *     which returns straight to the main gamestr arcade menu.
  *   - Also catches `Escape` keydown as a keyboard backup.
  *   - Injects a small, unobtrusive on-screen hint bar.
  *
@@ -18,67 +18,31 @@
 
 import { ipcRenderer } from 'electron'
 
-// ── Exit hold detector (pure, exported for unit tests) ────────────────────────
-
-/** Index of the gamepad button used to exit (Standard Mapping: Start). */
-export const EXIT_BUTTON_INDEX = 9
-
-/** How long (ms) the button must be held before exit fires. */
-export const HOLD_THRESHOLD_MS = 700
+// ── Menu-button detector (pure, exported for unit tests) ──────────────────────
 
 /**
- * Tracks the hold state of the exit button across animation frames.
- *
- * Designed to be instantiated once per web-view and driven by the RAF loop;
- * constructed with an injectable `now` function so unit tests can control time.
+ * Gamepad button indices that act as "menu / back" in the Standard Mapping —
+ * a single press of any of these returns to the main menu. We accept several
+ * so that whatever a given cabinet/controller labels "menu" just works:
+ *   8  — Select / View / Back / Share
+ *   9  — Start / Menu / Options
+ *   16 — Guide / Home (when the controller exposes it)
  */
-export class ExitHoldDetector {
-  private readonly holdThresholdMs: number
-  private readonly now: () => number
+export const MENU_BUTTON_INDICES = [8, 9, 16]
 
-  /** Timestamp (ms) when the button first went down; null when not held. */
-  private holdSince: number | null = null
-  /** True once exit has fired for this hold cycle — prevents double-fire. */
-  private fired = false
+/**
+ * Rising-edge detector. Fires `true` exactly once when the menu button goes
+ * from not-pressed to pressed, then stays silent until released — so a single
+ * press triggers one exit and holding it doesn't repeat. Pure; no time needed.
+ */
+export class MenuPressDetector {
+  private wasPressed = false
 
-  constructor(opts: { holdThresholdMs?: number; now?: () => number } = {}) {
-    this.holdThresholdMs = opts.holdThresholdMs ?? HOLD_THRESHOLD_MS
-    this.now = opts.now ?? (() => performance.now())
-  }
-
-  /**
-   * Call once per RAF frame with the current pressed state of the exit button.
-   *
-   * Returns `true` exactly once per hold cycle (when the threshold is first
-   * crossed).  Returns `false` on every other call.
-   */
+  /** Call once per RAF frame with whether any menu button is currently pressed. */
   update(pressed: boolean): boolean {
-    const t = this.now()
-
-    if (!pressed) {
-      // Button released — reset so the next hold can fire again.
-      this.holdSince = null
-      this.fired = false
-      return false
-    }
-
-    if (this.holdSince === null) {
-      // Button just went down.
-      this.holdSince = t
-      return false
-    }
-
-    if (this.fired) {
-      // Already fired this hold cycle — wait for release.
-      return false
-    }
-
-    if (t - this.holdSince >= this.holdThresholdMs) {
-      this.fired = true
-      return true
-    }
-
-    return false
+    const fire = pressed && !this.wasPressed
+    this.wasPressed = pressed
+    return fire
   }
 }
 
@@ -104,7 +68,7 @@ function injectHintBar(): void {
     pointerEvents: 'none',
     letterSpacing: '0.1em',
   })
-  bar.textContent = 'HOLD START (0.7s) or press Esc → menu'
+  bar.textContent = 'MENU button (or Esc) → back to gamestr arcade'
   document.body?.appendChild(bar)
 }
 
@@ -125,18 +89,21 @@ function initKeyboardExit(): void {
 // ── Gamepad RAF loop ──────────────────────────────────────────────────────────
 
 function initGamepadExit(): void {
-  const detector = new ExitHoldDetector()
+  const detector = new MenuPressDetector()
 
   function tick(): void {
     const pads = navigator.getGamepads()
     let pressed = false
     for (const pad of pads) {
       if (!pad) continue
-      const btn = pad.buttons[EXIT_BUTTON_INDEX]
-      if (btn && btn.pressed) {
-        pressed = true
-        break
+      for (const idx of MENU_BUTTON_INDICES) {
+        const btn = pad.buttons[idx]
+        if (btn && btn.pressed) {
+          pressed = true
+          break
+        }
       }
+      if (pressed) break
     }
 
     if (detector.update(pressed)) {
@@ -151,10 +118,9 @@ function initGamepadExit(): void {
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 // Guard with typeof checks so the module can be imported in Node (vitest) for
-// unit-testing ExitHoldDetector without triggering DOM / RAF side-effects.
+// unit-testing the detector without triggering DOM / RAF side-effects.
 
 if (typeof document !== 'undefined') {
-  // Wait for the DOM so we can append the hint bar safely.
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', injectHintBar)
   } else {
