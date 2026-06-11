@@ -7,6 +7,7 @@ export interface Game {
   kind: GameKind
   exec?: string         // absolute .AppImage path (kind === 'appimage')
   url?: string          // web url (kind === 'web')
+  localSite?: boolean   // true when url points to the local mirror server
   gameId: string        // kind-30762 `game` tag value (leaderboard key)
   tHints?: string[]     // optional `#t` server-side filter hints; defaults to [gameId]
   logo: string          // absolute path to resolved logo png

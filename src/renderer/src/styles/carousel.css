@@ -509,6 +509,27 @@
   box-shadow: 0 0 12px var(--accent-glow);
 }
 
+/* ── LOCAL mirror badge ───────────────────────────────────────────────────────── */
+/* A tiny chip in the top-right corner of a tile so the booth operator can see
+   at a glance which games are served from the local mirror (no internet needed). */
+.tile-local-badge {
+  position: absolute;
+  top: 0.28rem;
+  right: 0.28rem;
+  padding: 0.14rem 0.35rem;
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 0.42rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #05070f;
+  background: var(--tile-accent);
+  border-radius: 0.25rem;
+  line-height: 1.3;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
 /* ── Boot / empty / error message ────────────────────────────────────────────── */
 .boot-message {
   position: absolute;

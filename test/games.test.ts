@@ -90,9 +90,9 @@ describe('buildGamesList', () => {
   it('skips the empty folder and returns only scannable games', async () => {
     const games = await buildGamesList(FIXTURES_DIR, FAKE_CACHE)
     expect(games.find(g => g.id === 'zzz-empty')).toBeUndefined()
-    // Fixtures: neon (web), exec-only (appimage via exec), exec-relative (appimage via exec).
-    // zzz-empty has neither url nor exec nor AppImage → not scanned.
-    expect(games.length).toBe(3)
+    // Fixtures: neon (web), exec-only (appimage via exec), exec-relative (appimage via exec),
+    // mirrored (web with site/). zzz-empty has neither url nor exec nor AppImage → skipped.
+    expect(games.length).toBe(4)
   })
 
   it('preserves game metadata from game.json', async () => {
@@ -117,5 +117,43 @@ describe('buildGamesList', () => {
   it('returns an empty array for a non-existent directory', async () => {
     const games = await buildGamesList('/tmp/does-not-exist-arcade', FAKE_CACHE)
     expect(games).toEqual([])
+  })
+
+  describe('local mirror resolution', () => {
+    it('rewrites url to http://127.0.0.1 and sets localSite:true when site/index.html exists', async () => {
+      const PORT = 54321
+      const games = await buildGamesList(FIXTURES_DIR, FAKE_CACHE, PORT)
+      const mirrored = games.find(g => g.id === 'mirrored')
+      expect(mirrored).toBeTruthy()
+      expect(mirrored!.kind).toBe('web')
+      expect(mirrored!.url).toBe(`http://127.0.0.1:${PORT}/mirrored/site/`)
+      expect(mirrored!.localSite).toBe(true)
+    })
+
+    it('keeps remote url and no localSite when site/index.html is absent', async () => {
+      const PORT = 54321
+      const games = await buildGamesList(FIXTURES_DIR, FAKE_CACHE, PORT)
+      const neon = games.find(g => g.id === 'neon')
+      expect(neon).toBeTruthy()
+      expect(neon!.url).toBe('https://example.test/neon')
+      expect(neon!.localSite).toBeFalsy()
+    })
+
+    it('leaves appimage games unchanged when localPort is provided', async () => {
+      const PORT = 54321
+      const games = await buildGamesList(FIXTURES_DIR, FAKE_CACHE, PORT)
+      const appGames = games.filter(g => g.kind === 'appimage')
+      expect(appGames.length).toBeGreaterThan(0)
+      for (const g of appGames) {
+        expect(g.localSite).toBeFalsy()
+      }
+    })
+
+    it('behaves identically to no-port call when localPort is undefined', async () => {
+      const withPort = await buildGamesList(FIXTURES_DIR, FAKE_CACHE, undefined)
+      const withoutPort = await buildGamesList(FIXTURES_DIR, FAKE_CACHE)
+      // Without a port, no local rewrites should happen.
+      expect(withPort).toEqual(withoutPort)
+    })
   })
 })

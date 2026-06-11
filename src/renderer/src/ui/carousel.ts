@@ -322,6 +322,15 @@ export class Carousel {
       cap.textContent = game.name
       tile.appendChild(cap)
 
+      // LOCAL badge — shown when the game is served from the local mirror server.
+      if (game.localSite) {
+        const badge = document.createElement('span')
+        badge.className = 'tile-local-badge'
+        badge.textContent = 'LOCAL'
+        badge.setAttribute('aria-label', 'served from local mirror')
+        tile.appendChild(badge)
+      }
+
       // Clicking/tapping a tile selects it (pointer support for testing + touch).
       tile.addEventListener('click', () => this.select(this.absolute(idx)))
       frag.appendChild(tile)

@@ -12,6 +12,8 @@ import { join, resolve } from 'node:path'
 import { spawn as nodeSpawn } from 'node:child_process'
 import { is } from '@electron-toolkit/utils'
 import { buildGamesList, isPathAllowed, mediaUrlToPath, MEDIA_SCHEME } from './games'
+import { startLocalServer } from './local-server'
+import type { LocalServer } from './local-server'
 import { DEFAULT_CONFIG, parseConfig } from './config'
 import { Launcher } from './launch'
 import type { LaunchDeps } from './launch'
@@ -70,6 +72,8 @@ async function loadConfig(): Promise<ArcadeConfig> {
 }
 
 let win: BrowserWindow | null = null
+// Local static server — started once on app ready; serves mirrored game sites.
+let localServer: LocalServer | null = null
 
 // ── Games cache ───────────────────────────────────────────────────────────────
 // `games:list` populates this so `game:launch` can resolve id → Game without a
@@ -235,7 +239,7 @@ function createWindow(): void {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   const gamesDir = resolveGamesDir()
   const cacheDir = join(app.getPath('userData'), 'icon-cache')
   // App resources dir (holds the bundled placeholder icon used for every
@@ -244,6 +248,17 @@ app.whenReady().then(() => {
 
   // Roots the media protocol is permitted to serve from.
   const allowedRoots = [gamesDir, cacheDir, resourcesDir]
+
+  // ── Local static server ─────────────────────────────────────────────────
+  // Serves mirrored game sites from games/<slug>/site/ on localhost.
+  // Failures are non-fatal — games without a local mirror fall back to their
+  // remote URL as normal.
+  try {
+    localServer = await startLocalServer(gamesDir)
+    console.log(`[arcade] local server: http://127.0.0.1:${localServer.port}/`)
+  } catch (err) {
+    console.warn(`[arcade] local server: failed to start (${String(err)}) — offline mirrors unavailable`)
+  }
 
   // ── Media protocol handler ──────────────────────────────────────────────
   // Serves files from the allowed roots only; rejects path-traversal attempts.
@@ -267,9 +282,10 @@ app.whenReady().then(() => {
   })
 
   ipcMain.handle('games:list', async () => {
-    const games = await buildGamesList(gamesDir, cacheDir)
+    const games = await buildGamesList(gamesDir, cacheDir, localServer?.port)
     cachedGames = games
-    console.log(`[arcade] games dir: ${gamesDir} — ${games.length} game(s)`)
+    const localCount = games.filter(g => g.localSite).length
+    console.log(`[arcade] games dir: ${gamesDir} — ${games.length} game(s)${localCount ? ` (${localCount} local)` : ''}`)
     return games
   })
 
@@ -278,7 +294,7 @@ app.whenReady().then(() => {
     // Guard against re-entrancy: two rapid presses share a single in-flight scan.
     if (!cachedGames) {
       if (!buildingGames) {
-        buildingGames = buildGamesList(gamesDir, cacheDir).finally(() => { buildingGames = null })
+        buildingGames = buildGamesList(gamesDir, cacheDir, localServer?.port).finally(() => { buildingGames = null })
       }
       cachedGames = await buildingGames
     }
@@ -313,4 +329,7 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => app.quit())
 
-app.on('will-quit', () => globalShortcut.unregisterAll())
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll()
+  localServer?.close()
+})

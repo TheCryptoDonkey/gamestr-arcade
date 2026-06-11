@@ -12,3 +12,6 @@ games/**/*.AppImage
 
 # Design verification screenshots (local only)
 .design-shots/
+
+# Local game mirrors — served by the local static server; never committed.
+games/**/site/

@@ -7,9 +7,11 @@
  */
 
 import { join, resolve, sep } from 'node:path'
+import { stat } from 'node:fs/promises'
 import { app } from 'electron'
 import { scanGames } from './scanner'
 import { resolveIcon, realIconDeps } from './icons'
+import { localUrlFor } from './local-server'
 import type { Game } from '../shared/types'
 
 export const MEDIA_SCHEME = 'media'
@@ -73,11 +75,18 @@ function rewriteGame(game: Game): Game {
  * 2. Resolves logos via the icon resolver (sibling logo.png → cached extract → placeholder).
  * 3. Rewrites all local file paths to `media://` URLs so the renderer can load
  *    them via the registered protocol handler regardless of origin.
+ * 4. If `localPort` is provided, any web game that has a `site/index.html` mirror
+ *    under `gamesDir/<slug>/site/` has its url rewritten to the local server and
+ *    `localSite: true` is set on the game — so the carousel can badge it "LOCAL".
  *
  * Unit-testable: pass `FAKE_CACHE` for `cacheDir`; the icon resolver will fall
  * back to placeholder for any game without a `logo.png` sibling.
  */
-export async function buildGamesList(gamesDir: string, cacheDir: string): Promise<Game[]> {
+export async function buildGamesList(
+  gamesDir: string,
+  cacheDir: string,
+  localPort?: number,
+): Promise<Game[]> {
   const placeholderPng = resourcePlaceholder()
   const iconDeps = realIconDeps(placeholderPng)
 
@@ -85,7 +94,21 @@ export async function buildGamesList(gamesDir: string, cacheDir: string): Promis
     resolveIcon(g, cacheDir, iconDeps)
 
   const games = await scanGames(gamesDir, logoResolver)
-  return games.map(rewriteGame)
+  const rewritten = games.map(rewriteGame)
+
+  if (localPort === undefined) return rewritten
+
+  // Prefer local mirror: for each web game, check whether a site/index.html
+  // exists under the games dir and rewrite the url if so.
+  return Promise.all(
+    rewritten.map(async (game): Promise<Game> => {
+      if (game.kind !== 'web') return game
+      const siteIndex = join(gamesDir, game.id, 'site', 'index.html')
+      const hasMirror = await stat(siteIndex).then(s => s.isFile()).catch(() => false)
+      if (!hasMirror) return game
+      return { ...game, url: localUrlFor(localPort, game.id), localSite: true }
+    }),
+  )
 }
 
 /**
