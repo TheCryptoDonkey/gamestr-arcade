@@ -3,6 +3,7 @@ import { scanGames } from '../src/main/scanner'
 import { join } from 'node:path'
 
 const DIR = join(import.meta.dirname, 'fixtures/games')
+const REAL_GAMES = join(import.meta.dirname, '..', 'games')
 
 describe('scanGames', () => {
   it('reads a web game from game.json and skips empty folders', async () => {
@@ -44,5 +45,28 @@ describe('scanGames', () => {
   it('sorts by order then name', async () => {
     const games = await scanGames(DIR)
     expect(games.map(g => g.order)).toEqual([...games.map(g => g.order)].sort((a, b) => a - b))
+  })
+})
+
+describe('the shipped Pallasite tile', () => {
+  it('is classified as a web tile (plays in dev + booth, not a native AppImage)', async () => {
+    const games = await scanGames(REAL_GAMES)
+    const pallasite = games.find(g => g.id === 'pallasite')
+    expect(pallasite, 'pallasite tile should be scanned from games/').toBeTruthy()
+    expect(pallasite!.kind).toBe('web')
+    expect(pallasite!.url).toBe('https://pallasite.app/')
+    expect(pallasite!.exec).toBeUndefined()
+    expect(pallasite!.gameId).toBe('pallasite')
+    expect(pallasite!.order).toBe(1)
+    expect(pallasite!.accent).toBe('#7cf3ff')
+  })
+
+  it('uses the accent backdrop, not the busy og-image hero', async () => {
+    const games = await scanGames(REAL_GAMES)
+    const pallasite = games.find(g => g.id === 'pallasite')
+    // hero.png was removed so the carousel falls back to the fancy accent backdrop.
+    expect(pallasite!.hero).toBeUndefined()
+    // …but the clean cyan logo is still present for the logo-on-left treatment.
+    expect(pallasite!.logo).toMatch(/pallasite\/logo\.png$/)
   })
 })

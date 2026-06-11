@@ -26,6 +26,16 @@ const FILMSTRIP_RADIUS = 3
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
+/** Result of analysing a logo bitmap for the logo-on-left treatment. */
+interface LogoInfo {
+  /** URL to render — the trimmed data-URL for a padded cut-out, else the original. */
+  url: string
+  /** Content aspect ratio (width / height) used for the wide-vs-square decision. */
+  ratio: number
+  /** True when the art is a transparent cut-out (composite bare); false = opaque plate. */
+  transparent: boolean
+}
+
 /** A two-letter monogram for the deterministic placeholder avatar / tile glyph. */
 function monogram(name: string): string {
   const words = name.trim().split(/\s+/)
@@ -33,15 +43,60 @@ function monogram(name: string): string {
   return name.slice(0, 2).toUpperCase()
 }
 
-/** Build the accent-derived atmospheric backdrop used when a game has no hero. */
+/**
+ * Build the accent-derived "fancy" backdrop used when a game has no clean hero
+ * (or opts out, like Pallasite whose og-image clashes with logo-on-left).
+ *
+ * This is a *premium* neon backdrop — not a flat fill — so a logo-on-left tile
+ * looks great with no photographic hero. Layers, back-to-front:
+ *   1. deep diagonal space base (navy → near-black)
+ *   2. a broad accent aurora bloom on the RIGHT (balances the logo on the left)
+ *   3. a soft accent wash low-right + a faint bleed into the left third
+ *   4. (the motif + vignette + grain are separate DOM layers, see CSS)
+ *
+ * An accompanying SVG motif (concentric orbital rings) is painted as a *separate*
+ * layer via `motifBackground()` so it can sit between the wash and the vignette
+ * without being clipped by `background-size: cover` on the photographic path.
+ */
 function gradientHero(accent: string): string {
-  // Layered radial gradients give depth (a "gradient mesh") rather than a flat fill.
   return [
-    `radial-gradient(120% 90% at 18% 8%, ${accent}40 0%, transparent 55%)`,
-    `radial-gradient(90% 80% at 88% 22%, ${accent}24 0%, transparent 60%)`,
-    `radial-gradient(140% 120% at 70% 110%, ${accent}30 0%, transparent 62%)`,
-    `linear-gradient(160deg, #0a0f1f 0%, #05070f 60%, #03040a 100%)`,
+    // Right-weighted aurora bloom — the focal "where a hero render would sit".
+    `radial-gradient(72% 96% at 70% 40%, ${accent}55 0%, ${accent}26 24%, transparent 58%)`,
+    // Low-right accent wash for floor glow.
+    `radial-gradient(95% 85% at 88% 106%, ${accent}3a 0%, transparent 56%)`,
+    // A soft pool behind the logo on the LEFT so it sits in light, not on black.
+    `radial-gradient(48% 62% at 12% 64%, ${accent}28 0%, transparent 60%)`,
+    // Cool top-left haze for depth.
+    `radial-gradient(120% 90% at 14% 2%, ${accent}26 0%, transparent 50%)`,
+    // Deep diagonal base.
+    `linear-gradient(155deg, #0c1530 0%, #070c1c 50%, #03040a 100%)`,
   ].join(', ')
+}
+
+/**
+ * A concentric "orbital rings" motif as an inline-SVG data-URI, tinted to accent.
+ * Painted as its own layer (right-of-centre, behind the logo's negative space) to
+ * give the fancy backdrop an arcade subject without a literal hero or monogram.
+ */
+function motifBackground(accent: string): string {
+  const c = encodeURIComponent(accent)
+  // Concentric rings + a couple of tilted orbital ellipses + a faint core bloom,
+  // centred ~72% across (the right side) at mid-height. viewBox is 16:9.
+  const rings = [0, 1, 2, 3, 4, 5]
+    .map(i => {
+      const r = 60 + i * 70
+      const op = (0.5 - i * 0.06).toFixed(3)
+      const w = i === 1 ? 3 : 1.6
+      return `<circle cx='690' cy='300' r='${r}' fill='none' stroke='${c}' stroke-opacity='${op}' stroke-width='${w}'/>`
+    })
+    .join('')
+  const orbits =
+    `<ellipse cx='690' cy='300' rx='360' ry='128' fill='none' stroke='${c}' stroke-opacity='0.28' stroke-width='1.6' transform='rotate(-18 690 300)'/>` +
+    `<ellipse cx='690' cy='300' rx='250' ry='86' fill='none' stroke='${c}' stroke-opacity='0.32' stroke-width='1.4' transform='rotate(22 690 300)'/>`
+  const svg =
+    `<svg xmlns='http://www.w3.org/2000/svg' width='1280' height='720' viewBox='0 0 1280 720'>` +
+    `<g>${rings}${orbits}</g></svg>`
+  return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`
 }
 
 export class Carousel {
@@ -62,6 +117,18 @@ export class Carousel {
 
   private readonly external = new Set<SelectionListener>()
   private activeTl: gsap.core.Timeline | null = null
+
+  /**
+   * Cache of analysed logos keyed by source URL. Logos are shipped in two awkward
+   * shapes we must normalise for a clean logo-on-left:
+   *   - artwork centred in transparent padding (a wide wordmark in a square PNG) —
+   *     natural aspect lies about the shape, so we trim to the opaque bounds;
+   *   - an *opaque* (usually dark) background plate rather than a cut-out — which
+   *     would otherwise read as an ugly rectangle floating on the backdrop.
+   * We analyse once and reuse. `null` = analysis failed (e.g. tainted canvas) →
+   * fall back to the raw image + natural aspect + bare treatment.
+   */
+  private readonly trimmedLogo = new Map<string, LogoInfo | null>()
 
   constructor(games: readonly Game[], host: HTMLElement, startIndex = 0) {
     this.model = new CarouselModel(games, startIndex)
@@ -176,26 +243,90 @@ export class Carousel {
   private paintHero(layer: HTMLElement, game: Game): void {
     const accent = game.accent || '#7cf3ff'
     if (game.hero) {
+      // Clean photographic hero: use it as the full-bleed background. The logo
+      // still renders on the left (handled in renderLogo) — hero + logo coexist.
       layer.style.backgroundImage = `url("${game.hero}")`
-      layer.classList.remove('hero-gradient')
+      layer.style.removeProperty('--motif')
+      layer.classList.remove('hero-fancy')
       layer.classList.add('hero-image')
     } else {
+      // No clean hero → the *fancy* accent-driven neon backdrop. The orbital motif
+      // is a separate var-driven layer so it reads as a subject without a literal
+      // monogram (which would clash with the logo-on-left treatment).
       layer.style.backgroundImage = gradientHero(accent)
-      layer.classList.add('hero-gradient')
+      layer.style.setProperty('--motif', motifBackground(accent))
+      layer.classList.add('hero-fancy')
       layer.classList.remove('hero-image')
-      // Ghosted wordmark gives the gradient fallback a focal subject.
-      layer.dataset.word = monogram(game.name)
     }
   }
 
-  /** Render the foreground logo/wordmark slot for a game. */
+  /**
+   * Render the foreground logo/wordmark slot for a game.
+   *
+   * Logo-on-left is the headline element. We support both shapes of art:
+   *   - a *square* icon/medallion (e.g. Pallasite's crystal) — sized by height and
+   *     given a subtle plinth so it reads as a crisp badge, not a floating sticker;
+   *   - a *wide* wordmark (e.g. Sats-Man) — allowed to run wider, sized by width.
+   *
+   * Shape is decided from the *content* aspect (after trimming transparent padding,
+   * since logos are often a wide wordmark centred on a square canvas — see
+   * `loadTrimmedLogo`). With a logo image present the redundant H1 name is hidden.
+   *
+   * Falls back to a styled neon *name wordmark* when a game has no logo.
+   */
   private renderLogo(game: Game): void {
     if (game.logo) {
-      this.logoEl.innerHTML = `<img class="logo-img" src="${game.logo}" alt="${escapeHtml(game.name)}" />`
+      this.logoEl.classList.add('has-logo')
+      this.logoEl.classList.remove('has-word', 'is-wide', 'is-square', 'is-plated', 'is-bare')
+      const img = document.createElement('img')
+      img.className = 'logo-img'
+      img.alt = game.name
+      img.decoding = 'async'
+      img.src = game.logo
+      this.logoEl.replaceChildren(img)
+
+      // Analyse once (async). The slot defaults to a square + plated treatment via
+      // CSS until known, so there's no resize flash and an opaque logo never flashes
+      // a raw rectangle on the backdrop.
+      const logoSrc = game.logo
+      void this.loadTrimmedLogo(logoSrc).then(info => {
+        // Bail if the selection moved on while analysing (avoid cross-tagging).
+        if (this.logoEl.querySelector('img.logo-img') !== img) return
+        const ratio = info ? info.ratio : img.naturalWidth / Math.max(1, img.naturalHeight)
+        const wide = ratio >= 1.7
+        this.logoEl.classList.toggle('is-wide', wide)
+        this.logoEl.classList.toggle('is-square', !wide)
+        // A logo with real transparency composites directly (bare); an opaque
+        // background gets a deliberate "cartridge plate" so the box reads as design.
+        const bare = info ? info.transparent : false
+        this.logoEl.classList.toggle('is-bare', bare)
+        this.logoEl.classList.toggle('is-plated', !bare)
+        // Swap to the trimmed (padding-free) art so a wide wordmark fills its box
+        // instead of sitting small inside a square canvas.
+        if (info && img.getAttribute('src') !== info.url) img.src = info.url
+      })
     } else {
-      // Stylised text wordmark fallback — split for a two-tone neon treatment.
-      this.logoEl.innerHTML = `<span class="logo-word">${escapeHtml(game.name)}</span>`
+      // Stylised text wordmark fallback — oversized condensed neon.
+      this.logoEl.classList.add('has-word')
+      this.logoEl.classList.remove('has-logo', 'is-wide', 'is-square')
+      const span = document.createElement('span')
+      span.className = 'logo-word'
+      span.textContent = game.name
+      this.logoEl.replaceChildren(span)
     }
+  }
+
+  /**
+   * Analyse a logo (trim transparent padding, content aspect, transparency).
+   * Cached per source URL. Returns `null` if the image can't be read (e.g. a
+   * tainted canvas) so the caller falls back to the raw image + bare treatment.
+   */
+  private async loadTrimmedLogo(src: string): Promise<LogoInfo | null> {
+    const cached = this.trimmedLogo.get(src)
+    if (cached !== undefined) return cached
+    const result = await analyseLogo(src).catch(() => null)
+    this.trimmedLogo.set(src, result)
+    return result
   }
 
   /** Apply per-game theme + textual content (shared by immediate + animated paths). */
@@ -373,6 +504,85 @@ export class Carousel {
   }
 }
 
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
+/**
+ * Analyse a logo bitmap: detect whether it's a transparent cut-out or an opaque
+ * plate, find its content aspect ratio, and (for a padded cut-out) return the
+ * cropped content as a PNG data-URL.
+ *
+ * Logos arrive in two awkward shapes. (1) A wide wordmark (or compact icon) centred
+ * on a square canvas with transparent margins, so the *canvas* aspect lies about the
+ * *art* shape — we scan the alpha channel for the opaque bounding box and crop to it.
+ * (2) An *opaque* (usually dark) background plate rather than a cut-out — we detect
+ * this from the transparent-pixel fraction so the caller can frame it as a deliberate
+ * "cartridge plate" instead of letting a raw rectangle float on the backdrop.
+ *
+ * Rejects (caller maps to `null`) if the canvas can't be read (tainted).
+ */
+async function analyseLogo(src: string): Promise<LogoInfo> {
+  const img = await loadImage(src)
+  const w = img.naturalWidth
+  const h = img.naturalHeight
+  if (!w || !h) throw new Error('logo has no intrinsic size')
+
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+  if (!ctx) throw new Error('no 2d context')
+  ctx.drawImage(img, 0, 0)
+  const { data } = ctx.getImageData(0, 0, w, h) // throws if tainted → caller → null
+
+  // Opaque bounding box + count of transparent pixels (for the cut-out decision).
+  const ALPHA = 24
+  let top = h
+  let left = w
+  let right = -1
+  let bottom = -1
+  let transparentPx = 0
+  const total = w * h
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const a = data[(y * w + x) * 4 + 3]
+      if (a <= ALPHA) {
+        transparentPx++
+        continue
+      }
+      if (x < left) left = x
+      if (x > right) right = x
+      if (y < top) top = y
+      if (y > bottom) bottom = y
+    }
+  }
+
+  // A logo is a cut-out (composite bare) when a meaningful share of pixels are
+  // transparent; otherwise it's an opaque plate (frame it). Fully transparent art
+  // is treated as bare with the canvas aspect.
+  const transparent = transparentPx / total >= 0.06
+  if (right < left || bottom < top) return { url: src, ratio: w / h, transparent: true }
+
+  const cw = right - left + 1
+  const ch = bottom - top + 1
+  // Only crop when there's real transparent padding to remove AND the logo is a
+  // cut-out — never crop into an opaque plate (its bbox is the whole canvas anyway).
+  const padded = cw < w * 0.98 || ch < h * 0.98
+  if (!transparent || !padded) {
+    return { url: src, ratio: transparent ? cw / ch : w / h, transparent }
+  }
+
+  const out = document.createElement('canvas')
+  out.width = cw
+  out.height = ch
+  out.getContext('2d')!.drawImage(canvas, left, top, cw, ch, 0, 0, cw, ch)
+  return { url: out.toDataURL('image/png'), ratio: cw / ch, transparent: true }
+}
+
+/** Promise wrapper around HTMLImageElement load. */
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.decoding = 'async'
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error(`failed to load ${src}`))
+    img.src = src
+  })
 }

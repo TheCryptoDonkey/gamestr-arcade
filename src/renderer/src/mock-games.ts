@@ -9,6 +9,14 @@
 
 import type { Game } from '../../shared/types'
 
+// Real shipped art, imported as Vite asset URLs so the browser design-preview is
+// representative of the Electron build (which loads these same files over
+// `media://`). Dev-only — this module is never imported on the Electron path.
+import pallasiteLogo from '../../../games/pallasite/logo.png?url'
+import spaceZappersLogo from '../../../games/space-zappers/logo.png?url'
+import spaceZappersHero from '../../../games/space-zappers/hero.png?url'
+import satsManLogo from '../../../games/sats-man/logo.png?url'
+
 /**
  * A data-URI SVG hero so the browser preview has real full-bleed art (the
  * Electron build loads bitmap heroes over `media://`). Tuned per game to look
@@ -109,29 +117,50 @@ function renderMotif(motif: string, accent: string): string {
 }
 
 export const MOCK_GAMES: Game[] = [
+  // ── Real art (representative of the Electron build) ─────────────────────────
+  // Pallasite: square cyan crystal logo + NO hero → exercises logo-on-left over
+  // the fancy accent backdrop (its busy og-image hero was removed deliberately).
   {
     id: 'pallasite',
     name: 'Pallasite',
     tagline: 'Cosmic arcade Asteroids — mine the belt, top the chain.',
-    kind: 'appimage',
+    kind: 'web',
+    url: 'https://pallasite.app/',
     gameId: 'pallasite',
     order: 0,
     accent: '#7cf3ff',
-    logo: '',
-    hero: svgHero({ base: '#06101f', glow: '#0e3a52', accent: '#7cf3ff', motif: 'rings' }),
+    logo: pallasiteLogo,
   },
+  // Space Zappers: real photographic hero + square logo → logo-on-left coexisting
+  // with a clean full-bleed hero background.
   {
-    id: 'axenstax',
-    name: 'AxeNStax',
-    tagline: 'Stack the blocks. Split the axe. Outlast the mempool.',
+    id: 'space-zappers',
+    name: 'Space Zappers',
+    tagline: 'Zap the alien invaders — Space Invaders on Nostr.',
     kind: 'web',
-    url: 'https://example.test/axenstax',
-    gameId: 'axenstax',
+    url: 'https://www.spacezappers.com/',
+    gameId: 'space-zappers',
     order: 1,
-    accent: '#ff4d8d',
-    logo: '',
-    hero: svgHero({ base: '#160512', glow: '#4a0f2c', accent: '#ff4d8d', motif: 'shards' }),
+    accent: '#06b6d4',
+    logo: spaceZappersLogo,
+    hero: spaceZappersHero,
   },
+  // Sats-Man: WIDE gold wordmark logo + NO hero → exercises the wide-logo caps
+  // over the fancy backdrop with a warm accent.
+  {
+    id: 'sats-man',
+    name: 'Sats-Man',
+    tagline: 'Bitcoin-themed Pac-Man arcade on Nostr.',
+    kind: 'web',
+    url: 'https://sats-man.com/',
+    gameId: 'sats-man',
+    order: 2,
+    accent: '#eab308',
+    logo: satsManLogo,
+  },
+  // ── Synthetic entries — exercise the remaining paths ────────────────────────
+  // A synthetic photographic-style hero (SVG) + logo-less → name-wordmark fallback
+  // rendered ON a hero. Confirms the fallback wordmark reads on busy art.
   {
     id: 'hash-dash',
     name: 'Hash Dash',
@@ -139,22 +168,12 @@ export const MOCK_GAMES: Game[] = [
     kind: 'web',
     url: 'https://example.test/hash-dash',
     gameId: 'hash-dash',
-    order: 2,
+    order: 3,
     accent: '#9b5cff',
     logo: '',
     hero: svgHero({ base: '#0c0820', glow: '#2a1a5e', accent: '#9b5cff', motif: 'grid' }),
   },
-  {
-    id: 'satori-rush',
-    name: 'Satori Rush',
-    tagline: 'Catch the flow. Chain the combo. Reach satori.',
-    kind: 'appimage',
-    gameId: 'satori-rush',
-    order: 3,
-    accent: '#36e2a4',
-    logo: '',
-    hero: svgHero({ base: '#03140f', glow: '#0c4030', accent: '#36e2a4', motif: 'waves' }),
-  },
+  // Logo-less + NO hero → name-wordmark fallback over the fancy accent backdrop.
   {
     id: 'lumen-drift',
     name: 'Lumen Drift',
@@ -165,6 +184,5 @@ export const MOCK_GAMES: Game[] = [
     order: 4,
     accent: '#ffb547',
     logo: '',
-    hero: svgHero({ base: '#160d02', glow: '#4a2e08', accent: '#ffb547', motif: 'orbit' }),
   },
 ]

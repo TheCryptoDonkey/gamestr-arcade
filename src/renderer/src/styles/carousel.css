@@ -94,21 +94,69 @@
   transform: translateZ(0);
 }
 
-/* Ghosted monogram behind the gradient fallback gives it a focal subject. */
-.hero-gradient::after {
-  content: attr(data-word);
+/* ── Fancy accent backdrop (games with no clean hero, or that opt out) ─────────
+   A premium neon backdrop, not a flat fill. The layered gradients are set inline
+   by `gradientHero()`; here we add the orbital MOTIF + a slow aurora drift + a
+   faint scanning beam, so a logo-on-left tile reads as a designed cabinet rather
+   than empty space. The motif is a per-layer var (`--motif`) so it cross-fades
+   with its own hero layer during transitions. */
+.hero-fancy {
+  background-size: cover;
+  background-position: center;
+}
+
+/* Orbital-rings motif, right-of-centre (kept clear of the leaderboard panel that
+   occupies the far right) — the abstract "subject" of a hero-less tile. */
+.hero-fancy::before {
+  content: '';
   position: absolute;
-  right: 4vw;
-  top: 50%;
-  transform: translateY(-54%);
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 46vh;
-  line-height: 0.8;
-  letter-spacing: -0.04em;
-  color: var(--accent);
-  opacity: 0.08;
-  filter: blur(1px);
+  inset: 0;
+  background-image: var(--motif, none);
+  background-repeat: no-repeat;
+  background-position: 60% 44%;
+  background-size: 80% auto;
+  opacity: 0.8;
+  mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(64% 78% at 60% 44%, #000 36%, transparent 76%);
+  mask-image: radial-gradient(64% 78% at 60% 44%, #000 36%, transparent 76%);
+  animation: motif-spin 90s linear infinite;
+  transform-origin: 60% 44%;
+}
+
+/* A broad aurora sweep that breathes — gives the flat backdrop living depth. */
+.hero-fancy::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background:
+    conic-gradient(
+      from 200deg at 64% 40%,
+      transparent 0deg,
+      color-mix(in srgb, var(--accent) 32%, transparent) 60deg,
+      transparent 150deg,
+      color-mix(in srgb, var(--accent) 20%, transparent) 250deg,
+      transparent 330deg
+    );
+  filter: blur(46px);
+  opacity: 0.62;
+  mix-blend-mode: screen;
+  animation: aurora-drift 24s ease-in-out infinite alternate;
+}
+
+@keyframes motif-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes aurora-drift {
+  0% {
+    transform: translate3d(-3%, 1%, 0) scale(1);
+    opacity: 0.42;
+  }
+  100% {
+    transform: translate3d(3%, -2%, 0) scale(1.08);
+    opacity: 0.58;
+  }
 }
 
 /* Cinematic legibility: a strong gradient scrim from the lower-left where the
@@ -258,17 +306,115 @@
   }
 }
 
+/* ── Logo-on-left — the headline element ──────────────────────────────────────
+   The per-game logo is the hero of the left column. The slot is tagged at load
+   from the analysed *content* aspect + transparency (see renderLogo):
+     .is-square  a medallion/icon — sized by HEIGHT, capped width;
+     .is-wide    a wordmark — sized by WIDTH, capped height;
+     .is-bare    a transparent cut-out — composited with a glow (+ plinth if square);
+     .is-plated  an opaque-background logo — framed as a deliberate cartridge plate.
+   `object-fit: contain` preserves aspect within whichever cap binds, so a logo is
+   never stretched. A name-wordmark fallback covers logo-less games. */
 .logo-slot {
-  margin-bottom: 0.4rem;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 0.2rem;
   min-height: 1.2em;
 }
+
 .logo-img {
-  max-width: min(46vw, 720px);
-  max-height: 32vh;
+  display: block;
   object-fit: contain;
-  filter: drop-shadow(0 8px 40px rgba(0, 0, 0, 0.55));
+  object-position: left bottom;
 }
-/* Text-wordmark fallback — oversized condensed neon. */
+
+/* Square medallion / icon: size by height, cap width so it can't sprawl. */
+.has-logo.is-square .logo-img,
+/* default before aspect is measured — assume square so there's no resize flash */
+.has-logo:not(.is-wide):not(.is-square) .logo-img {
+  height: clamp(9.5rem, 29vh, 17rem);
+  width: auto;
+  max-width: 42vw;
+}
+
+/* Wide wordmark: size by width, generous so it carries the left column. */
+.has-logo.is-wide .logo-img {
+  width: min(48vw, 800px);
+  height: auto;
+  max-height: 32vh;
+}
+
+/* ── Bare (transparent cut-out) logos ─────────────────────────────────────────
+   Composite straight onto the backdrop with a soft lift + accent glow. */
+.has-logo.is-bare .logo-img {
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.6))
+    drop-shadow(0 0 26px color-mix(in srgb, var(--accent) 30%, transparent));
+}
+
+/* A bare square icon also gets a soft circular accent plinth so it doesn't float
+   in the void and the accent bleeds into the negative space on the left. */
+.has-logo.is-bare.is-square::before,
+/* default (pre-analysis) assumes a bare square — harmless, removed if plated. */
+.has-logo:not(.is-plated):not(.is-wide)::before {
+  content: '';
+  position: absolute;
+  left: -8%;
+  bottom: -14%;
+  width: clamp(13rem, 38vh, 22rem);
+  height: clamp(13rem, 38vh, 22rem);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 42% 40%,
+    color-mix(in srgb, var(--accent) 26%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 8%, transparent) 42%,
+    transparent 68%
+  );
+  filter: blur(6px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ── Plated (opaque-background) logos ─────────────────────────────────────────
+   Many shipped logos are a wordmark/icon on an opaque (usually dark) plate, not a
+   cut-out. Rather than letting a raw rectangle float on the backdrop, we frame it
+   as a deliberate "cartridge plate": rounded, inset, with an accent rim + glow so
+   it reads as a designed badge. The image is clipped to the rounded plate. */
+.has-logo.is-plated {
+  padding: clamp(0.85rem, 1.5vh, 1.25rem);
+  border-radius: 1.25rem;
+  background:
+    linear-gradient(150deg, color-mix(in srgb, var(--accent) 16%, rgba(8, 12, 24, 0.66)), rgba(5, 7, 15, 0.62)),
+    rgba(5, 7, 15, 0.4);
+  border: 1px solid color-mix(in srgb, var(--accent) 48%, rgba(126, 138, 166, 0.25));
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--accent) 34%, transparent) inset,
+    0 22px 60px rgba(0, 0, 0, 0.62),
+    0 0 48px color-mix(in srgb, var(--accent) 26%, transparent);
+  /* Frost the backdrop behind the plate so it reads cleanly even over a busy hero. */
+  backdrop-filter: blur(7px) saturate(115%);
+  -webkit-backdrop-filter: blur(7px) saturate(115%);
+}
+.has-logo.is-plated .logo-img {
+  border-radius: 0.78rem;
+  object-position: center;
+}
+/* A thin accent hairline along the plate top — the "powered" tell, echoing the
+   cabinet's top sweep. */
+.has-logo.is-plated::after {
+  content: '';
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  top: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Text-wordmark fallback — oversized condensed neon (logo-less games). */
 .logo-word {
   display: block;
   font-family: var(--display);
@@ -283,8 +429,8 @@
     0 0 60px var(--accent-soft);
 }
 
-/* When a logo image is present we hide the redundant H1; the wordmark fallback
-   already shows the name, so the H1 only appears WITH an image. */
+/* The H1 name is redundant whenever the logo slot is populated (image OR wordmark
+   fallback both already show the name), so the H1 only exists as a hard fallback. */
 .game-name {
   font-family: var(--display);
   font-weight: 700;
@@ -294,7 +440,8 @@
   text-transform: uppercase;
   margin-top: 0.3rem;
 }
-.logo-slot:has(.logo-word) + .game-name {
+.logo-slot:has(.logo-word) + .game-name,
+.logo-slot.has-logo + .game-name {
   display: none;
 }
 

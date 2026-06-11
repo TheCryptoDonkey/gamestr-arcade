@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import type { ArcadeConfig, Game } from '../../shared/types'
 
 declare global {
