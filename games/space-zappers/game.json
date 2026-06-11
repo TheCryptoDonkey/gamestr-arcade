@@ -6,6 +6,8 @@
   "order": 11,
   "accent": "#06b6d4",
   "controls": {
+    "up": "ArrowUp",
+    "down": "ArrowDown",
     "left": "ArrowLeft",
     "right": "ArrowRight",
     "fire": "Space"
