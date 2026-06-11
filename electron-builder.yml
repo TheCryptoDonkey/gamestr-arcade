@@ -11,9 +11,17 @@ files:
 # Ship the cabinet config alongside the binary so a booth operator can retune
 # the leaderboard / attract timeout / CRT without rebuilding (read from
 # process.resourcesPath at runtime).
+#
+# The games/ folder is bundled so the AppImage is fully self-contained: art,
+# game.json manifests, AND the gitignored games/**/site/ offline mirrors are all
+# included. process.resourcesPath/games is therefore the authoritative games
+# directory at runtime; set ARCADE_GAMES_DIR to override with an external folder
+# (e.g. to add games to a booth without a rebuild).
 extraResources:
   - from: arcade.config.json
     to: arcade.config.json
+  - from: games
+    to: games
 
 linux:
   target: [AppImage]
