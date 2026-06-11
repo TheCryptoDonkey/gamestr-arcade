@@ -3,10 +3,14 @@
  *
  * Tests the pure, side-effect-free classes and helpers:
  *   - GamepadKeyTranslator.diff()  — edge detection, hold suppression, multiple channels
- *   - snapshotFromGamepad()        — d-pad buttons, left stick, fire buttons, deadzone
+ *   - snapshotFromGamepad()        — d-pad buttons only (left stick is cursor, not keys)
  *   - unionSnapshots()             — multi-gamepad merging
  *   - keyInfo()                    — legacy keyCode lookup table
  *   - resolveControls()            — per-game override merging
+ *
+ * Control split (since virtual-cursor addition):
+ *   Left stick + A (button 0) → virtual cursor + click  (NOT keyboard)
+ *   D-pad + X  (button 2)     → arrow keys + Space      (keyboard)
  *
  * What still requires a real gamepad and game page at the booth (NOT covered here):
  *   - dispatchKey() reaching a canvas game's event listeners
@@ -214,57 +218,54 @@ describe('snapshotFromGamepad — d-pad buttons', () => {
 })
 
 describe('snapshotFromGamepad — fire buttons', () => {
-  it('button 0 (A) → fire=true', () => {
+  it('button 2 (X) → fire=true', () => {
     expect(snapshotFromGamepad(fakeGamepad({ pressed: [FIRE_BUTTONS[0]] }))).toMatchObject({ fire: true })
   })
 
-  it('button 2 (X) → fire=true', () => {
-    expect(snapshotFromGamepad(fakeGamepad({ pressed: [FIRE_BUTTONS[1]] }))).toMatchObject({ fire: true })
+  it('button 0 (A) → fire=false (A is now cursor click, not fire)', () => {
+    expect(snapshotFromGamepad(fakeGamepad({ pressed: [0] }))).toMatchObject({ fire: false })
   })
 })
 
-describe('snapshotFromGamepad — left stick axes', () => {
-  it('stick past deadzone left → left=true', () => {
+describe('snapshotFromGamepad — left stick axes do NOT affect keyboard snapshot', () => {
+  // Since the virtual-cursor addition, the left stick drives the cursor only.
+  // It must never contribute to the keyboard InputSnapshot.
+
+  it('stick past deadzone left → left remains false (stick is cursor, not keys)', () => {
     const snap = snapshotFromGamepad(fakeGamepad({ axes: [-(STICK_DEAD + 0.1), 0] }))
-    expect(snap.left).toBe(true)
+    expect(snap.left).toBe(false)
     expect(snap.right).toBe(false)
   })
 
-  it('stick past deadzone right → right=true', () => {
+  it('stick past deadzone right → right remains false', () => {
     const snap = snapshotFromGamepad(fakeGamepad({ axes: [STICK_DEAD + 0.1, 0] }))
-    expect(snap.right).toBe(true)
+    expect(snap.right).toBe(false)
     expect(snap.left).toBe(false)
   })
 
-  it('stick past deadzone up → up=true', () => {
+  it('stick past deadzone up → up remains false', () => {
     const snap = snapshotFromGamepad(fakeGamepad({ axes: [0, -(STICK_DEAD + 0.1)] }))
-    expect(snap.up).toBe(true)
+    expect(snap.up).toBe(false)
     expect(snap.down).toBe(false)
   })
 
-  it('stick past deadzone down → down=true', () => {
+  it('stick past deadzone down → down remains false', () => {
     const snap = snapshotFromGamepad(fakeGamepad({ axes: [0, STICK_DEAD + 0.1] }))
-    expect(snap.down).toBe(true)
+    expect(snap.down).toBe(false)
     expect(snap.up).toBe(false)
   })
 
-  it('stick within deadzone → no direction active', () => {
-    const snap = snapshotFromGamepad(fakeGamepad({ axes: [STICK_DEAD - 0.01, -(STICK_DEAD - 0.01)] }))
+  it('stick fully deflected in all directions → all keyboard directions false', () => {
+    const snap = snapshotFromGamepad(fakeGamepad({ axes: [1, 1] }))
     expect(snap).toMatchObject({ up: false, down: false, left: false, right: false })
-  })
-
-  it('stick exactly at deadzone boundary → no direction active', () => {
-    const snap = snapshotFromGamepad(fakeGamepad({ axes: [STICK_DEAD, STICK_DEAD] }))
-    expect(snap.right).toBe(false)
-    expect(snap.down).toBe(false)
   })
 })
 
-describe('snapshotFromGamepad — d-pad and stick combine', () => {
-  it('d-pad left AND stick right → both left and right active', () => {
+describe('snapshotFromGamepad — d-pad only, stick ignored', () => {
+  it('d-pad left + stick right → only left=true (stick does not affect keyboard)', () => {
     const snap = snapshotFromGamepad(fakeGamepad({ pressed: [DPAD.LEFT], axes: [STICK_DEAD + 0.1, 0] }))
     expect(snap.left).toBe(true)
-    expect(snap.right).toBe(true)
+    expect(snap.right).toBe(false)   // stick does not contribute
   })
 })
 

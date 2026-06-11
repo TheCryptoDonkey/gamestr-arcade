@@ -8,11 +8,18 @@
  *   - A single press of a MENU button sends `game:back` to the main process,
  *     which returns straight to the main gamestr arcade menu.
  *   - Also catches `Escape` keydown as a keyboard backup.
- *   - Translates d-pad / left-stick / face-buttons into synthetic `KeyboardEvent`
- *     dispatches so keyboard-controlled web games respond to a gamepad.
+ *   - Translates d-pad / face-buttons into synthetic `KeyboardEvent` dispatches
+ *     so keyboard-controlled web games respond to a gamepad.
+ *   - Left stick drives a virtual mouse cursor; A (button 0) synthesises a click
+ *     at the cursor position so mouse-based web-game menus work.
  *   - Injects a small, unobtrusive on-screen hint bar.
  *   - Exposes `window.webln` backed by the booth's NWC wallet when configured,
  *     auto-paying invoices up to `maxSats` without operator intervention.
+ *
+ * Control split:
+ *   Left stick + A  → virtual mouse cursor + click  (mouse-based games / menus)
+ *   D-pad + X       → arrow keys + Space             (keyboard-based games)
+ *   MENU / 8,9,16   → game:back
  *
  * Security:
  *   - contextIsolation: true — the page cannot reach this code.
@@ -91,7 +98,8 @@ export function resolveControls(partial?: Partial<GameControls>): ResolvedContro
 
 /**
  * Snapshot of which logical directions / fire are currently active.
- * Derived from d-pad buttons OR left-stick axes (union of both sources).
+ * Derived from d-pad buttons ONLY (left stick is the cursor, not keys).
+ * Fire = X button (index 2) only (A / index 0 is now the cursor click).
  */
 export interface InputSnapshot {
   up: boolean
@@ -180,28 +188,29 @@ export class GamepadKeyTranslator {
 /** Standard Gamepad API d-pad button indices. */
 export const DPAD = { UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 } as const
 
-/** Primary face buttons: A (bottom, index 0) and X (left, index 2). */
-export const FIRE_BUTTONS = [0, 2] as const
+/**
+ * Fire button: X (left face button, index 2).
+ * A (index 0) is now the cursor click — do NOT include it here.
+ */
+export const FIRE_BUTTONS = [2] as const
 
-/** Deadzone for the left analogue stick — ignore values within ±STICK_DEAD. */
+/** Deadzone for the left analogue stick — keyboard snapshot ignores the stick entirely. */
 export const STICK_DEAD = 0.5
 
 /**
  * Build an `InputSnapshot` from a `Gamepad` object (Standard Mapping assumed).
  *
- * Combines d-pad buttons with left-stick axes: either source activates the
- * corresponding direction. The stick deadzone is ±STICK_DEAD.
+ * D-pad only for directions — the left stick is now the cursor, not keys.
+ * Fire = X button (index 2) only; A (index 0) is the cursor click, not fire.
  */
 export function snapshotFromGamepad(pad: Gamepad): InputSnapshot {
   const btn = (i: number) => pad.buttons[i]?.pressed ?? false
-  const ax0 = pad.axes[0] ?? 0   // left stick horizontal
-  const ax1 = pad.axes[1] ?? 0   // left stick vertical
 
   return {
-    up:    btn(DPAD.UP)    || ax1 < -STICK_DEAD,
-    down:  btn(DPAD.DOWN)  || ax1 >  STICK_DEAD,
-    left:  btn(DPAD.LEFT)  || ax0 < -STICK_DEAD,
-    right: btn(DPAD.RIGHT) || ax0 >  STICK_DEAD,
+    up:    btn(DPAD.UP),
+    down:  btn(DPAD.DOWN),
+    left:  btn(DPAD.LEFT),
+    right: btn(DPAD.RIGHT),
     fire:  FIRE_BUTTONS.some(i => btn(i)),
   }
 }
@@ -218,6 +227,58 @@ export function unionSnapshots(a: InputSnapshot, b: InputSnapshot): InputSnapsho
     right: a.right || b.right,
     fire:  a.fire  || b.fire,
   }
+}
+
+// ── Virtual cursor ─────────────────────────────────────────────────────────────
+
+/**
+ * Deadzone for the left stick when driving the virtual cursor.
+ * Smaller than STICK_DEAD so the cursor responds to gentle nudges.
+ */
+export const CURSOR_DEAD = 0.15
+
+/**
+ * Maximum cursor speed in pixels per second at full stick deflection.
+ * Actual speed = stickMagnitude × CURSOR_SPEED, frame-rate independent.
+ */
+export const CURSOR_SPEED = 900
+
+/** A 2-D point. */
+export interface Vec2 { x: number; y: number }
+
+/** The bounds within which the cursor is clamped. */
+export interface CursorBounds { width: number; height: number }
+
+/**
+ * Compute the next cursor position given the current position, stick axes,
+ * elapsed time in seconds, and the page bounds.
+ *
+ * Pure and exported so it can be unit-tested independently of the DOM.
+ *
+ * @param prev   Current cursor position (pixels from top-left).
+ * @param stick  Raw left-stick axes [x, y] (each in [-1, 1]).
+ * @param dt     Elapsed time since last frame (seconds).
+ * @param bounds Page dimensions to clamp within.
+ * @returns      New cursor position, clamped to [0, bounds.width] × [0, bounds.height].
+ */
+export function nextCursorPos(prev: Vec2, stick: [number, number], dt: number, bounds: CursorBounds): Vec2 {
+  const [sx, sy] = stick
+  const ax = Math.abs(sx) > CURSOR_DEAD ? sx : 0
+  const ay = Math.abs(sy) > CURSOR_DEAD ? sy : 0
+  return {
+    x: Math.max(0, Math.min(bounds.width,  prev.x + ax * CURSOR_SPEED * dt)),
+    y: Math.max(0, Math.min(bounds.height, prev.y + ay * CURSOR_SPEED * dt)),
+  }
+}
+
+/**
+ * Returns true on the first frame that `pressed` is true after being false.
+ * Stateless helper — the caller owns the `prev` boolean.
+ *
+ * Exported for unit testing.
+ */
+export function risingEdge(prev: boolean, current: boolean): boolean {
+  return !prev && current
 }
 
 /**
@@ -384,6 +445,115 @@ export function dispatchKey(action: KeyAction): void {
   }
 }
 
+// ── Virtual cursor DOM element ────────────────────────────────────────────────
+
+/**
+ * Inject the virtual cursor element into the page.
+ * Returns the element so the RAF loop can update its position.
+ * Safe to call multiple times — returns the existing element if already present.
+ */
+function injectCursorElement(): HTMLElement {
+  const existing = document.getElementById('__arcade_cursor')
+  if (existing) return existing
+
+  const el = document.createElement('div')
+  el.id = '__arcade_cursor'
+  Object.assign(el.style, {
+    position:     'fixed',
+    width:        '20px',
+    height:       '20px',
+    borderRadius: '50%',
+    border:       '2px solid #fff',
+    background:   'rgba(124,243,255,0.35)',
+    boxShadow:    '0 0 0 1px rgba(0,0,0,0.6)',
+    pointerEvents:'none',
+    zIndex:       '2147483646',
+    display:      'none',              // hidden until a gamepad connects
+    transform:    'translate(-50%,-50%)',
+    transition:   'none',
+    willChange:   'transform',
+  })
+  document.body?.appendChild(el)
+  return el
+}
+
+/**
+ * Move the cursor element to `pos` and optionally show it.
+ */
+function moveCursorElement(el: HTMLElement, pos: Vec2, visible: boolean): void {
+  el.style.display = visible ? 'block' : 'none'
+  el.style.left = `${pos.x}px`
+  el.style.top  = `${pos.y}px`
+}
+
+// ── Synthetic click + hover dispatch ─────────────────────────────────────────
+
+/**
+ * Synthesise a full mouse/pointer click sequence at (x, y).
+ *
+ * Dispatch order per spec:
+ *   pointermove → mousemove → pointerdown → mousedown → pointerup → mouseup → click
+ *
+ * The target element is determined by `document.elementFromPoint(x, y)` so
+ * both DOM-button menus (click lands on the element) and canvas games (which
+ * hit-test clientX/clientY) receive the event correctly.
+ */
+export function dispatchClick(x: number, y: number): void {
+  const target = document.elementFromPoint(x, y) ?? document.body
+  if (!target) return
+
+  const base = {
+    bubbles:    true,
+    cancelable: true,
+    composed:   true,
+    clientX:    x,
+    clientY:    y,
+    screenX:    x,
+    screenY:    y,
+    view:       window,
+    button:     0,
+  }
+
+  const pointerBase: PointerEventInit = {
+    ...base,
+    pointerId:   1,
+    pointerType: 'mouse',
+    isPrimary:   true,
+  }
+
+  target.dispatchEvent(new PointerEvent('pointermove', { ...pointerBase, buttons: 0 }))
+  target.dispatchEvent(new MouseEvent('mousemove',    { ...base, buttons: 0 }))
+  target.dispatchEvent(new PointerEvent('pointerdown', { ...pointerBase, buttons: 1 }))
+  target.dispatchEvent(new MouseEvent('mousedown',    { ...base, buttons: 1 }))
+  target.dispatchEvent(new PointerEvent('pointerup',   { ...pointerBase, buttons: 0 }))
+  target.dispatchEvent(new MouseEvent('mouseup',      { ...base, buttons: 0 }))
+  target.dispatchEvent(new MouseEvent('click',        { ...base, buttons: 0 }))
+}
+
+/**
+ * Dispatch a throttled `pointermove` + `mousemove` at the cursor position so
+ * DOM hover states update as the cursor moves across buttons.
+ *
+ * The element under the cursor receives the events; both `document` and
+ * `window` also receive them for games that listen there.
+ */
+function dispatchHover(x: number, y: number): void {
+  const target = document.elementFromPoint(x, y) ?? document.body
+  if (!target) return
+
+  const base = {
+    bubbles: true, cancelable: true, composed: true,
+    clientX: x, clientY: y, screenX: x, screenY: y,
+    view: window, button: 0, buttons: 0,
+  }
+  const pointerBase: PointerEventInit = {
+    ...base, pointerId: 1, pointerType: 'mouse', isPrimary: true,
+  }
+
+  target.dispatchEvent(new PointerEvent('pointermove', pointerBase))
+  target.dispatchEvent(new MouseEvent('mousemove', base))
+}
+
 // ── Hint bar ──────────────────────────────────────────────────────────────────
 
 function injectHintBar(): void {
@@ -406,7 +576,7 @@ function injectHintBar(): void {
     pointerEvents: 'none',
     letterSpacing: '0.1em',
   })
-  bar.textContent = 'MENU button (or Esc) → back to gamestr arcade'
+  bar.textContent = 'Left stick = cursor · A = click · D-pad = move · X = fire · MENU = back'
   document.body?.appendChild(bar)
 }
 
@@ -430,6 +600,17 @@ function initGamepadLoop(): void {
   const menuDetector  = new MenuPressDetector()
   const keyTranslator = new GamepadKeyTranslator()
   let   activeControls: ResolvedControls = DEFAULT_CONTROLS
+
+  // Virtual cursor state.
+  let cursorPos: Vec2 = {
+    x: (typeof window !== 'undefined' ? window.innerWidth  : 800) / 2,
+    y: (typeof window !== 'undefined' ? window.innerHeight : 600) / 2,
+  }
+  let cursorEl: HTMLElement | null = null
+  let gamepadConnected  = false
+  let prevClickPressed  = false
+  let lastHoverTime     = 0     // timestamp for hover throttle (ms)
+  let lastFrameTime     = 0     // for delta-time calculation
 
   // Listen for per-game control overrides sent by the main process after each
   // web game loads (and on reload). Until one arrives, DEFAULT_CONTROLS applies.
@@ -458,7 +639,11 @@ function initGamepadLoop(): void {
     }
   })
 
-  function tick(): void {
+  function tick(now: number): void {
+    // ── Delta time (seconds) ──────────────────────────────────────────────
+    const dt = lastFrameTime > 0 ? Math.min((now - lastFrameTime) / 1000, 0.1) : 1 / 60
+    lastFrameTime = now
+
     const pads = navigator.getGamepads()
 
     // ── Menu / back detection ─────────────────────────────────────────────
@@ -478,16 +663,78 @@ function initGamepadLoop(): void {
       ipcRenderer.send('game:back')
     }
 
-    // ── Gamepad → keyboard translation ───────────────────────────────────
+    // ── Gamepad → keyboard translation (D-pad + X fire) ──────────────────
     let combined: InputSnapshot = { up: false, down: false, left: false, right: false, fire: false }
+    gamepadConnected = false
     for (const pad of pads) {
       if (!pad) continue
+      gamepadConnected = true
       combined = unionSnapshots(combined, snapshotFromGamepad(pad))
     }
 
     const actions = keyTranslator.diff(combined, activeControls)
     for (const action of actions) {
       dispatchKey(action)
+    }
+
+    // ── Virtual cursor (left stick) ───────────────────────────────────────
+    if (gamepadConnected) {
+      // Lazy-init the cursor element once the DOM is ready.
+      if (!cursorEl && typeof document !== 'undefined' && document.body) {
+        cursorEl = injectCursorElement()
+      }
+
+      // Aggregate left-stick axes across all connected pads (first non-zero wins).
+      let stickX = 0
+      let stickY = 0
+      for (const pad of pads) {
+        if (!pad) continue
+        const ax = pad.axes[0] ?? 0
+        const ay = pad.axes[1] ?? 0
+        if (Math.abs(ax) > CURSOR_DEAD || Math.abs(ay) > CURSOR_DEAD) {
+          stickX = ax
+          stickY = ay
+          break
+        }
+      }
+
+      const bounds: CursorBounds = {
+        width:  window.innerWidth,
+        height: window.innerHeight,
+      }
+      cursorPos = nextCursorPos(cursorPos, [stickX, stickY], dt, bounds)
+
+      if (cursorEl) {
+        moveCursorElement(cursorEl, cursorPos, true)
+      }
+
+      // Throttled hover dispatch (~30 Hz) so hover states track the cursor
+      // without flooding the page with events every frame.
+      if (now - lastHoverTime > 33) {
+        dispatchHover(cursorPos.x, cursorPos.y)
+        lastHoverTime = now
+      }
+
+      // ── Click on A (button 0) — rising edge only ──────────────────────
+      let clickPressed = false
+      for (const pad of pads) {
+        if (!pad) continue
+        if (pad.buttons[0]?.pressed) {
+          clickPressed = true
+          break
+        }
+      }
+
+      if (risingEdge(prevClickPressed, clickPressed)) {
+        dispatchClick(cursorPos.x, cursorPos.y)
+      }
+      prevClickPressed = clickPressed
+
+    } else {
+      // No gamepad — hide the cursor if it was shown.
+      if (cursorEl) {
+        moveCursorElement(cursorEl, cursorPos, false)
+      }
     }
 
     requestAnimationFrame(tick)
