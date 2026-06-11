@@ -23,6 +23,7 @@ export const MOCK_CONFIG: ArcadeConfig = {
   leaderboard: {
     provider: 'gamestr',
     relays: [
+      'wss://relay.gamestr.io',
       'wss://relay.trotters.cc',
       'wss://nos.lol',
       'wss://relay.damus.io',

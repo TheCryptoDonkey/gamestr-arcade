@@ -9,14 +9,15 @@ describe('parseConfig', () => {
     expect(c.leaderboard.provider).toBe('gamestr')
     expect(c.attractTimeoutMs).toBe(20000)
   })
-  it('default relay set matches Pallasite DEFAULT_RELAYS', () => {
+  it('default relay set includes gamestr.io and Pallasite DEFAULT_RELAYS', () => {
+    expect(DEFAULT_LEADERBOARD_RELAYS).toContain('wss://relay.gamestr.io')
     expect(DEFAULT_LEADERBOARD_RELAYS).toContain('wss://relay.trotters.cc')
     expect(DEFAULT_LEADERBOARD_RELAYS).toContain('wss://relay.damus.io')
     expect(DEFAULT_LEADERBOARD_RELAYS).toContain('wss://nos.lol')
     expect(DEFAULT_LEADERBOARD_RELAYS).toContain('wss://relay.nostr.band')
     expect(DEFAULT_LEADERBOARD_RELAYS).toContain('wss://relay.primal.net')
     expect(DEFAULT_LEADERBOARD_RELAYS).toContain('wss://relay.ditto.pub')
-    expect(DEFAULT_LEADERBOARD_RELAYS).toHaveLength(6)
+    expect(DEFAULT_LEADERBOARD_RELAYS).toHaveLength(7)
   })
   it('falls back to provider:none only when explicitly set', () => {
     const c = parseConfig({ leaderboard: { provider: 'none' } })
