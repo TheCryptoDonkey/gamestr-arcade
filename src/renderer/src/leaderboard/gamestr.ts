@@ -42,11 +42,13 @@ export interface GamestrCatalogue {
 
 export function createGamestrCatalogue(
   relays: string[],
-  topN: number,
   opts: GamestrCatalogueOptions = {},
 ): GamestrCatalogue {
   // index: gameId → (eventId → entry)
   const index = new Map<string, Map<string, LeaderboardEntry>>()
+  // bestScores: gameId → (pubkey → best score seen so far) — guards against accumulating
+  // events that are strictly worse than the pubkey's known best, saving memory and CPU.
+  const bestScores = new Map<string, Map<string, number>>()
   // subscribers: gameId → Set of callbacks
   const subscribers = new Map<string, Set<(entries: LeaderboardEntry[]) => void>>()
 
@@ -81,6 +83,12 @@ export function createGamestrCatalogue(
     const parsed = parseAnyScoreEvent(e)
     if (!parsed) return
     const { gameId, entry } = parsed
+    // Per-pubkey best guard: skip events that are strictly worse than the known best.
+    let gameBest = bestScores.get(gameId)
+    if (!gameBest) { gameBest = new Map(); bestScores.set(gameId, gameBest) }
+    const curBest = gameBest.get(entry.pubkey)
+    if (curBest !== undefined && curBest > entry.score) return
+    gameBest.set(entry.pubkey, entry.score)
     let bucket = index.get(gameId)
     if (!bucket) { bucket = new Map(); index.set(gameId, bucket) }
     bucket.set(e.id, entry)
@@ -188,7 +196,7 @@ export function createGamestrProvider(
         const parsed = parseAnyScoreEvent(e)
         if (!parsed || parsed.gameId !== gameId) return
         const entry = parsed.entry
-        const cur = best.get(entry.pubkey); if (cur && cur.score >= entry.score) return
+        const cur = best.get(entry.pubkey); if (cur && cur.score > entry.score) return
         best.set(entry.pubkey, entry); emit()
       }
 

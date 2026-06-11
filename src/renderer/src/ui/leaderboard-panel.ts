@@ -141,6 +141,14 @@ export class LeaderboardPanel {
     if (gameId === this.currentGameId) return
     this.teardownSubscriptions()
     this.currentGameId = gameId
+    // Reset to Today on each game switch so users always land on the most relevant view.
+    if (this.period !== 'today') {
+      this.period = 'today'
+      this.root.querySelectorAll('.lb-period-btn').forEach(btn => {
+        const el = btn as HTMLElement
+        el.classList.toggle('lb-period-active', el.dataset.period === 'today')
+      })
+    }
     this.gotLive = false
     this.profiles.clear()
 
@@ -165,7 +173,7 @@ export class LeaderboardPanel {
       this.rawEntries = raw
       this.entries = boardFor(raw, this.period, this.topN, Math.floor(Date.now() / 1000))
       this.setStatus('live')
-      writeCachedBoard(gameId, this.entries)
+      writeCachedBoard(gameId, raw)
       this.render()
       this.resolveVisibleProfiles()
     })
@@ -259,6 +267,7 @@ export class LeaderboardPanel {
     })
     this.entries = boardFor(this.rawEntries, this.period, this.topN, Math.floor(Date.now() / 1000))
     this.render()
+    this.resolveVisibleProfiles()
   }
 
   /** Live-patch a single row's name/picture once its profile resolves. */

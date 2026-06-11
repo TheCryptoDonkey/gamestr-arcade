@@ -114,7 +114,7 @@ describe('createGamestrCatalogue', () => {
   afterEach(() => { vi.unstubAllGlobals() })
 
   it('sends a broad REQ with no #t filter on open', () => {
-    const cat = createGamestrCatalogue(['wss://relay.test'], 10)
+    const cat = createGamestrCatalogue(['wss://relay.test'])
     cat.subscribe('sats-man', () => {})
     const ws = wsFactory.instances[0]
     ws.triggerOpen()
@@ -128,7 +128,7 @@ describe('createGamestrCatalogue', () => {
   })
 
   it('routes events to the correct game bucket and notifies that game\'s subscriber', () => {
-    const cat = createGamestrCatalogue(['wss://relay.test'], 10)
+    const cat = createGamestrCatalogue(['wss://relay.test'])
     const satsManupdates: LeaderboardEntry[][] = []
     const pallaUpdates: LeaderboardEntry[][] = []
     cat.subscribe('sats-man', top => satsManupdates.push(top))
@@ -154,7 +154,7 @@ describe('createGamestrCatalogue', () => {
   })
 
   it('delivers events for multiple games independently', () => {
-    const cat = createGamestrCatalogue(['wss://relay.test'], 10)
+    const cat = createGamestrCatalogue(['wss://relay.test'])
     const updates: Record<string, LeaderboardEntry[][]> = { 'sats-man': [], pallasite: [] }
     cat.subscribe('sats-man', top => updates['sats-man'].push(top))
     cat.subscribe('pallasite', top => updates['pallasite'].push(top))
@@ -174,7 +174,7 @@ describe('createGamestrCatalogue', () => {
   })
 
   it('index survives a reconnect (no score loss across disconnect)', () => {
-    const cat = createGamestrCatalogue(['wss://relay.test'], 10)
+    const cat = createGamestrCatalogue(['wss://relay.test'])
     const updates: LeaderboardEntry[][] = []
     cat.subscribe('sats-man', top => updates.push(top))
 
@@ -204,7 +204,7 @@ describe('createGamestrCatalogue', () => {
   })
 
   it('dispose() closes all open sockets', () => {
-    const cat = createGamestrCatalogue(['wss://relay.a', 'wss://relay.b'], 10)
+    const cat = createGamestrCatalogue(['wss://relay.a', 'wss://relay.b'])
     cat.subscribe('sats-man', () => {})
 
     const [ws1, ws2] = wsFactory.instances
@@ -220,7 +220,7 @@ describe('createGamestrCatalogue', () => {
   })
 
   it('unsubscribe stops notifications for that game but does not close sockets', () => {
-    const cat = createGamestrCatalogue(['wss://relay.test'], 10)
+    const cat = createGamestrCatalogue(['wss://relay.test'])
     const updates: LeaderboardEntry[][] = []
     const unsub = cat.subscribe('sats-man', top => updates.push(top))
 
@@ -246,7 +246,7 @@ describe('createGamestrCatalogue', () => {
 
   it('onStatus fires down/up on socket drop/reconnect', () => {
     const statusLog: Array<'up' | 'down'> = []
-    const cat = createGamestrCatalogue(['wss://relay.test'], 10, { onStatus: s => statusLog.push(s) })
+    const cat = createGamestrCatalogue(['wss://relay.test'], { onStatus: s => statusLog.push(s) })
     cat.subscribe('sats-man', () => {})
 
     const ws1 = wsFactory.instances[0]

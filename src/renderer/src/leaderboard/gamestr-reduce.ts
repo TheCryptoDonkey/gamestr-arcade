@@ -35,7 +35,7 @@ export function parseScoreEvent(e: ScoreEvent, gameId: string): LeaderboardEntry
   if (!Number.isFinite(score) || score <= 0) return null
   const pubkey = tagValue(e.tags, 'p') ?? e.pubkey
   if (!/^[0-9a-f]{64}$/i.test(pubkey)) return null
-  return { pubkey, score, sats: parseInt(tagValue(e.tags, 'sats') ?? '0', 10) || 0, at: e.created_at }
+  return { pubkey, score, sats: Math.max(0, parseInt(tagValue(e.tags, 'sats') ?? '0', 10) || 0), at: e.created_at }
 }
 
 /**
@@ -55,7 +55,7 @@ export function parseAnyScoreEvent(e: ScoreEvent): ParsedAnyScore | null {
   const entry: LeaderboardEntry = {
     pubkey,
     score,
-    sats: parseInt(tagValue(e.tags, 'sats') ?? '0', 10) || 0,
+    sats: Math.max(0, parseInt(tagValue(e.tags, 'sats') ?? '0', 10) || 0),
     at: e.created_at,
   }
   return { gameId, entry }
