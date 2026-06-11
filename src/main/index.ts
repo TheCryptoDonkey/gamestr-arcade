@@ -17,6 +17,7 @@ import type { LocalServer } from './local-server'
 import { DEFAULT_CONFIG, parseConfig } from './config'
 import { Launcher } from './launch'
 import type { LaunchDeps } from './launch'
+import { GamepadExitWatcher, realExitWatcherDeps } from './gamepad-exit'
 import type { ArcadeConfig, Game, GameControls, WebLNConfig } from '../shared/types'
 
 // GPU flags: keep the hardware path active on booth hardware.
@@ -247,22 +248,33 @@ function buildLaunchDeps(): LaunchDeps {
 //
 // Primary:  Escape          — for a physical EXIT button wired to the Esc key.
 // Fallback: Ctrl+Shift+Bksp — deliberate chord for keyboard/debug use.
+// Gamepad:  View/Menu/Guide — read from evdev by `gamepadExit` (below), the
+//                             only exit path for NATIVE games (which take X
+//                             focus, so the renderer can't poll the gamepad and
+//                             the web-view preload doesn't exist).
 //
-// Both are registered on game launch and unregistered on return-to-grid.
+// All are registered on game launch and unregistered on return-to-grid.
 
 const FORCE_BACK_SHORTCUTS = ['Escape', 'CommandOrControl+Shift+Backspace'] as const
+
+// Reads gamepad evdev devices in the main process so a controller button can
+// reclaim the arcade from a native fullscreen game. Created after app ready.
+let gamepadExit: GamepadExitWatcher | null = null
 
 function registerForceBack(): void {
   for (const accel of FORCE_BACK_SHORTCUTS) {
     // globalShortcut.register is a no-op if already registered; safe to call.
     globalShortcut.register(accel, () => launcher.forceBack())
   }
+  // Begin watching the controller for a menu-button exit (Linux/native games).
+  void gamepadExit?.start()
 }
 
 function unregisterForceBack(): void {
   for (const accel of FORCE_BACK_SHORTCUTS) {
     globalShortcut.unregister(accel)
   }
+  gamepadExit?.stop()
 }
 
 // Lazy-initialised singleton launcher; created after app is ready.
@@ -394,6 +406,16 @@ app.whenReady().then(async () => {
 
   // Initialise the launcher after the window exists.
   launcher = new Launcher(buildLaunchDeps())
+
+  // Controller-based force-back for native games: reads gamepad evdev devices
+  // in the main process (renderer/web-preload polling is unavailable once a
+  // native game owns the display). Menu/View/Guide press → forceBack().
+  gamepadExit = new GamepadExitWatcher(
+    realExitWatcherDeps(
+      () => launcher.forceBack(),
+      msg => console.error(`[arcade] gamepad-exit: ${msg}`),
+    ),
+  )
 
   // Admin escape hatches — kiosk hides all browser chrome so these are
   // the only way out during a booth deployment.

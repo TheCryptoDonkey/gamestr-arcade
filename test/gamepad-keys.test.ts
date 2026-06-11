@@ -9,8 +9,10 @@
  *   - resolveControls()            — per-game override merging
  *
  * Control split (since virtual-cursor addition):
- *   Left stick + A (button 0) → virtual cursor + click  (NOT keyboard)
- *   D-pad + X  (button 2)     → arrow keys + Space      (keyboard)
+ *   Left stick                → virtual cursor          (NOT keyboard)
+ *   A (button 0)              → cursor click + fire     (click AND Space)
+ *   D-pad                     → arrow keys              (keyboard)
+ *   X (button 2)              → fire (Space)            (keyboard)
  *
  * What still requires a real gamepad and game page at the booth (NOT covered here):
  *   - dispatchKey() reaching a canvas game's event listeners
@@ -26,6 +28,7 @@ import {
   snapshotFromGamepad,
   unionSnapshots,
   keyInfo,
+  eventKeyValue,
   STICK_DEAD,
   DPAD,
   FIRE_BUTTONS,
@@ -218,12 +221,16 @@ describe('snapshotFromGamepad — d-pad buttons', () => {
 })
 
 describe('snapshotFromGamepad — fire buttons', () => {
-  it('button 2 (X) → fire=true', () => {
-    expect(snapshotFromGamepad(fakeGamepad({ pressed: [FIRE_BUTTONS[0]] }))).toMatchObject({ fire: true })
+  it('FIRE_BUTTONS covers A (0) and X (2)', () => {
+    expect(FIRE_BUTTONS).toEqual([0, 2])
   })
 
-  it('button 0 (A) → fire=false (A is now cursor click, not fire)', () => {
-    expect(snapshotFromGamepad(fakeGamepad({ pressed: [0] }))).toMatchObject({ fire: false })
+  it('button 2 (X) → fire=true', () => {
+    expect(snapshotFromGamepad(fakeGamepad({ pressed: [2] }))).toMatchObject({ fire: true })
+  })
+
+  it('button 0 (A) → fire=true (A fires Space as well as clicking the cursor)', () => {
+    expect(snapshotFromGamepad(fakeGamepad({ pressed: [0] }))).toMatchObject({ fire: true })
   })
 })
 
@@ -292,6 +299,22 @@ describe('unionSnapshots', () => {
   it('fire on either pad → fire true', () => {
     expect(unionSnapshots(makeSnapshot({ fire: true }), IDLE)).toMatchObject({ fire: true })
     expect(unionSnapshots(IDLE, makeSnapshot({ fire: true }))).toMatchObject({ fire: true })
+  })
+})
+
+// ── eventKeyValue ────────────────────────────────────────────────────────────────
+
+describe('eventKeyValue', () => {
+  it('maps the Space token to a literal space — the real spacebar key value', () => {
+    // Space Zappers (and many games) gate fire on `e.key === " "`, not "Space".
+    expect(eventKeyValue('Space')).toBe(' ')
+  })
+
+  it('passes arrow + letter tokens through unchanged', () => {
+    expect(eventKeyValue('ArrowLeft')).toBe('ArrowLeft')
+    expect(eventKeyValue('ArrowUp')).toBe('ArrowUp')
+    expect(eventKeyValue('a')).toBe('a')
+    expect(eventKeyValue('z')).toBe('z')
   })
 })
 

@@ -17,8 +17,10 @@
  *     auto-paying invoices up to `maxSats` without operator intervention.
  *
  * Control split:
- *   Left stick + A  → virtual mouse cursor + click  (mouse-based games / menus)
- *   D-pad + X       → arrow keys + Space             (keyboard-based games)
+ *   Left stick      → virtual mouse cursor          (mouse-based games / menus)
+ *   A               → cursor click + fire (Space)   (select menus AND shoot)
+ *   D-pad           → arrow keys                    (keyboard-based games)
+ *   X               → fire (Space)                  (alternate shoot button)
  *   MENU / 8,9,16   → game:back
  *
  * Security:
@@ -99,7 +101,7 @@ export function resolveControls(partial?: Partial<GameControls>): ResolvedContro
 /**
  * Snapshot of which logical directions / fire are currently active.
  * Derived from d-pad buttons ONLY (left stick is the cursor, not keys).
- * Fire = X button (index 2) only (A / index 0 is now the cursor click).
+ * Fire = A button (index 0) or X button (index 2); A also clicks the cursor.
  */
 export interface InputSnapshot {
   up: boolean
@@ -142,6 +144,20 @@ export function keyInfo(key: string): { code: string; keyCode: number } {
       }
       return { code: key, keyCode: 0 }
   }
+}
+
+/**
+ * The DOM `KeyboardEvent.key` *value* for a control token.
+ *
+ * Most tokens already equal their key value ('ArrowLeft', 'a'), but the
+ * spacebar is the trap: a real spacebar press has `key === ' '` (a single
+ * space), NOT 'Space' — that string is the `code`. Games that gate fire on
+ * `e.key === ' '` (Space Zappers does exactly this) never see a synthetic
+ * event whose key is 'Space', so the shot never fires. Translate it here while
+ * `keyInfo()` still supplies code 'Space' + keyCode 32 for engines that read those.
+ */
+export function eventKeyValue(token: string): string {
+  return token === 'Space' ? ' ' : token
 }
 
 /**
@@ -189,10 +205,15 @@ export class GamepadKeyTranslator {
 export const DPAD = { UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 } as const
 
 /**
- * Fire button: X (left face button, index 2).
- * A (index 0) is now the cursor click — do NOT include it here.
+ * Fire buttons: A (index 0) and X (left face button, index 2).
+ *
+ * A *also* drives the virtual-cursor click (see the RAF loop), so pressing A
+ * both fires Space and clicks at the cursor. That dual role is intentional and
+ * harmless: in-game the click lands on the game canvas, and on the (click-based)
+ * menus the Space keypress is a no-op — so binding A to fire gives players the
+ * natural "bottom button shoots" instinct without breaking mouse-driven menus.
  */
-export const FIRE_BUTTONS = [2] as const
+export const FIRE_BUTTONS = [0, 2] as const
 
 /** Deadzone for the left analogue stick — keyboard snapshot ignores the stick entirely. */
 export const STICK_DEAD = 0.5
@@ -201,7 +222,7 @@ export const STICK_DEAD = 0.5
  * Build an `InputSnapshot` from a `Gamepad` object (Standard Mapping assumed).
  *
  * D-pad only for directions — the left stick is now the cursor, not keys.
- * Fire = X button (index 2) only; A (index 0) is the cursor click, not fire.
+ * Fire = A (index 0) or X (index 2); A additionally drives the cursor click.
  */
 export function snapshotFromGamepad(pad: Gamepad): InputSnapshot {
   const btn = (i: number) => pad.buttons[i]?.pressed ?? false
@@ -399,7 +420,7 @@ function initWebLN(nwc: string, maxSats: number): void {
 export function dispatchKey(action: KeyAction): void {
   const { code, keyCode } = keyInfo(action.key)
   const init: KeyboardEventInit = {
-    key:        action.key,
+    key:        eventKeyValue(action.key),
     code,
     keyCode,
     which:      keyCode,
@@ -576,7 +597,7 @@ function injectHintBar(): void {
     pointerEvents: 'none',
     letterSpacing: '0.1em',
   })
-  bar.textContent = 'Left stick = cursor · A = click · D-pad = move · X = fire · MENU = back'
+  bar.textContent = 'Left stick = cursor · A = fire/select · D-pad = move · X = fire · MENU = back'
   document.body?.appendChild(bar)
 }
 

@@ -49,13 +49,15 @@ describe('scanGames', () => {
 })
 
 describe('the shipped Pallasite tile', () => {
-  it('is classified as a web tile (plays in dev + booth, not a native AppImage)', async () => {
+  it('is classified as a packaged native tile (flagship runs as a local AppImage on the booth)', async () => {
     const games = await scanGames(REAL_GAMES)
     const pallasite = games.find(g => g.id === 'pallasite')
     expect(pallasite, 'pallasite tile should be scanned from games/').toBeTruthy()
-    expect(pallasite!.kind).toBe('web')
-    expect(pallasite!.url).toBe('https://pallasite.app/')
-    expect(pallasite!.exec).toBeUndefined()
+    // game.json.exec wins over url: Pallasite ships as a 376 MB native AppImage
+    // alongside game.json on the booth, for the full-fat flagship experience.
+    expect(pallasite!.kind).toBe('appimage')
+    // Relative exec resolves against the tile folder.
+    expect(pallasite!.exec).toBe(join(REAL_GAMES, 'pallasite', 'Pallasite.AppImage'))
     expect(pallasite!.gameId).toBe('pallasite')
     expect(pallasite!.order).toBe(1)
     expect(pallasite!.accent).toBe('#7cf3ff')
