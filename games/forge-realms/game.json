@@ -1,0 +1,8 @@
+{
+  "name": "Forge Realms",
+  "tagline": "Build, battle and conquer in this Nostr RTS",
+  "url": "https://forgesworn.dev/forge-realms/",
+  "gameId": "forge-realms",
+  "order": 10,
+  "accent": "#6366f1"
+}

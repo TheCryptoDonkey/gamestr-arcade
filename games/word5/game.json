@@ -1,0 +1,8 @@
+{
+  "name": "Word5",
+  "tagline": "Guess the 5-letter word in as few tries as possible",
+  "url": "https://word5.otherstuff.ai/",
+  "gameId": "word5",
+  "order": 3,
+  "accent": "#f59e0b"
+}

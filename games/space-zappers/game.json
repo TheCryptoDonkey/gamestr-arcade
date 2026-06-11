@@ -1,0 +1,8 @@
+{
+  "name": "Space Zappers",
+  "tagline": "Zap the alien invaders — Space Invaders on Nostr",
+  "url": "https://www.spacezappers.com/",
+  "gameId": "space-zappers",
+  "order": 11,
+  "accent": "#06b6d4"
+}

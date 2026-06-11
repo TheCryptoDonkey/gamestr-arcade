@@ -1,0 +1,8 @@
+{
+  "name": "Sat Snake",
+  "tagline": "Mobile-friendly Snake — collect sats, grow your stack",
+  "url": "https://satsnake.whitepaperinteractive.com/",
+  "gameId": "satsnake",
+  "order": 14,
+  "accent": "#10b981"
+}
