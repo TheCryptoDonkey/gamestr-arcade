@@ -1,23 +1,166 @@
 import type { LeaderboardEntry, LeaderboardProvider } from '../../../shared/types'
-import { isScoreEvent, parseScoreEvent, type ScoreEvent } from './gamestr-reduce'
+import { isScoreEvent, parseAnyScoreEvent, type ScoreEvent } from './gamestr-reduce'
 
 /** Optional callbacks for external status monitoring. */
 export interface GamestrProviderOptions {
   /**
    * Called with `'down'` when ALL relay sockets have dropped and with `'up'`
-   * when at least one socket reconnects. Use this to show a LIVE/RECONNECTING
-   * indicator in the leaderboard panel.
+   * when at least one socket reconnects.
    */
+  onStatus?: (state: 'up' | 'down') => void
+}
+
+export interface GamestrCatalogueOptions {
   onStatus?: (state: 'up' | 'down') => void
 }
 
 /** Capped jittered backoff: starts at ~2 s, caps at 30 s. */
 function nextBackoffMs(attempt: number): number {
   const base = Math.min(2000 * Math.pow(1.5, attempt), 30_000)
-  // ±25 % jitter so multiple sockets don't all reconnect simultaneously.
   return base * (0.75 + Math.random() * 0.5)
 }
 
+/**
+ * Shared session-wide catalogue subscription.
+ *
+ * Opens one WebSocket per relay with a broad kind-30762 filter (no `#t`).
+ * Routes each incoming event to an in-memory index keyed by the event's own
+ * `game` tag. Multiple callers can subscribe to different game IDs; the
+ * sockets stay open until `dispose()` is called.
+ */
+export interface GamestrCatalogue {
+  /**
+   * Subscribe to leaderboard updates for a given gameId.
+   * `onUpdate` is called immediately with the current index entries for that
+   * game, then again whenever a new score for that game arrives.
+   * Returns an unsubscribe function.
+   */
+  subscribe(gameId: string, onUpdate: (entries: LeaderboardEntry[]) => void): () => void
+  /** Close all relay sockets and cancel reconnect timers. */
+  dispose(): void
+}
+
+export function createGamestrCatalogue(
+  relays: string[],
+  topN: number,
+  opts: GamestrCatalogueOptions = {},
+): GamestrCatalogue {
+  // index: gameId → (eventId → entry)
+  const index = new Map<string, Map<string, LeaderboardEntry>>()
+  // subscribers: gameId → Set of callbacks
+  const subscribers = new Map<string, Set<(entries: LeaderboardEntry[]) => void>>()
+
+  let disposed = false
+  const connected = new Set<string>()
+  const relayTimers = new Map<string, ReturnType<typeof setTimeout>>()
+  const sockets = new Map<string, WebSocket>()
+  // Debounce emit per gameId so rapid burst events don't spam callbacks.
+  const pending = new Map<string, ReturnType<typeof setTimeout>>()
+
+  function entriesFor(gameId: string): LeaderboardEntry[] {
+    const bucket = index.get(gameId)
+    if (!bucket) return []
+    return Array.from(bucket.values())
+  }
+
+  function emitGame(gameId: string): void {
+    if (disposed) return
+    if (pending.has(gameId)) return
+    const t = setTimeout(() => {
+      pending.delete(gameId)
+      if (disposed) return
+      const subs = subscribers.get(gameId)
+      if (!subs || subs.size === 0) return
+      const entries = entriesFor(gameId)
+      for (const cb of subs) cb(entries)
+    }, 200)
+    pending.set(gameId, t)
+  }
+
+  function consider(e: ScoreEvent): void {
+    const parsed = parseAnyScoreEvent(e)
+    if (!parsed) return
+    const { gameId, entry } = parsed
+    let bucket = index.get(gameId)
+    if (!bucket) { bucket = new Map(); index.set(gameId, bucket) }
+    bucket.set(e.id, entry)
+    emitGame(gameId)
+  }
+
+  function connectRelay(url: string, attempt: number): void {
+    if (disposed) return
+    let ws: WebSocket
+    try { ws = new WebSocket(url) } catch { return }
+    sockets.set(url, ws)
+
+    const subId = 'lb' + Math.random().toString(36).slice(2, 10)
+
+    ws.onopen = () => {
+      connected.add(url)
+      if (connected.size === 1) opts.onStatus?.('up')
+      ws.send(JSON.stringify(['REQ', subId, { kinds: [30762], limit: 500 }]))
+    }
+
+    ws.onmessage = ev => {
+      let msg: unknown
+      try { msg = JSON.parse(typeof ev.data === 'string' ? ev.data : '') } catch { return }
+      if (Array.isArray(msg) && msg[0] === 'EVENT' && msg[1] === subId && isScoreEvent(msg[2])) {
+        consider(msg[2])
+      }
+    }
+
+    const reconnect = () => {
+      if (disposed) return
+      connected.delete(url)
+      if (connected.size === 0) opts.onStatus?.('down')
+      const delay = nextBackoffMs(attempt)
+      const t = setTimeout(() => {
+        relayTimers.delete(url)
+        connectRelay(url, attempt + 1)
+      }, delay)
+      relayTimers.set(url, t)
+    }
+
+    ws.onclose = () => reconnect()
+    ws.onerror = () => {
+      // onerror precedes onclose; let onclose drive the reconnect.
+    }
+  }
+
+  if (relays.length > 0) {
+    for (const url of relays) connectRelay(url, 0)
+  }
+
+  return {
+    subscribe(gameId, onUpdate) {
+      let subs = subscribers.get(gameId)
+      if (!subs) { subs = new Set(); subscribers.set(gameId, subs) }
+      subs.add(onUpdate)
+      // Emit current entries immediately (async so caller can set up state first).
+      const t = setTimeout(() => { if (!disposed) onUpdate(entriesFor(gameId)) }, 0)
+      return () => {
+        clearTimeout(t)
+        const s = subscribers.get(gameId)
+        s?.delete(onUpdate)
+      }
+    },
+
+    dispose() {
+      disposed = true
+      for (const t of pending.values()) clearTimeout(t)
+      pending.clear()
+      for (const t of relayTimers.values()) clearTimeout(t)
+      relayTimers.clear()
+      for (const ws of sockets.values()) { try { ws.close() } catch { /* ignore */ } }
+      sockets.clear()
+    },
+  }
+}
+
+/**
+ * Per-game provider — used by the panel's `makeProvider` factory API.
+ * Uses a broad REQ (no `#t`) since gamestr.io games tag genres, not game IDs.
+ */
 export function createGamestrProvider(
   relays: string[],
   topN: number,
@@ -31,8 +174,6 @@ export function createGamestrProvider(
       let closed = false
       let pending: ReturnType<typeof setTimeout> | null = null
 
-      // Track per-relay connection state so we can tell the caller when ALL are
-      // down (for the LIVE indicator) vs at least one is up.
       const connected = new Set<string>()
 
       const emit = () => {
@@ -44,12 +185,13 @@ export function createGamestrProvider(
       }
 
       const consider = (e: ScoreEvent) => {
-        const entry = parseScoreEvent(e, gameId); if (!entry) return
+        const parsed = parseAnyScoreEvent(e)
+        if (!parsed || parsed.gameId !== gameId) return
+        const entry = parsed.entry
         const cur = best.get(entry.pubkey); if (cur && cur.score >= entry.score) return
         best.set(entry.pubkey, entry); emit()
       }
 
-      // Per-relay connection handles (current socket + reconnect timer).
       const relayTimers = new Map<string, ReturnType<typeof setTimeout>>()
       const sockets = new Map<string, WebSocket>()
 
@@ -63,9 +205,9 @@ export function createGamestrProvider(
 
         ws.onopen = () => {
           connected.add(url)
-          // Fire 'up' when the first socket reconnects after a full outage.
           if (connected.size === 1) opts.onStatus?.('up')
-          ws.send(JSON.stringify(['REQ', subId, { kinds: [30762], '#t': [gameId], limit: 200 }]))
+          // Broad filter — no #t — because gamestr.io games tag genres, not game IDs
+          ws.send(JSON.stringify(['REQ', subId, { kinds: [30762], limit: 500 }]))
         }
 
         ws.onmessage = ev => {
@@ -89,25 +231,16 @@ export function createGamestrProvider(
         }
 
         ws.onclose = () => reconnect()
-        ws.onerror = () => {
-          // onerror always precedes onclose; let onclose drive the reconnect.
-          // We only need to clear connected here in case onclose doesn't fire.
-        }
+        ws.onerror = () => {}
       }
 
-      // Initial connections.
-      for (const url of relays) {
-        connectRelay(url, 0)
-      }
+      for (const url of relays) connectRelay(url, 0)
 
       return () => {
         closed = true
         if (pending) clearTimeout(pending)
-        // Cancel all pending reconnect timers.
         for (const t of relayTimers.values()) clearTimeout(t)
         relayTimers.clear()
-        // Close any open sockets so navigating between tiles / attract-mode
-        // auto-advance doesn't leak a WebSocket per relay on every change.
         for (const ws of sockets.values()) { try { ws.close() } catch { /* ignore */ } }
         sockets.clear()
       }

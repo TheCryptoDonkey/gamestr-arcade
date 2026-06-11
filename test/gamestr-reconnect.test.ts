@@ -161,7 +161,8 @@ describe('createGamestrProvider — reconnect', () => {
     expect(ws.sentMessages).toHaveLength(1)
     const req = JSON.parse(ws.sentMessages[0]) as unknown[]
     expect(req[0]).toBe('REQ')
-    expect((req[2] as Record<string, unknown>)['#t']).toContain('game1')
+    expect((req[2] as Record<string, unknown>)['#t']).toBeUndefined()
+    expect((req[2] as Record<string, unknown>).kinds).toContain(30762)
   })
 
   it('onclose schedules a reconnect that re-sends REQ', () => {
