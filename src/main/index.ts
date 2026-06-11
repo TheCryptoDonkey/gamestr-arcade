@@ -88,9 +88,6 @@ let buildingGames: Promise<Game[]> | null = null
 // Created on first web launch, reused thereafter.
 let webView: WebContentsView | null = null
 
-// Back-hint overlay text shown while a web game is active.
-const WEB_BACK_HINT = 'Hold START / press Esc to return to the menu'
-
 /** Lay out `webView` to cover the full window client area. */
 function sizeWebView(): void {
   if (!win || !webView) return
@@ -104,8 +101,19 @@ function ensureWebView(): WebContentsView {
 
   if (!win) throw new Error('ensureWebView called before window exists')
 
+  // The webgame preload polls gamepads and sends game:back when the player
+  // holds Start (≥700 ms) or presses Escape — bridging the focus gap where the
+  // launcher's renderer is backgrounded and cannot poll navigator.getGamepads().
+  // sandbox: false is required so the preload can use ipcRenderer.send.
+  // contextIsolation: true ensures the third-party game page cannot reach the
+  // preload's scope.
   webView = new WebContentsView({
-    webPreferences: { sandbox: true, nodeIntegration: false },
+    webPreferences: {
+      preload: join(__dirname, '../preload/webgame.mjs'),
+      sandbox: false,
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
   })
 
   win.contentView.addChildView(webView)
@@ -170,31 +178,11 @@ function buildLaunchDeps(): LaunchDeps {
       view.webContents.loadURL(url).catch(err => {
         console.error(`[arcade] loadURL error: ${err}`)
       })
-      // Bring the view to the front and inject the back-hint overlay.
+      // Bring the view to the front.
+      // The back-hint bar and gamepad/keyboard exit are handled by the
+      // webgame preload — no executeJavaScript injection needed here.
       if (win) {
         win.contentView.addChildView(view) // addChildView is idempotent for existing children
-        // Inject a minimal back-hint bar once the page finishes loading.
-        view.webContents.once('did-finish-load', () => {
-          view.webContents
-            .executeJavaScript(`
-              (function(){
-                const existing = document.getElementById('__arcade_back_hint');
-                if (existing) existing.remove();
-                const bar = document.createElement('div');
-                bar.id = '__arcade_back_hint';
-                Object.assign(bar.style, {
-                  position:'fixed', bottom:'0', left:'0', right:'0',
-                  padding:'6px 16px', background:'rgba(5,7,15,0.85)',
-                  color:'#7cf3ff', fontFamily:'monospace', fontSize:'12px',
-                  textAlign:'center', zIndex:'2147483647', pointerEvents:'none',
-                  letterSpacing:'0.1em',
-                });
-                bar.textContent = ${JSON.stringify(WEB_BACK_HINT)};
-                document.body.appendChild(bar);
-              })();
-            `)
-            .catch(() => {})
-        })
       }
       // Register global Escape while web game is active.
       globalShortcut.register('Escape', () => launcher.back())
@@ -308,7 +296,15 @@ app.whenReady().then(async () => {
     launcher.launch(game)
   })
 
+  // Invoked by the shell renderer's preload (ipcRenderer.invoke).
   ipcMain.handle('game:back', () => {
+    launcher.back()
+  })
+
+  // Sent (fire-and-forget) by the web-game preload (ipcRenderer.send).
+  // Using ipcMain.on so it works even if the sender is a WebContentsView
+  // rather than the main BrowserWindow renderer.
+  ipcMain.on('game:back', () => {
     launcher.back()
   })
 

@@ -21,6 +21,7 @@ export default defineConfig({
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/preload/index.ts'),
+          webgame: resolve(__dirname, 'src/preload/webgame.ts'),
         },
       },
     },
