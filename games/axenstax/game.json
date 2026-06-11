@@ -1,0 +1,8 @@
+{
+  "name": "AxeNStax",
+  "tagline": "Mine your Genesis Block — voxel proof-of-work",
+  "url": "http://localhost:8094",
+  "gameId": "axenstax",
+  "order": 2,
+  "accent": "#f5a623"
+}

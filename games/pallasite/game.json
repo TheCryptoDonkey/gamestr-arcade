@@ -1,0 +1,8 @@
+{
+  "name": "Pallasite",
+  "tagline": "Cosmic arcade Asteroids — mine the belt, top the chain",
+  "gameId": "pallasite",
+  "order": 1,
+  "accent": "#7cf3ff",
+  "exec": "../../../pallasite/desktop/out/Pallasite-0.1.0-x86_64.AppImage"
+}

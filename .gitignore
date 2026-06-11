@@ -2,9 +2,13 @@ node_modules/
 out/
 dist/
 release/
-/games/
 .DS_Store
 *.AppImage
+
+# Track booth tile metadata + art, but never binaries.
+# games/<slug>/{game.json,logo.png,hero.png,hero.mp4,README.md} are tracked.
+# Any other files inside games/ subfolders (zips, desktop entries, etc.) are ignored.
+games/**/*.AppImage
 
 # Design verification screenshots (local only)
 .design-shots/
