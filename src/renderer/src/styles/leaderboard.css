@@ -401,6 +401,42 @@
   color: var(--ink-dim);
 }
 
+/* ── Period toggle ────────────────────────────────────────────────────────── */
+.lb-period-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  pointer-events: auto;
+}
+.lb-period-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
+  color: var(--ink-dim);
+  padding: 0.1rem 0.2rem;
+  border-radius: 3px;
+  transition: color 0.15s, text-shadow 0.15s;
+}
+.lb-period-btn:hover {
+  color: var(--ink);
+}
+.lb-period-btn.lb-period-active {
+  color: var(--accent);
+  text-shadow: 0 0 8px var(--accent-glow);
+}
+.lb-period-sep {
+  color: var(--ink-dim);
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  opacity: 0.5;
+  user-select: none;
+}
+
 /* ── Reduced motion ───────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .leaderboard,
