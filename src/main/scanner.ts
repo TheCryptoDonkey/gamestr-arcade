@@ -45,11 +45,17 @@ export async function scanGames(gamesDir: string, resolveLogo: LogoResolver = pa
 
     const meta = await readJson(join(full, 'game.json'))
     const appImage = await firstAppImage(full)
+    // Precedence: loose *.AppImage in folder > game.json.exec > game.json.url
+    const execPath = !appImage && meta?.exec
+      ? (meta.exec as string).startsWith('/') ? meta.exec : join(full, meta.exec)
+      : undefined
     if (appImage) {
       games.push(await build(entry, full, { kind: 'appimage', exec: appImage }, meta, resolveLogo, appImage))
+    } else if (execPath) {
+      games.push(await build(entry, full, { kind: 'appimage', exec: execPath }, meta, resolveLogo, execPath))
     } else if (meta?.url) {
       games.push(await build(entry, full, { kind: 'web', url: meta.url }, meta, resolveLogo, undefined))
-    } // else: neither AppImage nor url → skip (empty/placeholder folder)
+    } // else: neither AppImage, exec, nor url → skip (empty/placeholder folder)
   }
   return games.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
 }

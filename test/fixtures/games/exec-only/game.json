@@ -1,0 +1,1 @@
+{ "name": "Exec Only", "gameId": "exec-only", "order": 1, "exec": "/some/absolute/path/Game.AppImage" }

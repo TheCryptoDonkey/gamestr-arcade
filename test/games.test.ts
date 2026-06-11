@@ -90,7 +90,9 @@ describe('buildGamesList', () => {
   it('skips the empty folder and returns only scannable games', async () => {
     const games = await buildGamesList(FIXTURES_DIR, FAKE_CACHE)
     expect(games.find(g => g.id === 'zzz-empty')).toBeUndefined()
-    expect(games.length).toBe(1)
+    // Fixtures: neon (web), exec-only (appimage via exec), exec-relative (appimage via exec).
+    // zzz-empty has neither url nor exec nor AppImage → not scanned.
+    expect(games.length).toBe(3)
   })
 
   it('preserves game metadata from game.json', async () => {

@@ -1,0 +1,1 @@
+{ "name": "Exec Relative", "gameId": "exec-relative", "order": 3, "exec": "../../fake-game.AppImage" }
