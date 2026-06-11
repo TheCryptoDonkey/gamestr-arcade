@@ -84,12 +84,11 @@ async function boot(): Promise<void> {
   const attract = new AttractMode(crtAnchor, {
     timeoutMs: config.attractTimeoutMs,
     carousel,
-    audio,
   })
   attract.start()
 
-  // Drive the board + SFX off carousel selection. Suppress the move blip while
-  // attract is auto-advancing so only the drone is heard in demo mode.
+  // Drive the board + SFX off carousel selection. Stay silent while attract is
+  // auto-advancing so idle demo mode makes no sound at all.
   carousel.onChange(game => {
     showBoard(game.gameId)
     if (!attract.isActive) audio.playMove()

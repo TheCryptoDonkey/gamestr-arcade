@@ -2,8 +2,8 @@
  * gamestr-arcade — attract mode (idle demo loop).
  *
  * After `timeoutMs` of no input the cabinet enters ATTRACT: it auto-advances the
- * carousel on an interval, raises an "INSERT COIN / PRESS START" overlay and
- * starts the attract drone. ANY activity exits instantly.
+ * carousel on an interval and raises an "INSERT COIN / PRESS START" overlay.
+ * ANY activity exits instantly. Attract is intentionally silent (no audio).
  *
  * The idle/active decision is a tiny pure state machine (`AttractTimer`) with
  * injected timer functions so it is unit-testable with a virtual clock — no real
@@ -112,17 +112,11 @@ export class AttractTimer {
   }
 }
 
-// ── DOM controller (overlay + carousel auto-advance + drone) ──────────────────
+// ── DOM controller (overlay + carousel auto-advance) ─────────────────────────
 
 /** Minimal surface this controller needs from the carousel (keeps it decoupled). */
 export interface AttractCarousel {
   next(): void
-}
-
-/** Minimal surface from the audio layer. */
-export interface AttractAudio {
-  startDrone(): void
-  stopDrone(): void
 }
 
 export interface AttractModeOptions {
@@ -130,20 +124,17 @@ export interface AttractModeOptions {
   /** How often to auto-advance the carousel while in attract (ms). */
   advanceMs?: number
   carousel: AttractCarousel
-  audio?: AttractAudio
 }
 
 export class AttractMode {
   private readonly timer: AttractTimer
   private readonly carousel: AttractCarousel
-  private readonly audio?: AttractAudio
   private readonly advanceMs: number
   private readonly overlay: HTMLElement
   private advanceHandle: number | null = null
 
   constructor(host: HTMLElement, opts: AttractModeOptions) {
     this.carousel = opts.carousel
-    this.audio = opts.audio
     this.advanceMs = opts.advanceMs ?? 5200
 
     this.overlay = document.createElement('div')
@@ -199,15 +190,13 @@ export class AttractMode {
   private enter(): void {
     this.overlay.classList.add('attract-on')
     this.overlay.setAttribute('aria-hidden', 'false')
-    this.audio?.startDrone()
-    // Kick the first advance after a beat, then on the steady cadence.
+    // Attract is silent by design — visuals + marquee only.
     this.advanceHandle = window.setInterval(() => this.carousel.next(), this.advanceMs)
   }
 
   private exit(): void {
     this.overlay.classList.remove('attract-on')
     this.overlay.setAttribute('aria-hidden', 'true')
-    this.audio?.stopDrone()
     if (this.advanceHandle !== null) {
       clearInterval(this.advanceHandle)
       this.advanceHandle = null
