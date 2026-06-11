@@ -19,6 +19,7 @@
 
 import type { ArcadeConfig, LeaderboardEntry, LeaderboardProvider } from '../../../shared/types'
 import { createGamestrProvider } from '../leaderboard/gamestr'
+import { boardFor, type Period } from '../leaderboard/gamestr-reduce'
 import { readCachedBoard, writeCachedBoard } from '../leaderboard/cache'
 import { avatarCss, resolveProfiles, shortenNpub, type Profile } from '../leaderboard/profiles'
 import { ProfileCache } from '../leaderboard/profile-cache'
@@ -39,6 +40,8 @@ export interface LeaderboardPanelOptions {
   /** Heading + sub-heading copy (kept here so the booth can re-theme it). */
   title?: string
   subtitle?: string
+  /** Max entries to show on the board (default 10). */
+  topN?: number
 }
 
 type ConnState = 'live' | 'reconnecting'
@@ -76,6 +79,10 @@ export class LeaderboardPanel {
   /** 24h persistent cache — shared across all game selections in the session. */
   private readonly profileCache: ProfileCache
   private gotLive = false
+  private period: Period = 'today'
+  private rawEntries: LeaderboardEntry[] = []
+  private readonly topN: number
+  private keyHandler: ((e: KeyboardEvent) => void) | null = null
   private connectTimer: number | null = null
 
   constructor(host: HTMLElement, opts: LeaderboardPanelOptions) {
@@ -86,6 +93,7 @@ export class LeaderboardPanel {
     }
     this.currentRelays = [...opts.relays]
     this.profileCache = opts.profileCache ?? new ProfileCache()
+    this.topN = opts.topN ?? 10
 
     this.root = document.createElement('aside')
     this.root.className = 'leaderboard'
@@ -100,6 +108,11 @@ export class LeaderboardPanel {
           <div class="lb-sub-row">
             <span class="lb-subtitle">${escapeHtml(this.opts.subtitle)}</span>
             <span class="lb-status" data-state="reconnecting"><span class="lb-status-dot"></span><span class="lb-status-text">SYNC</span></span>
+            <span class="lb-period-toggle">
+              <button class="lb-period-btn lb-period-active" data-period="today">TODAY</button>
+              <span class="lb-period-sep">|</span>
+              <button class="lb-period-btn" data-period="all">ALL TIME</button>
+            </span>
           </div>
         </header>
         <ol class="lb-list"></ol>
@@ -108,6 +121,19 @@ export class LeaderboardPanel {
     host.appendChild(this.root)
     this.listEl = this.root.querySelector('.lb-list') as HTMLElement
     this.statusEl = this.root.querySelector('.lb-status') as HTMLElement
+    const toggleBtns = this.root.querySelectorAll('.lb-period-btn')
+    toggleBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = (btn as HTMLElement).dataset.period as Period
+        if (p) this.setPeriod(p)
+      })
+    })
+    this.keyHandler = (e: KeyboardEvent) => {
+      if (e.key === 't' || e.key === 'T') {
+        this.setPeriod(this.period === 'today' ? 'all' : 'today')
+      }
+    }
+    document.addEventListener('keydown', this.keyHandler)
   }
 
   /** Switch the board to a new game: cache-first paint, then live subscribe. */
@@ -119,7 +145,8 @@ export class LeaderboardPanel {
     this.profiles.clear()
 
     // 1. Cache-first: instant board, no empty flash.
-    this.entries = readCachedBoard(gameId)
+    this.rawEntries = readCachedBoard(gameId)
+    this.entries = boardFor(this.rawEntries, this.period, this.topN, Math.floor(Date.now() / 1000))
     this.render()
     this.setStatus('reconnecting')
 
@@ -132,12 +159,13 @@ export class LeaderboardPanel {
       if (s === 'up' && this.gotLive) this.setStatus('live')
       if (s === 'down') this.setStatus('reconnecting')
     })
-    this.unsubscribeScores = provider.subscribe(gameId, top => {
+    this.unsubscribeScores = provider.subscribe(gameId, raw => {
       if (gameId !== this.currentGameId) return
       this.gotLive = true
-      this.entries = top
+      this.rawEntries = raw
+      this.entries = boardFor(raw, this.period, this.topN, Math.floor(Date.now() / 1000))
       this.setStatus('live')
-      writeCachedBoard(gameId, top)
+      writeCachedBoard(gameId, this.entries)
       this.render()
       this.resolveVisibleProfiles()
     })
@@ -169,6 +197,7 @@ export class LeaderboardPanel {
   /** Tear everything down (call on teardown / app exit). */
   destroy(): void {
     this.teardownSubscriptions()
+    if (this.keyHandler) document.removeEventListener('keydown', this.keyHandler)
     this.root.remove()
   }
 
@@ -219,6 +248,17 @@ export class LeaderboardPanel {
     this.statusEl.dataset.state = state
     const text = this.statusEl.querySelector('.lb-status-text') as HTMLElement
     text.textContent = state === 'live' ? 'LIVE' : 'SYNC'
+  }
+
+  private setPeriod(p: Period): void {
+    if (p === this.period) return
+    this.period = p
+    this.root.querySelectorAll('.lb-period-btn').forEach(btn => {
+      const el = btn as HTMLElement
+      el.classList.toggle('lb-period-active', el.dataset.period === p)
+    })
+    this.entries = boardFor(this.rawEntries, this.period, this.topN, Math.floor(Date.now() / 1000))
+    this.render()
   }
 
   /** Live-patch a single row's name/picture once its profile resolves. */
@@ -296,11 +336,19 @@ export class LeaderboardPanel {
   private renderEmpty(): void {
     const li = document.createElement('li')
     li.className = 'lb-empty'
-    li.innerHTML = `
-      <span class="lb-empty-mark">★</span>
-      <span class="lb-empty-head">BE THE FIRST</span>
-      <span class="lb-empty-sub">PLAY TO CLAIM THE TOP SPOT</span>
-    `
+    if (this.period === 'today') {
+      li.innerHTML = `
+        <span class="lb-empty-mark">★</span>
+        <span class="lb-empty-head">NO SCORES YET TODAY</span>
+        <span class="lb-empty-sub">BE THE FIRST</span>
+      `
+    } else {
+      li.innerHTML = `
+        <span class="lb-empty-mark">★</span>
+        <span class="lb-empty-head">BE THE FIRST</span>
+        <span class="lb-empty-sub">PLAY TO CLAIM THE TOP SPOT</span>
+      `
+    }
     this.listEl.replaceChildren(li)
   }
 }
@@ -363,6 +411,7 @@ export function mountLeaderboard(
 
   const panel = new LeaderboardPanel(host, {
     relays,
+    topN,
     makeProvider: (activeRelays: string[], onStatus) => createGamestrProvider(activeRelays, topN, { onStatus }),
     resolve: resolveProfiles,
   })

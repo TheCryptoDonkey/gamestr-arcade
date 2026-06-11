@@ -36,8 +36,9 @@ function makeProvider(entries: LeaderboardEntry[]): LeaderboardProvider {
 const PUBKEY_A = 'a'.repeat(64)
 const PUBKEY_B = 'b'.repeat(64)
 
-const ENTRY_A: LeaderboardEntry = { pubkey: PUBKEY_A, score: 1000, sats: 0, at: 1 }
-const ENTRY_B: LeaderboardEntry = { pubkey: PUBKEY_B, score: 900, sats: 0, at: 2 }
+const NOW = Math.floor(Date.now() / 1000)
+const ENTRY_A: LeaderboardEntry = { pubkey: PUBKEY_A, score: 1000, sats: 0, at: NOW }
+const ENTRY_B: LeaderboardEntry = { pubkey: PUBKEY_B, score: 900, sats: 0, at: NOW - 1 }
 
 describe('LeaderboardPanel — stale profile callback guard', () => {
   it('a profile callback from a previous game does not update current profiles', async () => {
