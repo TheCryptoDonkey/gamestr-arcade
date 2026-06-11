@@ -242,7 +242,7 @@ app.whenReady().then(async () => {
   // Failures are non-fatal — games without a local mirror fall back to their
   // remote URL as normal.
   try {
-    localServer = await startLocalServer(gamesDir)
+    localServer = await startLocalServer()
     console.log(`[arcade] local server: http://127.0.0.1:${localServer.port}/`)
   } catch (err) {
     console.warn(`[arcade] local server: failed to start (${String(err)}) — offline mirrors unavailable`)
@@ -293,6 +293,11 @@ app.whenReady().then(async () => {
       return
     }
     console.log(`[arcade] launching "${game.name}" (${game.kind})`)
+    // Point the local server at this game's site/ dir before the web view loads
+    // so the SPA router sees `/` as its base path (not a subpath).
+    if (game.localSite && game.localRoot && localServer) {
+      localServer.setRoot(game.localRoot)
+    }
     launcher.launch(game)
   })
 

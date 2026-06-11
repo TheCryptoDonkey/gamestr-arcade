@@ -1,13 +1,17 @@
 /**
  * gamestr-arcade — local static server for mirrored web games.
  *
- * Binds to 127.0.0.1 on an ephemeral port and serves `games/<slug>/site/`
- * so a booth operator can run games fully offline. Only reads from inside
- * `gamesDir`; any path that would escape is rejected (traversal guard).
+ * Binds to 127.0.0.1 on an ephemeral port and serves a single game's
+ * `site/` directory at the server ROOT so single-page apps with client-side
+ * routers always see `/` as their base path.
+ *
+ * Only one game runs at a time (single-flight launch), so the root is
+ * swapped via `setRoot()` whenever a new local game is launched.
  *
  * Usage:
- *   const { port, close } = await startLocalServer('/path/to/games')
- *   // http://127.0.0.1:<port>/neon/site/ serves games/neon/site/
+ *   const server = await startLocalServer()
+ *   server.setRoot('/path/to/games/sats-man/site')
+ *   // http://127.0.0.1:<port>/ serves sats-man/site/index.html
  */
 
 import http from 'node:http'
@@ -84,12 +88,14 @@ export function resolveSafePath(root: string, pathname: string): string | null {
 }
 
 /**
- * Build the canonical URL prefix for a mirrored game slug.
+ * Build the root URL for the local server.
  *
- * `http://127.0.0.1:<port>/<slug>/site/`
+ * `http://127.0.0.1:<port>/`
+ *
+ * Games are served at the root (not a subpath) so SPA routers always see `/`.
  */
-export function localUrlFor(port: number, slug: string): string {
-  return `http://127.0.0.1:${port}/${slug}/site/`
+export function localUrlFor(port: number): string {
+  return `http://127.0.0.1:${port}/`
 }
 
 // ── Request handler ────────────────────────────────────────────────────────────
@@ -97,14 +103,21 @@ export function localUrlFor(port: number, slug: string): string {
 async function handleRequest(
   req: http.IncomingMessage,
   res: http.ServerResponse,
-  gamesDir: string,
+  currentRoot: string | null,
 ): Promise<void> {
   try {
+    // No root set yet — server is idle between games.
+    if (!currentRoot) {
+      res.writeHead(404, { 'content-type': 'text/plain' })
+      res.end('404 Not Found')
+      return
+    }
+
     const rawUrl = req.url ?? '/'
     const urlObj = new URL(rawUrl, 'http://localhost')
     const pathname = decodeURIComponent(urlObj.pathname)
 
-    const filePath = resolveSafePath(gamesDir, pathname)
+    const filePath = resolveSafePath(currentRoot, pathname)
     if (!filePath) {
       res.writeHead(403, { 'content-type': 'text/plain' })
       res.end('403 Forbidden')
@@ -145,7 +158,8 @@ async function handleRequest(
 
     // Path does not exist.
     // Extension-shaped asset paths (e.g. .js, .wasm) get a clean 404.
-    // Extension-free paths (navigation) get the slug's SPA index.html.
+    // Extension-free paths (SPA navigation) fall back to the root index.html
+    // so the client-side router can handle them.
     const ext = extname(pathname).toLowerCase()
     if (ext && ASSET_EXTS.has(ext)) {
       res.writeHead(404, { 'content-type': 'text/plain' })
@@ -153,21 +167,13 @@ async function handleRequest(
       return
     }
 
-    // SPA fallback: serve the nearest site/index.html for this slug.
-    // The pathname is expected to be /<slug>/site/... so we find the
-    // segment boundary at position 2 (/<slug>/site/).
-    const parts = pathname.split('/').filter(Boolean) // ['slug', 'site', ...]
-    if (parts.length >= 2) {
-      const spaIndex = join(gamesDir, parts[0], parts[1], 'index.html')
-      const guarded = resolveSafePath(gamesDir, `/${parts[0]}/${parts[1]}/index.html`)
-      if (guarded) {
-        try {
-          await stat(spaIndex)
-          await serveFile(res, spaIndex)
-          return
-        } catch { /* fall through */ }
-      }
-    }
+    // SPA fallback: serve the root index.html for any extension-less path.
+    const spaIndex = join(currentRoot, 'index.html')
+    try {
+      await stat(spaIndex)
+      await serveFile(res, spaIndex)
+      return
+    } catch { /* fall through */ }
 
     res.writeHead(404, { 'content-type': 'text/plain' })
     res.end('404 Not Found')
@@ -198,24 +204,35 @@ async function serveFile(res: http.ServerResponse, filePath: string): Promise<vo
 
 export interface LocalServer {
   port: number
+  /**
+   * Point the server at a new absolute directory.  The next request will be
+   * served from `absDir`.  Swapping is safe because only one game runs at a
+   * time (single-flight launch guard in `index.ts`).
+   */
+  setRoot(absDir: string): void
   close(): void
 }
 
 /**
- * Start an HTTP server bound to 127.0.0.1 that serves files from `gamesDir`.
+ * Start an HTTP server bound to 127.0.0.1 with a swappable document root.
  *
  * Pass `port: 0` (the default) to use an OS-assigned ephemeral port — the
  * resolved port is returned in the `LocalServer` result. Fixed ports may be
  * passed for deterministic dev setups.
  *
- * The server only serves files that resolve inside `gamesDir` (no traversal).
+ * Call `setRoot(absDir)` before loading a game URL so the server's root
+ * points at that game's `site/` directory.  The server then serves files
+ * relative to that root, with traversal blocked and SPA fallback enabled.
+ * Until `setRoot` is called the server returns 404 for all requests.
  */
 export async function startLocalServer(
-  gamesDir: string,
   port = 0,
 ): Promise<LocalServer> {
+  // Mutable root — updated atomically (string assignment is synchronous).
+  let currentRoot: string | null = null
+
   const server = http.createServer((req, res) => {
-    handleRequest(req, res, gamesDir).catch(err => {
+    handleRequest(req, res, currentRoot).catch(err => {
       console.error('[local-server] unhandled error:', err)
       if (!res.headersSent) {
         res.writeHead(500, { 'content-type': 'text/plain' })
@@ -234,6 +251,9 @@ export async function startLocalServer(
 
   return {
     port: actualPort,
+    setRoot(absDir: string) {
+      currentRoot = absDir
+    },
     close() {
       server.close()
     },

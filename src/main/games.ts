@@ -106,7 +106,8 @@ export async function buildGamesList(
       const siteIndex = join(gamesDir, game.id, 'site', 'index.html')
       const hasMirror = await stat(siteIndex).then(s => s.isFile()).catch(() => false)
       if (!hasMirror) return game
-      return { ...game, url: localUrlFor(localPort, game.id), localSite: true }
+      const localRoot = join(gamesDir, game.id, 'site')
+      return { ...game, url: localUrlFor(localPort), localSite: true, localRoot }
     }),
   )
 }

@@ -120,14 +120,17 @@ describe('buildGamesList', () => {
   })
 
   describe('local mirror resolution', () => {
-    it('rewrites url to http://127.0.0.1 and sets localSite:true when site/index.html exists', async () => {
+    it('rewrites url to the server root and sets localSite:true + localRoot when site/index.html exists', async () => {
       const PORT = 54321
       const games = await buildGamesList(FIXTURES_DIR, FAKE_CACHE, PORT)
       const mirrored = games.find(g => g.id === 'mirrored')
       expect(mirrored).toBeTruthy()
       expect(mirrored!.kind).toBe('web')
-      expect(mirrored!.url).toBe(`http://127.0.0.1:${PORT}/mirrored/site/`)
+      // URL must be the server root so SPA routers see /
+      expect(mirrored!.url).toBe(`http://127.0.0.1:${PORT}/`)
       expect(mirrored!.localSite).toBe(true)
+      // localRoot must point at the game's site/ directory
+      expect(mirrored!.localRoot).toBe(join(FIXTURES_DIR, 'mirrored', 'site'))
     })
 
     it('keeps remote url and no localSite when site/index.html is absent', async () => {
