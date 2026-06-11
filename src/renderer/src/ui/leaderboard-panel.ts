@@ -26,8 +26,12 @@ import { ProfileCache } from '../leaderboard/profile-cache'
 export interface LeaderboardPanelOptions {
   /** The relays profile resolution should query (score relays come via the provider). */
   relays: string[]
-  /** Builds a provider for a given relay set (real gamestr, or a mock). */
-  makeProvider: (relays: string[]) => LeaderboardProvider
+  /**
+   * Builds a provider for a given relay set.
+   * `onStatus` is called with `'up'`/`'down'` when socket connectivity changes,
+   * allowing the provider to drive the LIVE indicator independently of score updates.
+   */
+  makeProvider: (relays: string[], onStatus?: (s: 'up' | 'down') => void) => LeaderboardProvider
   /** Profile resolver — swappable so browser mode can no-op or mock it. */
   resolve?: typeof resolveProfiles
   /** Pre-seeded profile cache (24h TTL). Defaults to a fresh instance. */
@@ -120,7 +124,14 @@ export class LeaderboardPanel {
     this.setStatus('reconnecting')
 
     // 2. Live scores.
-    const provider = this.opts.makeProvider(this.currentRelays)
+    // Pass an onStatus hook so the provider can drive the indicator when sockets
+    // reconnect even if no new scores arrive (fixes the LIVE indicator staying
+    // after a relay drop).
+    const provider = this.opts.makeProvider(this.currentRelays, (s) => {
+      if (gameId !== this.currentGameId) return
+      if (s === 'up' && this.gotLive) this.setStatus('live')
+      if (s === 'down') this.setStatus('reconnecting')
+    })
     this.unsubscribeScores = provider.subscribe(gameId, top => {
       if (gameId !== this.currentGameId) return
       this.gotLive = true
@@ -191,7 +202,12 @@ export class LeaderboardPanel {
     if (unfetched.length === 0) return
 
     this.unsubscribeProfiles?.()
+    // Capture the gameId at subscription time so stale callbacks from a previous
+    // game's resolution are silently dropped on rapid navigation.
+    const guardGameId = this.currentGameId
     this.unsubscribeProfiles = resolve(this.currentRelays, unfetched, (pubkey, profile) => {
+      // Guard: ignore if the user has navigated away since this subscription started.
+      if (guardGameId !== this.currentGameId) return
       // Persist to 24h cache for future sessions.
       this.profileCache.set(pubkey, profile)
       this.profiles.set(pubkey, profile)
@@ -347,7 +363,7 @@ export function mountLeaderboard(
 
   const panel = new LeaderboardPanel(host, {
     relays,
-    makeProvider: (activeRelays: string[]) => createGamestrProvider(activeRelays, topN),
+    makeProvider: (activeRelays: string[], onStatus) => createGamestrProvider(activeRelays, topN, { onStatus }),
     resolve: resolveProfiles,
   })
   return { show: gameId => panel.show(gameId), panel }
