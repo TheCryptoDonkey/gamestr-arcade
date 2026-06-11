@@ -16,8 +16,8 @@
 # The service expects:
 #   - The AppImage at: ~/gamestr-arcade.AppImage  (stable name; deploy.sh ships
 #     every version to this path so ExecStart never needs to change).
-#   - Games folder: bundled inside the AppImage at process.resourcesPath/games
-#     (no external folder required).
+#   - Games folder: ~/gamestr-games on the booth (deployed there by deploy.sh
+#     via rsync; not bundled inside the AppImage).
 #   - A running X / Wayland session owned by the same user
 #     (DISPLAY / WAYLAND_DISPLAY are inherited from the user session).
 #
@@ -51,10 +51,7 @@ StartLimitBurst=4
 ExecStart=%h/gamestr-arcade.AppImage
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Games are bundled inside the AppImage (process.resourcesPath/games).
-# Uncomment and set ARCADE_GAMES_DIR only if you want to override with an
-# external games folder (e.g. to add games to the booth without a rebuild).
-# Environment=ARCADE_GAMES_DIR=/path/to/external/games
+Environment=ARCADE_GAMES_DIR=%h/gamestr-games
 
 Environment=ARCADE_KIOSK=1
 

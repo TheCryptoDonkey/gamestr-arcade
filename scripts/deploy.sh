@@ -4,10 +4,11 @@
 # install/enable service (→ optionally restart + health check).
 # Idempotent and safe to re-run; aborts on any checksum mismatch.
 #
-#   npm run deploy                              # build, package, ship, verify
+#   npm run deploy                              # build, package, ship, verify, sync games
 #   npm run deploy -- --restart                # …and restart the service on the booth
-#   npm run deploy -- --ship-only              # skip build+package, ship the existing AppImage
+#   npm run deploy -- --ship-only              # skip build+package, ship the existing AppImage (games still sync)
 #   npm run deploy -- --no-build               # skip npm build, still repackage + ship
+#   npm run deploy -- --no-games               # skip rsyncing the games/ folder
 #   npm run deploy -- --booth user@host[:dir]  # override booth target
 #
 # Booth defaults to the axenstax kiosk; override with --booth or BOOTH=.
@@ -20,15 +21,17 @@ DEST="${DEST:-.}"          # remote dir (relative to login home, or absolute)
 RESTART=0
 DO_BUILD=1
 DO_PACKAGE=1
+DO_GAMES=1
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --restart)   RESTART=1 ;;
     --no-build)  DO_BUILD=0 ;;
     --ship-only) DO_BUILD=0; DO_PACKAGE=0 ;;
+    --no-games)  DO_GAMES=0 ;;
     --booth)     BOOTH="$2"; shift ;;
     -h|--help)
-      sed -n '2,14p' "$0"; exit 0 ;;
+      sed -n '2,15p' "$0"; exit 0 ;;
     *) echo "deploy: unknown arg '$1' (try --help)" >&2; exit 2 ;;
   esac
   shift
@@ -103,6 +106,11 @@ scp -o BatchMode=yes "$REPO_DIR/systemd/gamestr-arcade.service" \
   systemctl --user enable gamestr-arcade
   echo "  ✓ service enabled"
 '
+
+if [ "$DO_GAMES" = 1 ]; then
+  step "Syncing games → $BOOTH:~/gamestr-games/ …"
+  rsync -az --delete -e "ssh -o BatchMode=yes" "$REPO_DIR/games/" "$BOOTH:gamestr-games/"
+fi
 
 if [ "$RESTART" = 1 ]; then
   step "Restarting service on booth…"
