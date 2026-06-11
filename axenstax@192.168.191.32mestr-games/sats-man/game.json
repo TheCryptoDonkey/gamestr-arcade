@@ -1,8 +1,0 @@
-{
-  "name": "Sats-Man",
-  "tagline": "Bitcoin-themed Pac-Man arcade on Nostr",
-  "url": "https://sats-man.com/",
-  "gameId": "sats-man",
-  "order": 5,
-  "accent": "#eab308"
-}
