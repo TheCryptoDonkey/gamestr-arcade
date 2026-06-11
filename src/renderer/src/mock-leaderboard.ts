@@ -26,8 +26,24 @@ function fakePubkey(label: string): string {
   return bytes.map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
+/**
+ * Tiny 8×8 pixel data-URI avatar for offline screenshot verification.
+ * Each label hashes to a different hue so they're visually distinct.
+ * Uses a 1×1 SVG (scales to any size) rather than PNG binary.
+ */
+function mockAvatar(label: string): string {
+  // Derive a hue from the label string (same FNV trick used for avatarSeed).
+  let h = 0x811c9dc5
+  for (let i = 0; i < label.length; i++) {
+    h ^= label.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0
+  }
+  const hue = h % 360
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect width="1" height="1" fill="hsl(${hue},80%,55%)"/></svg>`
+  return 'data:image/svg+xml;base64,' + btoa(svg)
+}
+
 function entry(label: string, name: string | undefined, score: number, sats: number, agoMin: number): LeaderboardEntry {
-  return { pubkey: fakePubkey(label), name, score, sats, at: NOW - agoMin * 60 }
+  return { pubkey: fakePubkey(label), name, picture: mockAvatar(label), score, sats, at: NOW - agoMin * 60 }
 }
 
 /**

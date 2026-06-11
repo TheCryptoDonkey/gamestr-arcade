@@ -159,11 +159,22 @@ function isKind0(v: unknown): v is Kind0Event {
   return e.kind === 0 && typeof e.pubkey === 'string' && typeof e.created_at === 'number' && typeof e.content === 'string'
 }
 
+/** Sanitise a raw picture string: must be an http(s) URL. Absent if not. */
+function sanitisePicture(raw: unknown): string | undefined {
+  if (typeof raw !== 'string') return undefined
+  const trimmed = raw.trim()
+  if (!trimmed) return undefined
+  // Only accept http / https — reject ipfs, data, nostr, etc.
+  return /^https?:\/\/.+/.test(trimmed) ? trimmed : undefined
+}
+
 function parseProfileContent(content: string): Profile | null {
   try {
     const o = JSON.parse(content) as Record<string, unknown>
-    const name = typeof o.display_name === 'string' && o.display_name.trim() ? o.display_name : typeof o.name === 'string' ? o.name : undefined
-    const picture = typeof o.picture === 'string' ? o.picture : undefined
+    const name = typeof o.display_name === 'string' && o.display_name.trim()
+      ? o.display_name
+      : typeof o.name === 'string' ? o.name : undefined
+    const picture = sanitisePicture(o.picture)
     if (!name && !picture) return null
     return { name: name?.trim() || undefined, picture }
   } catch {
@@ -172,11 +183,25 @@ function parseProfileContent(content: string): Profile | null {
 }
 
 /**
+ * Maximum concurrent kind-0 WebSocket connections (one per relay, up to this
+ * cap). In practice we open one socket per relay, so this caps the relay fan-out
+ * during profile resolution — distinct from the score subscription which is
+ * always opened against all relays.
+ */
+const MAX_PROFILE_RELAY_CONNECTIONS = 4
+
+/**
  * Resolve display names / pictures for a set of hex pubkeys across the relays.
  *
  * Calls `onResolve(pubkey, profile)` each time a newer kind-0 is seen for a
  * requested author. Returns an unsubscribe that closes the sockets. Designed to
  * be cheap and disposable — call it per board, dispose on the next selection.
+ *
+ * Hardening:
+ *   - Caps concurrent relay connections at `MAX_PROFILE_RELAY_CONNECTIONS`.
+ *   - Ignores malformed kind-0 content (parseProfileContent returns null).
+ *   - Rejects non-http(s) picture URLs (sanitisePicture).
+ *   - De-duplicates to the newest kind-0 per author (newestAt).
  */
 export function resolveProfiles(
   relays: string[],
@@ -190,7 +215,10 @@ export function resolveProfiles(
   const newestAt = new Map<string, number>()
   let closed = false
 
-  for (const url of relays) {
+  // Cap relay fan-out to avoid excessive concurrent connections for profile resolution.
+  const capped = relays.slice(0, MAX_PROFILE_RELAY_CONNECTIONS)
+
+  for (const url of capped) {
     let ws: WebSocket
     try {
       ws = new WebSocket(url)
