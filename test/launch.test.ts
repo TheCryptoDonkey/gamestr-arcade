@@ -50,6 +50,7 @@ interface FakeDepsState {
   webClosed: boolean
   chmodPaths: string[]
   spawnedExecs: string[]
+  killCount: number
   // Control: call these from outside to simulate child events.
   simulateExit: (code: number | null) => void
   simulateError: (err: Error) => void
@@ -68,6 +69,7 @@ function makeFakeDeps(): { deps: LaunchDeps; state: FakeDepsState } {
     webClosed: false,
     chmodPaths: [],
     spawnedExecs: [],
+    killCount: 0,
     simulateExit: (code) => exitCb?.(code),
     simulateError: (err) => errorCb?.(err),
   }
@@ -75,6 +77,7 @@ function makeFakeDeps(): { deps: LaunchDeps; state: FakeDepsState } {
   const spawnHandle: SpawnHandle = {
     onExit: (cb) => { exitCb = cb },
     onError: (cb) => { errorCb = cb },
+    kill: () => { state.killCount++ },
   }
 
   const deps: LaunchDeps = {
@@ -271,5 +274,96 @@ describe('Launcher — web game', () => {
     launcher.launch(makeWebGame({ url: 'https://example.test/second' }))
     expect(state.loadedUrls).toHaveLength(2)
     expect(state.loadedUrls[1]).toBe('https://example.test/second')
+  })
+})
+
+// ── forceBack() ───────────────────────────────────────────────────────────────
+
+describe('Launcher — forceBack()', () => {
+  it('is a no-op when nothing is running', () => {
+    const { deps, state } = makeFakeDeps()
+    const launcher = new Launcher(deps)
+
+    launcher.forceBack()
+
+    expect(state.killCount).toBe(0)
+    expect(state.webClosed).toBe(false)
+    expect(state.returned).toBe(false)
+  })
+
+  it('kills the native child and exit handler returns to grid', async () => {
+    const { deps, state } = makeFakeDeps()
+    const launcher = new Launcher(deps)
+
+    launcher.launch(makeNativeGame())
+    await Promise.resolve() // allow chmodExec + spawn to settle
+
+    expect(state.spawnedExecs).toHaveLength(1)
+
+    launcher.forceBack()
+
+    // kill() must have been called on the child handle.
+    expect(state.killCount).toBe(1)
+
+    // The exit handler fires when the OS kills the process.
+    state.simulateExit(null)
+
+    expect(state.shown).toBe(true)
+    expect(state.returned).toBe(true)
+  })
+
+  it('killing the native child clears running so a new launch is allowed', async () => {
+    const { deps, state } = makeFakeDeps()
+    const launcher = new Launcher(deps)
+
+    launcher.launch(makeNativeGame())
+    await Promise.resolve()
+
+    launcher.forceBack()
+    state.simulateExit(null) // exit handler clears running
+
+    // A second launch must proceed.
+    launcher.launch(makeNativeGame({ exec: '/games/second.AppImage' }))
+    await Promise.resolve()
+    expect(state.spawnedExecs).toHaveLength(2)
+  })
+
+  it('closes web view and returns to grid for a running web game', () => {
+    const { deps, state } = makeFakeDeps()
+    const launcher = new Launcher(deps)
+
+    launcher.launch(makeWebGame())
+    launcher.forceBack()
+
+    expect(state.webClosed).toBe(true)
+    expect(state.shown).toBe(true)
+    expect(state.returned).toBe(true)
+  })
+
+  it('forceBack on web game clears running so a new launch is allowed', () => {
+    const { deps, state } = makeFakeDeps()
+    const launcher = new Launcher(deps)
+
+    launcher.launch(makeWebGame())
+    launcher.forceBack()
+
+    launcher.launch(makeWebGame({ url: 'https://example.test/second' }))
+    expect(state.loadedUrls).toHaveLength(2)
+  })
+
+  it('forceBack is idempotent — second call when not running is silent', async () => {
+    const { deps, state } = makeFakeDeps()
+    const launcher = new Launcher(deps)
+
+    launcher.launch(makeNativeGame())
+    await Promise.resolve()
+
+    launcher.forceBack()
+    state.simulateExit(null)
+
+    // Already back at grid — second forceBack must not throw or double-fire.
+    launcher.forceBack()
+    expect(state.killCount).toBe(1)
+    expect(state.loadedUrls).toHaveLength(0)
   })
 })

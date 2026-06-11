@@ -23,6 +23,11 @@ export interface SpawnHandle {
   onExit(cb: (code: number | null) => void): void
   /** Register an error callback (e.g. ENOENT — executable not found). */
   onError(cb: (err: Error) => void): void
+  /**
+   * Force-terminate the child process.
+   * Sends SIGTERM immediately; escalates to SIGKILL after 3 s if still running.
+   */
+  kill(): void
 }
 
 /**
@@ -65,6 +70,8 @@ export interface LaunchDeps {
 export class Launcher {
   private readonly deps: LaunchDeps
   private running = false
+  /** Handle for the currently-running native child, if any. */
+  private nativeChild: SpawnHandle | null = null
 
   constructor(deps: LaunchDeps) {
     this.deps = deps
@@ -100,6 +107,31 @@ export class Launcher {
     this.running = false
   }
 
+  /**
+   * Force the current game (web or native) to exit and return to the grid.
+   *
+   * - Web game: equivalent to `back()` — closes the WebContentsView immediately.
+   * - Native game: calls `kill()` on the child handle; the existing `onExit`
+   *   handler then calls `showShell` + `notifyReturned` + clears `running`.
+   * - No game running: silent no-op.
+   *
+   * Idempotent: safe to call when nothing is running or when already returning.
+   */
+  forceBack(): void {
+    if (!this.running) return
+
+    if (this.nativeChild) {
+      // Kill the native process; the onExit handler restores the shell.
+      this.nativeChild.kill()
+    } else {
+      // Web game — use the normal back path.
+      this.deps.closeWeb()
+      this.deps.showShell()
+      this.deps.notifyReturned()
+      this.running = false
+    }
+  }
+
   // ── Private ──────────────────────────────────────────────────────────────────
 
   private launchNative(game: Game): void {
@@ -116,15 +148,18 @@ export class Launcher {
       .chmodExec(exec)
       .then(() => {
         const child = this.deps.spawn(exec)
+        this.nativeChild = child
         this.deps.hideShell()
 
         child.onExit(() => {
+          this.nativeChild = null
           this.deps.showShell()
           this.deps.notifyReturned()
           this.running = false
         })
 
         child.onError(err => {
+          this.nativeChild = null
           this.deps.showShell()
           this.deps.notifyError(`Failed to launch "${game.name}": ${err.message}`)
           this.running = false

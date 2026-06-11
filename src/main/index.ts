@@ -153,12 +153,26 @@ function buildLaunchDeps(): LaunchDeps {
   return {
     spawn(exec) {
       const child = nodeSpawn(exec, [], { detached: false })
+      let killTimer: ReturnType<typeof setTimeout> | null = null
       return {
         onExit(cb) {
-          child.on('exit', (code) => cb(code))
+          child.on('exit', (code) => {
+            if (killTimer !== null) {
+              clearTimeout(killTimer)
+              killTimer = null
+            }
+            cb(code)
+          })
         },
         onError(cb) {
           child.on('error', (err) => cb(err))
+        },
+        kill() {
+          child.kill('SIGTERM')
+          killTimer = setTimeout(() => {
+            child.kill('SIGKILL')
+            killTimer = null
+          }, 3000)
         },
       }
     },
@@ -175,6 +189,8 @@ function buildLaunchDeps(): LaunchDeps {
     },
 
     notifyReturned() {
+      // Unregister force-back hotkeys — game has ended, player is back at grid.
+      unregisterForceBack()
       win?.webContents.send('game:returned')
     },
 
@@ -213,18 +229,39 @@ function buildLaunchDeps(): LaunchDeps {
       if (win) {
         win.contentView.addChildView(view) // addChildView is idempotent for existing children
       }
-      // Register global Escape while web game is active.
-      globalShortcut.register('Escape', () => launcher.back())
     },
 
     closeWeb() {
-      // Unregister the Escape shortcut (back to normal kiosk navigation).
-      globalShortcut.unregister('Escape')
       if (webView && win) {
         win.contentView.removeChildView(webView)
         webView.webContents.loadURL('about:blank').catch(() => {})
       }
     },
+  }
+}
+
+// ── Force-back hotkeys ────────────────────────────────────────────────────────
+// Registered while any game (web or native) is running so the operator can
+// always reclaim the arcade — even when a native app has OS focus and the
+// arcade's gamepad listener is backgrounded.
+//
+// Primary:  Escape          — for a physical EXIT button wired to the Esc key.
+// Fallback: Ctrl+Shift+Bksp — deliberate chord for keyboard/debug use.
+//
+// Both are registered on game launch and unregistered on return-to-grid.
+
+const FORCE_BACK_SHORTCUTS = ['Escape', 'CommandOrControl+Shift+Backspace'] as const
+
+function registerForceBack(): void {
+  for (const accel of FORCE_BACK_SHORTCUTS) {
+    // globalShortcut.register is a no-op if already registered; safe to call.
+    globalShortcut.register(accel, () => launcher.forceBack())
+  }
+}
+
+function unregisterForceBack(): void {
+  for (const accel of FORCE_BACK_SHORTCUTS) {
+    globalShortcut.unregister(accel)
   }
 }
 
@@ -328,6 +365,10 @@ app.whenReady().then(async () => {
       localServer.setRoot(game.localRoot)
     }
     launcher.launch(game)
+    // Register force-back hotkeys for the duration of this game session.
+    // Covers both web and native — native apps steal OS focus so the arcade
+    // renderer's key listeners are inactive; only global shortcuts fire.
+    registerForceBack()
   })
 
   // Invoked by the shell renderer's preload (ipcRenderer.invoke).
