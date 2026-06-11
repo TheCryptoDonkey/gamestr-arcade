@@ -131,7 +131,14 @@ async function boot(): Promise<void> {
     const game = carousel.current()
     if (inElectron) {
       void window.arcade.launch(game.id)
-      if (game.kind === 'web') inWebGame = true
+      if (game.kind === 'web') {
+        inWebGame = true
+        // Pause attract while the web game is active so the overlay and carousel
+        // auto-advance don't fire behind the game. Native games hide the shell
+        // window entirely so attract is already visually suppressed, but we also
+        // stop it for native to ensure no carousel drift if the player alt-tabs.
+        attract.stop()
+      }
     } else {
       // No-op in the browser preview; pulse the CTA so the press is visible.
       host.classList.add('cta-fired')
@@ -169,10 +176,13 @@ async function boot(): Promise<void> {
     else if (e.key === 'Escape') relayPanel.close()
   })
 
-  // Returning from a launched game re-focuses the carousel.
+  // Returning from a launched game re-focuses the carousel and resumes attract.
   if (inElectron) {
     window.arcade.onReturn(() => {
       inWebGame = false
+      // Resume attract watching — the timeout restarts from now so the player
+      // gets the full idle period before demo mode kicks in again.
+      attract.start()
       carousel.refocus()
       host.focus()
     })
