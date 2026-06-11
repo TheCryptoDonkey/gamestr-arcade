@@ -1,0 +1,80 @@
+{
+  "theme": "lava",
+  "spawn": { "x": 130, "y": 360 },
+  "rainbowPowerup": { "x": 2520, "y": 284 },
+  "finishGate": { "x": 3430, "y": 478 },
+  "checkpoints": [
+    { "x": 1080, "y": 464 },
+    { "x": 2360, "y": 464 }
+  ],
+  "platforms": [
+    { "x": 120, "y": 500, "width": 280, "height": 44 },
+    { "x": 420, "y": 500, "width": 300, "height": 44 },
+    { "x": 760, "y": 500, "width": 360, "height": 44 },
+    { "x": 1120, "y": 500, "width": 300, "height": 44 },
+    { "x": 1460, "y": 500, "width": 300, "height": 44 },
+    { "x": 1790, "y": 500, "width": 250, "height": 44 },
+    { "x": 2070, "y": 500, "width": 240, "height": 44 },
+    { "x": 2360, "y": 500, "width": 260, "height": 44 },
+    { "x": 2640, "y": 500, "width": 240, "height": 44 },
+    { "x": 2920, "y": 500, "width": 220, "height": 44 },
+    { "x": 3180, "y": 500, "width": 240, "height": 44 },
+    { "x": 3440, "y": 500, "width": 240, "height": 44 },
+
+    { "x": 640, "y": 420, "width": 160, "height": 32 },
+    { "x": 980, "y": 390, "width": 160, "height": 32 },
+    { "x": 1290, "y": 355, "width": 150, "height": 30 },
+    { "x": 1560, "y": 325, "width": 130, "height": 30 },
+    { "x": 1940, "y": 380, "width": 160, "height": 32 },
+    { "x": 2220, "y": 340, "width": 140, "height": 30 },
+    { "x": 2520, "y": 300, "width": 120, "height": 30 },
+    { "x": 2820, "y": 345, "width": 140, "height": 30 },
+    { "x": 3090, "y": 320, "width": 120, "height": 30 }
+  ],
+  "flames": [
+    { "x": 560, "y": 478, "width": 34, "height": 34, "patrolLeft": 48, "patrolRight": 48 },
+    { "x": 1180, "y": 478, "width": 34, "height": 34, "patrolLeft": 42, "patrolRight": 42 },
+    { "x": 1740, "y": 478, "width": 34, "height": 34, "patrolLeft": 44, "patrolRight": 44 },
+    { "x": 2460, "y": 478, "width": 34, "height": 34, "patrolLeft": 42, "patrolRight": 46 },
+    { "x": 3020, "y": 478, "width": 34, "height": 34, "patrolLeft": 40, "patrolRight": 40 },
+
+    { "x": 980, "y": 374, "width": 30, "height": 30, "patrolLeft": 50, "patrolRight": 50 },
+    { "x": 1560, "y": 310, "width": 30, "height": 30, "patrolLeft": 36, "patrolRight": 36 },
+    { "x": 2220, "y": 325, "width": 30, "height": 30, "patrolLeft": 40, "patrolRight": 40 },
+    { "x": 2820, "y": 330, "width": 30, "height": 30, "patrolLeft": 42, "patrolRight": 42 }
+  ],
+  "snakes": [
+    { "x": 820, "y": 470, "patrolWidth": 220, "speedFactor": 0.1 },
+    { "x": 1500, "y": 470, "patrolWidth": 220, "speedFactor": 0.5 },
+    { "x": 2050, "y": 470, "patrolWidth": 180, "speedFactor": -0.2 },
+    { "x": 2660, "y": 470, "patrolWidth": 180, "speedFactor": 0.4 },
+    { "x": 3200, "y": 470, "patrolWidth": 180, "speedFactor": 0.15 }
+  ],
+  "apples": [
+    { "x": 1940, "y": 364, "width": 20, "height": 20 },
+    { "x": 2820, "y": 329, "width": 20, "height": 20 }
+  ],
+  "sparkles": [
+    { "x": 240, "y": 464 },
+    { "x": 440, "y": 464 },
+    { "x": 600, "y": 464 },
+    { "x": 640, "y": 464 },
+    { "x": 860, "y": 464 },
+    { "x": 1120, "y": 464 },
+    { "x": 1280, "y": 464 },
+    { "x": 1540, "y": 464 },
+    { "x": 1680, "y": 464 },
+    { "x": 1880, "y": 464 },
+    { "x": 2120, "y": 464 },
+    { "x": 2280, "y": 464 },
+    { "x": 2520, "y": 464 },
+    { "x": 2720, "y": 464 },
+    { "x": 2880, "y": 464 },
+    { "x": 3080, "y": 464 },
+    { "x": 3280, "y": 464 },
+    { "x": 3360, "y": 464 },
+    { "x": 980, "y": 340 },
+    { "x": 1940, "y": 330 },
+    { "x": 2520, "y": 250 }
+  ]
+}

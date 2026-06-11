@@ -1,0 +1,8 @@
+{
+  "name": "Unicorn vs Snakes",
+  "tagline": "Dergigi's whimsical arcade — unicorn dodges the snakes",
+  "url": "https://unicorn.dergigi.com/",
+  "gameId": "unicornvssnakes",
+  "order": 15,
+  "accent": "#ec4899"
+}
