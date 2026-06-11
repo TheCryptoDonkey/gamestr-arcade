@@ -20,5 +20,16 @@ export const MOCK_CONFIG: ArcadeConfig = {
   // but the screenshot harness drives attract directly rather than waiting.
   attractTimeoutMs: 20000,
   kiosk: false,
-  leaderboard: { provider: 'gamestr', relays: ['wss://relay.trotters.cc'], topN: 5 },
+  leaderboard: {
+    provider: 'gamestr',
+    relays: [
+      'wss://relay.trotters.cc',
+      'wss://nos.lol',
+      'wss://relay.damus.io',
+      'wss://relay.nostr.band',
+      'wss://relay.primal.net',
+      'wss://relay.ditto.pub',
+    ],
+    topN: 5,
+  },
 }

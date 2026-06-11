@@ -221,6 +221,7 @@ export class LeaderboardPanel {
         img.className = 'lb-avatar-img'
         img.src = profile.picture
         img.alt = ''
+        img.loading = 'lazy'
         img.addEventListener('error', () => img.remove()) // fall back to gradient
         av.appendChild(img)
       }
@@ -260,12 +261,16 @@ export class LeaderboardPanel {
       <span class="lb-score">${formatScore(e.score)}</span>
     `
 
-    if (resolved?.picture) {
+    // Use the resolved profile picture first, then fall back to the entry-level
+    // picture (populated from kind-0 resolution or pre-filled by mock data).
+    const picture = resolved?.picture ?? e.picture
+    if (picture) {
       const av = li.querySelector('.lb-avatar') as HTMLElement
       const img = document.createElement('img')
       img.className = 'lb-avatar-img'
-      img.src = resolved.picture
+      img.src = picture
       img.alt = ''
+      img.loading = 'lazy'
       img.addEventListener('error', () => img.remove())
       av.appendChild(img)
     }
