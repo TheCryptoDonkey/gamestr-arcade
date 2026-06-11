@@ -1,0 +1,399 @@
+/* ============================================================================
+   gamestr-arcade — relay admin panel (operator service menu).
+
+   Aesthetic: CRT diagnostic terminal. The operator presses 'r' and the
+   machine's internal diagnostic ROM surfaces. Deep navy void, neon cyan
+   phosphor, monospace type, scanline texture, glowing hairline borders.
+   Industrial, minimal, functional.
+
+   Fonts: Azeret Mono (already loaded by leaderboard) + system monospace fallback.
+   ============================================================================ */
+
+/* ── Overlay (full-screen modal backdrop) ───────────────────────────────────── */
+.relay-panel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Hidden state: invisible and fully non-interactive */
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  /* Neon-mint semi-transparent backdrop (distinct from the CRT overlay). */
+  background: radial-gradient(ellipse 80% 60% at 50% 50%,
+    rgba(5, 18, 28, 0.92),
+    rgba(3, 5, 12, 0.97)
+  );
+  transition: opacity 0.18s ease, visibility 0.18s step-end;
+}
+
+.relay-panel-overlay.rp-visible {
+  pointer-events: auto;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.18s ease, visibility 0s;
+}
+
+/* Scanlines rendered on the backdrop itself — the whole screen reads as CRT. */
+.relay-panel-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 0, 0, 0.12) 3px,
+    rgba(0, 0, 0, 0.12) 4px
+  );
+  pointer-events: none;
+}
+
+/* ── Panel card ──────────────────────────────────────────────────────────── */
+.rp-panel {
+  position: relative;
+  z-index: 1;
+  width: min(540px, 90vw);
+  max-height: min(640px, 85vh);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid color-mix(in srgb, var(--accent, #7cf3ff) 55%, transparent);
+  /* Clipped corner — the cabinet's machined-panel motif. */
+  clip-path: polygon(0 0, calc(100% - 1.6rem) 0, 100% 1.6rem, 100% 100%, 0 100%);
+  background:
+    linear-gradient(160deg, rgba(5, 20, 32, 0.98) 0%, rgba(3, 5, 12, 0.99) 100%),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 3px,
+      rgba(0, 245, 255, 0.025) 3px,
+      rgba(0, 245, 255, 0.025) 4px
+    );
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.8) inset,
+    0 0 60px rgba(0, 20, 30, 0.8),
+    0 0 3px var(--accent, #7cf3ff),
+    0 0 30px color-mix(in srgb, var(--accent, #7cf3ff) 22%, transparent);
+  font-family: var(--mono, 'Azeret Mono', 'JetBrains Mono', 'Courier New', monospace);
+  /* Entry animation: drop in from above */
+  animation: rp-enter 0.22s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+.relay-panel-overlay:not(.rp-visible) .rp-panel {
+  animation: none;
+}
+
+@keyframes rp-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Accent glow seam — left edge energy line, matching the leaderboard panel. */
+.rp-panel::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 1.4rem;
+  bottom: 1.4rem;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, transparent, var(--accent, #7cf3ff), transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent, #7cf3ff) 80%, transparent);
+  opacity: 0.9;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.rp-head {
+  flex: 0 0 auto;
+  padding: 1.1rem 1.4rem 0;
+}
+
+.rp-head-inner {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+}
+
+.rp-cursor {
+  font-size: 1.3rem;
+  color: var(--accent, #7cf3ff);
+  text-shadow: 0 0 10px var(--accent, #7cf3ff);
+  animation: rp-blink 1.1s steps(2, jump-none) infinite;
+}
+
+@keyframes rp-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.rp-title {
+  flex: 1;
+  font-family: var(--display, 'Chakra Petch', 'Rajdhani', sans-serif);
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent, #7cf3ff);
+  text-shadow:
+    0 0 14px color-mix(in srgb, var(--accent, #7cf3ff) 70%, transparent),
+    0 0 40px color-mix(in srgb, var(--accent, #7cf3ff) 30%, transparent);
+  margin: 0;
+}
+
+.rp-shortcut {
+  font-family: var(--mono, monospace);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: color-mix(in srgb, var(--accent, #7cf3ff) 45%, transparent);
+  white-space: nowrap;
+}
+
+/* Hairline separator with a faint CRT phosphor glow. */
+.rp-scanline-bar {
+  margin-top: 0.85rem;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--accent, #7cf3ff) 50%, transparent) 30%,
+    color-mix(in srgb, var(--accent, #7cf3ff) 50%, transparent) 70%,
+    transparent 100%
+  );
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent, #7cf3ff) 35%, transparent);
+}
+
+/* ── Relay list ──────────────────────────────────────────────────────────── */
+.rp-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0.6rem 1.2rem 0.4rem 1.4rem;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--accent, #7cf3ff) 35%, transparent) transparent;
+}
+
+.rp-list::-webkit-scrollbar {
+  width: 3px;
+}
+.rp-list::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--accent, #7cf3ff) 35%, transparent);
+  border-radius: 999px;
+}
+
+.rp-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.35rem;
+  border: 1px solid transparent;
+  margin-bottom: 0.3rem;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.rp-row-on {
+  background: rgba(124, 243, 255, 0.04);
+  border-color: rgba(124, 243, 255, 0.12);
+}
+
+.rp-row-off {
+  background: rgba(255, 255, 255, 0.015);
+  border-color: rgba(255, 255, 255, 0.05);
+  opacity: 0.6;
+}
+
+/* ── Toggle switch ───────────────────────────────────────────────────────── */
+.rp-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  /* Don't shrink if the URL is very long. */
+  flex: 0 0 auto;
+}
+
+.rp-toggle-track {
+  position: relative;
+  width: 2.2rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent, #7cf3ff) 35%, transparent);
+  background: rgba(0, 0, 0, 0.5);
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.rp-row-on .rp-toggle-track {
+  border-color: color-mix(in srgb, var(--accent, #7cf3ff) 70%, transparent);
+  background: color-mix(in srgb, var(--accent, #7cf3ff) 15%, transparent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent, #7cf3ff) 40%, transparent);
+}
+
+.rp-toggle-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) translateX(0.15rem);
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent, #7cf3ff) 30%, rgba(100, 120, 130, 1));
+  transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.rp-row-on .rp-toggle-thumb {
+  transform: translateY(-50%) translateX(calc(2.2rem - 0.8rem - 0.15rem));
+  background: var(--accent, #7cf3ff);
+  box-shadow: 0 0 8px var(--accent, #7cf3ff);
+}
+
+.rp-toggle-label {
+  font-family: var(--mono, monospace);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  min-width: 1.5rem;
+  color: color-mix(in srgb, var(--accent, #7cf3ff) 40%, transparent);
+  transition: color 0.15s;
+}
+
+.rp-row-on .rp-toggle-label {
+  color: var(--accent, #7cf3ff);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--accent, #7cf3ff) 60%, transparent);
+}
+
+/* ── Relay URL text ──────────────────────────────────────────────────────── */
+.rp-url {
+  font-family: var(--mono, monospace);
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  color: rgba(200, 230, 240, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.rp-row-off .rp-url {
+  color: rgba(140, 160, 170, 0.5);
+}
+
+/* ── Remove button ───────────────────────────────────────────────────────── */
+.rp-remove {
+  background: none;
+  border: 1px solid rgba(255, 80, 80, 0.25);
+  border-radius: 0.25rem;
+  color: rgba(255, 80, 80, 0.5);
+  font-size: 0.65rem;
+  line-height: 1;
+  padding: 0.22rem 0.4rem;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, box-shadow 0.12s;
+  flex: 0 0 auto;
+}
+
+.rp-remove:hover {
+  border-color: rgba(255, 80, 80, 0.8);
+  color: rgba(255, 80, 80, 0.9);
+  box-shadow: 0 0 8px rgba(255, 80, 80, 0.3);
+}
+
+/* ── Footer: add relay input ─────────────────────────────────────────────── */
+.rp-footer {
+  flex: 0 0 auto;
+  padding: 0.8rem 1.4rem 1.1rem;
+  border-top: 1px solid rgba(124, 243, 255, 0.08);
+}
+
+.rp-add-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: stretch;
+}
+
+.rp-input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(124, 243, 255, 0.25);
+  border-radius: 0.3rem;
+  color: var(--accent, #7cf3ff);
+  font-family: var(--mono, monospace);
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  padding: 0.5rem 0.7rem;
+  outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+  caret-color: var(--accent, #7cf3ff);
+}
+
+.rp-input::placeholder {
+  color: rgba(124, 243, 255, 0.25);
+}
+
+.rp-input:focus {
+  border-color: color-mix(in srgb, var(--accent, #7cf3ff) 70%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent, #7cf3ff) 25%, transparent);
+}
+
+.rp-add-btn {
+  background: rgba(124, 243, 255, 0.08);
+  border: 1px solid rgba(124, 243, 255, 0.4);
+  border-radius: 0.3rem;
+  color: var(--accent, #7cf3ff);
+  font-family: var(--display, 'Chakra Petch', sans-serif);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background 0.12s, box-shadow 0.12s;
+  white-space: nowrap;
+}
+
+.rp-add-btn:hover {
+  background: rgba(124, 243, 255, 0.16);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent, #7cf3ff) 35%, transparent);
+}
+
+.rp-add-btn:active {
+  background: rgba(124, 243, 255, 0.25);
+}
+
+/* ── Error message ───────────────────────────────────────────────────────── */
+.rp-error {
+  height: 0;
+  overflow: hidden;
+  font-family: var(--mono, monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: rgba(255, 100, 100, 0.8);
+  margin-top: 0;
+  transition: height 0.15s, margin-top 0.15s;
+}
+
+.rp-error.rp-error-visible {
+  height: 1.4em;
+  margin-top: 0.45rem;
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .rp-panel,
+  .rp-cursor,
+  .rp-toggle-track,
+  .rp-toggle-thumb {
+    animation: none !important;
+    transition: none !important;
+  }
+}

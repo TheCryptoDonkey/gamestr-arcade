@@ -14,9 +14,12 @@ import './styles/carousel.css'
 import './styles/leaderboard.css'
 import './styles/attract.css'
 import './styles/crt.css'
+import './styles/relay-panel.css'
 import { Carousel } from './ui/carousel'
 import { InputController } from './ui/input'
 import { mountLeaderboard } from './ui/leaderboard-panel'
+import { RelayPanel } from './ui/relay-panel'
+import { RelayStore } from './leaderboard/relay-store'
 import { ArcadeAudio } from './ui/audio'
 import { AttractMode } from './ui/attract'
 import { CrtOverlay } from './ui/crt'
@@ -71,7 +74,7 @@ async function boot(): Promise<void> {
   const audio = new ArcadeAudio({ muted: false })
 
   // Leaderboard board on the right (null when provider is 'none').
-  const showBoard = mountLeaderboard(host, config, inElectron)
+  const { show: showBoard, panel: lbPanel } = mountLeaderboard(host, config, inElectron)
 
   // CRT overlay mounted at the carousel's `.crt-anchor`, gated by config.
   const crtAnchor = host.querySelector<HTMLElement>('.crt-anchor') ?? host
@@ -88,11 +91,23 @@ async function boot(): Promise<void> {
   // Drive the board + SFX off carousel selection. Suppress the move blip while
   // attract is auto-advancing so only the drone is heard in demo mode.
   carousel.onChange(game => {
-    showBoard?.(game.gameId)
+    showBoard(game.gameId)
     if (!attract.isActive) audio.playMove()
   })
   // Seed the board with the initial selection (onChange only fires on movement).
-  showBoard?.(carousel.current().gameId)
+  showBoard(carousel.current().gameId)
+
+  // Relay admin overlay: press 'r' to open/close.
+  const relayConfig = config.leaderboard.provider === 'gamestr' ? config.leaderboard.relays : []
+  const relayStore = new RelayStore(relayConfig)
+  const relayPanel = new RelayPanel(host, relayStore, {
+    onRelaysChanged: (enabledUrls) => {
+      lbPanel?.setRelays(enabledUrls)
+      // Re-seed the current game so scores reload on the new relay set.
+      const currentGame = carousel.current()
+      showBoard(currentGame.gameId)
+    },
+  })
 
   // ── Toast for launch errors ──────────────────────────────────────────────────
   function showErrorToast(msg: string): void {
@@ -146,11 +161,12 @@ async function boot(): Promise<void> {
   })
   input.start()
 
-  // Demo / admin keys: `c` toggles the CRT, `m` toggles mute. These are
-  // intentionally outside InputController (they are not game-navigation intents).
+  // Admin / demo keys. Intentionally outside InputController (not game-navigation intents).
   window.addEventListener('keydown', e => {
     if (e.key === 'c' || e.key === 'C') crt.toggle()
     else if (e.key === 'm' || e.key === 'M') audio.toggleMute()
+    else if (e.key === 'r' || e.key === 'R') relayPanel.toggle()
+    else if (e.key === 'Escape') relayPanel.close()
   })
 
   // Returning from a launched game re-focuses the carousel.
@@ -171,6 +187,8 @@ async function boot(): Promise<void> {
       __crt: crt,
       __attract: attract,
       __audio: audio,
+      __relayPanel: relayPanel,
+      __relayStore: relayStore,
     })
   }
 }

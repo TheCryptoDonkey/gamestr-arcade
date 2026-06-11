@@ -21,14 +21,17 @@ import type { ArcadeConfig, LeaderboardEntry, LeaderboardProvider } from '../../
 import { createGamestrProvider } from '../leaderboard/gamestr'
 import { readCachedBoard, writeCachedBoard } from '../leaderboard/cache'
 import { avatarCss, resolveProfiles, shortenNpub, type Profile } from '../leaderboard/profiles'
+import { ProfileCache } from '../leaderboard/profile-cache'
 
 export interface LeaderboardPanelOptions {
   /** The relays profile resolution should query (score relays come via the provider). */
   relays: string[]
-  /** Builds a provider for a game subscription (real gamestr, or a mock). */
-  makeProvider: () => LeaderboardProvider
+  /** Builds a provider for a given relay set (real gamestr, or a mock). */
+  makeProvider: (relays: string[]) => LeaderboardProvider
   /** Profile resolver — swappable so browser mode can no-op or mock it. */
   resolve?: typeof resolveProfiles
+  /** Pre-seeded profile cache (24h TTL). Defaults to a fresh instance. */
+  profileCache?: ProfileCache
   /** Heading + sub-heading copy (kept here so the booth can re-theme it). */
   title?: string
   subtitle?: string
@@ -61,10 +64,13 @@ export class LeaderboardPanel {
   private readonly opts: Required<Pick<LeaderboardPanelOptions, 'title' | 'subtitle'>> & LeaderboardPanelOptions
 
   private currentGameId: string | null = null
+  private currentRelays: string[]
   private unsubscribeScores: (() => void) | null = null
   private unsubscribeProfiles: (() => void) | null = null
   private entries: LeaderboardEntry[] = []
   private readonly profiles = new Map<string, Profile>()
+  /** 24h persistent cache — shared across all game selections in the session. */
+  private readonly profileCache: ProfileCache
   private gotLive = false
   private connectTimer: number | null = null
 
@@ -74,6 +80,8 @@ export class LeaderboardPanel {
       subtitle: 'PLAY TO WIN SATS',
       ...opts,
     }
+    this.currentRelays = [...opts.relays]
+    this.profileCache = opts.profileCache ?? new ProfileCache()
 
     this.root = document.createElement('aside')
     this.root.className = 'leaderboard'
@@ -112,7 +120,7 @@ export class LeaderboardPanel {
     this.setStatus('reconnecting')
 
     // 2. Live scores.
-    const provider = this.opts.makeProvider()
+    const provider = this.opts.makeProvider(this.currentRelays)
     this.unsubscribeScores = provider.subscribe(gameId, top => {
       if (gameId !== this.currentGameId) return
       this.gotLive = true
@@ -131,6 +139,20 @@ export class LeaderboardPanel {
 
     // 3. Resolve names for whatever we already have (cache) immediately.
     this.resolveVisibleProfiles()
+  }
+
+  /**
+   * Switch to a new relay set (called by the relay admin panel on changes).
+   * Tears down and re-subscribes so the live feed uses the new set immediately.
+   */
+  setRelays(relays: string[]): void {
+    this.currentRelays = [...relays]
+    if (this.currentGameId) {
+      // Force a re-subscribe by resetting currentGameId first.
+      const gameId = this.currentGameId
+      this.currentGameId = null
+      this.show(gameId)
+    }
   }
 
   /** Tear everything down (call on teardown / app exit). */
@@ -154,10 +176,24 @@ export class LeaderboardPanel {
 
   private resolveVisibleProfiles(): void {
     const resolve = this.opts.resolve ?? resolveProfiles
-    const unresolved = this.entries.map(e => e.pubkey).filter(pk => !this.profiles.get(pk)?.name)
-    if (unresolved.length === 0) return
+
+    // Apply already-cached profiles immediately (no network needed).
+    for (const e of this.entries) {
+      const cached = this.profileCache.get(e.pubkey)
+      if (cached && !this.profiles.has(e.pubkey)) {
+        this.profiles.set(e.pubkey, cached)
+      }
+    }
+
+    // Only fetch pubkeys not already in the local session map.
+    const unfetched = this.entries.map(e => e.pubkey).filter(pk => !this.profiles.has(pk))
+    if (unfetched.length > 0) this.render() // paint cached names immediately before network
+    if (unfetched.length === 0) return
+
     this.unsubscribeProfiles?.()
-    this.unsubscribeProfiles = resolve(this.opts.relays, unresolved, (pubkey, profile) => {
+    this.unsubscribeProfiles = resolve(this.currentRelays, unfetched, (pubkey, profile) => {
+      // Persist to 24h cache for future sessions.
+      this.profileCache.set(pubkey, profile)
       this.profiles.set(pubkey, profile)
       this.patchRow(pubkey, profile)
     })
@@ -265,6 +301,9 @@ function staticProvider(boardFor: (gameId: string) => LeaderboardEntry[]): Leade
  * a `(gameId) => void` to drive from the carousel's `onChange` (or `null` when
  * the configured provider is `none`, so the caller can skip wiring entirely).
  *
+ * Also returns the `LeaderboardPanel` instance itself so the relay admin panel
+ * can call `setRelays()` to re-subscribe without needing a full remount.
+ *
  * - Electron + gamestr → real relay sockets + live kind-0 resolution.
  * - Browser preview     → deterministic mock board, no real network, so the
  *                         panel is fully populated and offline for screenshots.
@@ -273,13 +312,12 @@ export function mountLeaderboard(
   host: HTMLElement,
   config: ArcadeConfig,
   inElectron: boolean,
-): ((gameId: string) => void) | null {
-  if (config.leaderboard.provider === 'none') return null
+): { show: (gameId: string) => void; panel: LeaderboardPanel | null } {
+  if (config.leaderboard.provider === 'none') return { show: () => {}, panel: null }
   const { relays, topN } = config.leaderboard
 
   if (!inElectron) {
     // Lazy-load mock data so it is tree-shaken out of the Electron bundle.
-    // We synchronously require it via a cached promise resolved before first show.
     let boards: ((gameId: string) => LeaderboardEntry[]) | null = null
     const ready = import('../mock-leaderboard').then(m => {
       boards = m.mockBoardFor
@@ -293,16 +331,19 @@ export function mountLeaderboard(
     void ready.then(() => {
       if (pending) panel.show(pending)
     })
-    return gameId => {
-      pending = gameId
-      if (boards) panel.show(gameId)
+    return {
+      show: gameId => {
+        pending = gameId
+        if (boards) panel.show(gameId)
+      },
+      panel,
     }
   }
 
   const panel = new LeaderboardPanel(host, {
     relays,
-    makeProvider: () => createGamestrProvider(relays, topN),
+    makeProvider: (activeRelays: string[]) => createGamestrProvider(activeRelays, topN),
     resolve: resolveProfiles,
   })
-  return gameId => panel.show(gameId)
+  return { show: gameId => panel.show(gameId), panel }
 }
