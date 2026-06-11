@@ -47,6 +47,17 @@ export interface LeaderboardProvider {
   subscribe(gameId: string, onUpdate: (top: LeaderboardEntry[]) => void): () => void
 }
 
+export interface WebLNConfig {
+  /** NWC connection string — e.g. `nostr+walletconnect://...` */
+  nwc: string
+  /**
+   * Maximum payment amount in satoshis the kiosk will auto-pay without
+   * operator confirmation. Invoices exceeding this are rejected.
+   * Defaults to 100 sats.
+   */
+  maxSats?: number
+}
+
 export interface ArcadeConfig {
   gamesDir: string
   theme: { title: string; wordmark?: string; accent: string; crt: boolean }
@@ -55,4 +66,10 @@ export interface ArcadeConfig {
   leaderboard:
     | { provider: 'none' }
     | { provider: 'gamestr'; relays: string[]; topN: number }
+  /**
+   * Optional booth Lightning wallet for auto-paying WebLN-paywalled games.
+   * When absent the kiosk does not inject `window.webln` — games fall back to
+   * their own QR / payment flow.
+   */
+  webln?: WebLNConfig
 }

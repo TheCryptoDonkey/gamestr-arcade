@@ -17,8 +17,10 @@
     "deploy": "bash scripts/deploy.sh"
   },
   "dependencies": {
+    "@getalby/sdk": "^8.0.3",
     "gsap": "^3.12.5",
-    "howler": "^2.2.4"
+    "howler": "^2.2.4",
+    "light-bolt11-decoder": "^3.2.0"
   },
   "devDependencies": {
     "@electron-toolkit/preload": "^3.0.1",

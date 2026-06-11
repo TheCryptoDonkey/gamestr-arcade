@@ -1,4 +1,4 @@
-import type { ArcadeConfig } from '../shared/types'
+import type { ArcadeConfig, WebLNConfig } from '../shared/types'
 
 /**
  * Default relay set — kept in sync with Pallasite's `DEFAULT_RELAYS` so the
@@ -47,6 +47,15 @@ export function parseConfig(raw: unknown): ArcadeConfig {
     },
     attractTimeoutMs: Number(o.attractTimeoutMs) || DEFAULT_CONFIG.attractTimeoutMs,
     kiosk: o.kiosk ?? DEFAULT_CONFIG.kiosk,
-    leaderboard
+    leaderboard,
+    webln: parseWebLN(o.webln),
   }
+}
+
+function parseWebLN(raw: unknown): WebLNConfig | undefined {
+  if (typeof raw !== 'object' || !raw) return undefined
+  const o = raw as Record<string, unknown>
+  if (typeof o.nwc !== 'string' || !o.nwc.trim()) return undefined
+  const maxSats = typeof o.maxSats === 'number' ? o.maxSats : 100
+  return { nwc: o.nwc.trim(), maxSats }
 }

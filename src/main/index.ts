@@ -17,7 +17,7 @@ import type { LocalServer } from './local-server'
 import { DEFAULT_CONFIG, parseConfig } from './config'
 import { Launcher } from './launch'
 import type { LaunchDeps } from './launch'
-import type { ArcadeConfig, Game, GameControls } from '../shared/types'
+import type { ArcadeConfig, Game, GameControls, WebLNConfig } from '../shared/types'
 
 // GPU flags: keep the hardware path active on booth hardware.
 app.commandLine.appendSwitch('ignore-gpu-blocklist')
@@ -64,9 +64,12 @@ async function loadConfig(): Promise<ArcadeConfig> {
   const path = resolveConfigPath()
   try {
     const raw = await readFile(path, 'utf8')
-    return parseConfig(JSON.parse(raw))
+    const cfg = parseConfig(JSON.parse(raw))
+    cachedWebLN = cfg.webln ?? null
+    return cfg
   } catch (err) {
     console.warn(`[arcade] config: using defaults (${path}): ${String(err)}`)
+    cachedWebLN = null
     return DEFAULT_CONFIG
   }
 }
@@ -138,6 +141,13 @@ function ensureWebView(): WebContentsView {
   return webView
 }
 
+/**
+ * Cached WebLN config from the last `loadConfig()` call — used by `loadWeb` to
+ * push the NWC credentials into the web-game preload on each launch.
+ * Set to `null` until the config is first loaded.
+ */
+let cachedWebLN: WebLNConfig | null | undefined = null
+
 /** Build the real `LaunchDeps` for production use. */
 function buildLaunchDeps(): LaunchDeps {
   return {
@@ -179,8 +189,16 @@ function buildLaunchDeps(): LaunchDeps {
       // Send the resolved controls mapping to the webgame preload once the page
       // has finished loading (and again on any subsequent reload so remaps take
       // effect). The preload merges the per-game overrides with DEFAULT_CONTROLS.
+      // Also send the WebLN config if the booth has an NWC wallet configured —
+      // the preload uses it to inject `window.webln` into the game page.
       const sendControls = () => {
         view.webContents.send('arcade:controls', controls ?? {})
+        if (cachedWebLN) {
+          view.webContents.send('arcade:webln', {
+            nwc: cachedWebLN.nwc,
+            maxSats: cachedWebLN.maxSats ?? 100,
+          })
+        }
       }
       // Remove any previous listener to avoid accumulation across launches.
       view.webContents.removeAllListeners('did-finish-load')
@@ -322,6 +340,13 @@ app.whenReady().then(async () => {
   // rather than the main BrowserWindow renderer.
   ipcMain.on('game:back', () => {
     launcher.back()
+  })
+
+  // Audit log: the web-game preload fires this after every successful NWC
+  // auto-payment so the operator can reconcile the booth wallet spend.
+  // console.error routes to the systemd journal on the deployed kiosk.
+  ipcMain.on('webln:paid', (_event, info: { amountSats: number; result: unknown }) => {
+    console.error(`[arcade] webln:paid — ${info.amountSats} sats | result: ${JSON.stringify(info.result)}`)
   })
 
   createWindow()

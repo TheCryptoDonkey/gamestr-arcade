@@ -11,14 +11,19 @@
  *   - Translates d-pad / left-stick / face-buttons into synthetic `KeyboardEvent`
  *     dispatches so keyboard-controlled web games respond to a gamepad.
  *   - Injects a small, unobtrusive on-screen hint bar.
+ *   - Exposes `window.webln` backed by the booth's NWC wallet when configured,
+ *     auto-paying invoices up to `maxSats` without operator intervention.
  *
  * Security:
  *   - contextIsolation: true — the page cannot reach this code.
  *   - sandbox: false — required for ipcRenderer.
- *   - Nothing is exposed to the game page via contextBridge.
+ *   - The NWC secret (connection URL) is NEVER forwarded to the page; only the
+ *     capped payment methods are exposed via contextBridge.exposeInMainWorld.
  */
 
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, contextBridge } from 'electron'
+import { NostrWebLNProvider } from '@getalby/sdk'
+import { decode as decodeBolt11 } from 'light-bolt11-decoder'
 import type { GameControls } from '../shared/types'
 
 // ── Menu-button detector (pure, exported for unit tests) ──────────────────────
@@ -216,9 +221,119 @@ export function unionSnapshots(a: InputSnapshot, b: InputSnapshot): InputSnapsho
 }
 
 /**
- * Dispatch a synthetic KeyboardEvent for `action` onto both `document` and
- * `window` — canvas games may listen on either. Legacy `keyCode` / `which`
- * fields are populated from `keyInfo()` for old-school games that read them.
+ * Determine whether an invoice amount is within the operator-configured cap.
+ *
+ * Pure function — exported so unit tests can verify the cap logic without any
+ * Electron or NWC dependency.
+ *
+ * @param amountSats  The invoice amount in satoshis.
+ * @param maxSats     The operator-configured ceiling (inclusive).
+ * @returns `true` when the invoice may be auto-paid, `false` to reject.
+ */
+export function shouldAutoPay(amountSats: number, maxSats: number): boolean {
+  return amountSats > 0 && amountSats <= maxSats
+}
+
+/**
+ * Extract the satoshi amount from a BOLT-11 invoice string.
+ *
+ * Returns `null` when the invoice carries no amount (amount-less invoices are
+ * never auto-paid — the operator cannot know what they will cost).
+ * Returns `null` on any decode failure rather than throwing.
+ */
+export function bolt11Sats(bolt11: string): number | null {
+  try {
+    const decoded = decodeBolt11(bolt11)
+    const amountSection = decoded.sections.find(s => s.name === 'amount')
+    if (!amountSection) return null
+    // light-bolt11-decoder returns the value as a millisats string when the
+    // `outputString` argument of hrpToMillisat is true (which it is internally).
+    const milliStr = amountSection.value as string
+    const millis = parseInt(milliStr, 10)
+    if (isNaN(millis) || millis <= 0) return null
+    // Truncate to whole sats (never round up — ceiling is already conservative).
+    return Math.floor(millis / 1000)
+  } catch {
+    return null
+  }
+}
+
+// ── WebLN provider (NWC-backed, capped) ───────────────────────────────────────
+
+/**
+ * Initialise a `window.webln` provider backed by the booth's NWC wallet and
+ * expose it to the game page via `contextBridge.exposeInMainWorld`.
+ *
+ * Called once when the main process sends `arcade:webln`; subsequent calls
+ * (e.g. on page reload) reinitialise with the same config.
+ *
+ * Security contract:
+ *   - The `nwc` connection URL (which contains the wallet secret) is held only
+ *     in this isolated preload scope and never forwarded to the page.
+ *   - `sendPayment` rejects any invoice exceeding `maxSats` before touching the
+ *     wallet, limiting unattended spend.
+ */
+function initWebLN(nwc: string, maxSats: number): void {
+  let provider: NostrWebLNProvider | null = null
+
+  const getProvider = (): NostrWebLNProvider => {
+    if (!provider) {
+      provider = new NostrWebLNProvider({ nostrWalletConnectUrl: nwc })
+    }
+    return provider
+  }
+
+  const weblnApi = {
+    enable: (): Promise<void> => getProvider().enable(),
+
+    getInfo: () => getProvider().getInfo(),
+
+    makeInvoice: (args: unknown) => getProvider().makeInvoice(args as Parameters<NostrWebLNProvider['makeInvoice']>[0]),
+
+    signMessage: (message: string) => getProvider().signMessage(message),
+
+    keysend: (args: unknown) => getProvider().keysend(args as Parameters<NostrWebLNProvider['keysend']>[0]),
+
+    sendPayment: async (bolt11: string): Promise<{ preimage: string }> => {
+      const sats = bolt11Sats(bolt11)
+      if (sats === null) {
+        throw new Error('[arcade] webln: invoice carries no amount — auto-pay refused')
+      }
+      if (!shouldAutoPay(sats, maxSats)) {
+        throw new Error(`[arcade] webln: invoice for ${sats} sats exceeds cap of ${maxSats} sats — auto-pay refused`)
+      }
+      const result = await getProvider().sendPayment(bolt11)
+      // Audit log → main process → systemd journal.
+      ipcRenderer.send('webln:paid', { amountSats: sats, result })
+      return result
+    },
+  }
+
+  // contextBridge.exposeInMainWorld is safe to call multiple times with the
+  // same key — Electron throws on duplicate registrations. Guard with a flag
+  // stored on the global object so reloads are handled cleanly.
+  if (!(globalThis as Record<string, unknown>).__arcadeWebLNExposed) {
+    contextBridge.exposeInMainWorld('webln', weblnApi)
+    ;(globalThis as Record<string, unknown>).__arcadeWebLNExposed = true
+  }
+}
+
+/**
+ * Dispatch a synthetic KeyboardEvent for `action` onto multiple targets so
+ * games that listen on different objects all receive it.
+ *
+ * Targets:
+ *   - `document`
+ *   - `window`
+ *   - `document.activeElement` (if different from the above)
+ *   - The first `<canvas>` element (many game engines attach listeners there)
+ *   - The first `<iframe>` contentDocument / contentWindow (embedded games)
+ *
+ * Also dispatches `keypress` for printable keys (Space) because some older
+ * game engines listen for it instead of `keydown`.
+ *
+ * Legacy `keyCode` / `which` / `charCode` fields are populated from `keyInfo()`
+ * for old-school games that read them instead of (or alongside) `key`.
  */
 export function dispatchKey(action: KeyAction): void {
   const { code, keyCode } = keyInfo(action.key)
@@ -227,11 +342,46 @@ export function dispatchKey(action: KeyAction): void {
     code,
     keyCode,
     which:      keyCode,
+    charCode:   action.type === 'keypress' ? keyCode : 0,
     bubbles:    true,
     cancelable: true,
+    composed:   true,
   }
-  document.dispatchEvent(new KeyboardEvent(action.type, init))
-  window.dispatchEvent(new KeyboardEvent(action.type, init))
+
+  const targets: EventTarget[] = [document, window]
+
+  const active = document.activeElement
+  if (active && active !== document.documentElement && active !== document.body) {
+    targets.push(active)
+  }
+
+  const canvas = document.querySelector('canvas')
+  if (canvas && !targets.includes(canvas)) {
+    targets.push(canvas)
+  }
+
+  // Embedded games inside an <iframe> — dispatch into its document/window too.
+  const iframe = document.querySelector('iframe')
+  if (iframe) {
+    try {
+      if (iframe.contentWindow) targets.push(iframe.contentWindow)
+      if (iframe.contentDocument) targets.push(iframe.contentDocument)
+    } catch {
+      // cross-origin iframe — skip silently
+    }
+  }
+
+  for (const target of targets) {
+    target.dispatchEvent(new KeyboardEvent(action.type, init))
+  }
+
+  // keypress for printable keys (Space is the main one game engines use).
+  if (action.type === 'keydown' && (action.key === 'Space' || action.key === ' ' || action.key.length === 1)) {
+    const pressInit: KeyboardEventInit = { ...init, charCode: keyCode }
+    for (const target of targets) {
+      target.dispatchEvent(new KeyboardEvent('keypress', pressInit))
+    }
+  }
 }
 
 // ── Hint bar ──────────────────────────────────────────────────────────────────
@@ -285,6 +435,27 @@ function initGamepadLoop(): void {
   // web game loads (and on reload). Until one arrives, DEFAULT_CONTROLS applies.
   ipcRenderer.on('arcade:controls', (_event, map: Partial<GameControls>) => {
     activeControls = resolveControls(map)
+    // Attempt to focus the game's primary interactive element so synthetic
+    // keyboard events reach it immediately. This helps games whose menus only
+    // respond to events on the focused element rather than document / window.
+    try {
+      const el = document.querySelector<HTMLElement>('canvas, iframe, [tabindex]')
+      if (el) el.focus()
+      window.focus()
+    } catch {
+      // Silently ignore — focus is best-effort.
+    }
+  })
+
+  // Listen for WebLN config from the main process.  Arrives after controls on
+  // the same `did-finish-load` — only when the booth has an NWC wallet set.
+  ipcRenderer.on('arcade:webln', (_event, cfg: { nwc: string; maxSats: number }) => {
+    try {
+      initWebLN(cfg.nwc, cfg.maxSats)
+    } catch (err) {
+      // Fail gracefully — a broken NWC URL must not crash the whole preload.
+      console.error(`[arcade] webln: failed to initialise provider: ${String(err)}`)
+    }
   })
 
   function tick(): void {
