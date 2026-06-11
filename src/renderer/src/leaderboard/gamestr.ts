@@ -51,11 +51,13 @@ export function createGamestrProvider(
 
       // Per-relay connection handles (current socket + reconnect timer).
       const relayTimers = new Map<string, ReturnType<typeof setTimeout>>()
+      const sockets = new Map<string, WebSocket>()
 
       function connectRelay(url: string, attempt: number): void {
         if (closed) return
         let ws: WebSocket
         try { ws = new WebSocket(url) } catch { return }
+        sockets.set(url, ws)
 
         const subId = 'lb' + Math.random().toString(36).slice(2, 10)
 
@@ -75,9 +77,9 @@ export function createGamestrProvider(
         }
 
         const reconnect = () => {
+          if (closed) return
           connected.delete(url)
           if (connected.size === 0) opts.onStatus?.('down')
-          if (closed) return
           const delay = nextBackoffMs(attempt)
           const t = setTimeout(() => {
             relayTimers.delete(url)
@@ -104,6 +106,10 @@ export function createGamestrProvider(
         // Cancel all pending reconnect timers.
         for (const t of relayTimers.values()) clearTimeout(t)
         relayTimers.clear()
+        // Close any open sockets so navigating between tiles / attract-mode
+        // auto-advance doesn't leak a WebSocket per relay on every change.
+        for (const ws of sockets.values()) { try { ws.close() } catch { /* ignore */ } }
+        sockets.clear()
       }
     },
   }

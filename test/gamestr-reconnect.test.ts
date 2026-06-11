@@ -273,4 +273,23 @@ describe('createGamestrProvider — reconnect', () => {
 
     unsub()
   })
+
+  it('unsubscribe() closes open sockets so re-subscribe does not leak a connection', () => {
+    const provider = createGamestrProvider(['wss://relay.a', 'wss://relay.b'], 10)
+    const unsub = provider.subscribe('game1', () => {})
+
+    const ws1 = wsFactory.instances[0]
+    const ws2 = wsFactory.instances[1]
+    ws1.triggerOpen()
+    ws2.triggerOpen()
+    expect(ws1.readyState).toBe(1)
+    expect(ws2.readyState).toBe(1)
+
+    unsub()
+
+    // Every open socket must be closed — otherwise navigating tiles and
+    // attract-mode auto-advance leak a WebSocket per relay on each change.
+    expect(ws1.readyState).toBe(3)
+    expect(ws2.readyState).toBe(3)
+  })
 })
