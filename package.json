@@ -12,8 +12,9 @@
     "preview": "electron-vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "dist": "electron-vite build && electron-builder --linux AppImage",
-    "typecheck": "tsc --noEmit"
+    "dist": "electron-vite build && electron-builder --linux AppImage --x64",
+    "typecheck": "tsc --noEmit",
+    "deploy": "bash scripts/deploy.sh"
   },
   "dependencies": {
     "gsap": "^3.12.5",
