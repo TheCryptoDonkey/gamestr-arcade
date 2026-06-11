@@ -75,6 +75,9 @@ let win: BrowserWindow | null = null
 // `games:list` populates this so `game:launch` can resolve id → Game without a
 // second filesystem scan.  Set to null until the first `games:list` call.
 let cachedGames: Game[] | null = null
+// Re-entrancy guard: in-flight buildGamesList promise so two rapid game:launch
+// calls at startup share a single scan rather than double-rebuilding.
+let buildingGames: Promise<Game[]> | null = null
 
 // ── Web-game view ─────────────────────────────────────────────────────────────
 // A `WebContentsView` layered over the shell window when a web game is running.
@@ -107,20 +110,17 @@ function ensureWebView(): WebContentsView {
   // Resize the overlay whenever the window resizes.
   win.on('resize', sizeWebView)
 
-  // Navigation failure: notify the renderer so the user can escape.
+  // Navigation failure: route through the same path as a normal return so
+  // launcher.running is reset, Escape is unregistered, and the shell is shown.
   webView.webContents.on('did-fail-load', (_e, code, desc, url, isMain) => {
     if (!isMain) return // ignore sub-frame failures
     console.error(`[arcade] web game load failed: ${code} ${desc} ${url}`)
+    // Surface a brief error toast to the renderer BEFORE back() so it is
+    // already queued when the shell comes back into focus.
     win?.webContents.send('game:error', `Web game failed to load (${desc})`)
-    // Show the shell back; the launcher's back() will also close the view but
-    // we've already surfaced the error so the user can navigate away.
-    win?.show()
-    win?.focus()
-    if (webView) {
-      win?.contentView.removeChildView(webView)
-      webView.webContents.loadURL('about:blank').catch(() => {})
-    }
-    win?.webContents.send('game:returned')
+    // back() resets running, unregisters Escape, closes the view, shows the
+    // shell and sends game:returned — the one authoritative return path.
+    launcher.back()
   })
 
   return webView
@@ -275,8 +275,12 @@ app.whenReady().then(() => {
 
   ipcMain.handle('game:launch', async (_event, id: string) => {
     // Resolve the game from the cache; rebuild if not yet populated.
+    // Guard against re-entrancy: two rapid presses share a single in-flight scan.
     if (!cachedGames) {
-      cachedGames = await buildGamesList(gamesDir, cacheDir)
+      if (!buildingGames) {
+        buildingGames = buildGamesList(gamesDir, cacheDir).finally(() => { buildingGames = null })
+      }
+      cachedGames = await buildingGames
     }
     const game = cachedGames.find(g => g.id === id)
     if (!game) {

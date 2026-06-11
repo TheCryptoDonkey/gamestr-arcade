@@ -254,4 +254,22 @@ describe('Launcher — web game', () => {
     expect(state.errors.length).toBe(1)
     expect(state.errors[0]).toContain('no URL')
   })
+
+  // Fix #1 — did-fail-load must route through back() so running resets.
+  // Simulate: main process `did-fail-load` calls back() (the corrected path).
+  // Previously the handler bypassed back() and left running=true.
+  it('back() after a did-fail-load resets running so a subsequent launch proceeds', () => {
+    const { deps, state } = makeFakeDeps()
+    const launcher = new Launcher(deps)
+
+    // Web game launches and load subsequently fails (simulated as did-fail-load
+    // calling back() — the corrected index.ts handler).
+    launcher.launch(makeWebGame())
+    launcher.back() // simulates did-fail-load → launcher.back() path
+
+    // The cabinet must be able to launch again.
+    launcher.launch(makeWebGame({ url: 'https://example.test/second' }))
+    expect(state.loadedUrls).toHaveLength(2)
+    expect(state.loadedUrls[1]).toBe('https://example.test/second')
+  })
 })
