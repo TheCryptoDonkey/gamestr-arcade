@@ -18,11 +18,31 @@
 #   - Games folder at: /home/booth/games                    (← update this path)
 #   - A running X / Wayland session owned by the same user
 #     (DISPLAY / WAYLAND_DISPLAY are inherited from the user session).
+#
+# If you START the unit over SSH (not from the booth's own graphical login),
+# enable lingering first so logind doesn't reap the user manager when the SSH
+# session closes:
+#   loginctl enable-linger "$(whoami)"
+#
+# A WEDGED GPU is not a software bug: a burst of crashes can leave the GPU
+# driver in a state where the app core-dumps on every launch (SIGTRAP/SIGBUS),
+# and it survives an unclean reboot. If the unit hits its StartLimit (below) and
+# stays failed, do a CLEAN reboot — that resets the GPU context. Do NOT "fix" it
+# by forcing software rendering globally (it pins the cabinet to a slideshow).
 
 [Unit]
 Description=gamestr arcade kiosk
 After=graphical-session.target
 PartOf=graphical-session.target
+
+# Crash-loop guard. Restart=always (below) self-heals a one-off crash, but
+# without a cap a persistently-failing launch (e.g. a wedged GPU) would restart
+# forever every RestartSec — hammering the GPU and masking the real fault. With
+# this cap, >4 starts in 120 s trips the unit into a `failed` state so it STOPS
+# and surfaces the problem (check `systemctl --user status gamestr-arcade`).
+# NOTE: StartLimit* are [Unit] directives, not [Service] — a common gotcha.
+StartLimitIntervalSec=120
+StartLimitBurst=4
 
 [Service]
 # ── PATHS — update both of these for your booth laptop ───────────────────────
@@ -32,7 +52,10 @@ Environment=ARCADE_GAMES_DIR=/home/booth/games
 
 Environment=ARCADE_KIOSK=1
 
-# Crash recovery: restart within 2 s — booth never shows a black screen.
+# Crash recovery: restart within 2 s — booth never shows a black screen on a
+# one-off crash. The StartLimit cap in [Unit] stops a runaway crash-loop after
+# 4 attempts in 120 s (recover with: `systemctl --user reset-failed
+# gamestr-arcade` once the cause is fixed, or a clean reboot for a wedged GPU).
 Restart=always
 RestartSec=2
 

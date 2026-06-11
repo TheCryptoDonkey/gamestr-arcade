@@ -121,12 +121,19 @@ ARCADE_KIOSK=1 ARCADE_GAMES_DIR=/path/to/games /path/to/gamestr-arcade-0.1.0-x86
 ### Install the systemd service (Linux booth)
 
 ```bash
+# If you'll ever START/restart the service over SSH (not from the booth's own
+# graphical login), enable lingering first — otherwise systemd-logind reaps the
+# user manager the moment your SSH session closes and the app dies with it:
+loginctl enable-linger "$(whoami)"
+
 cp systemd/gamestr-arcade.service ~/.config/systemd/user/gamestr-arcade.service
 systemctl --user daemon-reload
 systemctl --user enable --now gamestr-arcade
 ```
 
-The service uses `Restart=always` with `RestartSec=2` — a crash returns to the game grid within 2 seconds.
+The service uses `Restart=always` with `RestartSec=2` — a one-off crash returns to the game grid within 2 seconds — **capped** by a `StartLimitBurst=4` / `StartLimitIntervalSec=120` guard so a persistently-failing launch can't crash-loop forever (it trips to `failed` after 4 starts in 2 min instead of hammering the machine).
+
+**If the unit is stuck `failed`:** check `systemctl --user status gamestr-arcade`. Once the cause is fixed, clear the limit with `systemctl --user reset-failed gamestr-arcade`. If it core-dumps on *every* launch (SIGTRAP/SIGBUS, often after a burst of earlier crashes), the **GPU driver is wedged** — do a **clean reboot** to reset it. Don't paper over it by forcing software rendering globally; that pins the cabinet to a slideshow.
 
 See `systemd/gamestr-arcade.service` for the path placeholders you must update, and for the screen-blanking / DPMS commands to run once in the booth session.
 
