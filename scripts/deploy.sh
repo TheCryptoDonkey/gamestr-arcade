@@ -109,7 +109,13 @@ scp -o BatchMode=yes "$REPO_DIR/systemd/gamestr-arcade.service" \
 
 if [ "$DO_GAMES" = 1 ]; then
   step "Syncing games → $BOOTH:~/gamestr-games/ …"
-  rsync -az --delete -e "ssh -o BatchMode=yes" "$REPO_DIR/games/" "$BOOTH:gamestr-games/"
+  # --exclude '*.AppImage': native game binaries are shipped out-of-band (too big
+  # to commit — they're gitignored) and dropped into ~/gamestr-games/<slug>/ on the
+  # booth separately. Without this exclude, --delete nukes them on every deploy and
+  # the affected tiles silently fall back to their game.json web url (wrong mode +
+  # the arcade's gamepad→key translation then exposes in-game cheats). rsync also
+  # protects excluded paths from --delete, so booth-side AppImages survive.
+  rsync -az --delete --exclude='*.AppImage' -e "ssh -o BatchMode=yes" "$REPO_DIR/games/" "$BOOTH:gamestr-games/"
 fi
 
 if [ "$RESTART" = 1 ]; then

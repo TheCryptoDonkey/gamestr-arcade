@@ -4,5 +4,6 @@
   "gameId": "pallasite",
   "order": 1,
   "accent": "#7cf3ff",
+  "exec": "Pallasite.AppImage",
   "url": "https://pallasite.app/"
 }
