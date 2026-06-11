@@ -68,9 +68,11 @@ RestartSec=2
 # Give the app 10 s to shut down cleanly before SIGKILL.
 TimeoutStopSec=10
 
-# Inherit DISPLAY/WAYLAND_DISPLAY from the user session via the environment
-# block that systemd --user picks up automatically when the graphical target
-# is active (see `systemctl --user import-environment`).
+# Booth display: the kiosk must target the booth's X session. Started from the
+# booth's own graphical login DISPLAY is inherited; (re)started over SSH it is
+# NOT — so pin it. The booth runs X on :0 (same as Pallasite's deploy uses).
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=%h/.Xauthority
 
 [Install]
 WantedBy=graphical-session.target

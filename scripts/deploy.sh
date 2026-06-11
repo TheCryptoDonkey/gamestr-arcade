@@ -94,6 +94,7 @@ echo "✓ checksum verified on booth"
 
 # Install the systemd user service.
 step "Installing systemd user service…"
+"${SSH[@]}" "$BOOTH" 'mkdir -p ~/.config/systemd/user'
 scp -o BatchMode=yes "$REPO_DIR/systemd/gamestr-arcade.service" \
   "$BOOTH:.config/systemd/user/gamestr-arcade.service"
 "${SSH[@]}" "$BOOTH" '
