@@ -677,6 +677,53 @@
   pointer-events: none;
 }
 
+/* ── gamestr editorial badges (TRENDING / NEW) ───────────────────────────────── */
+/* Filmstrip tiles: stacked top-left so they don't collide with the LOCAL badge. */
+.tile-badges {
+  position: absolute;
+  top: 0.28rem;
+  left: 0.28rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  pointer-events: none;
+}
+.tile-badge {
+  padding: 0.12rem 0.32rem;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 0.42rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 0.25rem;
+  line-height: 1.3;
+}
+
+/* Showcase: inline pills beside the NOW SELECTING kicker for the active game. */
+.showcase-badges {
+  display: inline-flex;
+  gap: 0.4rem;
+  margin-left: 0.6rem;
+  vertical-align: middle;
+}
+.show-badge {
+  padding: 0.16rem 0.5rem;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border-radius: 0.3rem;
+  line-height: 1.2;
+}
+
+/* Shared palette — amber TRENDING, accent-cyan NEW. */
+.badge-trend { color: #05070f; background: #ffb347; }
+.badge-new {
+  color: #05070f;
+  background: var(--accent, #7cf3ff);
+}
+
 /* ── Boot / empty / error message ────────────────────────────────────────────── */
 .boot-message {
   position: absolute;

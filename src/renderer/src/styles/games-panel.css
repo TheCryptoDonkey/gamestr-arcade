@@ -197,6 +197,28 @@
 
 .gp-row-orphan { opacity: 0.7; }
 
+/* Gamepad/keyboard selection highlight. */
+.gp-row-selected {
+  border-color: var(--accent, #7cf3ff);
+  background: rgba(124, 243, 255, 0.12);
+  box-shadow: 0 0 0 1px var(--accent, #7cf3ff),
+    0 0 18px color-mix(in srgb, var(--accent, #7cf3ff) 32%, transparent);
+}
+.gp-row-selected .gp-add {
+  background: rgba(124, 243, 255, 0.24);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent, #7cf3ff) 45%, transparent);
+}
+
+/* Navigation hint line under the status. */
+.gp-hint {
+  flex: 0 0 auto;
+  padding: 0 1.4rem 0.2rem;
+  font-family: var(--mono, monospace);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  color: color-mix(in srgb, var(--accent, #7cf3ff) 42%, transparent);
+}
+
 .gp-art {
   width: 3.2rem;
   height: 2.2rem;

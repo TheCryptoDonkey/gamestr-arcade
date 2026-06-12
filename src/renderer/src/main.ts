@@ -70,6 +70,30 @@ async function boot(): Promise<void> {
 
   const carousel = new Carousel(games, host)
 
+  // Decorate the carousel with gamestr's live editorial flags (TRENDING / NEW).
+  // Async + non-blocking: the cabinet shows instantly, badges pop in once the
+  // catalogue (cached in the main process) resolves. Matched by slug.
+  if (inElectron) {
+    void window.arcade
+      .gamestrCatalogue()
+      .then(res => {
+        const flags = new Map(res.entries.map(e => [e.slug, e]))
+        let changed = false
+        for (const g of games) {
+          const c = flags.get(g.id) ?? flags.get(g.gameId)
+          if (!c) continue
+          g.trending = c.trending
+          g.newRelease = c.newRelease
+          g.featured = c.featured
+          changed = true
+        }
+        if (changed) carousel.refocus()
+      })
+      .catch(() => {
+        /* offline / no catalogue → no badges, no harm */
+      })
+  }
+
   // ── Wow-layer: audio, leaderboard, attract, CRT ────────────────────────────
   // In kiosk mode autoplay is permitted (see main), so SFX start un-muted; in a
   // browser preview they stay silent until the first gesture resumes the ctx.
@@ -181,11 +205,14 @@ async function boot(): Promise<void> {
     void window.arcade.back()
   }
 
+  // When the add-games panel is open it captures navigation so the operator can
+  // pick + add a game with the gamepad (or keyboard) — a kiosk has no usable mouse
+  // cursor. up/left → previous row, down/right → next, Ⓐ/Enter → ADD, Ⓑ/Start/Esc → close.
   const input = new InputController({
-    onPrev: () => carousel.prev(),
-    onNext: () => carousel.next(),
-    onLaunch: launch,
-    onBack: backFromGame,
+    onPrev: () => { if (gamesPanel.isOpen) gamesPanel.moveSelection(-1); else carousel.prev() },
+    onNext: () => { if (gamesPanel.isOpen) gamesPanel.moveSelection(1); else carousel.next() },
+    onLaunch: () => { if (gamesPanel.isOpen) { gamesPanel.activateSelected(); return } launch() },
+    onBack: () => { if (gamesPanel.isOpen) { gamesPanel.close(); return } backFromGame() },
     onActivity: () => {
       // First real input resumes the audio context (browser autoplay gate).
       audio.resume()

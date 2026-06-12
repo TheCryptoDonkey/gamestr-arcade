@@ -36,6 +36,14 @@ interface LogoInfo {
   transparent: boolean
 }
 
+/** gamestr editorial badges to surface for a game (TRENDING / NEW). */
+function gameBadges(game: Game): Array<{ label: string; cls: string }> {
+  const out: Array<{ label: string; cls: string }> = []
+  if (game.trending) out.push({ label: 'TRENDING', cls: 'badge-trend' })
+  if (game.newRelease) out.push({ label: 'NEW', cls: 'badge-new' })
+  return out
+}
+
 /** A two-letter monogram for the deterministic placeholder avatar / tile glyph. */
 function monogram(name: string): string {
   const words = name.trim().split(/\s+/)
@@ -112,6 +120,7 @@ export class Carousel {
   private nameEl!: HTMLElement
   private taglineEl!: HTMLElement
   private indexEl!: HTMLElement
+  private badgesEl!: HTMLElement
   private filmstripEl!: HTMLElement
   private dotsEl!: HTMLElement
 
@@ -199,7 +208,7 @@ export class Carousel {
 
         <section class="showcase">
           <div class="showcase-meta">
-            <div class="kicker"><span class="kicker-dot"></span><span class="kicker-text">NOW SELECTING</span></div>
+            <div class="kicker"><span class="kicker-dot"></span><span class="kicker-text">NOW SELECTING</span><span class="showcase-badges"></span></div>
             <div class="logo-slot"></div>
             <h1 class="game-name"></h1>
             <p class="game-tagline"></p>
@@ -225,6 +234,7 @@ export class Carousel {
     this.taglineEl = this.q('.game-tagline')
     this.metaEl = this.q('.showcase-meta')
     this.indexEl = this.q('.topbar-index')
+    this.badgesEl = this.q('.showcase-badges')
     this.filmstripEl = this.q('.filmstrip')
     this.dotsEl = this.q('.dots')
 
@@ -340,6 +350,18 @@ export class Carousel {
     this.nameEl.textContent = game.name
     this.taglineEl.textContent = game.tagline || ''
     this.taglineEl.style.display = game.tagline ? '' : 'none'
+
+    // gamestr TRENDING / NEW badges for the selected game (live editorial flags).
+    const badges = gameBadges(game)
+    this.badgesEl.replaceChildren(
+      ...badges.map(b => {
+        const s = document.createElement('span')
+        s.className = 'show-badge ' + b.cls
+        s.textContent = b.label
+        return s
+      }),
+    )
+    this.badgesEl.style.display = badges.length ? '' : 'none'
     const human = String(index + 1).padStart(2, '0')
     const total = String(this.model.length).padStart(2, '0')
     this.indexEl.innerHTML = `<span class="idx-cur">${human}</span><span class="idx-sep">/</span><span class="idx-total">${total}</span>`
@@ -460,6 +482,20 @@ export class Carousel {
         badge.textContent = 'LOCAL'
         badge.setAttribute('aria-label', 'served from local mirror')
         tile.appendChild(badge)
+      }
+
+      // gamestr TRENDING / NEW badges (top-left, stacked) from the live catalogue.
+      const editorial = gameBadges(game)
+      if (editorial.length) {
+        const wrap = document.createElement('span')
+        wrap.className = 'tile-badges'
+        for (const b of editorial) {
+          const el = document.createElement('span')
+          el.className = 'tile-badge ' + b.cls
+          el.textContent = b.label
+          wrap.appendChild(el)
+        }
+        tile.appendChild(wrap)
       }
 
       // Clicking/tapping a tile selects it (pointer support for testing + touch).

@@ -50,6 +50,9 @@ export class GamesPanel {
   private catalogue: GamestrCatalogueEntry[] = []
   private added = new Set<string>()
   private loading = false
+  // Gamepad/keyboard navigation: index into the current addable list + its slugs.
+  private selectedIndex = 0
+  private addableSlugs: string[] = []
 
   constructor(host: HTMLElement, opts: GamesPanelOptions) {
     this.opts = opts
@@ -70,6 +73,7 @@ export class GamesPanel {
           <div class="gp-scanline-bar"></div>
         </header>
         <div class="gp-status" aria-live="polite"></div>
+        <div class="gp-hint">↕ NAVIGATE · Ⓐ / ENTER = ADD · Ⓑ / START / ESC = CLOSE</div>
         <ol class="gp-list"></ol>
       </div>
     `
@@ -85,6 +89,7 @@ export class GamesPanel {
   open(): void {
     if (this._open) return
     this._open = true
+    this.selectedIndex = 0
     this.overlay.classList.add('gp-visible')
     this.overlay.setAttribute('aria-hidden', 'false')
     this.startDetector()
@@ -102,6 +107,23 @@ export class GamesPanel {
 
   toggle(): void {
     this._open ? this.close() : this.open()
+  }
+
+  /** Move the highlighted ADD row — driven by the gamepad d-pad/stick or arrows. */
+  moveSelection(delta: number): void {
+    if (!this._open || this.addableSlugs.length === 0) return
+    const n = this.addableSlugs.length
+    this.selectedIndex = Math.min(n - 1, Math.max(0, this.selectedIndex + delta))
+    this.render()
+  }
+
+  /** Add the highlighted game — driven by gamepad Ⓐ or Enter. */
+  activateSelected(): void {
+    if (!this._open) return
+    const slug = this.addableSlugs[this.selectedIndex]
+    if (!slug) return
+    const btn = this.listEl.querySelector<HTMLButtonElement>(`.gp-row[data-slug="${slug}"] .gp-add`)
+    if (btn && !btn.disabled) void this.add(slug, btn)
   }
 
   // ── internals ──────────────────────────────────────────────────────────────
@@ -148,6 +170,8 @@ export class GamesPanel {
           Number(!!b.newRelease) - Number(!!a.newRelease) ||
           a.name.localeCompare(b.name),
       )
+    this.addableSlugs = addable.map(e => e.slug)
+    if (this.selectedIndex >= addable.length) this.selectedIndex = Math.max(0, addable.length - 1)
 
     // Games seen live on the network but absent from the catalogue (no metadata,
     // so no play URL to launch) — surfaced for awareness, not auto-addable.
@@ -167,7 +191,7 @@ export class GamesPanel {
       frag.appendChild(li)
     }
 
-    for (const e of addable) {
+    addable.forEach((e, i) => {
       const live = this.detected.get(e.slug)
       const badges = [
         live ? '<span class="gp-badge gp-live">● LIVE</span>' : '',
@@ -177,7 +201,8 @@ export class GamesPanel {
         .filter(Boolean)
         .join('')
       const li = document.createElement('li')
-      li.className = 'gp-row'
+      li.className = 'gp-row' + (i === this.selectedIndex ? ' gp-row-selected' : '')
+      li.dataset.slug = e.slug
       li.innerHTML = `
         <div class="gp-art"${e.image ? ` style="background-image:url('${esc(e.image)}')"` : ''}></div>
         <div class="gp-meta">
@@ -189,7 +214,7 @@ export class GamesPanel {
       const btn = li.querySelector('.gp-add') as HTMLButtonElement
       btn.addEventListener('click', () => void this.add(e.slug, btn))
       frag.appendChild(li)
-    }
+    })
 
     if (orphans.length) {
       const hd = document.createElement('li')
@@ -212,6 +237,7 @@ export class GamesPanel {
     }
 
     this.listEl.replaceChildren(frag)
+    this.listEl.querySelector('.gp-row-selected')?.scrollIntoView({ block: 'nearest' })
   }
 
   private async add(slug: string, btn: HTMLButtonElement): Promise<void> {

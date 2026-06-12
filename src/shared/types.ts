@@ -39,6 +39,11 @@ export interface Game {
   scoreKind?: number              // 30762 (default) or 5555
   scoreField?: string             // tag holding the score (5555 only; default 'score')
   scoreDir?: 'asc' | 'desc'       // ranking direction (default 'desc' = higher wins)
+  // gamestr editorial flags (populated at runtime from the catalogue, by slug) —
+  // surfaced as TRENDING / NEW badges on the carousel.
+  trending?: boolean
+  newRelease?: boolean
+  featured?: boolean
 }
 
 export interface LeaderboardEntry {
