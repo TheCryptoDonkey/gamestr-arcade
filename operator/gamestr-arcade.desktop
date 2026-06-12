@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Gamestr Arcade
+GenericName=Arcade Kiosk
+Comment=Start the Gamestr Arcade kiosk
+# Icon resolves by name from ~/.local/share/icons/hicolor/512x512/apps/gamestr-arcade.png
+Icon=gamestr-arcade
+# Start only if it isn't already running, so clicking when it's up is a no-op
+# (rather than killing and relaunching the live kiosk).
+Exec=sh -c 'systemctl --user is-active --quiet gamestr-arcade || systemctl --user start gamestr-arcade'
+Terminal=false
+Categories=Game;
+Keywords=arcade;games;gamestr;
+StartupNotify=false

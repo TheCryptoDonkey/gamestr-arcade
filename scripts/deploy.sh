@@ -9,6 +9,7 @@
 #   npm run deploy -- --ship-only              # skip build+package, ship the existing AppImage (games still sync)
 #   npm run deploy -- --no-build               # skip npm build, still repackage + ship
 #   npm run deploy -- --no-games               # skip rsyncing the games/ folder
+#   npm run deploy -- --no-enable              # install but don't autostart on login (manual-launch booth)
 #   npm run deploy -- --booth user@host[:dir]  # override booth target
 #
 # Booth defaults to the axenstax kiosk; override with --booth or BOOTH=.
@@ -22,6 +23,7 @@ RESTART=0
 DO_BUILD=1
 DO_PACKAGE=1
 DO_GAMES=1
+DO_ENABLE=1
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -29,9 +31,10 @@ while [ $# -gt 0 ]; do
     --no-build)  DO_BUILD=0 ;;
     --ship-only) DO_BUILD=0; DO_PACKAGE=0 ;;
     --no-games)  DO_GAMES=0 ;;
+    --no-enable) DO_ENABLE=0 ;;
     --booth)     BOOTH="$2"; shift ;;
     -h|--help)
-      sed -n '2,15p' "$0"; exit 0 ;;
+      sed -n '2,16p' "$0"; exit 0 ;;
     *) echo "deploy: unknown arg '$1' (try --help)" >&2; exit 2 ;;
   esac
   shift
@@ -100,12 +103,24 @@ step "Installing systemd user service…"
 "${SSH[@]}" "$BOOTH" 'mkdir -p ~/.config/systemd/user'
 scp -o BatchMode=yes "$REPO_DIR/systemd/gamestr-arcade.service" \
   "$BOOTH:.config/systemd/user/gamestr-arcade.service"
-"${SSH[@]}" "$BOOTH" '
-  systemctl --user daemon-reload
-  loginctl enable-linger "$(whoami)"
-  systemctl --user enable gamestr-arcade
-  echo "  ✓ service enabled"
-'
+if [ "$DO_ENABLE" = 1 ]; then
+  "${SSH[@]}" "$BOOTH" '
+    systemctl --user daemon-reload
+    loginctl enable-linger "$(whoami)"
+    systemctl --user enable gamestr-arcade
+    echo "  ✓ service enabled (autostarts on login)"
+  '
+else
+  # Manual-launch booth: install + reload, but leave it DISABLED so it never
+  # autostarts on login. Actively disable in case a prior deploy enabled it.
+  # Linger stays on so the unit is still startable/restartable over SSH.
+  "${SSH[@]}" "$BOOTH" '
+    systemctl --user daemon-reload
+    loginctl enable-linger "$(whoami)"
+    systemctl --user disable gamestr-arcade 2>/dev/null || true
+    echo "  ✓ service installed (manual launch — autostart disabled)"
+  '
+fi
 
 if [ "$DO_GAMES" = 1 ]; then
   step "Syncing games → $BOOTH:~/gamestr-games/ …"
