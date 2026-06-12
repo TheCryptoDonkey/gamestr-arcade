@@ -1,0 +1,10 @@
+{
+  "name": "Mempool Breaker",
+  "tagline": "Bitcoin brick-breaker — smash live mempool blocks",
+  "url": "https://games.noderunners.network/mempoolbreaker/",
+  "gameId": "mempool-breaker",
+  "order": 21,
+  "accent": "#f7931a",
+  "logoUrl": "https://gamestr.io/games/mempool-breaker.png",
+  "source": "gamestr"
+}
