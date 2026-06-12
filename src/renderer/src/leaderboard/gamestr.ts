@@ -44,11 +44,9 @@ export function createGamestrCatalogue(
   relays: string[],
   opts: GamestrCatalogueOptions = {},
 ): GamestrCatalogue {
-  // index: gameId → (eventId → entry)
+  // index: gameId → (eventId → entry). Stores EVERY event (no best-per-pubkey
+  // collapse) so period-aware boards (Today) can be reduced correctly downstream.
   const index = new Map<string, Map<string, LeaderboardEntry>>()
-  // bestScores: gameId → (pubkey → best score seen so far) — guards against accumulating
-  // events that are strictly worse than the pubkey's known best, saving memory and CPU.
-  const bestScores = new Map<string, Map<string, number>>()
   // subscribers: gameId → Set of callbacks
   const subscribers = new Map<string, Set<(entries: LeaderboardEntry[]) => void>>()
 
@@ -83,12 +81,9 @@ export function createGamestrCatalogue(
     const parsed = parseAnyScoreEvent(e)
     if (!parsed) return
     const { gameId, entry } = parsed
-    // Per-pubkey best guard: skip events that are strictly worse than the known best.
-    let gameBest = bestScores.get(gameId)
-    if (!gameBest) { gameBest = new Map(); bestScores.set(gameId, gameBest) }
-    const curBest = gameBest.get(entry.pubkey)
-    if (curBest !== undefined && curBest > entry.score) return
-    gameBest.set(entry.pubkey, entry.score)
+    // Store every event (keyed by id) — do NOT collapse to best-per-pubkey here,
+    // or the Today board (period-filtered downstream) would only ever show players
+    // whose all-time best happens to be today. boardFor() does period reduction.
     let bucket = index.get(gameId)
     if (!bucket) { bucket = new Map(); index.set(gameId, bucket) }
     bucket.set(e.id, entry)
@@ -178,7 +173,13 @@ export function createGamestrProvider(
     subscribe(gameId, onUpdate) {
       if (relays.length === 0) { setTimeout(() => onUpdate([]), 0); return () => {} }
 
-      const best = new Map<string, LeaderboardEntry>()
+      // Store EVERY score event for this game, keyed by event id. We deliberately
+      // do NOT collapse to best-per-pubkey here: the panel's boardFor() needs each
+      // player's best score *within the selected period*. An all-time-best guard
+      // would discard today's lower scores in favour of an older record — so on a
+      // global feed the Today board would show only players whose all-time best is
+      // today (≈ nobody). boardFor() does period + best-per-pubkey + topN at render.
+      const events = new Map<string, LeaderboardEntry>()
       let closed = false
       let pending: ReturnType<typeof setTimeout> | null = null
 
@@ -188,16 +189,14 @@ export function createGamestrProvider(
         if (closed || pending) return
         pending = setTimeout(() => {
           pending = null; if (closed) return
-          onUpdate(Array.from(best.values()).sort((a, b) => b.score - a.score).slice(0, topN))
+          onUpdate(Array.from(events.values()))
         }, 200)
       }
 
       const consider = (e: ScoreEvent) => {
         const parsed = parseAnyScoreEvent(e)
         if (!parsed || parsed.gameId !== gameId) return
-        const entry = parsed.entry
-        const cur = best.get(entry.pubkey); if (cur && cur.score > entry.score) return
-        best.set(entry.pubkey, entry); emit()
+        events.set(e.id, parsed.entry); emit()
       }
 
       const relayTimers = new Map<string, ReturnType<typeof setTimeout>>()

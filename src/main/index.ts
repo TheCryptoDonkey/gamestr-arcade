@@ -153,8 +153,19 @@ let cachedWebLN: WebLNConfig | null | undefined = null
 function buildLaunchDeps(): LaunchDeps {
   return {
     spawn(exec) {
-      const child = nodeSpawn(exec, [], { detached: false })
+      // detached: true → the child is its own process-group leader, so we can
+      // signal the WHOLE group. AppImages fork a runtime + the real app; killing
+      // only the launcher PID would orphan the game, so we group-kill on exit.
+      const child = nodeSpawn(exec, [], { detached: true })
       let killTimer: ReturnType<typeof setTimeout> | null = null
+      const signalGroup = (sig: NodeJS.Signals): void => {
+        try {
+          if (child.pid) process.kill(-child.pid, sig) // negative pid → process group
+          else child.kill(sig)
+        } catch {
+          try { child.kill(sig) } catch { /* already gone */ }
+        }
+      }
       return {
         onExit(cb) {
           child.on('exit', (code) => {
@@ -169,9 +180,9 @@ function buildLaunchDeps(): LaunchDeps {
           child.on('error', (err) => cb(err))
         },
         kill() {
-          child.kill('SIGTERM')
+          signalGroup('SIGTERM')
           killTimer = setTimeout(() => {
-            child.kill('SIGKILL')
+            signalGroup('SIGKILL')
             killTimer = null
           }, 3000)
         },

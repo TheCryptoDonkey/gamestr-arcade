@@ -18,8 +18,7 @@
  * force-back remains the backstop, and on macOS dev it simply watches nothing.
  */
 
-import { readFile } from 'node:fs/promises'
-import { createReadStream } from 'node:fs'
+import { readFile, open as fsOpen } from 'node:fs/promises'
 
 // ── evdev constants ───────────────────────────────────────────────────────────
 
@@ -139,6 +138,8 @@ export class GamepadExitWatcher {
   private streams: ReadableLike[] = []
   private leftovers = new WeakMap<ReadableLike, Buffer>()
   private active = false
+  /** Button codes already logged this session — so each is reported once, not per press. */
+  private loggedCodes = new Set<number>()
 
   constructor(deps: ExitWatcherDeps) {
     this.deps = deps
@@ -147,6 +148,7 @@ export class GamepadExitWatcher {
   async start(): Promise<void> {
     if (this.active) return
     this.active = true
+    this.loggedCodes.clear()
 
     let paths: string[] = []
     try {
@@ -190,10 +192,15 @@ export class GamepadExitWatcher {
     const wholeBytes = Math.floor(buf.length / INPUT_EVENT_SIZE) * INPUT_EVENT_SIZE
     this.leftovers.set(stream, buf.subarray(wholeBytes))
     for (const rec of parseInputEvents(buf.subarray(0, wholeBytes))) {
-      if (isMenuPress(rec)) {
-        this.deps.onMenuPress()
-        return
+      if (rec.type !== EV_KEY || rec.value !== 1) continue // button presses only
+      // Diagnostic: report each distinct button code once per session, so the
+      // booth's controller map is discoverable from the journal (which physical
+      // button emits which code) without a separate capture tool.
+      if (!this.loggedCodes.has(rec.code)) {
+        this.loggedCodes.add(rec.code)
+        this.deps.log?.(`button code=${rec.code}${MENU_BUTTON_CODES.includes(rec.code) ? ' → MENU (exit)' : ''}`)
       }
+      if (isMenuPress(rec)) this.deps.onMenuPress()
     }
   }
 }
@@ -212,9 +219,51 @@ export function realExitWatcherDeps(onMenuPress: () => void, log: (msg: string) 
       return parseGamepadEventDevices(proc).map(ev => `/dev/input/${ev}`)
     },
     openStream(path) {
-      return createReadStream(path) as unknown as ReadableLike
+      return openEvdevStream(path)
     },
     onMenuPress,
     log,
+  }
+}
+
+/**
+ * Open an evdev character device and stream its input_event records via a manual
+ * read loop. Preferred over `fs.createReadStream` for `/dev/input/event*`, which
+ * are blocking char devices that ReadStream can mishandle (early EOF / no data).
+ * Each blocking `read()` returns as soon as the kernel has events; we copy the
+ * bytes out and loop. `destroy()` stops the loop and closes the fd.
+ */
+function openEvdevStream(path: string): ReadableLike {
+  const handlers: { data?: (chunk: Buffer) => void; error?: (err: Error) => void } = {}
+  let closed = false
+  let handle: Awaited<ReturnType<typeof fsOpen>> | null = null
+
+  fsOpen(path, 'r')
+    .then(h => {
+      if (closed) { void h.close().catch(() => {}); return }
+      handle = h
+      const buf = Buffer.allocUnsafe(INPUT_EVENT_SIZE * 64)
+      const loop = (): void => {
+        if (closed || !handle) return
+        handle
+          .read(buf, 0, buf.length, null)
+          .then(({ bytesRead }) => {
+            if (closed) return
+            if (bytesRead > 0) handlers.data?.(Buffer.from(buf.subarray(0, bytesRead)))
+            loop()
+          })
+          .catch(err => { if (!closed) handlers.error?.(err as Error) })
+      }
+      loop()
+    })
+    .catch(err => handlers.error?.(err as Error))
+
+  return {
+    on(event, cb) { handlers[event] = cb as never },
+    destroy() {
+      closed = true
+      void handle?.close().catch(() => {})
+      handle = null
+    },
   }
 }

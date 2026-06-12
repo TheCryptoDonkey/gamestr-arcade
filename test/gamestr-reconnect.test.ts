@@ -165,6 +165,27 @@ describe('createGamestrProvider — reconnect', () => {
     expect((req[2] as Record<string, unknown>).kinds).toContain(30762)
   })
 
+  it('keeps every score per player (no best-collapse) so Today can reduce', () => {
+    // Regression: the provider used to keep only each pubkey's all-time best,
+    // which broke the Today board — a player's older higher score hid today's
+    // lower one. It must now emit every event; boardFor() does period reduction.
+    const provider = createGamestrProvider(['wss://relay.test'], 10)
+    const updates: LeaderboardEntry[][] = []
+    provider.subscribe('game1', top => updates.push(top))
+
+    const ws = wsFactory.instances[0]
+    ws.triggerOpen()
+    const subId = (JSON.parse(ws.sentMessages[0]) as [string, string])[1]
+
+    ws.triggerMessage(makeScoreEvent(subId, 'f'.repeat(64), ALICE, 500, 'game1'))
+    ws.triggerMessage(makeScoreEvent(subId, 'f'.repeat(64), ALICE, 300, 'game1'))
+    clock.advance(250)
+
+    const last = updates.at(-1)!
+    const aliceScores = last.filter(e => e.pubkey === ALICE).map(e => e.score).sort((a, b) => a - b)
+    expect(aliceScores).toEqual([300, 500])
+  })
+
   it('onclose schedules a reconnect that re-sends REQ', () => {
     const provider = createGamestrProvider(['wss://relay.test'], 10)
     provider.subscribe('game1', () => {})
