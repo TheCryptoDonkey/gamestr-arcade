@@ -229,12 +229,22 @@ function buildLaunchDeps(): LaunchDeps {
     chmodExec: (path) => chmod(path, 0o755),
 
     hideShell() {
-      win?.hide()
+      if (!win) return
+      // A kiosk/fullscreen window won't yield the display on hide() under a
+      // Wayland compositor (GNOME/Mutter): the kiosk surface stays mapped, so the
+      // grid covers the native game and the game runs invisibly behind it. Drop
+      // kiosk + fullscreen FIRST, then hide — showShell() restores them on return.
+      win.setKiosk(false)
+      win.setFullScreen(false)
+      win.hide()
     },
 
     showShell() {
-      win?.show()
-      win?.focus()
+      if (!win) return
+      win.show()
+      win.setFullScreen(true)
+      if (kioskMode) win.setKiosk(true)
+      win.focus()
     },
 
     notifyReturned() {
