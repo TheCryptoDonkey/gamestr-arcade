@@ -4,5 +4,8 @@
   "url": "https://word5.otherstuff.ai/",
   "gameId": "word5",
   "order": 18,
-  "accent": "#f59e0b"
+  "accent": "#f59e0b",
+  "scoreKind": 5555,
+  "scoreField": "streak",
+  "scoreDir": "desc"
 }

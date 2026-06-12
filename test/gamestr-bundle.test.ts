@@ -53,6 +53,22 @@ describe('parseGamestrCatalogue', () => {
     expect(bySlug.get('word5')!.trending).toBe(false)
   })
 
+  it('extracts kind-5555 scoring config for shape-2 (Other Stuff) games', () => {
+    const w = bySlug.get('word5')!
+    expect(w.scoreKind).toBe(5555)
+    expect(w.scoreField).toBe('streak')
+    expect(w.scoreDir).toBe('desc')
+    const u = bySlug.get('unicornvssnakes')!
+    expect(u.scoreKind).toBe(5555)
+    expect(u.scoreField).toBe('score')
+    expect(u.scoreDir).toBe('desc')
+  })
+
+  it('leaves shape-1 games on the default scoring (no scoreKind)', () => {
+    expect(bySlug.get('btcrally')!.scoreKind).toBeUndefined()
+    expect(bySlug.get('btcrally')!.scoreField).toBeUndefined()
+  })
+
   it('returns the full distinct set with no duplicates', () => {
     const slugs = entries.map(e => e.slug)
     expect(new Set(slugs).size).toBe(slugs.length)

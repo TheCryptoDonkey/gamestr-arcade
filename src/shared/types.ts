@@ -32,6 +32,13 @@ export interface Game {
   sounds?: { music?: string; voice?: string }
   controls?: GameControls  // gamepad→keyboard overrides for this game
   order: number
+  // Leaderboard scoring. Most games omit these (kind-30762 `score` tag, higher
+  // is better). Other Stuff games (word5, unicornvssnakes) score via kind 5555
+  // with a game-specific field (e.g. `streak`); these tell the board how to read
+  // and rank them. See gamestr's bundle `Si` config.
+  scoreKind?: number              // 30762 (default) or 5555
+  scoreField?: string             // tag holding the score (5555 only; default 'score')
+  scoreDir?: 'asc' | 'desc'       // ranking direction (default 'desc' = higher wins)
 }
 
 export interface LeaderboardEntry {
@@ -43,9 +50,20 @@ export interface LeaderboardEntry {
   at: number            // unix seconds
 }
 
+/** How to read + rank a game's scores. Omitted → kind-30762 `score`, higher wins. */
+export interface ScoreScoring {
+  kind?: number              // 30762 (default) or 5555
+  field?: string             // tag holding the score (5555 only; default 'score')
+  dir?: 'asc' | 'desc'       // ranking direction (default 'desc' = higher wins)
+}
+
 export interface LeaderboardProvider {
   // Returns an unsubscribe fn. onUpdate fires with the current top-N whenever it changes.
-  subscribe(gameId: string, onUpdate: (top: LeaderboardEntry[]) => void): () => void
+  subscribe(
+    gameId: string,
+    onUpdate: (top: LeaderboardEntry[]) => void,
+    scoring?: ScoreScoring,
+  ): () => void
 }
 
 /**
@@ -63,6 +81,10 @@ export interface GamestrCatalogueEntry {
   featured?: boolean
   trending?: boolean
   newRelease?: boolean
+  // Scoring config (kind 5555 games only) — see Game.scoreKind/scoreField/scoreDir.
+  scoreKind?: number
+  scoreField?: string
+  scoreDir?: 'asc' | 'desc'
 }
 
 export interface GamestrCatalogueResult {

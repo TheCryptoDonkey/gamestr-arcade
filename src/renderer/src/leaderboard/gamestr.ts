@@ -1,5 +1,5 @@
-import type { LeaderboardEntry, LeaderboardProvider } from '../../../shared/types'
-import { isScoreEvent, parseAnyScoreEvent, type ScoreEvent } from './gamestr-reduce'
+import type { LeaderboardEntry, LeaderboardProvider, ScoreScoring } from '../../../shared/types'
+import { isScoreEvent, parseAnyScoreEvent, parse5555Event, type ScoreEvent } from './gamestr-reduce'
 
 /** Optional callbacks for external status monitoring. */
 export interface GamestrProviderOptions {
@@ -170,8 +170,11 @@ export function createGamestrProvider(
   opts: GamestrProviderOptions = {},
 ): LeaderboardProvider {
   return {
-    subscribe(gameId, onUpdate) {
+    subscribe(gameId, onUpdate, scoring?: ScoreScoring) {
       if (relays.length === 0) { setTimeout(() => onUpdate([]), 0); return () => {} }
+      // 5555 (Other Stuff) games carry the score in a game-specific tag; default
+      // to the `score` tag for the 30762 path.
+      const scoreField = scoring?.field ?? 'score'
 
       // Store EVERY score event for this game, keyed by event id. We deliberately
       // do NOT collapse to best-per-pubkey here: the panel's boardFor() needs each
@@ -194,9 +197,16 @@ export function createGamestrProvider(
       }
 
       const consider = (e: ScoreEvent) => {
-        const parsed = parseAnyScoreEvent(e)
-        if (!parsed || parsed.gameId !== gameId) return
-        events.set(e.id, parsed.entry); emit()
+        // Route by kind: 5555 needs the per-game score field; 30762 self-describes.
+        const entry =
+          e.kind === 5555
+            ? parse5555Event(e, gameId, scoreField)
+            : (() => {
+                const p = parseAnyScoreEvent(e)
+                return p && p.gameId === gameId ? p.entry : null
+              })()
+        if (!entry) return
+        events.set(e.id, entry); emit()
       }
 
       const relayTimers = new Map<string, ReturnType<typeof setTimeout>>()
@@ -213,8 +223,9 @@ export function createGamestrProvider(
         ws.onopen = () => {
           connected.add(url)
           if (connected.size === 1) opts.onStatus?.('up')
-          // Broad filter — no #t — because gamestr.io games tag genres, not game IDs
-          ws.send(JSON.stringify(['REQ', subId, { kinds: [30762], limit: 500 }]))
+          // Broad filter — no #t — because gamestr.io games tag genres, not game IDs.
+          // Two filters (own limit each) so adding 5555 doesn't starve 30762.
+          ws.send(JSON.stringify(['REQ', subId, { kinds: [30762], limit: 500 }, { kinds: [5555], limit: 500 }]))
         }
 
         ws.onmessage = ev => {

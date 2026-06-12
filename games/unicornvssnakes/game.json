@@ -4,5 +4,8 @@
   "url": "https://unicorn.dergigi.com/",
   "gameId": "unicornvssnakes",
   "order": 15,
-  "accent": "#ec4899"
+  "accent": "#ec4899",
+  "scoreKind": 5555,
+  "scoreField": "score",
+  "scoreDir": "desc"
 }

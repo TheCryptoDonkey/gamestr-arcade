@@ -17,7 +17,7 @@
  * (see `wireLeaderboard`), and so the connection logic stays out of the DOM.
  */
 
-import type { ArcadeConfig, LeaderboardEntry, LeaderboardProvider } from '../../../shared/types'
+import type { ArcadeConfig, LeaderboardEntry, LeaderboardProvider, ScoreScoring } from '../../../shared/types'
 import { createGamestrProvider } from '../leaderboard/gamestr'
 import { boardFor, type Period } from '../leaderboard/gamestr-reduce'
 import { readCachedBoard, writeCachedBoard } from '../leaderboard/cache'
@@ -80,6 +80,7 @@ export class LeaderboardPanel {
   private readonly profileCache: ProfileCache
   private gotLive = false
   private period: Period = 'today'
+  private scoring: ScoreScoring | undefined
   private rawEntries: LeaderboardEntry[] = []
   private readonly topN: number
   private keyHandler: ((e: KeyboardEvent) => void) | null = null
@@ -136,11 +137,14 @@ export class LeaderboardPanel {
     document.addEventListener('keydown', this.keyHandler)
   }
 
-  /** Switch the board to a new game: cache-first paint, then live subscribe. */
-  show(gameId: string): void {
+  /** Switch the board to a new game: cache-first paint, then live subscribe.
+   *  `scoring` describes how to read + rank this game's scores (kind / field /
+   *  direction); omit for the kind-30762 `score`, higher-wins default. */
+  show(gameId: string, scoring?: ScoreScoring): void {
     if (gameId === this.currentGameId) return
     this.teardownSubscriptions()
     this.currentGameId = gameId
+    this.scoring = scoring
     // Reset to Today on each game switch so users always land on the most relevant view.
     if (this.period !== 'today') {
       this.period = 'today'
@@ -154,7 +158,7 @@ export class LeaderboardPanel {
 
     // 1. Cache-first: instant board, no empty flash.
     this.rawEntries = readCachedBoard(gameId)
-    this.entries = boardFor(this.rawEntries, this.period, this.topN, Math.floor(Date.now() / 1000))
+    this.entries = boardFor(this.rawEntries, this.period, this.topN, Math.floor(Date.now() / 1000), this.boardDir())
     this.render()
     this.setStatus('reconnecting')
 
@@ -171,12 +175,12 @@ export class LeaderboardPanel {
       if (gameId !== this.currentGameId) return
       this.gotLive = true
       this.rawEntries = raw
-      this.entries = boardFor(raw, this.period, this.topN, Math.floor(Date.now() / 1000))
+      this.entries = boardFor(raw, this.period, this.topN, Math.floor(Date.now() / 1000), this.boardDir())
       this.setStatus('live')
       writeCachedBoard(gameId, raw)
       this.render()
       this.resolveVisibleProfiles()
-    })
+    }, this.scoring)
 
     // Fallback: if no live update lands shortly, drop the dot to "reconnecting"
     // so the indicator is honest rather than implying a healthy link.
@@ -195,10 +199,11 @@ export class LeaderboardPanel {
   setRelays(relays: string[]): void {
     this.currentRelays = [...relays]
     if (this.currentGameId) {
-      // Force a re-subscribe by resetting currentGameId first.
+      // Force a re-subscribe by resetting currentGameId first; keep the scoring.
       const gameId = this.currentGameId
+      const scoring = this.scoring
       this.currentGameId = null
-      this.show(gameId)
+      this.show(gameId, scoring)
     }
   }
 
@@ -210,6 +215,11 @@ export class LeaderboardPanel {
   }
 
   // ── internals ──────────────────────────────────────────────────────────────
+
+  /** Ranking direction for the current game (default higher-wins). */
+  private boardDir(): 'asc' | 'desc' {
+    return this.scoring?.dir ?? 'desc'
+  }
 
   private teardownSubscriptions(): void {
     this.unsubscribeScores?.()
@@ -265,7 +275,7 @@ export class LeaderboardPanel {
       const el = btn as HTMLElement
       el.classList.toggle('lb-period-active', el.dataset.period === p)
     })
-    this.entries = boardFor(this.rawEntries, this.period, this.topN, Math.floor(Date.now() / 1000))
+    this.entries = boardFor(this.rawEntries, this.period, this.topN, Math.floor(Date.now() / 1000), this.boardDir())
     this.render()
     this.resolveVisibleProfiles()
   }
@@ -390,7 +400,7 @@ export function mountLeaderboard(
   host: HTMLElement,
   config: ArcadeConfig,
   inElectron: boolean,
-): { show: (gameId: string) => void; panel: LeaderboardPanel | null } {
+): { show: (gameId: string, scoring?: ScoreScoring) => void; panel: LeaderboardPanel | null } {
   if (config.leaderboard.provider === 'none') return { show: () => {}, panel: null }
   const { relays, topN } = config.leaderboard
 
@@ -405,14 +415,14 @@ export function mountLeaderboard(
       makeProvider: () => staticProvider(gameId => (boards ? boards(gameId) : [])),
       resolve: () => () => {}, // names are pre-filled in the mock; no relay calls
     })
-    let pending: string | null = null
+    let pending: { gameId: string; scoring?: ScoreScoring } | null = null
     void ready.then(() => {
-      if (pending) panel.show(pending)
+      if (pending) panel.show(pending.gameId, pending.scoring)
     })
     return {
-      show: gameId => {
-        pending = gameId
-        if (boards) panel.show(gameId)
+      show: (gameId, scoring) => {
+        pending = { gameId, scoring }
+        if (boards) panel.show(gameId, scoring)
       },
       panel,
     }
@@ -424,5 +434,5 @@ export function mountLeaderboard(
     makeProvider: (activeRelays: string[], onStatus) => createGamestrProvider(activeRelays, topN, { onStatus }),
     resolve: resolveProfiles,
   })
-  return { show: gameId => panel.show(gameId), panel }
+  return { show: (gameId, scoring) => panel.show(gameId, scoring), panel }
 }

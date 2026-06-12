@@ -89,14 +89,21 @@ async function boot(): Promise<void> {
   })
   attract.start()
 
+  // Per-game scoring (kind 5555 Other Stuff games carry their own score field +
+  // direction; most games omit these and use the kind-30762 default).
+  const scoringOf = (game: Game) =>
+    game.scoreKind || game.scoreField || game.scoreDir
+      ? { kind: game.scoreKind, field: game.scoreField, dir: game.scoreDir }
+      : undefined
+
   // Drive the board + SFX off carousel selection. Stay silent while attract is
   // auto-advancing so idle demo mode makes no sound at all.
   carousel.onChange(game => {
-    showBoard(game.gameId)
+    showBoard(game.gameId, scoringOf(game))
     if (!attract.isActive) audio.playMove()
   })
   // Seed the board with the initial selection (onChange only fires on movement).
-  showBoard(carousel.current().gameId)
+  showBoard(carousel.current().gameId, scoringOf(carousel.current()))
 
   // Relay admin overlay: press 'r' to open/close.
   const relayConfig = config.leaderboard.provider === 'gamestr' ? config.leaderboard.relays : []

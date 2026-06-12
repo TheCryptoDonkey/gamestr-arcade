@@ -14,8 +14,10 @@ export type Period = 'today' | 'all'
 export function isScoreEvent(v: unknown): v is ScoreEvent {
   if (typeof v !== 'object' || v === null) return false
   const e = v as Record<string, unknown>
-  return e.kind === 30762 && typeof e.id === 'string' && typeof e.pubkey === 'string'
-    && typeof e.created_at === 'number' && Array.isArray(e.tags)
+  // 30762 = gamestr's documented score kind; 5555 = Other Stuff's native game
+  // score (word5 etc.), which gamestr also reads.
+  return (e.kind === 30762 || e.kind === 5555) && typeof e.id === 'string'
+    && typeof e.pubkey === 'string' && typeof e.created_at === 'number' && Array.isArray(e.tags)
 }
 
 function tagValue(tags: string[][], name: string): string | undefined {
@@ -62,19 +64,36 @@ export function parseAnyScoreEvent(e: ScoreEvent): ParsedAnyScore | null {
 }
 
 /**
- * Pure board computation: filter by period, keep best score per pubkey, sort
- * descending, slice to topN.
+ * Parse a kind-5555 (Other Stuff) score event. Unlike 30762, the "score" is a
+ * game-specific tag (`field`, e.g. word5 → `streak`) and the player is the event
+ * `pubkey` (player-signed) unless a `p` tag overrides it. There is no `cheated`
+ * tag in this schema.
+ */
+export function parse5555Event(e: ScoreEvent, gameId: string, field: string): LeaderboardEntry | null {
+  if (!hasTagValue(e.tags, 'game', gameId)) return null
+  const score = parseInt(tagValue(e.tags, field) ?? '', 10)
+  if (!Number.isFinite(score) || score < 0) return null
+  const pubkey = tagValue(e.tags, 'p') ?? e.pubkey
+  if (!/^[0-9a-f]{64}$/i.test(pubkey)) return null
+  return { pubkey, score, sats: Math.max(0, parseInt(tagValue(e.tags, 'sats') ?? '0', 10) || 0), at: e.created_at }
+}
+
+/**
+ * Pure board computation: filter by period, keep the best score per pubkey, sort
+ * by `dir`, slice to topN.
  *
  * @param entries  All entries for a given game (unfiltered).
  * @param period   'today' = created_at >= start of UTC day; 'all' = no filter.
  * @param topN     Maximum entries to return.
  * @param nowSec   Current unix timestamp in seconds (injected for testability — do NOT call Date.now() here).
+ * @param dir      'desc' (default) = higher wins; 'asc' = lower wins (e.g. time/strokes).
  */
 export function boardFor(
   entries: LeaderboardEntry[],
   period: Period,
   topN: number,
   nowSec: number,
+  dir: 'asc' | 'desc' = 'desc',
 ): LeaderboardEntry[] {
   let filtered = entries
   if (period === 'today') {
@@ -83,12 +102,15 @@ export function boardFor(
     const dayStartSec = d.getTime() / 1000
     filtered = entries.filter(e => e.at >= dayStartSec)
   }
+  const better = (a: number, b: number): boolean => (dir === 'asc' ? a < b : a > b)
   const best = new Map<string, LeaderboardEntry>()
   for (const e of filtered) {
     const cur = best.get(e.pubkey)
-    if (!cur || e.score > cur.score) best.set(e.pubkey, e)
+    if (!cur || better(e.score, cur.score)) best.set(e.pubkey, e)
   }
-  return Array.from(best.values()).sort((a, b) => b.score - a.score).slice(0, topN)
+  return Array.from(best.values())
+    .sort((a, b) => (dir === 'asc' ? a.score - b.score : b.score - a.score))
+    .slice(0, topN)
 }
 
 export function collapseToBest(events: ScoreEvent[], gameId: string, topN: number): LeaderboardEntry[] {

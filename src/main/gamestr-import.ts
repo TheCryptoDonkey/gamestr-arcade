@@ -56,6 +56,11 @@ export function gameJsonFor(entry: GamestrCatalogueEntry): Record<string, unknow
     json.heroUrl = entry.image
   }
   if (entry.genres.length) json.genres = entry.genres
+  // Carry the leaderboard scoring config for kind-5555 (Other Stuff) games so
+  // the imported game's board reads + ranks the right field straight away.
+  if (entry.scoreKind) json.scoreKind = entry.scoreKind
+  if (entry.scoreField) json.scoreField = entry.scoreField
+  if (entry.scoreDir) json.scoreDir = entry.scoreDir
   return json
 }
 

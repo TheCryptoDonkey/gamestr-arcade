@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseScoreEvent, collapseToBest, parseAnyScoreEvent, boardFor, type ScoreEvent } from '../src/renderer/src/leaderboard/gamestr-reduce'
+import { parseScoreEvent, collapseToBest, parseAnyScoreEvent, parse5555Event, boardFor, type ScoreEvent } from '../src/renderer/src/leaderboard/gamestr-reduce'
 
 const P1 = 'a'.repeat(64), P2 = 'b'.repeat(64), P3 = 'c'.repeat(64), GAME = 'g'.repeat(64)
 function ev(over: Partial<ScoreEvent>): ScoreEvent {
@@ -111,5 +111,43 @@ describe('boardFor', () => {
     const board = boardFor(entries, 'today', 10, NOW_SEC)
     const p1Entry = board.find(e => e.pubkey === P1)!
     expect(p1Entry.score).toBe(900)
+  })
+
+  it('dir=asc ranks lower scores first and keeps the lowest per pubkey', () => {
+    const asc = boardFor(
+      [
+        { pubkey: P1, score: 90, at: NOW_SEC, sats: 0 },
+        { pubkey: P1, score: 40, at: NOW_SEC, sats: 0 },
+        { pubkey: P2, score: 70, at: NOW_SEC, sats: 0 },
+      ],
+      'all', 10, NOW_SEC, 'asc',
+    )
+    expect(asc.map(e => e.score)).toEqual([40, 70]) // P1's best (lowest) then P2
+  })
+})
+
+describe('parse5555Event (Other Stuff schema)', () => {
+  function ev5555(over: Partial<ScoreEvent>): ScoreEvent {
+    return {
+      id: 'i', pubkey: P1, kind: 5555, created_at: 100, content: '', sig: 's',
+      tags: [['game', 'word5'], ['t', 'word5'], ['streak', '7'], ['maxStreak', '14']],
+      ...over,
+    }
+  }
+
+  it('reads the configured score field and uses event.pubkey as the player', () => {
+    const e = parse5555Event(ev5555({}), 'word5', 'streak')!
+    expect(e.pubkey).toBe(P1)
+    expect(e.score).toBe(7)
+  })
+
+  it('prefers a p tag over the signer pubkey when present', () => {
+    const e = parse5555Event(ev5555({ tags: [['game', 'word5'], ['p', P2], ['streak', '3']] }), 'word5', 'streak')!
+    expect(e.pubkey).toBe(P2)
+  })
+
+  it('rejects a wrong game or a missing score field', () => {
+    expect(parse5555Event(ev5555({}), 'pallasite', 'streak')).toBeNull()
+    expect(parse5555Event(ev5555({ tags: [['game', 'word5']] }), 'word5', 'streak')).toBeNull()
   })
 })

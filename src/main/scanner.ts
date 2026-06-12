@@ -104,6 +104,9 @@ async function build(
     sounds: { music: (await exists(join(dir, 'music.ogg'))) ? join(dir, 'music.ogg') : undefined,
               voice: (await exists(join(dir, 'voice.ogg'))) ? join(dir, 'voice.ogg') : undefined },
     controls: meta?.controls ?? undefined,
-    order: typeof meta?.order === 'number' ? meta.order : 999
+    order: typeof meta?.order === 'number' ? meta.order : 999,
+    scoreKind: typeof meta?.scoreKind === 'number' ? meta.scoreKind : undefined,
+    scoreField: typeof meta?.scoreField === 'string' ? meta.scoreField : undefined,
+    scoreDir: meta?.scoreDir === 'asc' || meta?.scoreDir === 'desc' ? meta.scoreDir : undefined,
   }
 }

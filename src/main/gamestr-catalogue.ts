@@ -126,7 +126,10 @@ export function parseGamestrCatalogue(js: string): GamestrCatalogueEntry[] {
     if (e) out.set(m[1], e)
   }
 
-  // Shape 2 — <slug>:{scoreField:…,metadata:{ … }}.
+  // Shape 2 — <slug>:{scoreField:…,scoreDirection:…,metadata:{ … }}. These are
+  // Other Stuff (otherstuff.ai) games scored via kind 5555, whose "score" is a
+  // game-specific tag (e.g. word5 → streak). The outer object carries that
+  // mapping; we capture it so the arcade's board reads the right field.
   const cfgRe = /([a-z0-9][a-z0-9-]*):\{scoreField:/g
   while ((m = cfgRe.exec(js))) {
     if (out.has(m[1])) continue
@@ -135,7 +138,15 @@ export function parseGamestrCatalogue(js: string): GamestrCatalogueEntry[] {
     const body = readObject(js, metaIdx)
     if (!body) continue
     const e = entryFrom(m[1], body)
-    if (e) out.set(m[1], e)
+    if (!e) continue
+    // scoreField / scoreDirection sit on the outer object, ahead of `metadata:`.
+    const head = js.slice(m.index, metaIdx)
+    const fieldM = /scoreField:"([^"]+)"/.exec(head)
+    const dirM = /scoreDirection:"(asc|desc)"/.exec(head)
+    e.scoreKind = 5555
+    if (fieldM) e.scoreField = fieldM[1]
+    if (dirM) e.scoreDir = dirM[1] as 'asc' | 'desc'
+    out.set(m[1], e)
   }
 
   return Array.from(out.values())

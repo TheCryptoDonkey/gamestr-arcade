@@ -62,6 +62,23 @@ describe('gameJsonFor', () => {
     expect(json.tagline).toBeUndefined()
     expect(json.genres).toBeUndefined()
   })
+
+  it('carries kind-5555 scoring config when present', () => {
+    const json = gameJsonFor({
+      slug: 'word5', name: 'Word5', genres: ['puzzle'], url: 'https://word5.otherstuff.ai',
+      scoreKind: 5555, scoreField: 'streak', scoreDir: 'desc',
+    })
+    expect(json.scoreKind).toBe(5555)
+    expect(json.scoreField).toBe('streak')
+    expect(json.scoreDir).toBe('desc')
+  })
+
+  it('omits scoring config for default (kind-30762) games', () => {
+    const json = gameJsonFor(ENTRY)
+    expect(json.scoreKind).toBeUndefined()
+    expect(json.scoreField).toBeUndefined()
+    expect(json.scoreDir).toBeUndefined()
+  })
 })
 
 describe('importGameToFolder', () => {
