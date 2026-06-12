@@ -7,6 +7,7 @@
 
 import { app, BrowserWindow, globalShortcut, ipcMain, net, protocol, WebContentsView } from 'electron'
 import { chmod, mkdir, readFile, stat, writeFile } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { spawn as nodeSpawn, spawnSync } from 'node:child_process'
 import { is } from '@electron-toolkit/utils'
@@ -155,6 +156,30 @@ let cachedWebLN: WebLNConfig | null | undefined = null
 /** Transient systemd unit name for the currently-running native game (one at a time). */
 const GAME_UNIT = 'gamestr-arcade-game'
 
+/** Resolve a system binary to an absolute path. The electron main launched from a
+ *  FUSE-mounted AppImage can inherit an EMPTY $PATH, so `spawn('systemd-run', …)`
+ *  fails ENOENT. Fall back to the bare name if it's not in the usual dirs. */
+function findBin(name: string): string {
+  for (const dir of ['/usr/bin', '/bin', '/usr/local/bin', '/sbin', '/usr/sbin']) {
+    if (existsSync(`${dir}/${name}`)) return `${dir}/${name}`
+  }
+  return name
+}
+const SYSTEMD_RUN = findBin('systemd-run')
+const SYSTEMCTL = findBin('systemctl')
+
+/** Env for systemd-run / systemctl --user. The electron main from a FUSE-mounted
+ *  AppImage may have no XDG_RUNTIME_DIR (needed to reach the user bus) and no PATH
+ *  — derive sane values so `--user` works regardless of how we were launched. */
+function systemdEnv(): NodeJS.ProcessEnv {
+  const uid = typeof process.getuid === 'function' ? process.getuid() : 1000
+  return {
+    ...process.env,
+    XDG_RUNTIME_DIR: process.env.XDG_RUNTIME_DIR || `/run/user/${uid}`,
+    PATH: process.env.PATH || '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+  }
+}
+
 let _hasSystemdRun: boolean | undefined
 /** True when native games should launch via `systemd-run --user` (Linux + systemd present). */
 function hasSystemdRun(): boolean {
@@ -162,7 +187,7 @@ function hasSystemdRun(): boolean {
     try {
       _hasSystemdRun =
         process.platform === 'linux' &&
-        spawnSync('systemd-run', ['--version'], { stdio: 'ignore' }).status === 0
+        spawnSync(SYSTEMD_RUN, ['--version'], { stdio: 'ignore', env: systemdEnv() }).status === 0
     } catch {
       _hasSystemdRun = false
     }
@@ -182,17 +207,18 @@ function buildLaunchDeps(): LaunchDeps {
       // session/cgroup, where it launches normally. A plain (non-detached) spawn is
       // the fallback when systemd-run isn't available (non-systemd hosts / dev).
       const useUnit = hasSystemdRun()
+      const env = systemdEnv()
       let child: ReturnType<typeof nodeSpawn>
       if (useUnit) {
         // Clear any leftover unit from a prior game before reusing the name.
-        try { spawnSync('systemctl', ['--user', 'stop', GAME_UNIT], { stdio: 'ignore' }) } catch { /* ignore */ }
-        try { spawnSync('systemctl', ['--user', 'reset-failed', GAME_UNIT], { stdio: 'ignore' }) } catch { /* ignore */ }
+        try { spawnSync(SYSTEMCTL, ['--user', 'stop', GAME_UNIT], { stdio: 'ignore', env }) } catch { /* ignore */ }
+        try { spawnSync(SYSTEMCTL, ['--user', 'reset-failed', GAME_UNIT], { stdio: 'ignore', env }) } catch { /* ignore */ }
         // --wait keeps systemd-run (our tracked child) alive until the game exits,
         // so onExit fires at the right time; --collect garbage-collects the unit.
         child = nodeSpawn(
-          'systemd-run',
+          SYSTEMD_RUN,
           ['--user', '--wait', '--collect', '--quiet', '--unit', GAME_UNIT, '--', exec, ...args],
-          { detached: false },
+          { detached: false, env },
         )
       } else {
         child = nodeSpawn(exec, args, { detached: false })
@@ -215,7 +241,7 @@ function buildLaunchDeps(): LaunchDeps {
           // Stopping the unit is authoritative (it tears down the game's whole
           // cgroup); also signal systemd-run/the child so it unwinds promptly.
           if (useUnit) {
-            try { spawnSync('systemctl', ['--user', 'stop', GAME_UNIT], { stdio: 'ignore' }) } catch { /* ignore */ }
+            try { spawnSync(SYSTEMCTL, ['--user', 'stop', GAME_UNIT], { stdio: 'ignore', env: systemdEnv() }) } catch { /* ignore */ }
           }
           child.kill('SIGTERM')
           killTimer = setTimeout(() => {
