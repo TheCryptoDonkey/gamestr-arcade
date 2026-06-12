@@ -18,18 +18,72 @@ export interface InputHandlers {
   onActivity?(): void
 }
 
-/** Standard-mapping gamepad button indices we care about. */
+/** Standard-mapping face-button indices. */
 const BTN_A = 0 // bottom face button → launch
 const BTN_START = 9 // start → back
-const BTN_DPAD_LEFT = 14
-const BTN_DPAD_RIGHT = 15
 
-/** Analogue stick deadzone and repeat cadence (ms) for held directions. */
-const STICK_DEADZONE = 0.5
+/**
+ * Standard-mapping d-pad button indices. Non-standard pads carry the d-pad on a
+ * HAT instead (see HAT_AXIS) — `directionFromGamepad` reads both.
+ */
+export const DPAD = { UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 } as const
+
+/**
+ * Axis indices. The left analogue stick (0 = X, 1 = Y) is present on both
+ * mappings. On non-standard pads the d-pad arrives as a HAT on axes 6 (X) /
+ * 7 (Y) — the conventional Linux layout (see src/preload/webgame.ts).
+ */
+export const STICK_AXIS = { X: 0, Y: 1 } as const
+export const HAT_AXIS = { X: 6, Y: 7 } as const
+
+/** Past this magnitude a stick/HAT axis counts as pushed (a HAT snaps to 0 / ±1). */
+export const STICK_DEADZONE = 0.5
+
+/** Repeat cadence (ms) for a held direction. */
 const REPEAT_INITIAL_MS = 420
 const REPEAT_INTERVAL_MS = 140
 
-type Direction = -1 | 0 | 1
+/** Menu navigation step: −1 = previous, 0 = none, +1 = next. */
+export type Direction = -1 | 0 | 1
+
+/**
+ * Resolve a menu direction from a gamepad, merging three input sources so any
+ * one can drive the menu — and so BOTH controller styles at the booths work:
+ *
+ *   • D-pad buttons 12–15     — Standard-Mapping pads (the .32 booth's Xbox pad).
+ *   • Left analogue stick 0/1 — exposed on both mappings.
+ *   • D-pad HAT axes 6/7      — non-standard pads (bitfest-1's official Xbox pad,
+ *                               whose connection lands outside Chromium's mapping
+ *                               table) carry the d-pad here, NOT on buttons 12–15.
+ *
+ * The HAT read is gated on `pad.mapping !== 'standard'`, so it can never disturb
+ * a pad whose d-pad already works as buttons — that gate is how the two styles
+ * are told apart. BOTH axes navigate (left / up → prev, right / down → next), so
+ * the d-pad and the stick move the menu vertically as well as horizontally. Prev
+ * wins if both are somehow asserted. Pure and exported for unit testing.
+ */
+export function directionFromGamepad(pad: Gamepad): Direction {
+  const pressed = (i: number): boolean => !!pad.buttons[i]?.pressed
+  const nonStandard = pad.mapping !== 'standard'
+
+  const stickX = pad.axes[STICK_AXIS.X] ?? 0
+  const stickY = pad.axes[STICK_AXIS.Y] ?? 0
+  const hatX = nonStandard ? (pad.axes[HAT_AXIS.X] ?? 0) : 0
+  const hatY = nonStandard ? (pad.axes[HAT_AXIS.Y] ?? 0) : 0
+
+  const toPrev =
+    pressed(DPAD.LEFT) || pressed(DPAD.UP) ||
+    stickX <= -STICK_DEADZONE || stickY <= -STICK_DEADZONE ||
+    hatX <= -STICK_DEADZONE || hatY <= -STICK_DEADZONE
+  const toNext =
+    pressed(DPAD.RIGHT) || pressed(DPAD.DOWN) ||
+    stickX >= STICK_DEADZONE || stickY >= STICK_DEADZONE ||
+    hatX >= STICK_DEADZONE || hatY >= STICK_DEADZONE
+
+  if (toPrev) return -1
+  if (toNext) return 1
+  return 0
+}
 
 export class InputController {
   private readonly handlers: InputHandlers
@@ -128,16 +182,10 @@ export class InputController {
       activity = true
     }
 
-    // Direction from d-pad OR left stick (whichever is engaged). Non-standard
-    // pads (see webgame.ts) carry the d-pad on a HAT axis rather than buttons
-    // 14/15 — conventionally axes[6] on Linux — so read that too, gated on a
-    // non-standard mapping so it can't disturb pads that already work.
-    const axisX = pad.axes[0] ?? 0
-    const hatX = pad.mapping === 'standard' ? 0 : (pad.axes[6] ?? 0)
-    let dir: Direction = 0
-    if (pressed(BTN_DPAD_LEFT) || axisX <= -STICK_DEADZONE || hatX <= -STICK_DEADZONE) dir = -1
-    else if (pressed(BTN_DPAD_RIGHT) || axisX >= STICK_DEADZONE || hatX >= STICK_DEADZONE) dir = 1
-
+    // Direction from the d-pad (buttons OR HAT) or the left stick, on either
+    // axis — see directionFromGamepad. Pulling the resolution out keeps it pure
+    // and unit-tested, so booth controller quirks can't silently regress it.
+    const dir = directionFromGamepad(pad)
     if (dir !== 0) activity = true
 
     if (dir !== this.heldDir) {
