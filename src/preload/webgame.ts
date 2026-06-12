@@ -521,8 +521,8 @@ function initGuestNostr(): void {
 }
 
 /**
- * Dispatch a synthetic KeyboardEvent for `action` onto multiple targets so
- * games that listen on different objects all receive it.
+ * Dispatch a synthetic KeyboardEvent for `action` directly onto multiple
+ * targets so games that listen on different objects all receive it.
  *
  * Targets:
  *   - `document`
@@ -533,6 +533,10 @@ function initGuestNostr(): void {
  *
  * Also dispatches `keypress` for printable keys (Space) because some older
  * game engines listen for it instead of `keydown`.
+ *
+ * Events are non-bubbling because each intended receiver is dispatched to
+ * explicitly; bubbling caused document/window listeners to receive duplicates
+ * from canvas/active-element dispatches plus their own direct dispatch.
  *
  * Legacy `keyCode` / `which` / `charCode` fields are populated from `keyInfo()`
  * for old-school games that read them instead of (or alongside) `key`.
@@ -545,7 +549,7 @@ export function dispatchKey(action: KeyAction): void {
     keyCode,
     which:      keyCode,
     charCode:   action.type === 'keypress' ? keyCode : 0,
-    bubbles:    true,
+    bubbles:    false,
     cancelable: true,
     composed:   true,
   }

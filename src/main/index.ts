@@ -110,7 +110,7 @@ function ensureWebView(): WebContentsView {
   if (!win) throw new Error('ensureWebView called before window exists')
 
   // The webgame preload polls gamepads and sends game:back when the player
-  // holds Start (≥700 ms) or presses Escape — bridging the focus gap where the
+  // presses a menu/back button or Escape — bridging the focus gap where the
   // launcher's renderer is backgrounded and cannot poll navigator.getGamepads().
   // sandbox: false is required so the preload can use ipcRenderer.send.
   // contextIsolation: true ensures the third-party game page cannot reach the
@@ -280,6 +280,10 @@ function buildLaunchDeps(): LaunchDeps {
     },
 
     notifyError(msg) {
+      // Terminal launch failures must also drop force-back handlers. Otherwise a
+      // failed/crashed game leaves global Escape and the evdev watcher active on
+      // the grid.
+      unregisterForceBack()
       win?.webContents.send('game:error', msg)
     },
 
@@ -550,11 +554,11 @@ app.whenReady().then(async () => {
     if (game.localSite && game.localRoot && localServer) {
       localServer.setRoot(game.localRoot)
     }
-    launcher.launch(game)
+    const started = launcher.launch(game)
     // Register force-back hotkeys for the duration of this game session.
     // Covers both web and native — native apps steal OS focus so the arcade
     // renderer's key listeners are inactive; only global shortcuts fire.
-    registerForceBack()
+    if (started) registerForceBack()
   })
 
   // Invoked by the shell renderer's preload (ipcRenderer.invoke).

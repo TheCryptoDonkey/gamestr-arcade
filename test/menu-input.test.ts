@@ -26,6 +26,9 @@ import {
   directionFromGamepads,
   DPAD,
   STICK_DEADZONE,
+  BACK_BUTTON_INDICES,
+  BTN_A,
+  isEditableTarget,
   type Direction,
 } from '../src/renderer/src/ui/input'
 
@@ -72,6 +75,34 @@ const NUDGE = STICK_DEADZONE - 0.2 // safely short of it
 const PREV: Direction = -1
 const NONE: Direction = 0
 const NEXT: Direction = 1
+
+// ── Shell buttons / editable targets ───────────────────────────────────────────
+
+describe('shell controller buttons', () => {
+  it('uses A for launch and B/View/Start/Guide for back', () => {
+    expect(BTN_A).toBe(0)
+    expect(BACK_BUTTON_INDICES).toEqual([1, 8, 9, 16])
+    expect(BACK_BUTTON_INDICES).not.toContain(BTN_A)
+  })
+})
+
+describe('isEditableTarget', () => {
+  function fakeTarget(tagName: string, isContentEditable = false): EventTarget {
+    return { tagName, isContentEditable } as unknown as EventTarget
+  }
+
+  it('treats text-entry targets as editable', () => {
+    expect(isEditableTarget(fakeTarget('INPUT'))).toBe(true)
+    expect(isEditableTarget(fakeTarget('TEXTAREA'))).toBe(true)
+    expect(isEditableTarget(fakeTarget('DIV', true))).toBe(true)
+  })
+
+  it('leaves normal shell elements under the input controller', () => {
+    expect(isEditableTarget(fakeTarget('BUTTON'))).toBe(false)
+    expect(isEditableTarget(fakeTarget('DIV'))).toBe(false)
+    expect(isEditableTarget(null)).toBe(false)
+  })
+})
 
 // ── Standard-Mapping pad: d-pad buttons ──────────────────────────────────────
 // The .32 booth. D-pad is buttons 12–15; the stick is axes 0/1.

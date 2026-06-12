@@ -191,9 +191,10 @@ describe('Launcher — native AppImage', () => {
     const { deps, state } = makeFakeDeps()
     const launcher = new Launcher(deps)
 
-    launcher.launch(makeNativeGame({ exec: undefined }))
+    const started = launcher.launch(makeNativeGame({ exec: undefined }))
     await Promise.resolve()
 
+    expect(started).toBe(false)
     expect(state.spawnedExecs).toHaveLength(0)
     expect(state.errors.length).toBe(1)
     expect(state.errors[0]).toContain('no executable path')
@@ -205,7 +206,8 @@ describe('Launcher — web game', () => {
     const { deps, state } = makeFakeDeps()
     const launcher = new Launcher(deps)
 
-    launcher.launch(makeWebGame())
+    const started = launcher.launch(makeWebGame())
+    expect(started).toBe(true)
     expect(state.loadedUrls).toContain('https://example.test/game')
   })
 
@@ -234,8 +236,8 @@ describe('Launcher — web game', () => {
     const { deps, state } = makeFakeDeps()
     const launcher = new Launcher(deps)
 
-    launcher.launch(makeWebGame())
-    launcher.launch(makeWebGame({ url: 'https://example.test/other' }))
+    expect(launcher.launch(makeWebGame())).toBe(true)
+    expect(launcher.launch(makeWebGame({ url: 'https://example.test/other' }))).toBe(false)
 
     expect(state.loadedUrls).toHaveLength(1)
     expect(state.loadedUrls[0]).toBe('https://example.test/game')
@@ -256,7 +258,8 @@ describe('Launcher — web game', () => {
     const { deps, state } = makeFakeDeps()
     const launcher = new Launcher(deps)
 
-    launcher.launch(makeWebGame({ url: undefined }))
+    const started = launcher.launch(makeWebGame({ url: undefined }))
+    expect(started).toBe(false)
     expect(state.loadedUrls).toHaveLength(0)
     expect(state.errors.length).toBe(1)
     expect(state.errors[0]).toContain('no URL')
@@ -399,14 +402,14 @@ describe('Launcher — native crash cooldown', () => {
     const { deps, state } = makeFakeDeps()
     const launcher = new Launcher(deps)
 
-    launcher.launch(makeNativeGame())
+    expect(launcher.launch(makeNativeGame())).toBe(true)
     await Promise.resolve()
     state.clock += 200
     state.simulateExit(null) // crash
 
     // Held button retries within the cooldown → dropped, no new spawn.
     state.clock += NATIVE_CRASH_COOLDOWN_MS - 1
-    launcher.launch(makeNativeGame())
+    expect(launcher.launch(makeNativeGame())).toBe(false)
     await Promise.resolve()
     expect(state.spawnedExecs).toHaveLength(1)
   })

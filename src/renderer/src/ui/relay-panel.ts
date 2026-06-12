@@ -77,8 +77,18 @@ export class RelayPanel {
 
     this.addBtn.addEventListener('click', () => this.handleAdd())
     this.inputEl.addEventListener('keydown', e => {
-      if (e.key === 'Enter') { this.handleAdd(); return }
-      if (e.key === 'Escape') { this.close(); return }
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        e.stopPropagation()
+        this.handleAdd()
+        return
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        e.stopPropagation()
+        this.close()
+        return
+      }
       // Prevent 'r' from toggling the panel while typing, but let other keys propagate.
       if (e.key === 'r' || e.key === 'R') e.stopPropagation()
     })

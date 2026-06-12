@@ -102,24 +102,39 @@ export class Launcher {
    *   - web: loadWeb(url); call `back()` to return.
    *
    * No-op if a game is already running (single-flight guard).
+   *
+   * @returns true when a game session was accepted and force-back handlers should
+   *          be registered; false when launch was rejected synchronously.
    */
-  launch(game: Game): void {
-    if (this.running) return
+  launch(game: Game): boolean {
+    if (this.running) return false
 
     // Crash cooldown: if this game just crashed on launch, refuse to relaunch it
     // for a while so a held button can't loop the booth. Drop silently — the
     // crash was already reported once; spamming the error on every press is worse.
     if (game.id === this.crashedGameId && this.deps.now() < this.crashCooldownUntil) {
-      return
+      return false
     }
-
-    this.running = true
 
     if (game.kind === 'appimage') {
-      this.launchNative(game)
-    } else {
-      this.launchWeb(game)
+      const exec = game.exec
+      if (!exec) {
+        this.deps.notifyError(`Game "${game.name}" has no executable path.`)
+        return false
+      }
+      this.running = true
+      this.launchNative(game, exec)
+      return true
     }
+
+    const url = game.url
+    if (!url) {
+      this.deps.notifyError(`Web game "${game.name}" has no URL.`)
+      return false
+    }
+    this.running = true
+    this.launchWeb(game, url)
+    return true
   }
 
   /**
@@ -163,15 +178,7 @@ export class Launcher {
 
   // ── Private ──────────────────────────────────────────────────────────────────
 
-  private launchNative(game: Game): void {
-    const exec = game.exec
-    if (!exec) {
-      // Defensive: kind===appimage but no exec path — shouldn't happen but never hang.
-      this.deps.notifyError(`Game "${game.name}" has no executable path.`)
-      this.running = false
-      return
-    }
-
+  private launchNative(game: Game, exec: string): void {
     // chmod first (async), then spawn.  Errors at either stage restore the shell.
     this.deps
       .chmodExec(exec)
@@ -219,13 +226,7 @@ export class Launcher {
       })
   }
 
-  private launchWeb(game: Game): void {
-    const url = game.url
-    if (!url) {
-      this.deps.notifyError(`Web game "${game.name}" has no URL.`)
-      this.running = false
-      return
-    }
+  private launchWeb(game: Game, url: string): void {
     this.deps.loadWeb(url, game.controls)
     // The shell stays visible; the web view is layered on top.
     // back() returns control to the grid.

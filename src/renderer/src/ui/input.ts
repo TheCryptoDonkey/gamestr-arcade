@@ -19,8 +19,13 @@ export interface InputHandlers {
 }
 
 /** Standard-mapping face-button indices. */
-const BTN_A = 0 // bottom face button → launch
-const BTN_START = 9 // start → back
+export const BTN_A = 0 // bottom face button → launch
+
+/**
+ * Shell "back / close" buttons. Kept aligned with web/native game exits, with B
+ * added because service overlays advertise B as the gamepad close action.
+ */
+export const BACK_BUTTON_INDICES = [1, 8, 9, 16] as const // B, View/Select, Start/Menu, Guide
 
 /**
  * Standard-mapping d-pad button indices. Non-standard pads carry the d-pad on a
@@ -110,6 +115,13 @@ export function directionFromGamepads(pads: ArrayLike<Gamepad | null>): Directio
   return dir
 }
 
+/** True when keyboard input should stay inside the focused editable element. */
+export function isEditableTarget(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null
+  if (!el) return false
+  return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable
+}
+
 export class InputController {
   private readonly handlers: InputHandlers
   private rafId = 0
@@ -148,6 +160,10 @@ export class InputController {
   private onKeyDown = (e: KeyboardEvent): void => {
     // Let the global admin shortcuts (Ctrl+Q, F5) pass through untouched.
     if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && (e.key === 'q' || e.key === 'Q'))) return
+    if (isEditableTarget(e.target)) {
+      this.handlers.onActivity?.()
+      return
+    }
 
     let handled = true
     switch (e.key) {
@@ -205,7 +221,7 @@ export class InputController {
       this.handlers.onLaunch()
       activity = true
     }
-    if (justPressed(BTN_START)) {
+    if (BACK_BUTTON_INDICES.some(i => justPressed(i))) {
       this.handlers.onBack()
       activity = true
     }

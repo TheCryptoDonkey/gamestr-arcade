@@ -21,6 +21,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
+import { Window } from 'happy-dom'
 import {
   GamepadKeyTranslator,
   DEFAULT_CONTROLS,
@@ -30,6 +31,7 @@ import {
   unionSnapshots,
   keyInfo,
   eventKeyValue,
+  dispatchKey,
   STICK_DEAD,
   DPAD,
   FIRE_BUTTONS,
@@ -429,5 +431,44 @@ describe('keyInfo', () => {
     const info = keyInfo('Tab')
     expect(info.code).toBe('Tab')
     expect(info.keyCode).toBe(0)
+  })
+})
+
+// ── dispatchKey ───────────────────────────────────────────────────────────────
+
+describe('dispatchKey', () => {
+  it('dispatches non-bubbling direct events so window/document listeners do not double-fire', () => {
+    const g = globalThis as unknown as Record<string, unknown>
+    const previous = {
+      window: g.window,
+      document: g.document,
+      KeyboardEvent: g.KeyboardEvent,
+    }
+    const win = new Window()
+    g.window = win
+    g.document = win.document
+    g.KeyboardEvent = win.KeyboardEvent
+
+    try {
+      const calls: string[] = []
+      win.addEventListener('keydown', e => calls.push(`window:${e.bubbles}`))
+      win.document.addEventListener('keydown', e => calls.push(`document:${e.bubbles}`))
+      const canvas = win.document.createElement('canvas')
+      win.document.body.appendChild(canvas)
+      canvas.addEventListener('keydown', e => calls.push(`canvas:${e.bubbles}`))
+
+      dispatchKey({ type: 'keydown', key: 'ArrowLeft' })
+
+      expect(calls).toEqual([
+        'document:false',
+        'window:false',
+        'canvas:false',
+      ])
+    } finally {
+      for (const [key, value] of Object.entries(previous)) {
+        if (value === undefined) delete g[key]
+        else g[key] = value
+      }
+    }
   })
 })
