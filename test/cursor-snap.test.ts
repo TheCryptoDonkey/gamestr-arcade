@@ -27,16 +27,28 @@ describe('snapToNearest', () => {
     expect(snapToNearest({ x: 50, y: 50 }, [])).toBeNull()
   })
 
-  it('snaps to a nearby button and nudges the cursor toward its centre', () => {
-    const rects: ButtonRect[] = [{ x: 100, y: 100, w: 40, h: 20 }] // centre (120, 110)
-    const snap = snapToNearest({ x: 100, y: 100 }, rects)
+  it('snaps toward a nearby button (from outside) without yanking to its centre', () => {
+    const rects: ButtonRect[] = [{ x: 100, y: 100, w: 40, h: 20 }] // x[100,140] y[100,120]
+    const snap = snapToNearest({ x: 70, y: 110 }, rects)
     expect(snap).not.toBeNull()
     expect(snap!.index).toBe(0)
-    // Pulled toward the centre but not all the way (strength < 1).
-    expect(snap!.pos.x).toBeGreaterThan(100)
-    expect(snap!.pos.x).toBeLessThan(120)
-    expect(snap!.pos.y).toBeGreaterThan(100)
-    expect(snap!.pos.y).toBeLessThan(110)
+    // Pulled toward the nearest EDGE (x≈100), not the far centre (x=120).
+    expect(snap!.pos.x).toBeGreaterThan(70)
+    expect(snap!.pos.x).toBeLessThan(100)
+  })
+
+  it('applies no pull once the cursor is inside the button (free to move back out)', () => {
+    const rects: ButtonRect[] = [{ x: 100, y: 100, w: 40, h: 20 }]
+    const snap = snapToNearest({ x: 120, y: 110 }, rects) // inside
+    expect(snap!.index).toBe(0)
+    expect(snap!.pos).toEqual({ x: 120, y: 110 })
+  })
+
+  it('strength 0 → still highlights the nearest but applies no pull (firm stick escapes)', () => {
+    const rects: ButtonRect[] = [{ x: 100, y: 100, w: 40, h: 20 }]
+    const snap = snapToNearest({ x: 70, y: 110 }, rects, SNAP_MAX_DIST, 0)
+    expect(snap!.index).toBe(0)
+    expect(snap!.pos).toEqual({ x: 70, y: 110 })
   })
 
   it('picks the nearest of several buttons', () => {

@@ -316,24 +316,36 @@ export function snapToNearest(
 ): { index: number; pos: Vec2 } | null {
   let best = -1
   let bestDist = maxDistPx
-  let bcx = 0
-  let bcy = 0
+  let bnx = 0
+  let bny = 0
   for (let i = 0; i < rects.length; i++) {
     const r = rects[i]
     if (r.w <= 0 || r.h <= 0) continue
-    const cx = r.x + r.w / 2
-    const cy = r.y + r.h / 2
-    const d = Math.hypot(cx - cursor.x, cy - cursor.y)
-    if (d < bestDist) { best = i; bestDist = d; bcx = cx; bcy = cy }
+    // Distance to the NEAREST POINT of the rect (0 when the cursor is inside) —
+    // measuring to a big button's far-off centre is what let wide buttons trap
+    // the cursor.
+    const nx = Math.max(r.x, Math.min(cursor.x, r.x + r.w))
+    const ny = Math.max(r.y, Math.min(cursor.y, r.y + r.h))
+    const d = Math.hypot(nx - cursor.x, ny - cursor.y)
+    if (d < bestDist) { best = i; bestDist = d; bnx = nx; bny = ny }
   }
   if (best < 0) return null
-  const pull = strength * (1 - bestDist / maxDistPx)
-  return { index: best, pos: { x: cursor.x + (bcx - cursor.x) * pull, y: cursor.y + (bcy - cursor.y) * pull } }
+  // Inside the button → no pull at all (you've landed; move freely back out).
+  // Outside → a gentle pull toward the nearest edge point, fading to 0 at maxDist.
+  const pull = bestDist <= 0 ? 0 : strength * (1 - bestDist / maxDistPx)
+  return { index: best, pos: { x: cursor.x + (bnx - cursor.x) * pull, y: cursor.y + (bny - cursor.y) * pull } }
 }
 
 /** Default edge-scroll zone (px) and speed (px/s) for cursor-driven page scroll. */
 export const SCROLL_EDGE = 48
 export const SCROLL_SPEED = 1200
+
+/**
+ * How long (ms) the cursor stays "active" after the left stick was last used.
+ * The cursor is a menu tool: while active it snaps + A clicks; once it lapses
+ * (or the d-pad is used = gameplay) it goes dormant so A plays instead of clicking.
+ */
+const CURSOR_ACTIVE_MS = 2000
 
 /**
  * Vertical page-scroll delta when the cursor is pinned at the top/bottom edge
@@ -781,6 +793,7 @@ function initGamepadLoop(): void {
   let prevClickPressed  = false
   let lastHoverTime     = 0     // timestamp for hover throttle (ms)
   let lastFrameTime     = 0     // for delta-time calculation
+  let lastStickActive   = 0     // timestamp the left stick was last used (cursor engage)
 
   // Listen for per-game control overrides sent by the main process after each
   // web game loads (and on reload). Until one arrives, DEFAULT_CONTROLS applies.
@@ -848,12 +861,11 @@ function initGamepadLoop(): void {
     }
 
     // ── Virtual cursor (left stick) ───────────────────────────────────────
+    // The cursor is a MENU tool. It's active only while the left stick is in use
+    // (or was within CURSOR_ACTIVE_MS). Using the d-pad means the player is
+    // PLAYING, so the cursor goes dormant — no magnet to trap them, and A is free
+    // to fire/play rather than clicking a button.
     if (gamepadConnected) {
-      // Lazy-init the cursor element once the DOM is ready.
-      if (!cursorEl && typeof document !== 'undefined' && document.body) {
-        cursorEl = injectCursorElement()
-      }
-
       // Aggregate left-stick axes across all connected pads (first non-zero wins).
       let stickX = 0
       let stickY = 0
@@ -867,57 +879,62 @@ function initGamepadLoop(): void {
           break
         }
       }
+      const stickMag = Math.hypot(stickX, stickY)
+      if (stickMag > CURSOR_DEAD) lastStickActive = now
+      // D-pad input ⇒ the player is playing ⇒ dismiss the cursor immediately.
+      const dpadActive = combined.up || combined.down || combined.left || combined.right
+      const cursorActive = !dpadActive && now - lastStickActive < CURSOR_ACTIVE_MS
 
-      const bounds: CursorBounds = {
-        width:  window.innerWidth,
-        height: window.innerHeight,
-      }
-      cursorPos = nextCursorPos(cursorPos, [stickX, stickY], dt, bounds)
+      if (cursorActive) {
+        if (!cursorEl && typeof document !== 'undefined' && document.body) {
+          cursorEl = injectCursorElement()
+        }
+        const bounds: CursorBounds = { width: window.innerWidth, height: window.innerHeight }
+        cursorPos = nextCursorPos(cursorPos, [stickX, stickY], dt, bounds)
 
-      // Edge scroll: at the top/bottom edge, a further stick push scrolls the
-      // page — so long pages (e.g. Sats-Man) scroll by driving the cursor down.
-      const scrollDy = edgeScrollDelta(cursorPos.y, stickY, bounds.height, dt)
-      if (scrollDy !== 0) window.scrollBy(0, scrollDy)
+        // Edge scroll: at the top/bottom edge a further stick push scrolls the page.
+        const scrollDy = edgeScrollDelta(cursorPos.y, stickY, bounds.height, dt)
+        if (scrollDy !== 0) window.scrollBy(0, scrollDy)
 
-      // Magnetic snap to the nearest clickable (Forge Realms-style) so the stick
-      // stops flicking past small buttons; the snapped element is highlighted and
-      // is what an A press clicks.
-      const clickables = collectClickables()
-      const snap = snapToNearest(cursorPos, clickables.map(domButtonRect))
-      if (snap) {
-        cursorPos = snap.pos
-        snappedEl = clickables[snap.index]
-        ensureSnapStyle()
-        setSnapHighlight(snappedEl)
+        // Magnetic snap to the nearest clickable — but FADE the pull out as the
+        // stick is pushed (≥ half deflection ⇒ no pull), so wide buttons can't
+        // trap the cursor: you escape simply by pushing.
+        const clickables = collectClickables()
+        const snapStrength = SNAP_STRENGTH * Math.max(0, 1 - Math.min(1, stickMag) / 0.5)
+        const snap = snapToNearest(cursorPos, clickables.map(domButtonRect), SNAP_MAX_DIST, snapStrength)
+        if (snap) {
+          cursorPos = snap.pos
+          snappedEl = clickables[snap.index]
+          ensureSnapStyle()
+          setSnapHighlight(snappedEl)
+        } else {
+          snappedEl = null
+          setSnapHighlight(null)
+        }
+
+        if (cursorEl) moveCursorElement(cursorEl, cursorPos, true)
+        if (now - lastHoverTime > 33) {
+          dispatchHover(cursorPos.x, cursorPos.y)
+          lastHoverTime = now
+        }
       } else {
+        // Dormant (gameplay / stick idle): hide the cursor, drop the snap so A plays.
+        if (cursorEl) moveCursorElement(cursorEl, cursorPos, false)
         snappedEl = null
         setSnapHighlight(null)
       }
 
-      if (cursorEl) {
-        moveCursorElement(cursorEl, cursorPos, true)
-      }
-
-      // Throttled hover dispatch (~30 Hz) so hover states track the cursor
-      // without flooding the page with events every frame.
-      if (now - lastHoverTime > 33) {
-        dispatchHover(cursorPos.x, cursorPos.y)
-        lastHoverTime = now
-      }
-
-      // ── Click on A (button 0) — rising edge only ──────────────────────
+      // ── A (button 0): click the snapped button in menus; otherwise a plain
+      // click (canvas games) — A also fires Space via the keyboard channel, so
+      // this never blocks play. ──────────────────────────────────────────────
       let clickPressed = false
       for (const pad of pads) {
         if (!pad) continue
-        if (pad.buttons[0]?.pressed) {
-          clickPressed = true
-          break
-        }
+        if (pad.buttons[0]?.pressed) { clickPressed = true; break }
       }
-
       if (risingEdge(prevClickPressed, clickPressed)) {
-        if (snappedEl) snappedEl.click()                 // real click on the magnetised button
-        else dispatchClick(cursorPos.x, cursorPos.y)     // synthetic click (canvas games / no button)
+        if (cursorActive && snappedEl) snappedEl.click()
+        else dispatchClick(cursorPos.x, cursorPos.y)
       }
       prevClickPressed = clickPressed
 
