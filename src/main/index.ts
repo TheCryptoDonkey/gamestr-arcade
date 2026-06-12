@@ -227,6 +227,22 @@ function buildLaunchDeps(): LaunchDeps {
             maxSats: cachedWebLN.maxSats ?? 100,
           })
         }
+        // Kiosk-ify the game page (runs in the page's main world, so it bypasses
+        // CSP and overrides the page's own globals):
+        //   - neutralise native alert/confirm/prompt — the gamepad cursor can't
+        //     close OS-level dialogs (e.g. Nostrich Run's "enter a valid NSEC"),
+        //   - hide scrollbars — long pages (Sats-Man) scroll via the cursor edge.
+        view.webContents
+          .executeJavaScript(
+            `(function(){try{` +
+              `window.alert=function(){};window.confirm=function(){return true};window.prompt=function(){return null};` +
+              `if(!document.getElementById('__arcade_kiosk_css')){var s=document.createElement('style');s.id='__arcade_kiosk_css';` +
+              `s.textContent='html{scrollbar-width:none;}*::-webkit-scrollbar{width:0 !important;height:0 !important;display:none !important;}';` +
+              `(document.head||document.documentElement).appendChild(s);}` +
+            `}catch(e){}})();`,
+            true,
+          )
+          .catch(() => {})
       }
       // Remove any previous listener to avoid accumulation across launches.
       view.webContents.removeAllListeners('did-finish-load')

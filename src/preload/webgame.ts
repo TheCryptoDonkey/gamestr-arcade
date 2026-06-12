@@ -33,6 +33,7 @@
 import { ipcRenderer, contextBridge } from 'electron'
 import { NostrWebLNProvider } from '@getalby/sdk'
 import { decode as decodeBolt11 } from 'light-bolt11-decoder'
+import { generateSecretKey, getPublicKey, finalizeEvent } from 'nostr-tools/pure'
 import type { GameControls } from '../shared/types'
 
 // ── Menu-button detector (pure, exported for unit tests) ──────────────────────
@@ -292,6 +293,66 @@ export function nextCursorPos(prev: Vec2, stick: [number, number], dt: number, b
   }
 }
 
+/** Default magnet range (px) and pull strength for snap-to-button. */
+export const SNAP_MAX_DIST = 170
+export const SNAP_STRENGTH = 0.55
+
+/** A clickable element's client-space rectangle. */
+export interface ButtonRect { x: number; y: number; w: number; h: number }
+
+/**
+ * Magnetise the cursor toward the nearest clickable within `maxDistPx`
+ * (Forge Realms' `padSnapToButton` pattern) so the stick stops flicking past
+ * small buttons. Pull strength scales with closeness. Pure — exported for tests.
+ *
+ * @returns the index of the snapped rect + the nudged cursor position, or
+ *          `null` when no clickable is within range.
+ */
+export function snapToNearest(
+  cursor: Vec2,
+  rects: ButtonRect[],
+  maxDistPx = SNAP_MAX_DIST,
+  strength = SNAP_STRENGTH,
+): { index: number; pos: Vec2 } | null {
+  let best = -1
+  let bestDist = maxDistPx
+  let bcx = 0
+  let bcy = 0
+  for (let i = 0; i < rects.length; i++) {
+    const r = rects[i]
+    if (r.w <= 0 || r.h <= 0) continue
+    const cx = r.x + r.w / 2
+    const cy = r.y + r.h / 2
+    const d = Math.hypot(cx - cursor.x, cy - cursor.y)
+    if (d < bestDist) { best = i; bestDist = d; bcx = cx; bcy = cy }
+  }
+  if (best < 0) return null
+  const pull = strength * (1 - bestDist / maxDistPx)
+  return { index: best, pos: { x: cursor.x + (bcx - cursor.x) * pull, y: cursor.y + (bcy - cursor.y) * pull } }
+}
+
+/** Default edge-scroll zone (px) and speed (px/s) for cursor-driven page scroll. */
+export const SCROLL_EDGE = 48
+export const SCROLL_SPEED = 1200
+
+/**
+ * Vertical page-scroll delta when the cursor is pinned at the top/bottom edge
+ * and the stick keeps pushing further — so pushing the cursor down scrolls long
+ * pages (e.g. Sats-Man). Returns 0 when not at an edge. Pure — exported for tests.
+ */
+export function edgeScrollDelta(
+  cursorY: number,
+  stickY: number,
+  height: number,
+  dt: number,
+  edgePx = SCROLL_EDGE,
+  speed = SCROLL_SPEED,
+): number {
+  if (stickY > CURSOR_DEAD && cursorY >= height - edgePx) return stickY * speed * dt
+  if (stickY < -CURSOR_DEAD && cursorY <= edgePx) return stickY * speed * dt
+  return 0
+}
+
 /**
  * Returns true on the first frame that `pressed` is true after being false.
  * Stateless helper — the caller owns the `prev` boolean.
@@ -397,6 +458,48 @@ function initWebLN(nwc: string, maxSats: number): void {
   if (!(globalThis as Record<string, unknown>).__arcadeWebLNExposed) {
     contextBridge.exposeInMainWorld('webln', weblnApi)
     ;(globalThis as Record<string, unknown>).__arcadeWebLNExposed = true
+  }
+}
+
+// ── Guest Nostr (NIP-07) provider ──────────────────────────────────────────────
+
+/**
+ * Inject a guest NIP-07 `window.nostr`, backed by an ephemeral key generated per
+ * web-game session. Lets gamestr games that gate play behind a Nostr login
+ * ("Connect extension") sign in as a throwaway guest — no nsec typing — and post
+ * real, validly-signed scores under that guest pubkey (so they land on the
+ * leaderboard). The secret key stays in this isolated preload; only the capped
+ * `getPublicKey` / `signEvent` / `getRelays` methods cross the contextBridge.
+ *
+ * A fresh key each session keeps booth players distinct on the board. nip04/nip44
+ * are intentionally omitted — a kiosk guest never needs to decrypt DMs.
+ */
+function initGuestNostr(): void {
+  if ((globalThis as Record<string, unknown>).__arcadeNostrExposed) return
+  const sk = generateSecretKey()
+  const pk = getPublicKey(sk)
+
+  const nostrApi = {
+    getPublicKey: async (): Promise<string> => pk,
+    signEvent: async (event: { kind: number; created_at?: number; tags?: string[][]; content?: string }) =>
+      finalizeEvent(
+        {
+          kind: event.kind,
+          created_at: event.created_at ?? Math.floor(Date.now() / 1000),
+          tags: event.tags ?? [],
+          content: event.content ?? '',
+        },
+        sk,
+      ),
+    getRelays: async (): Promise<Record<string, { read: boolean; write: boolean }>> => ({}),
+  }
+
+  try {
+    contextBridge.exposeInMainWorld('nostr', nostrApi)
+    ;(globalThis as Record<string, unknown>).__arcadeNostrExposed = true
+  } catch (err) {
+    // A real extension / prior expose already owns window.nostr — leave it be.
+    console.error(`[arcade] guest nostr: expose skipped (${String(err)})`)
   }
 }
 
@@ -575,6 +678,51 @@ function dispatchHover(x: number, y: number): void {
   target.dispatchEvent(new MouseEvent('mousemove', base))
 }
 
+// ── Snap-to-button (magnetic cursor) ──────────────────────────────────────────
+
+/** Elements the cursor magnetises onto. */
+const CLICKABLE_SELECTOR =
+  'button, a[href], [role="button"], input[type="button"], input[type="submit"], input[type="radio"], summary, [onclick]'
+
+/** Inject the highlight style for the snapped button (once). */
+function ensureSnapStyle(): void {
+  if (document.getElementById('__arcade_snap_style')) return
+  const s = document.createElement('style')
+  s.id = '__arcade_snap_style'
+  s.textContent =
+    '.__arcade_pad_hover{outline:3px solid #7cf3ff !important;outline-offset:2px !important;' +
+    'box-shadow:0 0 14px 3px rgba(124,243,255,0.65) !important;border-radius:6px;}'
+  ;(document.head ?? document.documentElement).appendChild(s)
+}
+
+/** Collect visible, enabled clickable elements on the page. */
+function collectClickables(): HTMLElement[] {
+  const out: HTMLElement[] = []
+  for (const el of document.querySelectorAll<HTMLElement>(CLICKABLE_SELECTOR)) {
+    if ((el as HTMLButtonElement).disabled) continue
+    if (el.hidden || el.offsetParent === null) continue
+    const r = el.getBoundingClientRect()
+    if (r.width <= 0 || r.height <= 0) continue
+    out.push(el)
+  }
+  return out
+}
+
+/** Client-space rect for the snap maths. */
+function domButtonRect(el: HTMLElement): ButtonRect {
+  const r = el.getBoundingClientRect()
+  return { x: r.left, y: r.top, w: r.width, h: r.height }
+}
+
+let snapHighlighted: HTMLElement | null = null
+/** Move the `.pad-hover` highlight to `el` (or clear it when null). */
+function setSnapHighlight(el: HTMLElement | null): void {
+  if (el === snapHighlighted) return
+  snapHighlighted?.classList.remove('__arcade_pad_hover')
+  el?.classList.add('__arcade_pad_hover')
+  snapHighlighted = el
+}
+
 // ── Hint bar ──────────────────────────────────────────────────────────────────
 
 function injectHintBar(): void {
@@ -628,6 +776,7 @@ function initGamepadLoop(): void {
     y: (typeof window !== 'undefined' ? window.innerHeight : 600) / 2,
   }
   let cursorEl: HTMLElement | null = null
+  let snappedEl: HTMLElement | null = null  // clickable the cursor is currently magnetised onto
   let gamepadConnected  = false
   let prevClickPressed  = false
   let lastHoverTime     = 0     // timestamp for hover throttle (ms)
@@ -725,6 +874,26 @@ function initGamepadLoop(): void {
       }
       cursorPos = nextCursorPos(cursorPos, [stickX, stickY], dt, bounds)
 
+      // Edge scroll: at the top/bottom edge, a further stick push scrolls the
+      // page — so long pages (e.g. Sats-Man) scroll by driving the cursor down.
+      const scrollDy = edgeScrollDelta(cursorPos.y, stickY, bounds.height, dt)
+      if (scrollDy !== 0) window.scrollBy(0, scrollDy)
+
+      // Magnetic snap to the nearest clickable (Forge Realms-style) so the stick
+      // stops flicking past small buttons; the snapped element is highlighted and
+      // is what an A press clicks.
+      const clickables = collectClickables()
+      const snap = snapToNearest(cursorPos, clickables.map(domButtonRect))
+      if (snap) {
+        cursorPos = snap.pos
+        snappedEl = clickables[snap.index]
+        ensureSnapStyle()
+        setSnapHighlight(snappedEl)
+      } else {
+        snappedEl = null
+        setSnapHighlight(null)
+      }
+
       if (cursorEl) {
         moveCursorElement(cursorEl, cursorPos, true)
       }
@@ -747,15 +916,18 @@ function initGamepadLoop(): void {
       }
 
       if (risingEdge(prevClickPressed, clickPressed)) {
-        dispatchClick(cursorPos.x, cursorPos.y)
+        if (snappedEl) snappedEl.click()                 // real click on the magnetised button
+        else dispatchClick(cursorPos.x, cursorPos.y)     // synthetic click (canvas games / no button)
       }
       prevClickPressed = clickPressed
 
     } else {
-      // No gamepad — hide the cursor if it was shown.
+      // No gamepad — hide the cursor + drop any snap highlight.
       if (cursorEl) {
         moveCursorElement(cursorEl, cursorPos, false)
       }
+      snappedEl = null
+      setSnapHighlight(null)
     }
 
     requestAnimationFrame(tick)
@@ -778,6 +950,7 @@ if (typeof document !== 'undefined') {
 
 if (typeof window !== 'undefined') {
   initKeyboardExit()
+  initGuestNostr()
 }
 
 if (typeof requestAnimationFrame !== 'undefined') {
