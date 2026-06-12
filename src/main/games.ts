@@ -10,7 +10,8 @@ import { join, resolve, sep } from 'node:path'
 import { stat } from 'node:fs/promises'
 import { app } from 'electron'
 import { scanGames } from './scanner'
-import { resolveIcon, realIconDeps } from './icons'
+import { resolveIcon, resolveHero, realIconDeps } from './icons'
+import { realFetchUrl } from './art'
 import { localUrlFor } from './local-server'
 import type { Game } from '../shared/types'
 
@@ -88,12 +89,15 @@ export async function buildGamesList(
   localPort?: number,
 ): Promise<Game[]> {
   const placeholderPng = resourcePlaceholder()
-  const iconDeps = realIconDeps(placeholderPng)
+  const iconDeps = realIconDeps(placeholderPng, cacheDir, realFetchUrl)
 
-  const logoResolver = (g: { slug: string; appImagePath?: string; siblingLogo?: string }) =>
+  const logoResolver = (g: { slug: string; appImagePath?: string; siblingLogo?: string; logoUrl?: string; gameUrl?: string }) =>
     resolveIcon(g, cacheDir, iconDeps)
 
-  const games = await scanGames(gamesDir, logoResolver)
+  const heroResolver = (g: { heroUrl?: string; gameUrl?: string }) =>
+    resolveHero(g, iconDeps)
+
+  const games = await scanGames(gamesDir, logoResolver, heroResolver)
   const rewritten = games.map(rewriteGame)
 
   if (localPort === undefined) return rewritten

@@ -22,10 +22,16 @@ async function exists(path: string): Promise<boolean> {
   try { await stat(path); return true } catch { return false }
 }
 
-export type LogoResolver = (g: { slug: string; appImagePath?: string; siblingLogo?: string }) => Promise<string>
+export type LogoResolver = (g: { slug: string; appImagePath?: string; siblingLogo?: string; logoUrl?: string; gameUrl?: string }) => Promise<string>
+export type HeroResolver = (g: { heroUrl?: string; gameUrl?: string }) => Promise<string | null>
 const passthroughLogo: LogoResolver = async g => g.siblingLogo ?? ''
+const noHero: HeroResolver = async () => null
 
-export async function scanGames(gamesDir: string, resolveLogo: LogoResolver = passthroughLogo): Promise<Game[]> {
+export async function scanGames(
+  gamesDir: string,
+  resolveLogo: LogoResolver = passthroughLogo,
+  resolveHero: HeroResolver = noHero,
+): Promise<Game[]> {
   let entries: string[] = []
   try { entries = await readdir(gamesDir) } catch { return [] }
   const games: Game[] = []
@@ -38,7 +44,7 @@ export async function scanGames(gamesDir: string, resolveLogo: LogoResolver = pa
     // Loose top-level *.AppImage → native game, slug from filename.
     if (info.isFile() && APPIMAGE_RE.test(entry)) {
       const slug = entry.replace(APPIMAGE_RE, '')
-      games.push(await build(slug, gamesDir, { kind: 'appimage', exec: full }, null, resolveLogo, undefined))
+      games.push(await build(slug, gamesDir, { kind: 'appimage', exec: full }, null, resolveLogo, resolveHero, undefined))
       continue
     }
     if (!info.isDirectory()) continue
@@ -50,11 +56,11 @@ export async function scanGames(gamesDir: string, resolveLogo: LogoResolver = pa
       ? (meta.exec as string).startsWith('/') ? meta.exec : join(full, meta.exec)
       : undefined
     if (appImage) {
-      games.push(await build(entry, full, { kind: 'appimage', exec: appImage }, meta, resolveLogo, appImage))
+      games.push(await build(entry, full, { kind: 'appimage', exec: appImage }, meta, resolveLogo, resolveHero, appImage))
     } else if (execPath) {
-      games.push(await build(entry, full, { kind: 'appimage', exec: execPath }, meta, resolveLogo, execPath))
+      games.push(await build(entry, full, { kind: 'appimage', exec: execPath }, meta, resolveLogo, resolveHero, execPath))
     } else if (meta?.url) {
-      games.push(await build(entry, full, { kind: 'web', url: meta.url }, meta, resolveLogo, undefined))
+      games.push(await build(entry, full, { kind: 'web', url: meta.url }, meta, resolveLogo, resolveHero, undefined))
     } // else: neither AppImage, exec, nor url → skip (empty/placeholder folder)
   }
   return games.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
@@ -63,12 +69,27 @@ export async function scanGames(gamesDir: string, resolveLogo: LogoResolver = pa
 async function build(
   slug: string, dir: string,
   launch: { kind: 'appimage'; exec: string } | { kind: 'web'; url: string },
-  meta: Record<string, any> | null, resolveLogo: LogoResolver, appImagePath?: string
+  meta: Record<string, any> | null,
+  resolveLogo: LogoResolver,
+  resolveHero: HeroResolver,
+  appImagePath?: string
 ): Promise<Game> {
   const siblingLogo = (await exists(join(dir, 'logo.png'))) ? join(dir, 'logo.png') : undefined
-  const heroPng = join(dir, 'hero.png'); const heroMp4 = join(dir, 'hero.mp4')
-  const hero = (await exists(heroPng)) ? heroPng : (await exists(heroMp4)) ? heroMp4 : undefined
+  const heroPng = join(dir, 'hero.png')
+  const heroMp4 = join(dir, 'hero.mp4')
+  const siblingHero = (await exists(heroPng)) ? heroPng : (await exists(heroMp4)) ? heroMp4 : undefined
+
+  // game.json optional art URLs.
+  const logoUrl: string | undefined = meta?.logoUrl
+  const heroUrl: string | undefined = meta?.heroUrl
+  // The game's web URL — used for page-derived art (og:image, favicons).
+  const gameUrl: string | undefined = launch.kind === 'web' ? launch.url : meta?.url
+
   const gameId = meta?.gameId ?? slug
+
+  // Sibling hero wins; otherwise try resolveHero (heroUrl / og:image derivation).
+  const hero = siblingHero ?? (await resolveHero({ heroUrl, gameUrl })) ?? undefined
+
   return {
     id: slug,
     name: meta?.name ?? prettify(slug),
@@ -76,7 +97,7 @@ async function build(
     ...launch,
     gameId,
     tHints: meta?.tHints,
-    logo: await resolveLogo({ slug, appImagePath, siblingLogo }),
+    logo: await resolveLogo({ slug, appImagePath, siblingLogo, logoUrl, gameUrl }),
     hero,
     accent: meta?.accent,
     sounds: { music: (await exists(join(dir, 'music.ogg'))) ? join(dir, 'music.ogg') : undefined,
