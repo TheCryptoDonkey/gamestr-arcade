@@ -65,8 +65,13 @@ export async function resolveIcon(
  * Resolution order:
  *   1. sibling hero.png / hero.mp4 (caller handles; not our concern here)
  *   2. heroUrl from game.json (fetch + cache)
- *   3. Derived og:image from game's web url
  *   Returns null when nothing is found.
+ *
+ * Deliberately does NOT auto-derive a hero from the game's og:image: that
+ * silently replaced the carousel art of every tile lacking a sibling hero.png
+ * (e.g. Pallasite) with whatever its site happened to advertise. Hero art is
+ * now opt-in via an explicit `heroUrl`; absent that, the tile falls back to its
+ * accent treatment exactly as before.
  */
 export async function resolveHero(
   game: { heroUrl?: string; gameUrl?: string },
@@ -75,16 +80,6 @@ export async function resolveHero(
   if (game.heroUrl) {
     const cached = await deps.fetchAndCache(game.heroUrl)
     if (cached) return cached
-  }
-  if (game.gameUrl) {
-    const html = await deps.fetchPage(game.gameUrl)
-    if (html) {
-      const { hero } = extractArtUrls(html, game.gameUrl)
-      if (hero) {
-        const cached = await deps.fetchAndCache(hero)
-        if (cached) return cached
-      }
-    }
   }
   return null
 }

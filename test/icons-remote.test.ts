@@ -117,7 +117,7 @@ describe('resolveHero', () => {
     expect(fetchAndCache).toHaveBeenCalledWith('https://cdn/hero.jpg')
   })
 
-  it('derives hero from og:image when no heroUrl', async () => {
+  it('does NOT derive a hero from og:image (auto-derivation removed)', async () => {
     const html = `<meta property="og:image" content="https://game.example.com/og.jpg">`
     const fetchPage = vi.fn(async () => html)
     const fetchAndCache = vi.fn(async () => '/cache/og-hero')
@@ -125,9 +125,9 @@ describe('resolveHero', () => {
       { gameUrl: 'https://game.example.com/' },
       deps({ fetchPage, fetchAndCache }),
     )
-    expect(result).toBe('/cache/og-hero')
-    expect(fetchPage).toHaveBeenCalledWith('https://game.example.com/')
-    expect(fetchAndCache).toHaveBeenCalledWith('https://game.example.com/og.jpg')
+    expect(result).toBeNull()
+    expect(fetchPage).not.toHaveBeenCalled()
+    expect(fetchAndCache).not.toHaveBeenCalled()
   })
 
   it('returns null when heroUrl fetch returns null', async () => {

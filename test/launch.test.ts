@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { Launcher } from '../src/main/launch'
+import { Launcher, NATIVE_CRASH_THRESHOLD_MS, NATIVE_CRASH_COOLDOWN_MS } from '../src/main/launch'
 import type { LaunchDeps, SpawnHandle } from '../src/main/launch'
 import type { Game } from '../src/shared/types'
 
@@ -51,6 +51,8 @@ interface FakeDepsState {
   chmodPaths: string[]
   spawnedExecs: string[]
   killCount: number
+  /** Mutable fake clock (ms) backing deps.now() — advance it to test cooldowns. */
+  clock: number
   // Control: call these from outside to simulate child events.
   simulateExit: (code: number | null) => void
   simulateError: (err: Error) => void
@@ -70,6 +72,7 @@ function makeFakeDeps(): { deps: LaunchDeps; state: FakeDepsState } {
     chmodPaths: [],
     spawnedExecs: [],
     killCount: 0,
+    clock: 1000,
     simulateExit: (code) => exitCb?.(code),
     simulateError: (err) => errorCb?.(err),
   }
@@ -92,6 +95,7 @@ function makeFakeDeps(): { deps: LaunchDeps; state: FakeDepsState } {
     notifyError: (msg) => { state.errors.push(msg) },
     loadWeb: (url) => { state.loadedUrls.push(url) },
     closeWeb: () => { state.webClosed = true },
+    now: () => state.clock,
   }
 
   return { deps, state }
@@ -365,5 +369,93 @@ describe('Launcher — forceBack()', () => {
     launcher.forceBack()
     expect(state.killCount).toBe(1)
     expect(state.loadedUrls).toHaveLength(0)
+  })
+})
+
+// ── Native crash-on-launch cooldown ─────────────────────────────────────────────
+// A native game (e.g. Pallasite SIGTRAP) that exits abnormally within seconds of
+// launch must NOT be relaunchable on the next button press — otherwise a held A
+// loops launcher↔crash and strands the operator at a flickering white screen.
+
+describe('Launcher — native crash cooldown', () => {
+  it('a fast abnormal exit is reported as a crash, not a normal return', async () => {
+    const { deps, state } = makeFakeDeps()
+    const launcher = new Launcher(deps)
+
+    launcher.launch(makeNativeGame())
+    await Promise.resolve()
+
+    // Crash: exit with a signal (null code) almost immediately.
+    state.clock += 200
+    state.simulateExit(null)
+
+    expect(state.shown).toBe(true)        // grid always restored
+    expect(state.returned).toBe(false)    // not a normal return
+    expect(state.errors.length).toBe(1)
+    expect(state.errors[0]).toContain('crashed on launch')
+  })
+
+  it('blocks relaunching the crashed game during the cooldown', async () => {
+    const { deps, state } = makeFakeDeps()
+    const launcher = new Launcher(deps)
+
+    launcher.launch(makeNativeGame())
+    await Promise.resolve()
+    state.clock += 200
+    state.simulateExit(null) // crash
+
+    // Held button retries within the cooldown → dropped, no new spawn.
+    state.clock += NATIVE_CRASH_COOLDOWN_MS - 1
+    launcher.launch(makeNativeGame())
+    await Promise.resolve()
+    expect(state.spawnedExecs).toHaveLength(1)
+  })
+
+  it('still lets a DIFFERENT game launch during a crash cooldown', async () => {
+    const { deps, state } = makeFakeDeps()
+    const launcher = new Launcher(deps)
+
+    launcher.launch(makeNativeGame())
+    await Promise.resolve()
+    state.clock += 200
+    state.simulateExit(null) // crash
+
+    launcher.launch(makeNativeGame({ id: 'other', exec: '/games/other.AppImage' }))
+    await Promise.resolve()
+    expect(state.spawnedExecs).toHaveLength(2)
+  })
+
+  it('allows the crashed game to relaunch after the cooldown elapses', async () => {
+    const { deps, state } = makeFakeDeps()
+    const launcher = new Launcher(deps)
+
+    launcher.launch(makeNativeGame())
+    await Promise.resolve()
+    state.clock += 200
+    state.simulateExit(null) // crash
+
+    state.clock += NATIVE_CRASH_COOLDOWN_MS + 1 // cooldown expired
+    launcher.launch(makeNativeGame())
+    await Promise.resolve()
+    expect(state.spawnedExecs).toHaveLength(2)
+  })
+
+  it('a slow exit (past the crash window) is a normal return, no cooldown', async () => {
+    const { deps, state } = makeFakeDeps()
+    const launcher = new Launcher(deps)
+
+    launcher.launch(makeNativeGame())
+    await Promise.resolve()
+    // Played for a while, then exited via a signal (e.g. user closed it).
+    state.clock += NATIVE_CRASH_THRESHOLD_MS + 1
+    state.simulateExit(null)
+
+    expect(state.returned).toBe(true)
+    expect(state.errors).toHaveLength(0)
+
+    // Not on cooldown — immediate relaunch proceeds.
+    launcher.launch(makeNativeGame())
+    await Promise.resolve()
+    expect(state.spawnedExecs).toHaveLength(2)
   })
 })

@@ -153,19 +153,13 @@ let cachedWebLN: WebLNConfig | null | undefined = null
 function buildLaunchDeps(): LaunchDeps {
   return {
     spawn(exec) {
-      // detached: true → the child is its own process-group leader, so we can
-      // signal the WHOLE group. AppImages fork a runtime + the real app; killing
-      // only the launcher PID would orphan the game, so we group-kill on exit.
-      const child = nodeSpawn(exec, [], { detached: true })
+      // Plain (non-detached) spawn. A detached spawn made the child its own
+      // session/process-group leader, which made some Electron-based AppImages
+      // (Pallasite) SIGTRAP on launch (sandbox/namespace setup in a fresh
+      // session). We forgo group-kill — `child.kill` signals the AppImage runtime
+      // directly, which is enough to return to the grid.
+      const child = nodeSpawn(exec, [], { detached: false })
       let killTimer: ReturnType<typeof setTimeout> | null = null
-      const signalGroup = (sig: NodeJS.Signals): void => {
-        try {
-          if (child.pid) process.kill(-child.pid, sig) // negative pid → process group
-          else child.kill(sig)
-        } catch {
-          try { child.kill(sig) } catch { /* already gone */ }
-        }
-      }
       return {
         onExit(cb) {
           child.on('exit', (code) => {
@@ -180,9 +174,9 @@ function buildLaunchDeps(): LaunchDeps {
           child.on('error', (err) => cb(err))
         },
         kill() {
-          signalGroup('SIGTERM')
+          child.kill('SIGTERM')
           killTimer = setTimeout(() => {
-            signalGroup('SIGKILL')
+            child.kill('SIGKILL')
             killTimer = null
           }, 3000)
         },
@@ -265,6 +259,8 @@ function buildLaunchDeps(): LaunchDeps {
         webView.webContents.loadURL('about:blank').catch(() => {})
       }
     },
+
+    now: () => Date.now(),
   }
 }
 

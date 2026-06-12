@@ -53,7 +53,21 @@ export interface LaunchDeps {
   loadWeb(url: string, controls?: GameControls): void
   /** Close the web view and reveal the shell. */
   closeWeb(): void
+  /** Current time in ms (injectable so crash-cooldown timing is testable). */
+  now(): number
 }
+
+/**
+ * A native game that exits this soon after launch — and not because WE killed
+ * it — is treated as a crash rather than a normal quit.
+ */
+export const NATIVE_CRASH_THRESHOLD_MS = 5000
+/**
+ * After a native game crashes on launch, block relaunching THAT game for this
+ * long. Stops a held A-button (or impatient retries) from crash-looping the
+ * booth — the screen flickering launcher↔crash is what strands the operator.
+ */
+export const NATIVE_CRASH_COOLDOWN_MS = 15000
 
 // ── Launcher ──────────────────────────────────────────────────────────────────
 
@@ -72,6 +86,11 @@ export class Launcher {
   private running = false
   /** Handle for the currently-running native child, if any. */
   private nativeChild: SpawnHandle | null = null
+  /** Set when WE kill the child (forceBack) so its exit isn't mistaken for a crash. */
+  private intentionalExit = false
+  /** Game id that crashed on launch, and the time (ms) until it may relaunch. */
+  private crashedGameId: string | null = null
+  private crashCooldownUntil = 0
 
   constructor(deps: LaunchDeps) {
     this.deps = deps
@@ -86,6 +105,14 @@ export class Launcher {
    */
   launch(game: Game): void {
     if (this.running) return
+
+    // Crash cooldown: if this game just crashed on launch, refuse to relaunch it
+    // for a while so a held button can't loop the booth. Drop silently — the
+    // crash was already reported once; spamming the error on every press is worse.
+    if (game.id === this.crashedGameId && this.deps.now() < this.crashCooldownUntil) {
+      return
+    }
+
     this.running = true
 
     if (game.kind === 'appimage') {
@@ -121,7 +148,9 @@ export class Launcher {
     if (!this.running) return
 
     if (this.nativeChild) {
-      // Kill the native process; the onExit handler restores the shell.
+      // Kill the native process; the onExit handler restores the shell. Flag it
+      // so the exit isn't mistaken for a launch crash (no cooldown on a manual exit).
+      this.intentionalExit = true
       this.nativeChild.kill()
     } else {
       // Web game — use the normal back path.
@@ -147,14 +176,33 @@ export class Launcher {
     this.deps
       .chmodExec(exec)
       .then(() => {
+        const startedAt = this.deps.now()
+        this.intentionalExit = false
         const child = this.deps.spawn(exec)
         this.nativeChild = child
         this.deps.hideShell()
 
-        child.onExit(() => {
+        child.onExit((code) => {
           this.nativeChild = null
           this.deps.showShell()
-          this.deps.notifyReturned()
+          // An abnormal exit (signal → null, or non-zero) very soon after launch,
+          // that WE didn't trigger, is a crash on launch. Report it and start a
+          // cooldown so the game can't be relaunched into a flickering loop. A
+          // clean (code 0) quit — or a slow exit — is treated as a normal return.
+          const crashed =
+            !this.intentionalExit &&
+            code !== 0 &&
+            this.deps.now() - startedAt < NATIVE_CRASH_THRESHOLD_MS
+          if (crashed) {
+            this.crashedGameId = game.id
+            this.crashCooldownUntil = this.deps.now() + NATIVE_CRASH_COOLDOWN_MS
+            this.deps.notifyError(
+              `"${game.name}" crashed on launch — skipping it for now. Try another game.`,
+            )
+          } else {
+            this.deps.notifyReturned()
+          }
+          this.intentionalExit = false
           this.running = false
         })
 
