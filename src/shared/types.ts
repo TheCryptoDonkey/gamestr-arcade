@@ -20,6 +20,7 @@ export interface Game {
   tagline?: string
   kind: GameKind
   exec?: string         // absolute .AppImage path (kind === 'appimage')
+  args?: string[]       // extra CLI args for the native exec (game.json `args`, e.g. ['--no-sandbox'])
   url?: string          // web url (kind === 'web')
   localSite?: boolean   // true when url points to the local mirror server
   localRoot?: string    // absolute path to the game's site/ dir (set when localSite is true)

@@ -9,7 +9,7 @@ import { app, BrowserWindow, globalShortcut, ipcMain, net, protocol, WebContents
 import { chmod } from 'node:fs/promises'
 import { readFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
-import { spawn as nodeSpawn } from 'node:child_process'
+import { spawn as nodeSpawn, spawnSync } from 'node:child_process'
 import { is } from '@electron-toolkit/utils'
 import { buildGamesList, isPathAllowed, mediaUrlToPath, MEDIA_SCHEME } from './games'
 import { startLocalServer } from './local-server'
@@ -149,16 +149,51 @@ function ensureWebView(): WebContentsView {
  */
 let cachedWebLN: WebLNConfig | null | undefined = null
 
+/** Transient systemd unit name for the currently-running native game (one at a time). */
+const GAME_UNIT = 'gamestr-arcade-game'
+
+let _hasSystemdRun: boolean | undefined
+/** True when native games should launch via `systemd-run --user` (Linux + systemd present). */
+function hasSystemdRun(): boolean {
+  if (_hasSystemdRun === undefined) {
+    try {
+      _hasSystemdRun =
+        process.platform === 'linux' &&
+        spawnSync('systemd-run', ['--version'], { stdio: 'ignore' }).status === 0
+    } catch {
+      _hasSystemdRun = false
+    }
+  }
+  return _hasSystemdRun
+}
+
 /** Build the real `LaunchDeps` for production use. */
 function buildLaunchDeps(): LaunchDeps {
   return {
-    spawn(exec) {
-      // Plain (non-detached) spawn. A detached spawn made the child its own
-      // session/process-group leader, which made some Electron-based AppImages
-      // (Pallasite) SIGTRAP on launch (sandbox/namespace setup in a fresh
-      // session). We forgo group-kill — `child.kill` signals the AppImage runtime
-      // directly, which is enough to return to the grid.
-      const child = nodeSpawn(exec, [], { detached: false })
+    spawn(exec, args = []) {
+      // Launch native games via the systemd USER MANAGER, not as a child of this
+      // Electron process. Spawned as our child, an Electron-based game (e.g.
+      // Pallasite) cannot start its own Chromium subprocesses — controller-ws,
+      // zygote, GPU and the network service all fail ("GPU process isn't usable",
+      // "Failed to send … to zygote"). The manager gives the game its own clean
+      // session/cgroup, where it launches normally. A plain (non-detached) spawn is
+      // the fallback when systemd-run isn't available (non-systemd hosts / dev).
+      const useUnit = hasSystemdRun()
+      let child: ReturnType<typeof nodeSpawn>
+      if (useUnit) {
+        // Clear any leftover unit from a prior game before reusing the name.
+        try { spawnSync('systemctl', ['--user', 'stop', GAME_UNIT], { stdio: 'ignore' }) } catch { /* ignore */ }
+        try { spawnSync('systemctl', ['--user', 'reset-failed', GAME_UNIT], { stdio: 'ignore' }) } catch { /* ignore */ }
+        // --wait keeps systemd-run (our tracked child) alive until the game exits,
+        // so onExit fires at the right time; --collect garbage-collects the unit.
+        child = nodeSpawn(
+          'systemd-run',
+          ['--user', '--wait', '--collect', '--quiet', '--unit', GAME_UNIT, '--', exec, ...args],
+          { detached: false },
+        )
+      } else {
+        child = nodeSpawn(exec, args, { detached: false })
+      }
       let killTimer: ReturnType<typeof setTimeout> | null = null
       return {
         onExit(cb) {
@@ -174,6 +209,11 @@ function buildLaunchDeps(): LaunchDeps {
           child.on('error', (err) => cb(err))
         },
         kill() {
+          // Stopping the unit is authoritative (it tears down the game's whole
+          // cgroup); also signal systemd-run/the child so it unwinds promptly.
+          if (useUnit) {
+            try { spawnSync('systemctl', ['--user', 'stop', GAME_UNIT], { stdio: 'ignore' }) } catch { /* ignore */ }
+          }
           child.kill('SIGTERM')
           killTimer = setTimeout(() => {
             child.kill('SIGKILL')

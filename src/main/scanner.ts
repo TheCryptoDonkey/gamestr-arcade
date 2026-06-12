@@ -95,6 +95,7 @@ async function build(
     name: meta?.name ?? prettify(slug),
     tagline: meta?.tagline,
     ...launch,
+    args: Array.isArray(meta?.args) ? (meta.args as unknown[]).map(String) : undefined,
     gameId,
     tHints: meta?.tHints,
     logo: await resolveLogo({ slug, appImagePath, siblingLogo, logoUrl, gameUrl }),

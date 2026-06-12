@@ -5,5 +5,6 @@
   "order": 1,
   "accent": "#7cf3ff",
   "exec": "Pallasite.AppImage",
+  "args": ["--no-sandbox"],
   "url": "https://pallasite.app/"
 }
