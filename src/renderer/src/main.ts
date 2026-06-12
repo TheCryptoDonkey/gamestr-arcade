@@ -15,10 +15,12 @@ import './styles/leaderboard.css'
 import './styles/attract.css'
 import './styles/crt.css'
 import './styles/relay-panel.css'
+import './styles/games-panel.css'
 import { Carousel } from './ui/carousel'
 import { InputController } from './ui/input'
 import { mountLeaderboard } from './ui/leaderboard-panel'
 import { RelayPanel } from './ui/relay-panel'
+import { GamesPanel } from './ui/games-panel'
 import { RelayStore } from './leaderboard/relay-store'
 import { ArcadeAudio } from './ui/audio'
 import { AttractMode } from './ui/attract'
@@ -108,6 +110,24 @@ async function boot(): Promise<void> {
     },
   })
 
+  // Add-games overlay: press 'g' to open/close. Lists gamestr games the kiosk
+  // is missing (catalogue from the gamestr bundle, liveness from the score feed)
+  // and adds them with one tap. Only meaningful under Electron (needs the IPC
+  // bridge); harmless to construct in the browser preview.
+  let installedGames = games
+  const gamesPanel = new GamesPanel(host, {
+    getInstalledIds: () => installedGames.map(g => g.id),
+    relays: () => relayStore.getEnabled(),
+    onAdded: fresh => {
+      installedGames = fresh
+      // A freshly-added game needs to enter the carousel. The robust kiosk path
+      // (matching the F5 admin rescan) is to refresh the shell; the operator is
+      // already in the service menu, so a brief reload is acceptable.
+      showMessage(host, 'GAME ADDED<span class="boot-dim">refreshing cabinet…</span>')
+      window.setTimeout(() => window.location.reload(), 700)
+    },
+  })
+
   // ── Toast for launch errors ──────────────────────────────────────────────────
   function showErrorToast(msg: string): void {
     const existing = host.querySelector<HTMLElement>('.launch-error-toast')
@@ -169,10 +189,16 @@ async function boot(): Promise<void> {
 
   // Admin / demo keys. Intentionally outside InputController (not game-navigation intents).
   window.addEventListener('keydown', e => {
+    // Ignore single-key shortcuts while typing in a field (e.g. the relay panel's
+    // URL input — "wss://relay.gamestr.io" contains 'g', 'c', 'm', 'r'). Escape is
+    // handled by the focused input's own handler.
+    const t = e.target as HTMLElement | null
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
     if (e.key === 'c' || e.key === 'C') crt.toggle()
     else if (e.key === 'm' || e.key === 'M') audio.toggleMute()
     else if (e.key === 'r' || e.key === 'R') relayPanel.toggle()
-    else if (e.key === 'Escape') relayPanel.close()
+    else if (e.key === 'g' || e.key === 'G') gamesPanel.toggle()
+    else if (e.key === 'Escape') { relayPanel.close(); gamesPanel.close() }
   })
 
   // Returning from a launched game re-focuses the carousel and resumes attract.

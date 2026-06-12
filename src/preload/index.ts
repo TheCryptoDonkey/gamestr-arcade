@@ -13,6 +13,8 @@ contextBridge.exposeInMainWorld('arcade', {
   listGames: () => ipcRenderer.invoke('games:list'),
   launch: (id: string) => ipcRenderer.invoke('game:launch', id),
   back: () => ipcRenderer.invoke('game:back'),
+  gamestrCatalogue: () => ipcRenderer.invoke('gamestr:catalogue'),
+  gamestrImport: (slug: string) => ipcRenderer.invoke('gamestr:import', slug),
   onReturn: (cb: () => void) => {
     // F5 (admin rescan) re-runs the preload — removeAllListeners ensures only
     // one handler survives each reload (prevents stacking across hot-reloads).

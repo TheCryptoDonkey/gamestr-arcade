@@ -6,19 +6,22 @@
  */
 
 import { app, BrowserWindow, globalShortcut, ipcMain, net, protocol, WebContentsView } from 'electron'
-import { chmod } from 'node:fs/promises'
-import { readFile } from 'node:fs/promises'
+import { chmod, mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { spawn as nodeSpawn, spawnSync } from 'node:child_process'
 import { is } from '@electron-toolkit/utils'
 import { buildGamesList, isPathAllowed, mediaUrlToPath, MEDIA_SCHEME } from './games'
+import { fetchGamestrCatalogue } from './gamestr-catalogue'
+import type { CatalogueDeps } from './gamestr-catalogue'
+import { importGameToFolder } from './gamestr-import'
+import type { ImportDeps } from './gamestr-import'
 import { startLocalServer } from './local-server'
 import type { LocalServer } from './local-server'
 import { DEFAULT_CONFIG, parseConfig } from './config'
 import { Launcher } from './launch'
 import type { LaunchDeps } from './launch'
 import { GamepadExitWatcher, realExitWatcherDeps } from './gamepad-exit'
-import type { ArcadeConfig, Game, GameControls, WebLNConfig } from '../shared/types'
+import type { ArcadeConfig, Game, GameControls, GamestrCatalogueResult, GamestrImportResult, WebLNConfig } from '../shared/types'
 
 // GPU flags: keep the hardware path active on booth hardware.
 app.commandLine.appendSwitch('ignore-gpu-blocklist')
@@ -416,6 +419,78 @@ app.whenReady().then(async () => {
     const localCount = games.filter(g => g.localSite).length
     console.log(`[arcade] games dir: ${gamesDir} — ${games.length} game(s)${localCount ? ` (${localCount} local)` : ''}`)
     return games
+  })
+
+  // ── gamestr catalogue import ──────────────────────────────────────────────
+  // gamestr.io has no registry API — its catalogue (incl. each game's external
+  // play URL) is hardcoded in its frontend bundle. We fetch + parse it so the
+  // operator can one-tap "add" a game the kiosk is missing. A last-good cache
+  // under userData keeps this working when the booth is offline.
+  const catalogueCachePath = join(app.getPath('userData'), 'gamestr-catalogue.json')
+  const catalogueDeps: CatalogueDeps = {
+    async fetchText(url) {
+      const res = await net.fetch(url)
+      if (!res.ok) throw new Error(`fetch ${url} → HTTP ${res.status}`)
+      return res.text()
+    },
+    now: () => Date.now(),
+    async readCache() {
+      try {
+        return JSON.parse(await readFile(catalogueCachePath, 'utf8')) as GamestrCatalogueResult
+      } catch {
+        return null
+      }
+    },
+    async writeCache(result) {
+      try {
+        await writeFile(catalogueCachePath, JSON.stringify(result))
+      } catch {
+        /* best-effort */
+      }
+    },
+  }
+  const importDeps: ImportDeps = {
+    mkdir: async dir => {
+      await mkdir(dir, { recursive: true })
+    },
+    writeFile: (path, data) => writeFile(path, data, 'utf8'),
+    exists: async path => {
+      try {
+        await stat(path)
+        return true
+      } catch {
+        return false
+      }
+    },
+  }
+
+  ipcMain.handle('gamestr:catalogue', async (): Promise<GamestrCatalogueResult> => {
+    try {
+      const result = await fetchGamestrCatalogue(catalogueDeps)
+      console.log(`[arcade] gamestr catalogue: ${result.entries.length} games (${result.source})`)
+      return result
+    } catch (err) {
+      console.warn(`[arcade] gamestr catalogue fetch failed: ${String(err)}`)
+      return { entries: [], source: 'cache', fetchedAt: 0 }
+    }
+  })
+
+  ipcMain.handle('gamestr:import', async (_event, slug: string): Promise<GamestrImportResult> => {
+    try {
+      const cat = await fetchGamestrCatalogue(catalogueDeps)
+      const entry = cat.entries.find(e => e.slug === slug)
+      if (!entry) return { ok: false, error: `"${slug}" is not in the gamestr catalogue` }
+      const res = await importGameToFolder(gamesDir, entry, importDeps)
+      // Force a rescan so the new game.json is picked up.
+      cachedGames = null
+      const games = await buildGamesList(gamesDir, cacheDir, localServer?.port)
+      cachedGames = games
+      console.log(`[arcade] imported gamestr game "${entry.name}" (${slug})${res.created ? '' : ' — already present'}`)
+      return { ok: true, slug: res.slug, created: res.created, games }
+    } catch (err) {
+      console.error(`[arcade] gamestr import failed for "${slug}": ${String(err)}`)
+      return { ok: false, error: String(err) }
+    }
   })
 
   ipcMain.handle('game:launch', async (_event, id: string) => {

@@ -48,6 +48,41 @@ export interface LeaderboardProvider {
   subscribe(gameId: string, onUpdate: (top: LeaderboardEntry[]) => void): () => void
 }
 
+/**
+ * A game in gamestr.io's catalogue (extracted from its frontend bundle — there
+ * is no registry API). `url` is the external play URL; `image` is absolute.
+ */
+export interface GamestrCatalogueEntry {
+  slug: string
+  name: string
+  description?: string
+  image?: string
+  genres: string[]
+  url: string
+  developer?: string
+  featured?: boolean
+  trending?: boolean
+  newRelease?: boolean
+}
+
+export interface GamestrCatalogueResult {
+  entries: GamestrCatalogueEntry[]
+  /** Whether these entries came from a live fetch or the offline cache. */
+  source: 'live' | 'cache'
+  /** Unix ms the entries were fetched (0 when neither live nor cache available). */
+  fetchedAt: number
+}
+
+export interface GamestrImportResult {
+  ok: boolean
+  slug?: string
+  /** false when a game.json already existed (import left it untouched). */
+  created?: boolean
+  error?: string
+  /** Fresh games list after a successful import, so the shell can refresh. */
+  games?: Game[]
+}
+
 export interface WebLNConfig {
   /** NWC connection string — e.g. `nostr+walletconnect://...` */
   nwc: string
