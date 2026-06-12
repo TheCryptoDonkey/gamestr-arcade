@@ -23,6 +23,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   directionFromGamepad,
+  directionFromGamepads,
   DPAD,
   STICK_DEADZONE,
   type Direction,
@@ -196,5 +197,47 @@ describe('directionFromGamepad — precedence & merging', () => {
 
   it('a disconnected-feeling pad (no buttons, axes centred) → none', () => {
     expect(directionFromGamepad(fakePad({ mapping: '', stick: [0, 0], hat: [0, 0] }))).toBe(NONE)
+  })
+})
+
+// ── Multiple pads ──────────────────────────────────────────────────────────────
+// The bitfest-1 regression: the booth enumerates TWO identical Xbox pads and the
+// menu read only the FIRST, so when Chromium indexed the idle pad first the
+// player's controller did nothing — while the in-game loop (which reads every
+// pad) worked fine. directionFromGamepads must respond to whichever pad is live.
+
+describe('directionFromGamepads — reads every connected pad', () => {
+  // A realistically idle pad: small resting drift (like js1's −0.07 / −0.02),
+  // well within the deadzone, so it contributes no direction.
+  const idle = (): Gamepad => fakePad({ mapping: '', stick: [-0.07, -0.02], hat: [0, 0] })
+
+  it('no pads → none', () => {
+    expect(directionFromGamepads([])).toBe(NONE)
+    expect(directionFromGamepads([null])).toBe(NONE)
+  })
+
+  it('two idle pads → none', () => {
+    expect(directionFromGamepads([idle(), idle()])).toBe(NONE)
+  })
+
+  it('idle pad first, active pad second → the active pad drives (the actual bug)', () => {
+    const active = fakePad({ mapping: '', hat: [-1, 0] }) // joystick left on the HAT
+    expect(directionFromGamepads([idle(), active])).toBe(PREV)
+  })
+
+  it('active pad first, idle pad second → still resolves', () => {
+    const active = fakePad({ mapping: '', hat: [1, 0] }) // joystick right
+    expect(directionFromGamepads([active, idle()])).toBe(NEXT)
+  })
+
+  it('null slots in the getGamepads array are skipped', () => {
+    const active = fakePad({ mapping: '', stick: [0, 1] }) // stick down
+    expect(directionFromGamepads([null, active, null])).toBe(NEXT)
+  })
+
+  it('two pads disagreeing → prev wins (matches single-pad precedence)', () => {
+    const next = fakePad({ pressed: [DPAD.RIGHT] })
+    const prev = fakePad({ pressed: [DPAD.LEFT] })
+    expect(directionFromGamepads([next, prev])).toBe(PREV)
   })
 })

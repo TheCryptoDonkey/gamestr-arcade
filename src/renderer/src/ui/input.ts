@@ -85,6 +85,31 @@ export function directionFromGamepad(pad: Gamepad): Direction {
   return 0
 }
 
+/**
+ * Resolve a single menu direction across ALL connected pads.
+ *
+ * A booth can enumerate more than one controller — bitfest-1 shows two identical
+ * "Generic X-Box pad" devices, and Chromium may index the idle one first — so
+ * reading only the first pad (as the menu used to) silently ignores whichever
+ * controller the player is actually holding. Reading every pad, exactly like the
+ * in-game loop does, is what makes the menu respond on any of them.
+ *
+ * `prev` (−1) wins over `next` (+1) if two pads disagree, matching the
+ * single-pad precedence. Nulls (empty slots in the getGamepads array) are
+ * skipped. Pure and exported for unit testing.
+ */
+export function directionFromGamepads(pads: ArrayLike<Gamepad | null>): Direction {
+  let dir: Direction = 0
+  for (let i = 0; i < pads.length; i++) {
+    const pad = pads[i]
+    if (!pad) continue
+    const d = directionFromGamepad(pad)
+    if (d === -1) return -1 // prev wins — no need to look further
+    if (d === 1) dir = 1
+  }
+  return dir
+}
+
 export class InputController {
   private readonly handlers: InputHandlers
   private rafId = 0
@@ -159,9 +184,10 @@ export class InputController {
   }
 
   private readGamepads(now: number): void {
-    const pads = navigator.getGamepads?.() ?? []
-    const pad = Array.from(pads).find((p): p is Gamepad => p != null)
-    if (!pad) {
+    const pads = Array.from(navigator.getGamepads?.() ?? []).filter(
+      (p): p is Gamepad => p != null,
+    )
+    if (pads.length === 0) {
       this.heldDir = 0
       this.prevButtons = []
       return
@@ -169,9 +195,11 @@ export class InputController {
 
     let activity = false
 
-    // Edge-detect face buttons (fire once per press, never per held frame).
-    const pressed = (i: number): boolean => !!pad.buttons[i]?.pressed
-    const justPressed = (i: number): boolean => pressed(i) && !this.prevButtons[i]
+    // Edge-detect face buttons across ALL pads (a booth may enumerate two; the
+    // player could hold either). Fire once per press, never per held frame, by
+    // diffing against the previous frame's UNIONED button state.
+    const anyPressed = (i: number): boolean => pads.some(p => !!p.buttons[i]?.pressed)
+    const justPressed = (i: number): boolean => anyPressed(i) && !this.prevButtons[i]
 
     if (justPressed(BTN_A)) {
       this.handlers.onLaunch()
@@ -182,10 +210,10 @@ export class InputController {
       activity = true
     }
 
-    // Direction from the d-pad (buttons OR HAT) or the left stick, on either
-    // axis — see directionFromGamepad. Pulling the resolution out keeps it pure
-    // and unit-tested, so booth controller quirks can't silently regress it.
-    const dir = directionFromGamepad(pad)
+    // Direction from ANY connected pad — see directionFromGamepads. Pulling the
+    // resolution out keeps it pure and unit-tested, so booth controller quirks
+    // (multiple pads, HAT d-pads) can't silently regress it.
+    const dir = directionFromGamepads(pads)
     if (dir !== 0) activity = true
 
     if (dir !== this.heldDir) {
@@ -201,8 +229,9 @@ export class InputController {
       this.nextRepeatAt = now + REPEAT_INTERVAL_MS
     }
 
-    // Snapshot button state for next-frame edge detection.
-    this.prevButtons = pad.buttons.map(b => b.pressed)
+    // Snapshot the UNIONED button state for next-frame edge detection.
+    const width = Math.max(...pads.map(p => p.buttons.length))
+    this.prevButtons = Array.from({ length: width }, (_, i) => anyPressed(i))
 
     if (activity) this.handlers.onActivity?.()
   }
