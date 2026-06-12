@@ -26,6 +26,7 @@ import {
   DEFAULT_CONTROLS,
   resolveControls,
   snapshotFromGamepad,
+  dpadFromHatAxes,
   unionSnapshots,
   keyInfo,
   eventKeyValue,
@@ -64,6 +65,33 @@ function fakeGamepad(options: {
     mapping:   'standard',
     timestamp: 0,
     axes:      [axes[0], axes[1]],
+    buttons,
+    hapticActuators: [],
+    vibrationActuator: null as unknown as GamepadHapticActuator,
+  }
+}
+
+/**
+ * Build a non-standard (`mapping: ""`) pad whose d-pad is a HAT carried on
+ * axes[6] (X) / axes[7] (Y) — the layout an official Xbox pad presents when its
+ * connection lands outside Chromium's Standard-Mapping table (e.g. Bluetooth).
+ */
+function fakeHatGamepad(hat: { x?: number; y?: number; pressed?: number[] }): Gamepad {
+  const pressed = new Set(hat.pressed ?? [])
+  const buttons = Array.from({ length: 17 }, (_, i): GamepadButton => ({
+    pressed: pressed.has(i),
+    touched: pressed.has(i),
+    value:   pressed.has(i) ? 1 : 0,
+  }))
+  // LX, LY, LT, RX, RY, RT, HAT0X, HAT0Y — the d-pad sits on the last two.
+  const axes = [0, 0, 0, 0, 0, 0, hat.x ?? 0, hat.y ?? 0]
+  return {
+    id:        'Fake Non-Standard Pad',
+    index:     0,
+    connected: true,
+    mapping:   '',
+    timestamp: 0,
+    axes,
     buttons,
     hapticActuators: [],
     vibrationActuator: null as unknown as GamepadHapticActuator,
@@ -280,6 +308,52 @@ describe('snapshotFromGamepad — all idle', () => {
   it('no buttons, stick centred → all false', () => {
     const snap = snapshotFromGamepad(fakeGamepad({}))
     expect(snap).toEqual(IDLE)
+  })
+})
+
+// ── snapshotFromGamepad: non-standard pad (d-pad on a HAT axis) ─────────────────
+// Regression for the booth bug where an official Xbox pad on a different
+// connection exposed mapping "" and put the d-pad on axes[6]/[7] instead of
+// buttons 12–15 — so keyboard web games (Space Zappers) got fire but no left/right.
+
+describe('snapshotFromGamepad — non-standard pad, d-pad on HAT axes', () => {
+  it('HAT x = -1 → left=true (d-pad left via axes[6])', () => {
+    expect(snapshotFromGamepad(fakeHatGamepad({ x: -1 }))).toMatchObject({ left: true, right: false })
+  })
+
+  it('HAT x = +1 → right=true', () => {
+    expect(snapshotFromGamepad(fakeHatGamepad({ x: 1 }))).toMatchObject({ right: true, left: false })
+  })
+
+  it('HAT y = -1 → up=true', () => {
+    expect(snapshotFromGamepad(fakeHatGamepad({ y: -1 }))).toMatchObject({ up: true, down: false })
+  })
+
+  it('HAT y = +1 → down=true', () => {
+    expect(snapshotFromGamepad(fakeHatGamepad({ y: 1 }))).toMatchObject({ down: true, up: false })
+  })
+
+  it('HAT centred → all directions false', () => {
+    expect(snapshotFromGamepad(fakeHatGamepad({}))).toEqual(IDLE)
+  })
+
+  it('HAT x = -0.3 (below threshold) → left stays false', () => {
+    expect(snapshotFromGamepad(fakeHatGamepad({ x: -0.3 }))).toMatchObject({ left: false, right: false })
+  })
+
+  it('A (button 0) still fires on a non-standard pad', () => {
+    expect(snapshotFromGamepad(fakeHatGamepad({ pressed: [0] }))).toMatchObject({ fire: true })
+  })
+
+  it('A + HAT right → right and fire together', () => {
+    expect(snapshotFromGamepad(fakeHatGamepad({ x: 1, pressed: [0] }))).toMatchObject({ right: true, fire: true })
+  })
+})
+
+describe('dpadFromHatAxes — Standard-Mapping pads are left untouched', () => {
+  it('a standard pad never yields HAT directions (its d-pad is buttons 12–15)', () => {
+    // fakeGamepad is mapping:'standard'; even with axes deflected the HAT path is skipped.
+    expect(dpadFromHatAxes(fakeGamepad({ axes: [1, 1] }))).toEqual(IDLE)
   })
 })
 

@@ -128,11 +128,15 @@ export class InputController {
       activity = true
     }
 
-    // Direction from d-pad OR left stick (whichever is engaged).
+    // Direction from d-pad OR left stick (whichever is engaged). Non-standard
+    // pads (see webgame.ts) carry the d-pad on a HAT axis rather than buttons
+    // 14/15 — conventionally axes[6] on Linux — so read that too, gated on a
+    // non-standard mapping so it can't disturb pads that already work.
     const axisX = pad.axes[0] ?? 0
+    const hatX = pad.mapping === 'standard' ? 0 : (pad.axes[6] ?? 0)
     let dir: Direction = 0
-    if (pressed(BTN_DPAD_LEFT) || axisX <= -STICK_DEADZONE) dir = -1
-    else if (pressed(BTN_DPAD_RIGHT) || axisX >= STICK_DEADZONE) dir = 1
+    if (pressed(BTN_DPAD_LEFT) || axisX <= -STICK_DEADZONE || hatX <= -STICK_DEADZONE) dir = -1
+    else if (pressed(BTN_DPAD_RIGHT) || axisX >= STICK_DEADZONE || hatX >= STICK_DEADZONE) dir = 1
 
     if (dir !== 0) activity = true
 

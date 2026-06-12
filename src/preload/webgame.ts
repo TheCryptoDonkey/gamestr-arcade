@@ -206,6 +206,29 @@ export class GamepadKeyTranslator {
 export const DPAD = { UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 } as const
 
 /**
+ * Non-standard-mapping d-pad (HAT) axis indices.
+ *
+ * When Chromium recognises a controller it exposes the W3C "Standard Mapping"
+ * and the d-pad arrives as buttons 12–15. When it does NOT — many third-party
+ * (non-Microsoft) "Xbox" pads, or the same pad switched to DirectInput mode —
+ * `pad.mapping` is "" and the d-pad instead arrives as a HAT carried on two
+ * axes: conventionally axes[6] (X: −1 left, +1 right) and axes[7] (Y: −1 up,
+ * +1 down), resting at 0 and snapping to ±1.
+ *
+ * Native (AppImage) games read the HAT themselves via SDL — which is why a
+ * non-standard pad still drives "games built for gamepad" — but our keyboard
+ * translation only watched buttons 12–15, so the d-pad did nothing in keyboard
+ * web games (Space Zappers, Sats-Man). `dpadFromHatAxes` closes that gap.
+ */
+export const HAT_AXIS = { X: 6, Y: 7 } as const
+
+/**
+ * Magnitude past which a HAT axis counts as pressed. A real HAT snaps to 0 / ±1,
+ * so 0.5 cleanly separates "centred" from "pushed" with margin to spare.
+ */
+export const HAT_THRESHOLD = 0.5
+
+/**
  * Fire buttons: A (index 0) and X (left face button, index 2).
  *
  * A *also* drives the virtual-cursor click (see the RAF loop), so pressing A
@@ -220,21 +243,46 @@ export const FIRE_BUTTONS = [0, 2] as const
 export const STICK_DEAD = 0.5
 
 /**
- * Build an `InputSnapshot` from a `Gamepad` object (Standard Mapping assumed).
+ * Read d-pad directions from a non-standard controller's HAT axes (see HAT_AXIS).
  *
- * D-pad only for directions — the left stick is now the cursor, not keys.
+ * Returns all-false for Standard-Mapping pads — their d-pad is buttons 12–15,
+ * read separately — so this never interferes with controllers that already work.
+ * Pure; exported for unit tests.
+ */
+export function dpadFromHatAxes(pad: Gamepad): InputSnapshot {
+  if (pad.mapping === 'standard') {
+    return { up: false, down: false, left: false, right: false, fire: false }
+  }
+  const x = pad.axes[HAT_AXIS.X] ?? 0
+  const y = pad.axes[HAT_AXIS.Y] ?? 0
+  return {
+    up:    y <= -HAT_THRESHOLD,
+    down:  y >=  HAT_THRESHOLD,
+    left:  x <= -HAT_THRESHOLD,
+    right: x >=  HAT_THRESHOLD,
+    fire:  false,
+  }
+}
+
+/**
+ * Build an `InputSnapshot` from a `Gamepad` object.
+ *
+ * Directions come from the d-pad via EITHER the Standard-Mapping buttons 12–15
+ * OR — for non-standard pads (e.g. an official Xbox pad whose connection lands
+ * outside Chromium's mapping table) — the HAT axes (see `dpadFromHatAxes`). The
+ * left stick is deliberately excluded: it drives the virtual cursor, not keys.
  * Fire = A (index 0) or X (index 2); A additionally drives the cursor click.
  */
 export function snapshotFromGamepad(pad: Gamepad): InputSnapshot {
   const btn = (i: number) => pad.buttons[i]?.pressed ?? false
-
-  return {
+  const buttons: InputSnapshot = {
     up:    btn(DPAD.UP),
     down:  btn(DPAD.DOWN),
     left:  btn(DPAD.LEFT),
     right: btn(DPAD.RIGHT),
     fire:  FIRE_BUTTONS.some(i => btn(i)),
   }
+  return unionSnapshots(buttons, dpadFromHatAxes(pad))
 }
 
 /**
