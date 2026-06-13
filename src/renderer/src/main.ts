@@ -16,11 +16,13 @@ import './styles/attract.css'
 import './styles/crt.css'
 import './styles/relay-panel.css'
 import './styles/games-panel.css'
+import './styles/download-panel.css'
 import { Carousel } from './ui/carousel'
 import { InputController } from './ui/input'
 import { mountLeaderboard } from './ui/leaderboard-panel'
 import { RelayPanel } from './ui/relay-panel'
 import { GamesPanel } from './ui/games-panel'
+import { DownloadPanel } from './ui/download-panel'
 import { RelayStore } from './leaderboard/relay-store'
 import { ArcadeAudio } from './ui/audio'
 import { AttractMode } from './ui/attract'
@@ -31,8 +33,19 @@ const inElectron = typeof window.arcade !== 'undefined'
 
 async function loadGames(): Promise<Game[]> {
   if (inElectron) return window.arcade.listGames()
-  // Browser design-preview fallback — dynamically imported so it is tree-shaken
-  // out of the Electron bundle entirely.
+  // Browser preview: prefer the dev server's real-games bridge (vite.preview.config.ts
+  // serves /__games from the actual folder scan) so the preview reflects the real
+  // cabinet. Falls back to MOCK_GAMES when the bridge isn't present (plain `vite`).
+  try {
+    const res = await fetch('/__games')
+    if (res.ok) {
+      const real = (await res.json()) as Game[]
+      if (Array.isArray(real) && real.length) return real
+    }
+  } catch {
+    /* no bridge → design-preview mock */
+  }
+  // Dynamically imported so the mock is tree-shaken out of the Electron bundle.
   const { MOCK_GAMES } = await import('./mock-games')
   return MOCK_GAMES
 }
@@ -159,6 +172,17 @@ async function boot(): Promise<void> {
     },
   })
 
+  // Download-only games can't run in the kiosk — pressing play opens this panel
+  // with a QR of the game's download URL so a visitor can grab it on their phone.
+  const downloadPanel = new DownloadPanel(host)
+  const closeDownloadPanel = (): void => {
+    if (!downloadPanel.isOpen) return
+    downloadPanel.close()
+    audio.playBack()
+    // Resume idle watching — the player gets the full attract period from now.
+    attract.start()
+  }
+
   // ── Toast for launch errors ──────────────────────────────────────────────────
   function showErrorToast(msg: string): void {
     const existing = host.querySelector<HTMLElement>('.launch-error-toast')
@@ -176,9 +200,17 @@ async function boot(): Promise<void> {
   let inWebGame = false
 
   const launch = (): void => {
-    if (inWebGame) return
-    audio.playSelect()
+    if (inWebGame || downloadPanel.isOpen) return
     const game = carousel.current()
+    // Download-only games can't be launched in the kiosk — show the QR panel
+    // instead (works in both Electron and the browser design-preview).
+    if (game.downloadOnly) {
+      audio.playSelect()
+      attract.stop() // freeze the carousel behind the modal
+      downloadPanel.open(game)
+      return
+    }
+    audio.playSelect()
     if (inElectron) {
       void window.arcade.launch(game.id)
       if (game.kind === 'web') {
@@ -209,10 +241,10 @@ async function boot(): Promise<void> {
   // pick + add a game with the gamepad (or keyboard) — a kiosk has no usable mouse
   // cursor. up/left → previous row, down/right → next, Ⓐ/Enter → ADD, Ⓑ/Start/Esc → close.
   const input = new InputController({
-    onPrev: () => { if (gamesPanel.isOpen) gamesPanel.moveSelection(-1); else carousel.prev() },
-    onNext: () => { if (gamesPanel.isOpen) gamesPanel.moveSelection(1); else carousel.next() },
-    onLaunch: () => { if (gamesPanel.isOpen) { gamesPanel.activateSelected(); return } launch() },
-    onBack: () => { if (gamesPanel.isOpen) { gamesPanel.close(); return } backFromGame() },
+    onPrev: () => { if (gamesPanel.isOpen) gamesPanel.moveSelection(-1); else if (!downloadPanel.isOpen) carousel.prev() },
+    onNext: () => { if (gamesPanel.isOpen) gamesPanel.moveSelection(1); else if (!downloadPanel.isOpen) carousel.next() },
+    onLaunch: () => { if (gamesPanel.isOpen) { gamesPanel.activateSelected(); return } if (downloadPanel.isOpen) return; launch() },
+    onBack: () => { if (gamesPanel.isOpen) { gamesPanel.close(); return } if (downloadPanel.isOpen) { closeDownloadPanel(); return } backFromGame() },
     onActivity: () => {
       // First real input resumes the audio context (browser autoplay gate).
       audio.resume()
@@ -220,6 +252,15 @@ async function boot(): Promise<void> {
     },
   })
   input.start()
+
+  // Grab keyboard focus so ← → / Enter work the moment the cabinet loads. In a
+  // plain browser a freshly-opened tab leaves focus on the address bar, so the
+  // window-level key handling sees nothing until the page is clicked — make the
+  // shell focusable, focus it now, and re-grab on any click. Harmless under
+  // Electron (the kiosk already owns focus; this just makes host.focus() effective).
+  host.tabIndex = -1
+  host.focus()
+  host.addEventListener('pointerdown', () => host.focus())
 
   // Admin / demo keys. Intentionally outside InputController (not game-navigation intents).
   window.addEventListener('keydown', e => {
@@ -232,7 +273,7 @@ async function boot(): Promise<void> {
     else if (e.key === 'm' || e.key === 'M') audio.toggleMute()
     else if (e.key === 'r' || e.key === 'R') relayPanel.toggle()
     else if (e.key === 'g' || e.key === 'G') gamesPanel.toggle()
-    else if (e.key === 'Escape') { relayPanel.close(); gamesPanel.close() }
+    else if (e.key === 'Escape') { relayPanel.close(); gamesPanel.close(); closeDownloadPanel() }
   })
 
   // Returning from a launched game re-focuses the carousel and resumes attract.
@@ -258,6 +299,7 @@ async function boot(): Promise<void> {
       __audio: audio,
       __relayPanel: relayPanel,
       __relayStore: relayStore,
+      __downloadPanel: downloadPanel,
     })
   }
 }

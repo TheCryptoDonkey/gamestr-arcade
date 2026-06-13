@@ -91,8 +91,9 @@ describe('buildGamesList', () => {
     const games = await buildGamesList(FIXTURES_DIR, FAKE_CACHE)
     expect(games.find(g => g.id === 'zzz-empty')).toBeUndefined()
     // Fixtures: neon (web), exec-only (appimage via exec), exec-relative (appimage via exec),
-    // mirrored (web with site/). zzz-empty has neither url nor exec nor AppImage → skipped.
-    expect(games.length).toBe(4)
+    // mirrored (web with site/), dlonly (download-only web). zzz-empty has neither url nor
+    // exec nor AppImage → skipped.
+    expect(games.length).toBe(5)
   })
 
   it('preserves game metadata from game.json', async () => {

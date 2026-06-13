@@ -5,6 +5,7 @@
   "gameId": "nogames-snake-v1",
   "order": 22,
   "accent": "#22c55e",
-  "logoUrl": "https://cdn.hzrd149.com/e19b12222085fa5fdc359f6d74acdcf8bbbbb310a1673542727552beda098340.svg",
+  "heroUrl": "https://cdn.hzrd149.com/e19b12222085fa5fdc359f6d74acdcf8bbbbb310a1673542727552beda098340.svg",
+  "textLogo": true,
   "source": "gamestr"
 }

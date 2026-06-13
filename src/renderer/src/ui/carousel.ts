@@ -119,6 +119,8 @@ export class Carousel {
   private metaEl!: HTMLElement
   private nameEl!: HTMLElement
   private taglineEl!: HTMLElement
+  private ctaTextEl!: HTMLElement
+  private ribbonEl!: HTMLElement
   private indexEl!: HTMLElement
   private badgesEl!: HTMLElement
   private filmstripEl!: HTMLElement
@@ -209,6 +211,7 @@ export class Carousel {
         <section class="showcase">
           <div class="showcase-meta">
             <div class="kicker"><span class="kicker-dot"></span><span class="kicker-text">NOW SELECTING</span><span class="showcase-badges"></span></div>
+            <div class="download-ribbon" hidden><span class="dl-glyph">⤓</span>DOWNLOAD&nbsp;ONLY</div>
             <div class="logo-slot"></div>
             <h1 class="game-name"></h1>
             <p class="game-tagline"></p>
@@ -232,6 +235,8 @@ export class Carousel {
     this.logoEl = this.q('.logo-slot')
     this.nameEl = this.q('.game-name')
     this.taglineEl = this.q('.game-tagline')
+    this.ctaTextEl = this.q('.cta-text')
+    this.ribbonEl = this.q('.download-ribbon')
     this.metaEl = this.q('.showcase-meta')
     this.indexEl = this.q('.topbar-index')
     this.badgesEl = this.q('.showcase-badges')
@@ -346,6 +351,16 @@ export class Carousel {
     this.host.style.setProperty('--accent-soft', accent + '26')
     this.host.style.setProperty('--accent-glow', accent + '88')
 
+    // Download-only games stay on show but greyed-out, with a ribbon + a "get it"
+    // call-to-action (pressing play opens the QR panel — see main.ts). The grey is
+    // scoped in CSS to the artwork (hero + logo), not the whole frame.
+    const downloadOnly = !!game.downloadOnly
+    this.host.classList.toggle('is-download-only', downloadOnly)
+    this.ribbonEl.hidden = !downloadOnly
+    this.ctaTextEl.innerHTML = downloadOnly
+      ? 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;TO&nbsp;DOWNLOAD'
+      : 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;TO&nbsp;PLAY'
+
     this.renderLogo(game)
     this.nameEl.textContent = game.name
     this.taglineEl.textContent = game.tagline || ''
@@ -451,7 +466,7 @@ export class Carousel {
       const game = this.model.at(idx)
       const tile = document.createElement('button')
       tile.type = 'button'
-      tile.className = 'tile' + (offset === 0 ? ' tile-active' : '')
+      tile.className = 'tile' + (offset === 0 ? ' tile-active' : '') + (game.downloadOnly ? ' tile-download' : '')
       tile.dataset.offset = String(offset)
       tile.style.setProperty('--tile-accent', game.accent || '#7cf3ff')
       tile.setAttribute('aria-label', game.name)
@@ -481,6 +496,16 @@ export class Carousel {
         badge.className = 'tile-local-badge'
         badge.textContent = 'LOCAL'
         badge.setAttribute('aria-label', 'served from local mirror')
+        tile.appendChild(badge)
+      }
+
+      // Download-only badge — a download glyph chip (top-right; a download-only
+      // game never has a local mirror, so it can't collide with the LOCAL badge).
+      if (game.downloadOnly) {
+        const badge = document.createElement('span')
+        badge.className = 'tile-dl-badge'
+        badge.textContent = '⤓'
+        badge.setAttribute('aria-label', 'download only')
         tile.appendChild(badge)
       }
 

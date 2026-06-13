@@ -98,9 +98,16 @@ async function build(
     args: Array.isArray(meta?.args) ? (meta.args as unknown[]).map(String) : undefined,
     gameId,
     tHints: meta?.tHints,
-    logo: await resolveLogo({ slug, appImagePath, siblingLogo, logoUrl, gameUrl }),
+    // `textLogo: true` opts out of icon art entirely so the shell renders its neon
+    // text wordmark (and the filmstrip a monogram) — used for games whose only art
+    // is a backdrop, not a clean cut-out logo.
+    logo: meta?.textLogo === true ? '' : await resolveLogo({ slug, appImagePath, siblingLogo, logoUrl, gameUrl }),
     hero,
     accent: meta?.accent,
+    // Download-only games stay in the carousel (greyed + ribboned) but can't be
+    // launched in the kiosk; downloadUrl is the QR target (falls back to url).
+    downloadOnly: meta?.downloadOnly === true ? true : undefined,
+    downloadUrl: typeof meta?.downloadUrl === 'string' ? meta.downloadUrl : undefined,
     sounds: { music: (await exists(join(dir, 'music.ogg'))) ? join(dir, 'music.ogg') : undefined,
               voice: (await exists(join(dir, 'voice.ogg'))) ? join(dir, 'voice.ogg') : undefined },
     controls: meta?.controls ?? undefined,

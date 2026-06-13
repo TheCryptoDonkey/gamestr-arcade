@@ -5,6 +5,7 @@
   "gameId": "mempool-breaker",
   "order": 21,
   "accent": "#f7931a",
-  "logoUrl": "https://gamestr.io/games/mempool-breaker.png",
+  "heroUrl": "https://gamestr.io/games/mempool-breaker.png",
+  "textLogo": true,
   "source": "gamestr"
 }

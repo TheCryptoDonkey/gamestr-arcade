@@ -5,6 +5,7 @@
   "gameId": "the-rabbit-hole",
   "order": 20,
   "accent": "#a855f7",
-  "logoUrl": "https://gamestr.io/games/rabbit-hole-logo.jpg",
+  "heroUrl": "https://gamestr.io/games/rabbit-hole-logo.jpg",
+  "textLogo": true,
   "source": "gamestr"
 }

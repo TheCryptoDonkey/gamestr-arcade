@@ -24,6 +24,12 @@ export interface Game {
   url?: string          // web url (kind === 'web')
   localSite?: boolean   // true when url points to the local mirror server
   localRoot?: string    // absolute path to the game's site/ dir (set when localSite is true)
+  // Download-only games can't be played in the kiosk (no embeddable web build).
+  // They're kept in the carousel for showcase — greyed-out with a DOWNLOAD ONLY
+  // ribbon — and pressing play opens a QR panel pointing at `downloadUrl` (or `url`)
+  // so a visitor can grab the game on their own device.
+  downloadOnly?: boolean
+  downloadUrl?: string  // QR target for a download-only game; falls back to `url`
   gameId: string        // kind-30762 `game` tag value (leaderboard key)
   tHints?: string[]     // optional `#t` server-side filter hints; defaults to [gameId]
   logo: string          // absolute path to resolved logo png

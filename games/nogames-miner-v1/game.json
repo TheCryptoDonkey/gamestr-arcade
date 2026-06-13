@@ -5,6 +5,7 @@
   "gameId": "nogames-miner-v1",
   "order": 23,
   "accent": "#eab308",
-  "logoUrl": "https://cdn.hzrd149.com/a4e13e0101d63ca405d6f38b5d69f30de5ddec58aeb803276f03730c25be5cce.svg",
+  "heroUrl": "https://cdn.hzrd149.com/a4e13e0101d63ca405d6f38b5d69f30de5ddec58aeb803276f03730c25be5cce.svg",
+  "textLogo": true,
   "source": "gamestr"
 }

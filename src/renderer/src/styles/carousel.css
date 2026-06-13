@@ -70,6 +70,13 @@
   cursor: none; /* arcade cabinet — no pointer */
 }
 
+/* The shell is made focusable (tabindex=-1) so keyboard input works the instant
+   the page loads; suppress the focus ring it would otherwise draw screen-wide. */
+.arcade:focus,
+.arcade:focus-visible {
+  outline: none;
+}
+
 .crt-anchor {
   position: absolute;
   inset: 0;
@@ -722,6 +729,71 @@
 .badge-new {
   color: #05070f;
   background: var(--accent, #7cf3ff);
+}
+
+/* ── Download-only treatment ──────────────────────────────────────────────────
+   Games that can't be played in the kiosk (no embeddable web build) stay in the
+   carousel for showcase, but their artwork is desaturated + dimmed and a
+   DOWNLOAD ONLY ribbon is shown. Pressing play opens a QR panel (see main.ts).
+   The grey is scoped to the ARTWORK (hero + logo + tile art) so the rest of the
+   frame — kicker, CTA, leaderboard — keeps the game's live accent. */
+.is-download-only .stage .hero-layer {
+  filter: grayscale(0.85) brightness(0.78) contrast(0.96);
+}
+.is-download-only .logo-slot {
+  filter: grayscale(0.92) brightness(0.86);
+  opacity: 0.9;
+}
+
+/* Showcase ribbon — a bold amber tag with a download glyph, sitting above the
+   logo. Folded-corner tail (::before) gives it a ribbon read. */
+.download-ribbon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6ch;
+  margin-bottom: 1.1rem;
+  padding: 0.42rem 1rem 0.42rem 0.85rem;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.26em;
+  text-indent: 0.26em;
+  text-transform: uppercase;
+  color: #1a1204;
+  background: linear-gradient(180deg, #ffd27a, #ffb347);
+  border-radius: 0.3rem;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.45),
+    0 0 24px rgba(255, 179, 71, 0.4);
+}
+.download-ribbon[hidden] { display: none; }
+.download-ribbon .dl-glyph {
+  font-size: 1.08rem;
+  line-height: 1;
+  text-indent: 0;
+}
+
+/* Filmstrip tile: grey the art + a small amber download chip (top-right). A
+   download-only game has no local mirror, so this never collides with LOCAL. */
+.tile-download .tile-art {
+  filter: grayscale(0.85) brightness(0.74);
+}
+.tile-dl-badge {
+  position: absolute;
+  top: 0.28rem;
+  right: 0.28rem;
+  display: grid;
+  place-items: center;
+  width: 1.05rem;
+  height: 1.05rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #1a1204;
+  background: #ffb347;
+  border-radius: 0.25rem;
+  line-height: 1;
+  box-shadow: 0 0 10px rgba(255, 179, 71, 0.5);
+  pointer-events: none;
 }
 
 /* ── Boot / empty / error message ────────────────────────────────────────────── */

@@ -1,0 +1,144 @@
+/* ============================================================================
+   gamestr-arcade — download QR panel.
+
+   Shown when a visitor presses play on a download-only game. A centred modal
+   over a dimmed cabinet: a bold DOWNLOAD ONLY tag, the game name, a white QR
+   card (black-on-white scans reliably on phones) and the raw URL beneath.
+   Inherits the arcade type/colour tokens from the .arcade host.
+   ============================================================================ */
+
+.dl-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 180; /* above the carousel (5), below the launch-error toast (200) */
+  display: grid;
+  place-items: center;
+  background: rgba(3, 4, 10, 0.82);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease;
+  font-family: var(--display, 'Chakra Petch', sans-serif);
+}
+.dl-overlay.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.dl-panel {
+  --accent: #7cf3ff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.05rem;
+  padding: clamp(1.6rem, 3vw, 2.6rem);
+  border-radius: 1.25rem;
+  background: linear-gradient(165deg, rgba(12, 18, 34, 0.96), rgba(5, 7, 15, 0.96));
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, rgba(126, 138, 166, 0.3));
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.7),
+    0 0 60px color-mix(in srgb, var(--accent) 22%, transparent);
+  transform: scale(0.96);
+  transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+.dl-overlay.is-open .dl-panel {
+  transform: scale(1);
+}
+
+.dl-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6ch;
+  padding: 0.42rem 1rem 0.42rem 0.85rem;
+  font-family: var(--mono, 'Azeret Mono', monospace);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.26em;
+  text-indent: 0.26em;
+  text-transform: uppercase;
+  color: #1a1204;
+  background: linear-gradient(180deg, #ffd27a, #ffb347);
+  border-radius: 0.3rem;
+  box-shadow: 0 0 24px rgba(255, 179, 71, 0.4);
+}
+.dl-kicker .dl-glyph {
+  font-size: 1.08rem;
+  line-height: 1;
+  text-indent: 0;
+}
+
+.dl-name {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--ink, #eaf6ff);
+}
+.dl-sub {
+  margin: 0;
+  max-width: 32ch;
+  font-family: var(--mono, 'Azeret Mono', monospace);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--ink-dim, #7e8aa6);
+}
+
+/* White QR card — black modules on white scan reliably on phones. */
+.dl-qr {
+  width: clamp(13rem, 32vh, 18rem);
+  height: clamp(13rem, 32vh, 18rem);
+  padding: 0.9rem;
+  background: #fff;
+  border-radius: 0.9rem;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 18px 50px rgba(0, 0, 0, 0.5);
+}
+.dl-qr svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.dl-qr-empty {
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.04);
+}
+.dl-qr-empty::after {
+  content: 'NO LINK';
+  font-family: var(--mono, 'Azeret Mono', monospace);
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  color: var(--ink-dim, #7e8aa6);
+}
+
+.dl-url {
+  max-width: 40ch;
+  font-family: var(--mono, 'Azeret Mono', monospace);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  color: var(--accent);
+  word-break: break-all;
+}
+.dl-hint {
+  font-family: var(--mono, 'Azeret Mono', monospace);
+  font-weight: 600;
+  font-size: 0.74rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim, #7e8aa6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dl-overlay,
+  .dl-panel {
+    transition: none !important;
+  }
+}

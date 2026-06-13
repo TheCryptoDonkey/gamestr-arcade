@@ -14,6 +14,28 @@ describe('scanGames', () => {
     expect(neon!.url).toBe('https://example.test/neon')
     expect(neon!.gameId).toBe('neon-sentinel')
     expect(games.find(g => g.id === 'zzz-empty')).toBeUndefined()
+    // A normal web game is not download-only.
+    expect(neon!.downloadOnly).toBeUndefined()
+    expect(neon!.downloadUrl).toBeUndefined()
+  })
+
+  it('reads downloadOnly + downloadUrl from game.json', async () => {
+    const games = await scanGames(DIR)
+    const g = games.find(g => g.id === 'dlonly')
+    expect(g).toBeTruthy()
+    expect(g!.kind).toBe('web')
+    expect(g!.downloadOnly).toBe(true)
+    expect(g!.downloadUrl).toBe('https://example.test/dlonly/download')
+  })
+
+  it('textLogo:true forces an empty logo so the shell renders its neon wordmark', async () => {
+    // Even with a resolver that would return art, textLogo wins (logo stays '').
+    const games = await scanGames(DIR, async () => '/resolved/should-not-be-used.png')
+    const g = games.find(g => g.id === 'dlonly')
+    expect(g!.logo).toBe('')
+    // A game without the flag still gets its resolved logo.
+    const neon = games.find(g => g.id === 'neon')
+    expect(neon!.logo).toBe('/resolved/should-not-be-used.png')
   })
 
   it('reads a native tile from game.json.exec (absolute path)', async () => {

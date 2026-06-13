@@ -185,4 +185,20 @@ export const MOCK_GAMES: Game[] = [
     accent: '#ffb547',
     logo: '',
   },
+  // Download-only → greyed artwork + DOWNLOAD ONLY ribbon; pressing play opens
+  // the QR panel (downloadUrl). Real logo + hero so the desaturation shows.
+  {
+    id: 'cosmic-forge',
+    name: 'Cosmic Forge',
+    tagline: 'A native desktop epic — grab the build, play it at home.',
+    kind: 'web',
+    url: 'https://example.test/cosmic-forge',
+    downloadOnly: true,
+    downloadUrl: 'https://example.test/cosmic-forge/download',
+    gameId: 'cosmic-forge',
+    order: 5,
+    accent: '#34d399',
+    logo: satsManLogo,
+    hero: svgHero({ base: '#04140e', glow: '#0b3a2a', accent: '#34d399', motif: 'orbit' }),
+  },
 ]

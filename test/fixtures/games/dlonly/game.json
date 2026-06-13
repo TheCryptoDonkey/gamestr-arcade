@@ -1,0 +1,9 @@
+{
+  "name": "Download Only",
+  "url": "https://example.test/dlonly",
+  "gameId": "dlonly",
+  "order": 50,
+  "downloadOnly": true,
+  "downloadUrl": "https://example.test/dlonly/download",
+  "textLogo": true
+}
