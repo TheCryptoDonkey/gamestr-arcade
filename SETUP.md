@@ -120,6 +120,10 @@ Shipped alongside the AppImage (in `resources/`) via `extraResources`. Edit the 
 }
 ```
 
+For a self-hosted least-authority wallet, use the isolated Phoenixd deployment in
+[`deploy/phoenixd`](deploy/phoenixd/README.md). Never commit the generated NWC URI:
+it grants payment authority and belongs only in the booth-local configuration.
+
 When configured, wallet credentials stay in the Electron main process. A web
 game receives `sendPayment` only when its manifest explicitly requests
 `capabilities.walletPay`; invoices are amount-checked, rate-limited, deduplicated

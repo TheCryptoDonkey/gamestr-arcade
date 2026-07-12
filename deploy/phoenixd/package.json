@@ -1,0 +1,10 @@
+{
+  "name": "gamestr-arcade-nwc-gateway",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "light-bolt11-decoder": "3.2.0",
+    "nostr-tools": "2.23.5",
+    "ws": "8.21.0"
+  }
+}
