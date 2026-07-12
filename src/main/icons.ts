@@ -1,7 +1,5 @@
 import { join } from 'node:path'
-import { stat, mkdir, readlink, readFile, writeFile, rm } from 'node:fs/promises'
-import { spawn } from 'node:child_process'
-import { tmpdir } from 'node:os'
+import { stat } from 'node:fs/promises'
 import type { FetchUrl } from './art'
 import { extractArtUrls, fetchAndCache } from './art'
 
@@ -22,7 +20,7 @@ export interface IconDeps {
  * Resolution order:
  *   1. sibling logo.png
  *   2. logoUrl from game.json (fetch + cache)
- *   3. AppImage .DirIcon extract (native only)
+ *   3. Optional trusted-integrator .DirIcon extraction (disabled in production)
  *   4. Derived favicon/apple-touch-icon from game's web url (fetch page → extract → fetch + cache)
  *   5. placeholder
  */
@@ -143,36 +141,16 @@ export async function extractDirIconWithDeps(
   }
 }
 
-// ── Real deps ─────────────────────────────────────────────────────────────────
-
-/** Real extraction deps: Linux-only (AppImage execution requires x86-64 Linux). */
-function realExtractDeps(): ExtractDirIconDeps {
-  return {
-    makeTmpDir: async () => {
-      const work = join(tmpdir(), `arcade-icon-${Date.now()}-${Math.random().toString(36).slice(2)}`)
-      await mkdir(work, { recursive: true })
-      return work
-    },
-    spawnExtract: (appImagePath, cwd) => new Promise<void>((res, rej) => {
-      const p = spawn(appImagePath, ['--appimage-extract', '.DirIcon'], { cwd, stdio: 'ignore' })
-      p.on('error', rej)
-      p.on('exit', code => code === 0 ? res() : rej(new Error(`extract ${code}`)))
-    }),
-    readlink,
-    readFile: (p) => readFile(p),
-    writeFile: (p, data) => writeFile(p, data),
-    mkdir: async (path) => { await mkdir(path, { recursive: true }) },
-    rm: async (path) => { await rm(path, { recursive: true, force: true }) },
-  }
-}
-
 // Real deps (Linux for extractDirIcon; the rest are cross-platform).
 export const realIconDeps = (placeholderPng: string, cacheDir: string, fetchFn: FetchUrl): IconDeps => ({
   exists: async p => { try { await stat(p); return true } catch { return false } },
   mtime: async p => { try { return (await stat(p)).mtimeMs } catch { return 0 } },
   placeholder: () => placeholderPng,
-  // `<appimage> --appimage-extract .DirIcon` writes ./squashfs-root/.DirIcon (often a PNG symlink).
-  extractDirIcon: (appImagePath, outPng) => extractDirIconWithDeps(appImagePath, outPng, realExtractDeps()),
+  // Never execute an AppImage merely to inspect its icon. The AppImage project
+  // documents that its built-in extraction path runs the target runtime and is
+  // inappropriate for untrusted files. Native titles should ship logo.png or
+  // logoUrl; the deterministic placeholder covers everything else.
+  extractDirIcon: async () => false,
   fetchAndCache: (url) => fetchAndCache(url, cacheDir, fetchFn),
   fetchPage: async (url) => {
     const ac = new AbortController()

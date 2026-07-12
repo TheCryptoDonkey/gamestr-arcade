@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { resolveIcon, type IconDeps } from '../src/main/icons'
+import { realIconDeps, resolveIcon, type IconDeps } from '../src/main/icons'
 
 function deps(over: Partial<IconDeps>): IconDeps {
   return {
@@ -12,6 +12,14 @@ function deps(over: Partial<IconDeps>): IconDeps {
 }
 
 describe('resolveIcon', () => {
+  it('never executes a production AppImage merely to inspect its icon', async () => {
+    const production = realIconDeps('/placeholder.png', '/cache', async () => ({
+      ok: false,
+      contentType: '',
+      bytes: Buffer.alloc(0),
+    }))
+    await expect(production.extractDirIcon('/untrusted/game.AppImage', '/cache/game.png')).resolves.toBe(false)
+  })
   it('prefers a sibling logo.png when present', async () => {
     const out = await resolveIcon({ slug: 'a', siblingLogo: '/g/a/logo.png' }, '/cache', deps({ exists: async p => p === '/g/a/logo.png' }))
     expect(out).toBe('/g/a/logo.png')

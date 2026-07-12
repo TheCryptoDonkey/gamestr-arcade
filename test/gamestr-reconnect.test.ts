@@ -12,6 +12,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { finalizeEvent } from 'nostr-tools/pure'
 import { createGamestrProvider } from '../src/renderer/src/leaderboard/gamestr'
 import type { LeaderboardEntry } from '../src/shared/types'
 
@@ -109,25 +110,34 @@ function makeMockWsFactory() {
 // Valid 64-char hex pubkeys for test players.
 const ALICE = 'a'.repeat(64)
 const BOB   = 'b'.repeat(64)
+const SCORE_KEY = new Uint8Array(32).fill(9)
+const NOW = Math.floor(Date.now() / 1000)
 
-/** A minimal valid kind-30762 score event for gameId "game1". */
-function makeScoreEvent(subId: string, pubkey: string, playerPubkey: string, score: number, gameId: string) {
+/** A cryptographically valid score event for the requested game/schema. */
+function makeScoreEvent(
+  subId: string,
+  _pubkey: string,
+  playerPubkey: string,
+  score: number,
+  gameId: string,
+  opts: { kind?: 30762 | 5555; field?: string; createdAt?: number } = {},
+) {
+  const kind = opts.kind ?? 30762
+  const field = opts.field ?? 'score'
+  const event = finalizeEvent({
+    kind,
+    created_at: opts.createdAt ?? NOW,
+    tags: [
+      ['game', gameId],
+      ['p', playerPubkey],
+      [field, String(score)],
+    ],
+    content: '',
+  }, SCORE_KEY)
   return JSON.stringify([
     'EVENT',
     subId,
-    {
-      id: `evt-${playerPubkey.slice(0, 8)}-${score}`,
-      pubkey, // game server pubkey (any hex string is fine for isScoreEvent)
-      kind: 30762,
-      created_at: 1000,
-      tags: [
-        ['game', gameId],
-        ['p', playerPubkey],
-        ['score', String(score)],
-      ],
-      content: '',
-      sig: 'fakesig',
-    },
+    event,
   ])
 }
 
@@ -163,6 +173,76 @@ describe('createGamestrProvider — reconnect', () => {
     expect(req[0]).toBe('REQ')
     expect((req[2] as Record<string, unknown>)['#t']).toBeUndefined()
     expect((req[2] as Record<string, unknown>).kinds).toContain(30762)
+  })
+
+  it('accepts only signature-valid events', () => {
+    const provider = createGamestrProvider(['wss://relay.test'], 10)
+    const updates: LeaderboardEntry[][] = []
+    provider.subscribe('game1', top => updates.push(top))
+    const ws = wsFactory.instances[0]
+    ws.triggerOpen()
+    const subId = (JSON.parse(ws.sentMessages[0]) as [string, string])[1]
+
+    const tampered = JSON.parse(makeScoreEvent(subId, '', ALICE, 100, 'game1')) as ['EVENT', string, { tags: string[][] }]
+    tampered[2].tags.find(tag => tag[0] === 'score')![1] = '999'
+    ws.triggerMessage(JSON.stringify(tampered))
+
+    const badSignature = JSON.parse(makeScoreEvent(subId, '', ALICE, 100, 'game1')) as ['EVENT', string, { sig: string }]
+    badSignature[2].sig = '0'.repeat(128)
+    ws.triggerMessage(JSON.stringify(badSignature))
+    clock.advance(250)
+    expect(updates).toEqual([])
+
+    ws.triggerMessage(makeScoreEvent(subId, '', ALICE, 100, 'game1'))
+    clock.advance(250)
+    expect(updates.at(-1)).toEqual([expect.objectContaining({ pubkey: ALICE, score: 100 })])
+  })
+
+  it('uses only the configured score kind and schema', () => {
+    const provider = createGamestrProvider(['wss://relay.test'], 10)
+    const updates: LeaderboardEntry[][] = []
+    provider.subscribe('word5', top => updates.push(top), { kind: 5555, field: 'streak' })
+    const ws = wsFactory.instances[0]
+    ws.triggerOpen()
+    const req = JSON.parse(ws.sentMessages[0]) as [string, string, { kinds: number[] }]
+    const subId = req[1]
+    expect(req[2].kinds).toEqual([5555])
+
+    ws.triggerMessage(makeScoreEvent(subId, '', ALICE, 900, 'word5'))
+    ws.triggerMessage(makeScoreEvent(subId, '', BOB, 7, 'word5', { kind: 5555, field: 'streak' }))
+    clock.advance(250)
+
+    expect(updates.at(-1)).toEqual([expect.objectContaining({ pubkey: BOB, score: 7 })])
+  })
+
+  it('emits [] on EOSE so a healthy empty query can become synced', () => {
+    const provider = createGamestrProvider(['wss://relay.test'], 10)
+    const updates: LeaderboardEntry[][] = []
+    provider.subscribe('empty-game', top => updates.push(top))
+    const ws = wsFactory.instances[0]
+    ws.triggerOpen()
+    const subId = (JSON.parse(ws.sentMessages[0]) as [string, string])[1]
+
+    ws.triggerMessage(JSON.stringify(['EOSE', subId]))
+    clock.advance(250)
+
+    expect(updates).toEqual([[]])
+  })
+
+  it('caps retained state and keeps the newest verified score events', () => {
+    const provider = createGamestrProvider(['wss://relay.test'], 10, { maxEvents: 2 })
+    const updates: LeaderboardEntry[][] = []
+    provider.subscribe('game1', top => updates.push(top))
+    const ws = wsFactory.instances[0]
+    ws.triggerOpen()
+    const subId = (JSON.parse(ws.sentMessages[0]) as [string, string])[1]
+
+    ws.triggerMessage(makeScoreEvent(subId, '', ALICE, 10, 'game1', { createdAt: NOW - 2 }))
+    ws.triggerMessage(makeScoreEvent(subId, '', BOB, 20, 'game1', { createdAt: NOW }))
+    ws.triggerMessage(makeScoreEvent(subId, '', ALICE, 30, 'game1', { createdAt: NOW - 1 }))
+    clock.advance(250)
+
+    expect(updates.at(-1)!.map(entry => entry.score).sort((a, b) => a - b)).toEqual([20, 30])
   })
 
   it('keeps every score per player (no best-collapse) so Today can reduce', () => {

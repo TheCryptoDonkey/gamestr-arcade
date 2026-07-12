@@ -17,12 +17,14 @@ import './styles/crt.css'
 import './styles/relay-panel.css'
 import './styles/games-panel.css'
 import './styles/download-panel.css'
+import './styles/ready-panel.css'
 import { Carousel } from './ui/carousel'
 import { InputController } from './ui/input'
 import { mountLeaderboard } from './ui/leaderboard-panel'
 import { RelayPanel } from './ui/relay-panel'
 import { GamesPanel } from './ui/games-panel'
 import { DownloadPanel } from './ui/download-panel'
+import { ReadyPanel } from './ui/ready-panel'
 import { RelayStore } from './leaderboard/relay-store'
 import { ArcadeAudio } from './ui/audio'
 import { AttractMode } from './ui/attract'
@@ -64,6 +66,7 @@ function showMessage(host: HTMLElement, text: string): void {
 async function boot(): Promise<void> {
   const host = document.getElementById('app')
   if (!host) return
+  const appHost = host
 
   showMessage(host, 'GAMESTR ARCADE<span class="boot-dim">booting…</span>')
 
@@ -81,7 +84,12 @@ async function boot(): Promise<void> {
     return
   }
 
-  const carousel = new Carousel(games, host)
+  document.title = config.theme.title
+  const carousel = new Carousel(games, host, 0, {
+    title: config.theme.title,
+    wordmark: config.theme.wordmark,
+    accent: config.theme.accent,
+  })
 
   // Decorate the carousel with gamestr's live editorial flags (TRENDING / NEW).
   // Async + non-blocking: the cabinet shows instantly, badges pop in once the
@@ -152,6 +160,10 @@ async function boot(): Promise<void> {
       const currentGame = carousel.current()
       showBoard(currentGame.gameId)
     },
+    onClose: () => {
+      audio.playBack()
+      attract.start()
+    },
   })
 
   // Add-games overlay: press 'g' to open/close. Lists gamestr games the kiosk
@@ -170,27 +182,34 @@ async function boot(): Promise<void> {
       showMessage(host, 'GAME ADDED<span class="boot-dim">refreshing cabinet…</span>')
       window.setTimeout(() => window.location.reload(), 700)
     },
+    onClose: () => {
+      audio.playBack()
+      attract.start()
+    },
   })
 
   // Download-only games can't run in the kiosk — pressing play opens this panel
   // with a QR of the game's download URL so a visitor can grab it on their phone.
-  const downloadPanel = new DownloadPanel(host)
+  const downloadPanel = new DownloadPanel(host, {
+    onClose: () => {
+      audio.playBack()
+      attract.start()
+    },
+  })
   const closeDownloadPanel = (): void => {
     if (!downloadPanel.isOpen) return
     downloadPanel.close()
-    audio.playBack()
-    // Resume idle watching — the player gets the full attract period from now.
-    attract.start()
   }
 
   // ── Toast for launch errors ──────────────────────────────────────────────────
   function showErrorToast(msg: string): void {
-    const existing = host.querySelector<HTMLElement>('.launch-error-toast')
+    const existing = appHost.querySelector<HTMLElement>('.launch-error-toast')
     if (existing) existing.remove()
     const el = document.createElement('div')
     el.className = 'launch-error-toast'
+    el.setAttribute('role', 'alert')
     el.textContent = msg
-    host.appendChild(el)
+    appHost.appendChild(el)
     window.setTimeout(() => el.remove(), 5000)
   }
 
@@ -199,34 +218,44 @@ async function boot(): Promise<void> {
   // input controller routes Back/Escape to the exit path while in-game.
   let inWebGame = false
 
-  const launch = (): void => {
+  const startGame = (game: Game): void => {
     if (inWebGame || downloadPanel.isOpen) return
-    const game = carousel.current()
-    // Download-only games can't be launched in the kiosk — show the QR panel
-    // instead (works in both Electron and the browser design-preview).
-    if (game.downloadOnly) {
-      audio.playSelect()
-      attract.stop() // freeze the carousel behind the modal
-      downloadPanel.open(game)
-      return
-    }
     audio.playSelect()
+    attract.stop()
     if (inElectron) {
       void window.arcade.launch(game.id)
-      if (game.kind === 'web') {
-        inWebGame = true
-        // Pause attract while the web game is active so the overlay and carousel
-        // auto-advance don't fire behind the game. Native games hide the shell
-        // window entirely so attract is already visually suppressed, but we also
-        // stop it for native to ensure no carousel drift if the player alt-tabs.
-        attract.stop()
-      }
+      if (game.kind === 'web') inWebGame = true
     } else {
       // No-op in the browser preview; pulse the CTA so the press is visible.
       host.classList.add('cta-fired')
-      window.setTimeout(() => host.classList.remove('cta-fired'), 320)
+      window.setTimeout(() => {
+        host.classList.remove('cta-fired')
+        attract.start()
+      }, 320)
     }
   }
+
+  const readyPanel = new ReadyPanel(host, {
+    onConfirm: startGame,
+    onCancel: () => {
+      audio.playBack()
+      attract.start()
+    },
+  })
+
+  const requestLaunch = (game = carousel.current()): void => {
+    if (inWebGame || downloadPanel.isOpen || gamesPanel.isOpen || relayPanel.isOpen) return
+    // Download-only titles keep their direct take-home QR path.
+    if (game.downloadOnly) {
+      audio.playSelect()
+      attract.stop()
+      downloadPanel.open(game)
+      return
+    }
+    attract.stop()
+    readyPanel.open(game)
+  }
+  carousel.onActivate(requestLaunch)
 
   const backFromGame = (): void => {
     if (!inElectron || !inWebGame) {
@@ -241,10 +270,27 @@ async function boot(): Promise<void> {
   // pick + add a game with the gamepad (or keyboard) — a kiosk has no usable mouse
   // cursor. up/left → previous row, down/right → next, Ⓐ/Enter → ADD, Ⓑ/Start/Esc → close.
   const input = new InputController({
-    onPrev: () => { if (gamesPanel.isOpen) gamesPanel.moveSelection(-1); else if (!downloadPanel.isOpen) carousel.prev() },
-    onNext: () => { if (gamesPanel.isOpen) gamesPanel.moveSelection(1); else if (!downloadPanel.isOpen) carousel.next() },
-    onLaunch: () => { if (gamesPanel.isOpen) { gamesPanel.activateSelected(); return } if (downloadPanel.isOpen) return; launch() },
-    onBack: () => { if (gamesPanel.isOpen) { gamesPanel.close(); return } if (downloadPanel.isOpen) { closeDownloadPanel(); return } backFromGame() },
+    onPrev: () => {
+      if (gamesPanel.isOpen) gamesPanel.moveSelection(-1)
+      else if (!readyPanel.isOpen && !downloadPanel.isOpen && !relayPanel.isOpen) carousel.prev()
+    },
+    onNext: () => {
+      if (gamesPanel.isOpen) gamesPanel.moveSelection(1)
+      else if (!readyPanel.isOpen && !downloadPanel.isOpen && !relayPanel.isOpen) carousel.next()
+    },
+    onLaunch: () => {
+      if (gamesPanel.isOpen) { gamesPanel.activateSelected(); return }
+      if (readyPanel.isOpen) { readyPanel.confirm(); return }
+      if (downloadPanel.isOpen || relayPanel.isOpen) return
+      requestLaunch()
+    },
+    onBack: () => {
+      if (readyPanel.isOpen) { readyPanel.close(); return }
+      if (relayPanel.isOpen) { relayPanel.close(); return }
+      if (gamesPanel.isOpen) { gamesPanel.close(); return }
+      if (downloadPanel.isOpen) { closeDownloadPanel(); return }
+      backFromGame()
+    },
     onActivity: () => {
       // First real input resumes the audio context (browser autoplay gate).
       audio.resume()
@@ -271,9 +317,26 @@ async function boot(): Promise<void> {
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
     if (e.key === 'c' || e.key === 'C') crt.toggle()
     else if (e.key === 'm' || e.key === 'M') audio.toggleMute()
-    else if (e.key === 'r' || e.key === 'R') relayPanel.toggle()
-    else if (e.key === 'g' || e.key === 'G') gamesPanel.toggle()
-    else if (e.key === 'Escape') { relayPanel.close(); gamesPanel.close(); closeDownloadPanel() }
+    else if (e.key === 'r' || e.key === 'R') {
+      readyPanel.close(false)
+      gamesPanel.close()
+      closeDownloadPanel()
+      relayPanel.toggle()
+      if (relayPanel.isOpen) attract.stop(); else attract.start()
+    }
+    else if (e.key === 'g' || e.key === 'G') {
+      readyPanel.close(false)
+      relayPanel.close()
+      closeDownloadPanel()
+      gamesPanel.toggle()
+      if (gamesPanel.isOpen) attract.stop(); else attract.start()
+    }
+    else if (e.key === 'Escape') {
+      readyPanel.close()
+      relayPanel.close()
+      gamesPanel.close()
+      closeDownloadPanel()
+    }
   })
 
   // Returning from a launched game re-focuses the carousel and resumes attract.
@@ -286,7 +349,11 @@ async function boot(): Promise<void> {
       carousel.refocus()
       host.focus()
     })
-    window.arcade.onError(msg => showErrorToast(msg))
+    window.arcade.onError(msg => {
+      inWebGame = false
+      attract.start()
+      showErrorToast(msg)
+    })
   }
 
   // Expose tiny hooks so design-verification scripts can drive the cabinet
@@ -300,7 +367,13 @@ async function boot(): Promise<void> {
       __relayPanel: relayPanel,
       __relayStore: relayStore,
       __downloadPanel: downloadPanel,
+      __readyPanel: readyPanel,
     })
+    // Deterministic visual-QA route used by screenshots and accessibility checks.
+    // It exists only in the browser preview; production Electron never reads it.
+    if (new URLSearchParams(window.location.search).get('panel') === 'ready') {
+      window.setTimeout(() => requestLaunch(), 0)
+    }
   }
 }
 

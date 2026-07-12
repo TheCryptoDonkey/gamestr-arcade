@@ -35,7 +35,10 @@ const TAGLINE_MAX = 140
 
 /** Build the `game.json` contents for a gamestr catalogue entry. */
 export function gameJsonFor(entry: GamestrCatalogueEntry): Record<string, unknown> {
+  let playOrigin: string | undefined
+  try { playOrigin = new URL(entry.url).origin } catch { /* scanner will report invalid URL */ }
   const json: Record<string, unknown> = {
+    manifestVersion: 2,
     name: entry.name,
     url: entry.url,
     gameId: entry.slug,
@@ -44,7 +47,13 @@ export function gameJsonFor(entry: GamestrCatalogueEntry): Record<string, unknow
     order: 900,
     // Provenance marker so it's clear these were auto-imported from gamestr.
     source: 'gamestr',
+    network: 'required',
+    // Gamestr titles commonly use NIP-07 for guest score publication. This is a
+    // requested capability only; the isolated session broker remains authoritative.
+    capabilities: { nostrSign: true, walletPay: false },
   }
+  if (playOrigin) json.allowedOrigins = [playOrigin]
+  if (entry.developer) json.developer = entry.developer
   if (entry.description) {
     json.tagline =
       entry.description.length > TAGLINE_MAX

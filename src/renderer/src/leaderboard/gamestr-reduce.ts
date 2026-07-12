@@ -4,6 +4,8 @@ export interface ScoreEvent {
   id: string; pubkey: string; kind: number; created_at: number; content: string; tags: string[][]; sig: string
 }
 
+export type SupportedScoreKind = 30762 | 5555
+
 export interface ParsedAnyScore {
   gameId: string
   entry: LeaderboardEntry
@@ -11,33 +13,112 @@ export interface ParsedAnyScore {
 
 export type Period = 'today' | 'all'
 
-export function isScoreEvent(v: unknown): v is ScoreEvent {
-  if (typeof v !== 'object' || v === null) return false
-  const e = v as Record<string, unknown>
-  // 30762 = gamestr's documented score kind; 5555 = Other Stuff's native game
-  // score (word5 etc.), which gamestr also reads.
-  return (e.kind === 30762 || e.kind === 5555) && typeof e.id === 'string'
-    && typeof e.pubkey === 'string' && typeof e.created_at === 'number' && Array.isArray(e.tags)
+const MIN_NOSTR_TIMESTAMP_SEC = 1_577_836_800 // 2020-01-01
+const MAX_FUTURE_SKEW_SEC = 10 * 60
+const MAX_EVENT_CONTENT_CHARS = 64 * 1024
+const MAX_EVENT_TAGS = 64
+const MAX_TAG_PARTS = 16
+const MAX_TAG_PART_CHARS = 2_048
+
+/** Reject impossible/poisoned relay timestamps while tolerating ordinary clock skew. */
+export function isReasonableEventTimestamp(
+  createdAt: number,
+  nowSec = Math.floor(Date.now() / 1000),
+): boolean {
+  return Number.isSafeInteger(createdAt)
+    && createdAt >= MIN_NOSTR_TIMESTAMP_SEC
+    && createdAt <= nowSec + MAX_FUTURE_SKEW_SEC
 }
 
-function tagValue(tags: string[][], name: string): string | undefined {
-  for (const t of tags) if (t[0] === name && typeof t[1] === 'string') return t[1]
-  return undefined
+/**
+ * Cheap structural validation performed before the more expensive Schnorr
+ * verification at the WebSocket boundary.
+ */
+export function isScoreEvent(
+  v: unknown,
+  expectedKind?: SupportedScoreKind,
+  nowSec = Math.floor(Date.now() / 1000),
+): v is ScoreEvent {
+  if (typeof v !== 'object' || v === null) return false
+  const e = v as Record<string, unknown>
+  const kind = e.kind
+  if (kind !== 30762 && kind !== 5555) return false
+  if (expectedKind !== undefined && kind !== expectedKind) return false
+  if (typeof e.id !== 'string' || !/^[0-9a-f]{64}$/.test(e.id)) return false
+  if (typeof e.pubkey !== 'string' || !/^[0-9a-f]{64}$/.test(e.pubkey)) return false
+  if (typeof e.sig !== 'string' || !/^[0-9a-f]{128}$/.test(e.sig)) return false
+  if (typeof e.content !== 'string' || e.content.length > MAX_EVENT_CONTENT_CHARS) return false
+  if (typeof e.created_at !== 'number' || !isReasonableEventTimestamp(e.created_at, nowSec)) return false
+  if (!Array.isArray(e.tags) || e.tags.length > MAX_EVENT_TAGS) return false
+  return e.tags.every(tag => Array.isArray(tag)
+    && tag.length <= MAX_TAG_PARTS
+    && tag.every(part => typeof part === 'string' && part.length <= MAX_TAG_PART_CHARS))
+}
+
+interface SingleTag {
+  valid: boolean
+  value?: string
+}
+
+/** Duplicate scalar tags are ambiguous and therefore rejected. */
+function singleTagValue(tags: string[][], name: string): SingleTag {
+  let value: string | undefined
+  for (const tag of tags) {
+    if (tag[0] !== name) continue
+    if (typeof tag[1] !== 'string' || value !== undefined) return { valid: false }
+    value = tag[1]
+  }
+  return { valid: true, value }
 }
 
 function hasTagValue(tags: string[][], name: string, value: string): boolean {
   return tags.some(t => t[0] === name && t[1] === value)
 }
 
+function parseNonNegativeInteger(raw: string | undefined): number | null {
+  if (raw === undefined || !/^\d+$/.test(raw)) return null
+  const value = Number(raw)
+  return Number.isSafeInteger(value) && value >= 0 ? value : null
+}
+
+function parsePlayer(tags: string[][], fallback: string): string | null {
+  const tagged = singleTagValue(tags, 'p')
+  if (!tagged.valid) return null
+  const pubkey = tagged.value ?? fallback
+  return /^[0-9a-f]{64}$/i.test(pubkey) ? pubkey.toLowerCase() : null
+}
+
+function parseSats(tags: string[][]): number | null {
+  const tagged = singleTagValue(tags, 'sats')
+  if (!tagged.valid) return null
+  return tagged.value === undefined ? 0 : parseNonNegativeInteger(tagged.value)
+}
+
+function parseGameId(tags: string[][]): string | null {
+  const tagged = singleTagValue(tags, 'game')
+  if (!tagged.valid || tagged.value === undefined) return null
+  const gameId = tagged.value
+  return gameId.length > 0 && gameId.length <= 256 && gameId.trim() === gameId ? gameId : null
+}
+
+/** Extract the canonical game bucket from a structurally valid score event. */
+export function scoreGameId(e: ScoreEvent): string | null {
+  return isReasonableEventTimestamp(e.created_at) ? parseGameId(e.tags) : null
+}
+
 /** Port of pallasite/src/score.ts `consider`: game match, not cheated, score>0, player from `p` or pubkey. */
 export function parseScoreEvent(e: ScoreEvent, gameId: string): LeaderboardEntry | null {
-  if (!hasTagValue(e.tags, 'game', gameId)) return null
+  if (e.kind !== 30762 || !isReasonableEventTimestamp(e.created_at)) return null
+  if (parseGameId(e.tags) !== gameId) return null
   if (hasTagValue(e.tags, 'cheated', 'true')) return null
-  const score = parseInt(tagValue(e.tags, 'score') ?? '', 10)
-  if (!Number.isFinite(score) || score <= 0) return null
-  const pubkey = tagValue(e.tags, 'p') ?? e.pubkey
-  if (!/^[0-9a-f]{64}$/i.test(pubkey)) return null
-  return { pubkey, score, sats: Math.max(0, parseInt(tagValue(e.tags, 'sats') ?? '0', 10) || 0), at: e.created_at }
+  const scoreTag = singleTagValue(e.tags, 'score')
+  if (!scoreTag.valid) return null
+  const score = parseNonNegativeInteger(scoreTag.value)
+  if (score === null || score <= 0) return null
+  const pubkey = parsePlayer(e.tags, e.pubkey)
+  const sats = parseSats(e.tags)
+  if (!pubkey || sats === null) return null
+  return { pubkey, score, sats, at: e.created_at }
 }
 
 /**
@@ -47,17 +128,21 @@ export function parseScoreEvent(e: ScoreEvent, gameId: string): LeaderboardEntry
  * parseScoreEvent retains score > 0 for backwards compatibility with existing tests).
  */
 export function parseAnyScoreEvent(e: ScoreEvent): ParsedAnyScore | null {
-  const gameId = tagValue(e.tags, 'game')
+  if (e.kind !== 30762 || !isReasonableEventTimestamp(e.created_at)) return null
+  const gameId = parseGameId(e.tags)
   if (!gameId) return null
   if (hasTagValue(e.tags, 'cheated', 'true')) return null
-  const score = parseInt(tagValue(e.tags, 'score') ?? '', 10)
-  if (!Number.isFinite(score) || score < 0) return null
-  const pubkey = tagValue(e.tags, 'p') ?? e.pubkey
-  if (!/^[0-9a-f]{64}$/i.test(pubkey)) return null
+  const scoreTag = singleTagValue(e.tags, 'score')
+  if (!scoreTag.valid) return null
+  const score = parseNonNegativeInteger(scoreTag.value)
+  if (score === null) return null
+  const pubkey = parsePlayer(e.tags, e.pubkey)
+  const sats = parseSats(e.tags)
+  if (!pubkey || sats === null) return null
   const entry: LeaderboardEntry = {
     pubkey,
     score,
-    sats: Math.max(0, parseInt(tagValue(e.tags, 'sats') ?? '0', 10) || 0),
+    sats,
     at: e.created_at,
   }
   return { gameId, entry }
@@ -70,12 +155,16 @@ export function parseAnyScoreEvent(e: ScoreEvent): ParsedAnyScore | null {
  * tag in this schema.
  */
 export function parse5555Event(e: ScoreEvent, gameId: string, field: string): LeaderboardEntry | null {
-  if (!hasTagValue(e.tags, 'game', gameId)) return null
-  const score = parseInt(tagValue(e.tags, field) ?? '', 10)
-  if (!Number.isFinite(score) || score < 0) return null
-  const pubkey = tagValue(e.tags, 'p') ?? e.pubkey
-  if (!/^[0-9a-f]{64}$/i.test(pubkey)) return null
-  return { pubkey, score, sats: Math.max(0, parseInt(tagValue(e.tags, 'sats') ?? '0', 10) || 0), at: e.created_at }
+  if (e.kind !== 5555 || !isReasonableEventTimestamp(e.created_at)) return null
+  if (!field || field.length > 64 || parseGameId(e.tags) !== gameId) return null
+  const scoreTag = singleTagValue(e.tags, field)
+  if (!scoreTag.valid) return null
+  const score = parseNonNegativeInteger(scoreTag.value)
+  if (score === null) return null
+  const pubkey = parsePlayer(e.tags, e.pubkey)
+  const sats = parseSats(e.tags)
+  if (!pubkey || sats === null) return null
+  return { pubkey, score, sats, at: e.created_at }
 }
 
 /**

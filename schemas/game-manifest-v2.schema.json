@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gamestr.dev/schemas/game-manifest-v2.schema.json",
+  "title": "Gamestr Arcade Game Manifest v2",
+  "type": "object",
+  "$defs": {
+    "secureWebUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^(https://|http://(localhost|127\\.0\\.0\\.1|\\[::1\\])([:/]|$))"
+    }
+  },
+  "required": ["manifestVersion", "name", "gameId"],
+  "properties": {
+    "manifestVersion": { "const": 2 },
+    "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "tagline": { "type": "string", "maxLength": 140 },
+    "description": { "type": "string", "maxLength": 1200 },
+    "developer": { "type": "string", "maxLength": 100 },
+    "genres": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 32 },
+      "uniqueItems": true,
+      "maxItems": 8
+    },
+    "url": { "$ref": "#/$defs/secureWebUrl" },
+    "exec": { "type": "string", "minLength": 1 },
+    "args": { "type": "array", "items": { "type": "string" }, "maxItems": 32 },
+    "gameId": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "order": { "type": "number" },
+    "accent": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+    "logoUrl": { "$ref": "#/$defs/secureWebUrl" },
+    "heroUrl": { "$ref": "#/$defs/secureWebUrl" },
+    "textLogo": { "type": "boolean" },
+    "downloadOnly": { "type": "boolean" },
+    "downloadUrl": { "$ref": "#/$defs/secureWebUrl" },
+    "inputModes": {
+      "type": "array",
+      "items": { "enum": ["gamepad", "keyboard", "pointer", "touch"] },
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "controlHints": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 80 },
+      "maxItems": 8
+    },
+    "controls": {
+      "type": "object",
+      "properties": {
+        "up": { "type": "string" },
+        "down": { "type": "string" },
+        "left": { "type": "string" },
+        "right": { "type": "string" },
+        "fire": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "sessionMinutes": { "type": "integer", "minimum": 1, "maximum": 1440 },
+    "players": {
+      "type": "object",
+      "required": ["min", "max"],
+      "properties": {
+        "min": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "max": { "type": "integer", "minimum": 1, "maximum": 64 }
+      },
+      "additionalProperties": false
+    },
+    "network": { "enum": ["required", "optional", "offline"] },
+    "ageRating": { "type": "string", "maxLength": 32 },
+    "allowedOrigins": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/secureWebUrl" },
+      "uniqueItems": true,
+      "maxItems": 12
+    },
+    "capabilities": {
+      "type": "object",
+      "properties": {
+        "nostrSign": { "type": "boolean" },
+        "walletPay": { "type": "boolean" },
+        "persistentStorage": { "type": "boolean" },
+        "externalNavigation": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "rewardRules": {
+      "type": "object",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "label": { "type": "string", "maxLength": 120 }
+      },
+      "additionalProperties": false
+    },
+    "tHints": { "type": "array", "items": { "type": "string" } },
+    "scoreKind": { "type": "integer" },
+    "scoreField": { "type": "string" },
+    "scoreDir": { "enum": ["asc", "desc"] },
+    "source": { "type": "string" }
+  },
+  "anyOf": [
+    { "required": ["url"] },
+    { "required": ["exec"] }
+  ],
+  "additionalProperties": false
+}

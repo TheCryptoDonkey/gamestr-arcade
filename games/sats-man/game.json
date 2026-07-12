@@ -1,8 +1,13 @@
 {
+  "manifestVersion": 2,
   "name": "Sats-Man",
   "tagline": "Bitcoin-themed Pac-Man arcade on Nostr",
   "url": "https://sats-man.com/",
   "gameId": "sats-man",
   "order": 5,
-  "accent": "#eab308"
+  "accent": "#eab308",
+  "inputModes": ["gamepad", "keyboard"],
+  "network": "required",
+  "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
+  "allowedOrigins": ["https://sats-man.com"]
 }

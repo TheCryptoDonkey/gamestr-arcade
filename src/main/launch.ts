@@ -13,7 +13,7 @@
  * logic path only; actual execution is unverified on macOS.
  */
 
-import type { Game, GameControls } from '../shared/types'
+import type { Game } from '../shared/types'
 
 // ── Deps interface ────────────────────────────────────────────────────────────
 
@@ -49,8 +49,8 @@ export interface LaunchDeps {
   notifyReturned(): void
   /** Notify the renderer of a launch error with a human-readable message. */
   notifyError(msg: string): void
-  /** Load `url` into the web view (creates it if needed). Send `controls` to the preload after load. */
-  loadWeb(url: string, controls?: GameControls): void
+  /** Load a web game into a fresh policy-bound view. */
+  loadWeb(game: Game): void
   /** Close the web view and reveal the shell. */
   closeWeb(): void
   /** Current time in ms (injectable so crash-cooldown timing is testable). */
@@ -109,6 +109,14 @@ export class Launcher {
   launch(game: Game): boolean {
     if (this.running) return false
 
+    // Renderer readiness is presentation, not authority. Direct IPC callers
+    // must not bypass scanner validation for missing/invalid launch targets.
+    if (game.available === false) {
+      const reason = game.availabilityReason ? ` ${game.availabilityReason}` : ''
+      this.deps.notifyError(`Game "${game.name}" is unavailable.${reason}`)
+      return false
+    }
+
     // Crash cooldown: if this game just crashed on launch, refuse to relaunch it
     // for a while so a held button can't loop the booth. Drop silently — the
     // crash was already reported once; spamming the error on every press is worse.
@@ -133,8 +141,16 @@ export class Launcher {
       return false
     }
     this.running = true
-    this.launchWeb(game, url)
-    return true
+    try {
+      this.launchWeb(game, url)
+      return true
+    } catch (err) {
+      this.running = false
+      this.deps.closeWeb()
+      const message = err instanceof Error ? err.message : String(err)
+      this.deps.notifyError(`Failed to launch web game "${game.name}": ${message}`)
+      return false
+    }
   }
 
   /**
@@ -227,7 +243,9 @@ export class Launcher {
   }
 
   private launchWeb(game: Game, url: string): void {
-    this.deps.loadWeb(url, game.controls)
+    // `url` was validated by launch(); retain the full Game so main can apply
+    // manifest origins and capabilities when constructing the isolated session.
+    this.deps.loadWeb({ ...game, url })
     // The shell stays visible; the web view is layered on top.
     // back() returns control to the grid.
   }

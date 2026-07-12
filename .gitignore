@@ -4,6 +4,7 @@ dist/
 release/
 .DS_Store
 *.AppImage
+*.tsbuildinfo
 
 # Track booth tile metadata only — art is fetched from URLs and cached at runtime.
 # Existing committed sibling art still works (sibling wins in resolution order).

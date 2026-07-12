@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
-import { hexToNpub, shortenNpub, avatarSeed, avatarGradient, avatarCss } from '../src/renderer/src/leaderboard/profiles'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { finalizeEvent, getPublicKey } from 'nostr-tools/pure'
+import { hexToNpub, shortenNpub, avatarSeed, avatarGradient, avatarCss, resolveProfiles } from '../src/renderer/src/leaderboard/profiles'
 
 // A known Nostr pubkey ↔ npub pair (fiatjaf) pins the bech32 encoder.
 const FIATJAF_HEX = '3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d'
@@ -80,5 +81,89 @@ describe('avatarGradient', () => {
     const css = avatarCss(FIATJAF_HEX)
     expect(css).toMatch(/^linear-gradient\(\d+deg, hsl\(\d+ 85% 58%\), hsl\(\d+ 80% 42%\)\)$/)
     expect(avatarCss(FIATJAF_HEX)).toBe(css)
+  })
+})
+
+describe('resolveProfiles trust boundary', () => {
+  interface MockWsInstance {
+    sentMessages: string[]
+    onopen: (() => void) | null
+    onmessage: ((event: { data: string }) => void) | null
+    triggerOpen(): void
+    triggerMessage(data: string): void
+  }
+
+  function installMockWebSocket(): MockWsInstance[] {
+    const instances: MockWsInstance[] = []
+    class MockWebSocket {
+      sentMessages: string[] = []
+      onopen: (() => void) | null = null
+      onmessage: ((event: { data: string }) => void) | null = null
+      onerror: (() => void) | null = null
+      constructor(_url: string) { instances.push(this) }
+      send(message: string) { this.sentMessages.push(message) }
+      close() {}
+      triggerOpen() { this.onopen?.() }
+      triggerMessage(data: string) { this.onmessage?.({ data }) }
+    }
+    vi.stubGlobal('WebSocket', MockWebSocket as unknown as typeof WebSocket)
+    return instances
+  }
+
+  const AUTHOR_KEY = new Uint8Array(32).fill(11)
+  const OTHER_KEY = new Uint8Array(32).fill(12)
+  const AUTHOR = getPublicKey(AUTHOR_KEY)
+  const NOW = Math.floor(Date.now() / 1000)
+
+  function profileMessage(subId: string, key: Uint8Array, content: Record<string, unknown>, createdAt = NOW): string {
+    const event = finalizeEvent({
+      kind: 0,
+      created_at: createdAt,
+      content: JSON.stringify(content),
+      tags: [],
+    }, key)
+    return JSON.stringify(['EVENT', subId, event])
+  }
+
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('resolves a requested author only after ID and signature verification', () => {
+    const sockets = installMockWebSocket()
+    const resolved: Array<[string, { name?: string }]> = []
+    const dispose = resolveProfiles(['wss://relay.test'], [AUTHOR], (pubkey, profile) => {
+      resolved.push([pubkey, profile])
+    })
+    const ws = sockets[0]
+    ws.triggerOpen()
+    const subId = (JSON.parse(ws.sentMessages[0]) as [string, string])[1]
+
+    // A correctly signed but unsolicited author is outside the requested set.
+    ws.triggerMessage(profileMessage(subId, OTHER_KEY, { name: 'Mallory' }))
+
+    // Mutating signed content leaves a well-shaped event with an invalid ID/signature.
+    const tampered = JSON.parse(profileMessage(subId, AUTHOR_KEY, { name: 'Alice' })) as ['EVENT', string, { content: string }]
+    tampered[2].content = JSON.stringify({ name: 'Forged Alice' })
+    ws.triggerMessage(JSON.stringify(tampered))
+
+    const badSignature = JSON.parse(profileMessage(subId, AUTHOR_KEY, { name: 'Alice' })) as ['EVENT', string, { sig: string }]
+    badSignature[2].sig = '0'.repeat(128)
+    ws.triggerMessage(JSON.stringify(badSignature))
+    expect(resolved).toEqual([])
+
+    ws.triggerMessage(profileMessage(subId, AUTHOR_KEY, { display_name: 'Alice' }))
+    expect(resolved).toEqual([[AUTHOR, { name: 'Alice', picture: undefined }]])
+    dispose()
+  })
+
+  it('rejects a signed kind-0 with an unreasonable future timestamp', () => {
+    const sockets = installMockWebSocket()
+    const resolved: string[] = []
+    resolveProfiles(['wss://relay.test'], [AUTHOR], pubkey => resolved.push(pubkey))
+    const ws = sockets[0]
+    ws.triggerOpen()
+    const subId = (JSON.parse(ws.sentMessages[0]) as [string, string])[1]
+
+    ws.triggerMessage(profileMessage(subId, AUTHOR_KEY, { name: 'Future Alice' }, NOW + 3_600))
+    expect(resolved).toEqual([])
   })
 })

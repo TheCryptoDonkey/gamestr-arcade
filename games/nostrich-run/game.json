@@ -1,8 +1,13 @@
 {
+  "manifestVersion": 2,
   "name": "Nostrich Run",
   "tagline": "Endless runner with the Nostr mascot — how far can you go?",
   "url": "https://nostrichrun.whitepaperinteractive.com/",
   "gameId": "nostrich-run",
   "order": 16,
-  "accent": "#a855f7"
+  "accent": "#a855f7",
+  "inputModes": ["gamepad", "keyboard"],
+  "network": "required",
+  "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
+  "allowedOrigins": ["https://nostrichrun.whitepaperinteractive.com"]
 }

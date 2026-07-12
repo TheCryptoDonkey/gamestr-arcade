@@ -8,7 +8,7 @@
 
 import { createHash } from 'node:crypto'
 import { join } from 'node:path'
-import { stat, readFile, writeFile, mkdir } from 'node:fs/promises'
+import { stat, writeFile, mkdir } from 'node:fs/promises'
 
 // ── HTML art extraction ───────────────────────────────────────────────────────
 

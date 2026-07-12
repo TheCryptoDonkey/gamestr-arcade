@@ -15,21 +15,27 @@ games/
     README.md     ← optional: operator notes
 ```
 
-Files tracked by git: `game.json`, `logo.png`, `hero.png`, `hero.mp4`, `README.md`.
-AppImages and other binaries are git-ignored — place them on the booth machine directly
+Files tracked by git: `game.json` and `README.md`. Generated/downloaded art and
+AppImages are git-ignored — place them on the booth machine directly
 or point at them via the `exec` field in `game.json`.
 
 ## game.json fields
 
-| Field     | Type   | Description |
-|-----------|--------|-------------|
-| `name`    | string | Display name |
-| `tagline` | string | One-line description shown on the hero |
-| `gameId`  | string | Leaderboard key (kind-30762 `game` tag value) |
-| `order`   | number | Sort order in the carousel (lower = earlier) |
-| `accent`  | string | CSS hex colour used for glow, CRT tint, etc. |
-| `exec`    | string | Path to an AppImage (absolute, or relative to the tile folder). Superseded by a loose `*.AppImage` in the folder if one is present. |
-| `url`     | string | URL to load in kiosk web-frame mode (used when no AppImage / `exec`). |
+Use manifest v2 for new games. Its machine-readable contract is
+[`../schemas/game-manifest-v2.schema.json`](../schemas/game-manifest-v2.schema.json).
+Important fields include:
+
+| Field | Description |
+|-------|-------------|
+| `manifestVersion` | Set to `2` for the readiness and capability contract |
+| `name`, `tagline`, `description`, `developer`, `genres` | Player-facing metadata |
+| `gameId` | Leaderboard key (kind-30762 `game` tag value) |
+| `exec`, `url` | Native launch plus optional playable web fallback |
+| `inputModes`, `controlHints`, `players`, `sessionMinutes` | Pre-launch play instructions |
+| `network` | `required`, `optional`, or `offline` readiness status |
+| `capabilities` | Requested Nostr, wallet, storage and navigation access; not a grant |
+| `allowedOrigins` | Explicit web-session navigation allowlist |
+| `order`, `accent` | Catalogue ordering and cabinet theming |
 
 ## Mode tiles (future — AxeNStax example)
 

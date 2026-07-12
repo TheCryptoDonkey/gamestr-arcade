@@ -1,8 +1,13 @@
 {
+  "manifestVersion": 2,
   "name": "AxeNStax",
   "tagline": "Mine your Genesis Block — voxel proof-of-work",
   "url": "https://play.axenstax.com/",
   "gameId": "axenstax",
   "order": 2,
-  "accent": "#f5a623"
+  "accent": "#f5a623",
+  "inputModes": ["gamepad", "keyboard"],
+  "network": "required",
+  "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
+  "allowedOrigins": ["https://play.axenstax.com"]
 }

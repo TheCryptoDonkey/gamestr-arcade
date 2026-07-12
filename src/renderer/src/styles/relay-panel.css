@@ -118,7 +118,7 @@
 
 .rp-head-inner {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.7rem;
 }
 
@@ -148,12 +148,33 @@
   margin: 0;
 }
 
-.rp-shortcut {
+.rp-close {
   font-family: var(--mono, monospace);
   font-size: 0.6rem;
   letter-spacing: 0.2em;
   color: color-mix(in srgb, var(--accent, #7cf3ff) 45%, transparent);
+  min-height: 2.75rem;
+  padding: 0 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--accent, #7cf3ff) 24%, transparent);
+  border-radius: 0.3rem;
+  background: rgba(124, 243, 255, 0.04);
+  cursor: pointer;
   white-space: nowrap;
+}
+
+.rp-close:hover,
+.rp-close:focus-visible {
+  color: var(--accent, #7cf3ff);
+  border-color: color-mix(in srgb, var(--accent, #7cf3ff) 65%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent, #7cf3ff) 25%, transparent);
+  outline: none;
+}
+
+.rp-toggle:focus-visible,
+.rp-remove:focus-visible,
+.rp-add-btn:focus-visible {
+  outline: 2px solid var(--accent, #7cf3ff);
+  outline-offset: 3px;
 }
 
 /* Hairline separator with a faint CRT phosphor glow. */

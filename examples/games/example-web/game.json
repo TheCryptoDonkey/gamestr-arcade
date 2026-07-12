@@ -1,8 +1,21 @@
 {
+  "manifestVersion": 2,
   "url":     "https://example.com/my-game",
   "name":    "Example Web Game",
   "tagline": "A demo web game loaded in an overlay",
   "gameId":  "example-web",
   "accent":  "#ff6a00",
+  "inputModes": ["gamepad", "keyboard"],
+  "controlHints": ["D-PAD = MOVE", "Ⓐ = ACTION"],
+  "players": { "min": 1, "max": 1 },
+  "sessionMinutes": 5,
+  "network": "required",
+  "capabilities": {
+    "nostrSign": false,
+    "walletPay": false,
+    "persistentStorage": false,
+    "externalNavigation": false
+  },
+  "allowedOrigins": ["https://example.com"],
   "order":   99
 }

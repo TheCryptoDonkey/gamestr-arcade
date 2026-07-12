@@ -22,5 +22,6 @@ extraResources:
 linux:
   target: [AppImage]
   category: Game
+  syncDesktopName: true
   icon: resources/icon.png
   artifactName: gamestr-arcade-${version}-${arch}.AppImage

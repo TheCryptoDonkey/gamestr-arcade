@@ -1,8 +1,13 @@
 {
+  "manifestVersion": 2,
   "name": "Hang On, Fren",
   "tagline": "Riviera Vespa racer — ten regions, one finish line",
   "gameId": "hangonfren",
   "order": 4,
   "accent": "#ffd76b",
-  "url": "https://hang-on-fren.playechoseven.com/"
+  "url": "https://hang-on-fren.playechoseven.com/",
+  "inputModes": ["gamepad", "keyboard"],
+  "network": "required",
+  "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
+  "allowedOrigins": ["https://hang-on-fren.playechoseven.com"]
 }

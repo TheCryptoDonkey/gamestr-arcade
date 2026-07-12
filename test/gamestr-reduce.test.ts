@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { parseScoreEvent, collapseToBest, parseAnyScoreEvent, parse5555Event, boardFor, type ScoreEvent } from '../src/renderer/src/leaderboard/gamestr-reduce'
+import { finalizeEvent } from 'nostr-tools/pure'
+import { parseScoreEvent, collapseToBest, parseAnyScoreEvent, parse5555Event, boardFor, isScoreEvent, type ScoreEvent } from '../src/renderer/src/leaderboard/gamestr-reduce'
 
 const P1 = 'a'.repeat(64), P2 = 'b'.repeat(64), P3 = 'c'.repeat(64), GAME = 'g'.repeat(64)
+const NOW = Math.floor(Date.now() / 1000)
 function ev(over: Partial<ScoreEvent>): ScoreEvent {
-  return { id: 'i', pubkey: GAME, kind: 30762, created_at: 100, content: '', sig: 's',
+  return { id: 'i', pubkey: GAME, kind: 30762, created_at: NOW, content: '', sig: 's',
     tags: [['game', 'pallasite'], ['p', P1], ['score', '500']], ...over }
 }
 
@@ -20,6 +22,38 @@ describe('parseScoreEvent', () => {
   it('falls back to event.pubkey when no p tag', () => {
     const e = parseScoreEvent(ev({ pubkey: P2, tags: [['game', 'pallasite'], ['score', '10']] }), 'pallasite')!
     expect(e.pubkey).toBe(P2)
+  })
+  it('rejects fractional, suffixed, unsafe, duplicate, and malformed sats values', () => {
+    for (const score of ['1.5', '12pts', '9007199254740992']) {
+      expect(parseScoreEvent(ev({ tags: [['game', 'pallasite'], ['p', P1], ['score', score]] }), 'pallasite')).toBeNull()
+    }
+    expect(parseScoreEvent(ev({ tags: [['game', 'pallasite'], ['score', '1'], ['score', '2']] }), 'pallasite')).toBeNull()
+    expect(parseScoreEvent(ev({ tags: [['game', 'pallasite'], ['score', '1'], ['sats', '-2']] }), 'pallasite')).toBeNull()
+  })
+  it('rejects the wrong schema kind and unreasonable timestamps', () => {
+    expect(parseScoreEvent(ev({ kind: 5555 }), 'pallasite')).toBeNull()
+    expect(parseScoreEvent(ev({ created_at: 1 }), 'pallasite')).toBeNull()
+    expect(parseScoreEvent(ev({ created_at: NOW + 3_600 }), 'pallasite')).toBeNull()
+  })
+})
+
+describe('isScoreEvent', () => {
+  const signed = finalizeEvent({
+    kind: 30762,
+    created_at: NOW,
+    content: '',
+    tags: [['game', 'pallasite'], ['score', '10']],
+  }, new Uint8Array(32).fill(1))
+
+  it('accepts a well-formed signed event only for the expected kind', () => {
+    expect(isScoreEvent(signed, 30762, NOW)).toBe(true)
+    expect(isScoreEvent(signed, 5555, NOW)).toBe(false)
+  })
+
+  it('rejects malformed IDs/signatures and future timestamps before crypto work', () => {
+    expect(isScoreEvent({ ...signed, id: 'bad' }, 30762, NOW)).toBe(false)
+    expect(isScoreEvent({ ...signed, sig: 'bad' }, 30762, NOW)).toBe(false)
+    expect(isScoreEvent({ ...signed, created_at: NOW + 601 }, 30762, NOW)).toBe(false)
   })
 })
 
@@ -129,7 +163,7 @@ describe('boardFor', () => {
 describe('parse5555Event (Other Stuff schema)', () => {
   function ev5555(over: Partial<ScoreEvent>): ScoreEvent {
     return {
-      id: 'i', pubkey: P1, kind: 5555, created_at: 100, content: '', sig: 's',
+      id: 'i', pubkey: P1, kind: 5555, created_at: NOW, content: '', sig: 's',
       tags: [['game', 'word5'], ['t', 'word5'], ['streak', '7'], ['maxStreak', '14']],
       ...over,
     }

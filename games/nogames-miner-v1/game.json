@@ -1,4 +1,5 @@
 {
+  "manifestVersion": 2,
   "name": "Miner",
   "tagline": "Gold Miner — time your grab for the big haul",
   "url": "https://npub1n0games63frevnx3llju3sypf2q4streuwzgr4wwd2y5hlqa5c9s29nfk3.nsite.lol/game/naddr1qvzqqqyp7vpzpx73mhnp4zj8jexdrll9erqgzj5ptqk8ncuys82uu65ff07pmfstqqyx66twv4ez6a33wmgevg",
@@ -7,5 +8,9 @@
   "accent": "#eab308",
   "heroUrl": "https://cdn.hzrd149.com/a4e13e0101d63ca405d6f38b5d69f30de5ddec58aeb803276f03730c25be5cce.svg",
   "textLogo": true,
-  "source": "gamestr"
+  "source": "gamestr",
+  "inputModes": ["gamepad", "keyboard"],
+  "network": "required",
+  "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
+  "allowedOrigins": ["https://npub1n0games63frevnx3llju3sypf2q4streuwzgr4wwd2y5hlqa5c9s29nfk3.nsite.lol"]
 }

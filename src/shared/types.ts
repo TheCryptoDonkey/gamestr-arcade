@@ -14,6 +14,30 @@ export interface GameControls {
   fire?: string
 }
 
+/** Player-facing input families declared by a v2 game manifest. */
+export type GameInputMode = 'gamepad' | 'keyboard' | 'pointer' | 'touch'
+
+/** How much of a game remains usable when the cabinet loses connectivity. */
+export type GameNetworkMode = 'required' | 'optional' | 'offline'
+
+/**
+ * Capabilities a game may request from the arcade session.
+ *
+ * These are declarations, not grants: the main-process session broker remains
+ * the authority and may deny a capability even when it is listed here.
+ */
+export interface GameCapabilities {
+  nostrSign?: boolean
+  walletPay?: boolean
+  persistentStorage?: boolean
+  externalNavigation?: boolean
+}
+
+export interface GameRewardRules {
+  enabled: boolean
+  label?: string
+}
+
 export interface Game {
   id: string            // stable slug (folder or filename)
   name: string
@@ -37,6 +61,25 @@ export interface Game {
   accent?: string       // hex colour
   sounds?: { music?: string; voice?: string }
   controls?: GameControls  // gamepad→keyboard overrides for this game
+  /** Versioned manifest metadata. Missing means the legacy v1 folder contract. */
+  manifestVersion?: number
+  developer?: string
+  description?: string
+  genres?: string[]
+  inputModes?: GameInputMode[]
+  /** Concise player-facing instructions, unlike `tHints` (relay filter hints). */
+  controlHints?: string[]
+  sessionMinutes?: number
+  players?: { min: number; max: number }
+  network?: GameNetworkMode
+  ageRating?: string
+  capabilities?: GameCapabilities
+  rewardRules?: GameRewardRules
+  /** Additional origins a web game may navigate to during an isolated session. */
+  allowedOrigins?: string[]
+  /** Scanner readiness result. Omitted by old fixtures means ready. */
+  available?: boolean
+  availabilityReason?: string
   order: number
   // Leaderboard scoring. Most games omit these (kind-30762 `score` tag, higher
   // is better). Other Stuff games (word5, unicornvssnakes) score via kind 5555
@@ -125,6 +168,14 @@ export interface WebLNConfig {
    * Defaults to 100 sats.
    */
   maxSats?: number
+  /**
+   * Maximum cumulative amount reserved for one launched web-game session.
+   * Defaults to five times `maxSats`. Pending/ambiguous payments count against
+   * the budget so a timeout cannot be used to bypass the ceiling.
+   */
+  sessionBudgetSats?: number
+  /** Maximum number of distinct payment attempts accepted per rolling minute. */
+  maxPaymentsPerMinute?: number
 }
 
 export interface ArcadeConfig {

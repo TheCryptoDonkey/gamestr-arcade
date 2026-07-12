@@ -16,6 +16,9 @@
  * resolver) so the pure helpers import cleanly in a Node test environment.
  */
 
+import { verifyEvent } from 'nostr-tools/pure'
+import { isReasonableEventTimestamp } from './gamestr-reduce'
+
 // ── bech32 (npub) encoding — minimal, npub-only ───────────────────────────────
 // BIP-173 / NIP-19. Just enough to render `npub1…` from a 32-byte hex pubkey.
 
@@ -147,36 +150,55 @@ export interface Profile {
 export type ProfileMap = Map<string, Profile>
 
 interface Kind0Event {
+  id: string
   kind: number
   pubkey: string
   created_at: number
   content: string
+  tags: string[][]
+  sig: string
 }
 
 function isKind0(v: unknown): v is Kind0Event {
   if (typeof v !== 'object' || v === null) return false
   const e = v as Record<string, unknown>
-  return e.kind === 0 && typeof e.pubkey === 'string' && typeof e.created_at === 'number' && typeof e.content === 'string'
+  return e.kind === 0
+    && typeof e.id === 'string' && /^[0-9a-f]{64}$/.test(e.id)
+    && typeof e.pubkey === 'string' && /^[0-9a-f]{64}$/.test(e.pubkey)
+    && typeof e.sig === 'string' && /^[0-9a-f]{128}$/.test(e.sig)
+    && typeof e.created_at === 'number' && isReasonableEventTimestamp(e.created_at)
+    && typeof e.content === 'string' && e.content.length <= 64 * 1024
+    && Array.isArray(e.tags) && e.tags.length <= 64
+    && e.tags.every(tag => Array.isArray(tag)
+      && tag.length <= 16
+      && tag.every(part => typeof part === 'string' && part.length <= 2_048))
 }
 
 /** Sanitise a raw picture string: must be an http(s) URL. Absent if not. */
 function sanitisePicture(raw: unknown): string | undefined {
   if (typeof raw !== 'string') return undefined
   const trimmed = raw.trim()
-  if (!trimmed) return undefined
-  // Only accept http / https — reject ipfs, data, nostr, etc.
-  return /^https?:\/\/.+/.test(trimmed) ? trimmed : undefined
+  if (!trimmed || trimmed.length > 2_048) return undefined
+  try {
+    const url = new URL(trimmed)
+    // Only accept http / https — reject ipfs, data, nostr, etc.
+    return (url.protocol === 'http:' || url.protocol === 'https:') ? url.href : undefined
+  } catch {
+    return undefined
+  }
 }
 
 function parseProfileContent(content: string): Profile | null {
   try {
     const o = JSON.parse(content) as Record<string, unknown>
-    const name = typeof o.display_name === 'string' && o.display_name.trim()
+    if (typeof o !== 'object' || o === null || Array.isArray(o)) return null
+    const rawName = typeof o.display_name === 'string' && o.display_name.trim()
       ? o.display_name
       : typeof o.name === 'string' ? o.name : undefined
+    const name = rawName?.trim().slice(0, 80) || undefined
     const picture = sanitisePicture(o.picture)
     if (!name && !picture) return null
-    return { name: name?.trim() || undefined, picture }
+    return { name, picture }
   } catch {
     return null
   }
@@ -208,8 +230,10 @@ export function resolveProfiles(
   pubkeys: string[],
   onResolve: (pubkey: string, profile: Profile) => void,
 ): () => void {
-  const authors = Array.from(new Set(pubkeys)).filter(p => /^[0-9a-f]{64}$/i.test(p))
+  const authors = Array.from(new Set(pubkeys.map(p => p.toLowerCase())))
+    .filter(p => /^[0-9a-f]{64}$/.test(p))
   if (relays.length === 0 || authors.length === 0) return () => {}
+  const requestedAuthors = new Set(authors)
 
   const sockets: WebSocket[] = []
   const newestAt = new Map<string, number>()
@@ -253,6 +277,10 @@ export function resolveProfiles(
       }
       if (msg[0] !== 'EVENT' || !isKind0(msg[2])) return
       const e = msg[2]
+      // A malicious relay may ignore the authors filter; never surface an
+      // unsolicited profile into the requested board.
+      if (!requestedAuthors.has(e.pubkey)) return
+      if (!verifyEvent(e)) return
       const prev = newestAt.get(e.pubkey)
       if (prev !== undefined && prev >= e.created_at) return
       const profile = parseProfileContent(e.content)

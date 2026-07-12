@@ -6,11 +6,15 @@
  */
 
 import { app, BrowserWindow, globalShortcut, ipcMain, net, protocol, WebContentsView } from 'electron'
+import type { IpcMainInvokeEvent, WebContents } from 'electron'
 import { chmod, mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { spawn as nodeSpawn, spawnSync } from 'node:child_process'
+import { randomUUID } from 'node:crypto'
 import { is } from '@electron-toolkit/utils'
+import { NostrWebLNProvider } from '@getalby/sdk'
+import { finalizeEvent, generateSecretKey, getPublicKey } from 'nostr-tools/pure'
 import { buildGamesList, isPathAllowed, mediaUrlToPath, MEDIA_SCHEME } from './games'
 import { fetchGamestrCatalogue } from './gamestr-catalogue'
 import type { CatalogueDeps } from './gamestr-catalogue'
@@ -22,19 +26,30 @@ import { DEFAULT_CONFIG, parseConfig } from './config'
 import { Launcher } from './launch'
 import type { LaunchDeps } from './launch'
 import { GamepadExitWatcher, realExitWatcherDeps } from './gamepad-exit'
-import type { ArcadeConfig, Game, GameControls, GamestrCatalogueResult, GamestrImportResult, WebLNConfig } from '../shared/types'
+import { PaymentPolicyError, paymentPolicyFromConfig, SessionPaymentBroker } from './payment-broker'
+import { resolveStartupGamesDir, resolveStartupKiosk } from './startup-policy'
+import {
+  allowedOriginsForGame,
+  grantsForGame,
+  isAllowedWebNavigation,
+  normaliseWebOrigin,
+  parseGuestNostrTemplate,
+  publicArcadeConfig,
+  type WebSessionGrants,
+} from './web-session-policy'
+import type { ArcadeConfig, Game, GamestrCatalogueResult, GamestrImportResult, WebLNConfig } from '../shared/types'
 
 // GPU flags: keep the hardware path active on booth hardware.
 app.commandLine.appendSwitch('ignore-gpu-blocklist')
 app.commandLine.appendSwitch('enable-gpu-rasterization')
 app.commandLine.appendSwitch('enable-zero-copy')
 
-const kioskMode = process.env.ARCADE_KIOSK !== '0'
+let kioskMode = DEFAULT_CONFIG.kiosk
+let activeGamesDir: string | null = null
 
-// Allow autoplay in kiosk mode so attract-mode audio starts without a gesture.
-if (kioskMode) {
-  app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
-}
+// Web-game/attract audio needs this command-line switch before async config can
+// be read. It is harmless in the windowed development shell.
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
 
 // ── Media protocol ────────────────────────────────────────────────────────────
 // Must be registered BEFORE app ready.
@@ -47,13 +62,6 @@ protocol.registerSchemesAsPrivileged([
     privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true },
   },
 ])
-
-// ── Games dir resolution ──────────────────────────────────────────────────────
-function resolveGamesDir(): string {
-  if (process.env.ARCADE_GAMES_DIR) return resolve(process.env.ARCADE_GAMES_DIR)
-  const base = is.dev ? app.getAppPath() : process.resourcesPath
-  return join(base, 'games')
-}
 
 // ── Config resolution ───────────────────────────────────────────────────────
 // `arcade.config.json` lives at the app root (project root in dev, resources in
@@ -92,9 +100,24 @@ let cachedGames: Game[] | null = null
 let buildingGames: Promise<Game[]> | null = null
 
 // ── Web-game view ─────────────────────────────────────────────────────────────
-// A `WebContentsView` layered over the shell window when a web game is running.
-// Created on first web launch, reused thereafter.
+// Every launch gets a new WebContentsView, in-memory partition, guest signer and
+// wallet budget. Nothing privileged or persistent is reused between players.
 let webView: WebContentsView | null = null
+
+type WalletPaymentResult = Awaited<ReturnType<NostrWebLNProvider['sendPayment']>>
+
+interface ActiveWebSession {
+  view: WebContentsView
+  partition: string
+  allowedOrigins: Set<string>
+  grants: WebSessionGrants
+  nostrSecret: Uint8Array | null
+  walletProvider: NostrWebLNProvider | null
+  walletEnabled: Promise<void> | null
+  paymentBroker: SessionPaymentBroker<WalletPaymentResult> | null
+}
+
+let activeWebSession: ActiveWebSession | null = null
 
 /** Lay out `webView` to cover the full window client area. */
 function sizeWebView(): void {
@@ -103,37 +126,130 @@ function sizeWebView(): void {
   webView.setBounds({ x: 0, y: 0, width: w, height: h })
 }
 
-/** Create the web view and attach it to `win`. Called at most once. */
-function ensureWebView(): WebContentsView {
-  if (webView) return webView
+/**
+ * Forward gamepad diagnostic console lines (prefixed `[gp`) from a renderer / web
+ * view to the main process stdout → journald. Renderer console output otherwise
+ * never reaches the booth journal. TEMPORARY (plan Phase 2A — controller
+ * intermittency diagnosis); remove with the renderer-side logging in Phase 2D.
+ * Filtered to `[gp` so third-party game-page console spam isn't echoed.
+ */
+function wireGamepadConsole(wc: WebContents, tag: string): void {
+  wc.on('console-message', (_event, _level, message) => {
+    if (typeof message === 'string' && message.startsWith('[gp')) {
+      console.log(`[arcade][${tag}] ${message}`)
+    }
+  })
+}
 
-  if (!win) throw new Error('ensureWebView called before window exists')
+/** Tear down the current untrusted renderer and every launch-scoped authority. */
+function destroyWebSession(): void {
+  const current = activeWebSession
+  activeWebSession = null
+  webView = null
+  if (!current) return
 
-  // The webgame preload polls gamepads and sends game:back when the player
-  // presses a menu/back button or Escape — bridging the focus gap where the
-  // launcher's renderer is backgrounded and cannot poll navigator.getGamepads().
-  // sandbox: false is required so the preload can use ipcRenderer.send.
-  // contextIsolation: true ensures the third-party game page cannot reach the
-  // preload's scope.
-  webView = new WebContentsView({
+  current.paymentBroker?.close()
+  current.walletProvider?.close()
+  win?.removeListener('resize', sizeWebView)
+
+  const { webContents } = current.view
+  const isolatedSession = webContents.session
+  try { win?.contentView.removeChildView(current.view) } catch { /* already detached */ }
+  // Unique non-persistent partitions are never reused, and best-effort clearing
+  // prevents their storage/cache from accumulating until application exit.
+  void isolatedSession.clearStorageData().catch(() => {})
+  void isolatedSession.clearCache().catch(() => {})
+  if (!webContents.isDestroyed()) webContents.close({ waitForBeforeUnload: false })
+}
+
+/** Create and attach one fresh, manifest-bound web-game session. */
+function createWebSession(game: Game): ActiveWebSession {
+  if (!win) throw new Error('createWebSession called before window exists')
+  if (!game.url) throw new Error('createWebSession called without a game URL')
+  destroyWebSession()
+
+  const allowedOrigins = allowedOriginsForGame(game)
+  if (allowedOrigins.size === 0) throw new Error(`Web game "${game.name}" has no safe http(s) launch origin`)
+  const grants = grantsForGame(game, cachedWebLN !== null && cachedWebLN !== undefined)
+  const partition = `gamestr-web-${randomUUID()}`
+  const view = new WebContentsView({
     webPreferences: {
       preload: join(__dirname, '../preload/webgame.mjs'),
-      sandbox: false,
+      partition,
+      sandbox: true,
       contextIsolation: true,
       nodeIntegration: false,
+      webviewTag: false,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
+      safeDialogs: true,
+      spellcheck: false,
     },
   })
 
-  win.contentView.addChildView(webView)
-  sizeWebView()
+  const session: ActiveWebSession = {
+    view,
+    partition,
+    allowedOrigins,
+    grants,
+    nostrSecret: grants.nostrSign ? generateSecretKey() : null,
+    walletProvider: null,
+    walletEnabled: null,
+    paymentBroker: null,
+  }
 
-  // Resize the overlay whenever the window resizes.
+  if (grants.walletPay && cachedWebLN) {
+    const walletConfig = cachedWebLN
+    session.paymentBroker = new SessionPaymentBroker(paymentPolicyFromConfig(walletConfig), {
+      async payInvoice(invoice) {
+        if (!session.walletProvider) {
+          session.walletProvider = new NostrWebLNProvider({ nostrWalletConnectUrl: walletConfig.nwc })
+        }
+        if (!session.walletEnabled) session.walletEnabled = session.walletProvider.enable()
+        await session.walletEnabled
+        const result = await session.walletProvider.sendPayment(invoice)
+        const { reservedSats, distinctPayments } = session.paymentBroker?.snapshot()
+          ?? { reservedSats: 0, distinctPayments: 0 }
+        console.error(`[arcade] wallet payment settled — session reserved=${reservedSats} sats, payments=${distinctPayments}`)
+        return result
+      },
+    })
+  }
+
+  activeWebSession = session
+  webView = view
+  wireGamepadConsole(view.webContents, 'webview')
+
+  // This partition belongs to only this view, so deny every privileged browser
+  // permission by default without affecting the trusted shell session.
+  const isolatedSession = view.webContents.session
+  isolatedSession.setPermissionCheckHandler(() => false)
+  isolatedSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false))
+  isolatedSession.on('will-download', event => event.preventDefault())
+
+  view.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+  view.webContents.on('will-frame-navigate', event => {
+    if (!isAllowedWebNavigation(event.url, allowedOrigins)) {
+      console.warn(`[arcade] blocked web-game navigation to ${event.url}`)
+      event.preventDefault()
+    }
+  })
+  view.webContents.on('will-redirect', event => {
+    if (!isAllowedWebNavigation(event.url, allowedOrigins)) {
+      console.warn(`[arcade] blocked web-game redirect to ${event.url}`)
+      event.preventDefault()
+    }
+  })
+
+  win.contentView.addChildView(view)
+  sizeWebView()
   win.on('resize', sizeWebView)
 
   // Navigation failure: route through the same path as a normal return so
   // launcher.running is reset, Escape is unregistered, and the shell is shown.
-  webView.webContents.on('did-fail-load', (_e, code, desc, url, isMain) => {
+  view.webContents.on('did-fail-load', (_e, code, desc, url, isMain) => {
     if (!isMain) return // ignore sub-frame failures
+    if (activeWebSession?.view !== view) return
     console.error(`[arcade] web game load failed: ${code} ${desc} ${url}`)
     // Surface a brief error toast to the renderer BEFORE back() so it is
     // already queued when the shell comes back into focus.
@@ -143,15 +259,31 @@ function ensureWebView(): WebContentsView {
     launcher.back()
   })
 
-  return webView
+  return session
 }
 
 /**
- * Cached WebLN config from the last `loadConfig()` call — used by `loadWeb` to
- * push the NWC credentials into the web-game preload on each launch.
- * Set to `null` until the config is first loaded.
+ * Cached wallet config stays in main. `config:get` strips it and web-game
+ * preloads receive only boolean capability grants.
  */
 let cachedWebLN: WebLNConfig | null | undefined = null
+
+/** Bind privileged IPC to the active view's main frame and manifest origins. */
+function requireWebSession(event: IpcMainInvokeEvent): ActiveWebSession {
+  const session = activeWebSession
+  if (!session || event.sender !== session.view.webContents || event.sender.isDestroyed()) {
+    throw new Error('web-game session is not active')
+  }
+  const senderFrame = event.senderFrame
+  if (!senderFrame || senderFrame !== event.sender.mainFrame) {
+    throw new Error('privileged web-game IPC is restricted to the main frame')
+  }
+  const origin = normaliseWebOrigin(senderFrame.url)
+  if (!origin || !session.allowedOrigins.has(origin)) {
+    throw new Error('web-game origin is not allowed for this session')
+  }
+  return session
+}
 
 /** Transient systemd unit name for the currently-running native game (one at a time). */
 const GAME_UNIT = 'gamestr-arcade-game'
@@ -208,6 +340,14 @@ function buildLaunchDeps(): LaunchDeps {
       // the fallback when systemd-run isn't available (non-systemd hosts / dev).
       const useUnit = hasSystemdRun()
       const env = systemdEnv()
+      // AppImage games (e.g. Pallasite) run from a FUSE squashfs mount by default.
+      // Under the transient unit that mount becomes unusable when Electron's
+      // network-service child re-execs `/proc/self/exe`, faulting the mmap'd
+      // squashfs → SIGBUS core dump (confirmed via coredumpctl: the crashed process
+      // was `/tmp/.mount_Pallas*/pallasite-desktop`). APPIMAGE_EXTRACT_AND_RUN makes
+      // the AppImage extract to real files and run those — no FUSE mount to lose, and
+      // `/proc/self/exe` re-exec works. The unit inherits the systemd *manager* env,
+      // not ours, so it must be injected with `--setenv`, not via the `env` below.
       let child: ReturnType<typeof nodeSpawn>
       if (useUnit) {
         // Clear any leftover unit from a prior game before reusing the name.
@@ -217,11 +357,11 @@ function buildLaunchDeps(): LaunchDeps {
         // so onExit fires at the right time; --collect garbage-collects the unit.
         child = nodeSpawn(
           SYSTEMD_RUN,
-          ['--user', '--wait', '--collect', '--quiet', '--unit', GAME_UNIT, '--', exec, ...args],
+          ['--user', '--wait', '--collect', '--quiet', '--setenv=APPIMAGE_EXTRACT_AND_RUN=1', '--unit', GAME_UNIT, '--', exec, ...args],
           { detached: false, env },
         )
       } else {
-        child = nodeSpawn(exec, args, { detached: false })
+        child = nodeSpawn(exec, args, { detached: false, env: { ...process.env, APPIMAGE_EXTRACT_AND_RUN: '1' } })
       }
       let killTimer: ReturnType<typeof setTimeout> | null = null
       return {
@@ -268,8 +408,8 @@ function buildLaunchDeps(): LaunchDeps {
     showShell() {
       if (!win) return
       win.show()
-      win.setFullScreen(true)
-      if (kioskMode) win.setKiosk(true)
+      win.setFullScreen(kioskMode)
+      win.setKiosk(kioskMode)
       win.focus()
     },
 
@@ -287,23 +427,19 @@ function buildLaunchDeps(): LaunchDeps {
       win?.webContents.send('game:error', msg)
     },
 
-    loadWeb(url, controls?: GameControls) {
-      const view = ensureWebView()
+    loadWeb(game) {
+      const session = createWebSession(game)
+      const view = session.view
+      const url = game.url!
       sizeWebView()
 
       // Send the resolved controls mapping to the webgame preload once the page
       // has finished loading (and again on any subsequent reload so remaps take
       // effect). The preload merges the per-game overrides with DEFAULT_CONTROLS.
-      // Also send the WebLN config if the booth has an NWC wallet configured —
-      // the preload uses it to inject `window.webln` into the game page.
-      const sendControls = () => {
-        view.webContents.send('arcade:controls', controls ?? {})
-        if (cachedWebLN) {
-          view.webContents.send('arcade:webln', {
-            nwc: cachedWebLN.nwc,
-            maxSats: cachedWebLN.maxSats ?? 100,
-          })
-        }
+      // Capability grants contain no secrets or wallet policy values.
+      const sendSessionSetup = () => {
+        view.webContents.send('arcade:controls', game.controls ?? {})
+        view.webContents.send('arcade:session-grants', session.grants)
         // Kiosk-ify the game page (runs in the page's main world, so it bypasses
         // CSP and overrides the page's own globals):
         //   - neutralise native alert/confirm/prompt — the gamepad cursor can't
@@ -321,9 +457,7 @@ function buildLaunchDeps(): LaunchDeps {
           )
           .catch(() => {})
       }
-      // Remove any previous listener to avoid accumulation across launches.
-      view.webContents.removeAllListeners('did-finish-load')
-      view.webContents.on('did-finish-load', sendControls)
+      view.webContents.on('did-finish-load', sendSessionSetup)
 
       view.webContents.loadURL(url).catch(err => {
         console.error(`[arcade] loadURL error: ${err}`)
@@ -337,10 +471,7 @@ function buildLaunchDeps(): LaunchDeps {
     },
 
     closeWeb() {
-      if (webView && win) {
-        win.contentView.removeChildView(webView)
-        webView.webContents.loadURL('about:blank').catch(() => {})
-      }
+      destroyWebSession()
     },
 
     now: () => Date.now(),
@@ -388,7 +519,7 @@ let launcher: Launcher
 
 function createWindow(): void {
   win = new BrowserWindow({
-    fullscreen: true,
+    fullscreen: kioskMode,
     kiosk: kioskMode,
     backgroundColor: '#05070f',
     autoHideMenuBar: true,
@@ -399,6 +530,9 @@ function createWindow(): void {
     },
   })
 
+  wireGamepadConsole(win.webContents, 'menu')
+
+  win.on('close', destroyWebSession)
   win.on('closed', () => {
     win = null
   })
@@ -412,10 +546,20 @@ function createWindow(): void {
 }
 
 app.whenReady().then(async () => {
-  const gamesDir = resolveGamesDir()
+  // Directory and window mode are restart-scoped. Reloadable config:get calls
+  // below may refresh theme/wallet values but always report these effective
+  // startup values until the process restarts.
+  const startupConfig = await loadConfig()
+  kioskMode = resolveStartupKiosk(startupConfig.kiosk, process.env.ARCADE_KIOSK)
+  const gamesDir = resolveStartupGamesDir(
+    resolveConfigPath(),
+    startupConfig.gamesDir,
+    process.env.ARCADE_GAMES_DIR,
+  )
+  activeGamesDir = gamesDir
   const cacheDir = join(app.getPath('userData'), 'icon-cache')
-  // App resources dir (holds the bundled placeholder icon used for every
-  // AppImage game where `.DirIcon` extraction cannot run — e.g. on macOS dev).
+  // App resources dir (holds the deterministic placeholder icon used when a
+  // game ships no sibling/remote logo; AppImages are never executed for art).
   const resourcesDir = resolve(app.getAppPath(), 'resources')
 
   // Roots the media protocol is permitted to serve from.
@@ -450,7 +594,12 @@ app.whenReady().then(async () => {
   ipcMain.handle('config:get', async () => {
     const config = await loadConfig()
     console.log(`[arcade] config: leaderboard=${config.leaderboard.provider}, crt=${config.theme.crt}`)
-    return config
+    // Wallet credentials and spend policy are main-process-only.
+    return publicArcadeConfig({
+      ...config,
+      gamesDir: activeGamesDir ?? gamesDir,
+      kiosk: kioskMode,
+    })
   })
 
   ipcMain.handle('games:list', async () => {
@@ -534,6 +683,8 @@ app.whenReady().then(async () => {
   })
 
   ipcMain.handle('game:launch', async (_event, id: string) => {
+    // Do not depend on the renderer having requested its sanitized config first.
+    if (cachedWebLN === undefined) await loadConfig()
     // Resolve the game from the cache; rebuild if not yet populated.
     // Guard against re-entrancy: two rapid presses share a single in-flight scan.
     if (!cachedGames) {
@@ -561,6 +712,43 @@ app.whenReady().then(async () => {
     if (started) registerForceBack()
   })
 
+  // Privileged web-game APIs are resolved in main and bound to the currently
+  // active WebContents/main-frame origin. The preload receives no wallet URL or
+  // private key material.
+  ipcMain.handle('webgame:wallet:pay', async (event, invoice: unknown) => {
+    const session = requireWebSession(event)
+    if (!session.grants.walletPay || !session.paymentBroker) {
+      throw new Error('wallet payment capability is not granted for this game')
+    }
+    try {
+      return await session.paymentBroker.pay(invoice)
+    } catch (err) {
+      // Policy codes are safe for game UX; provider errors can contain relay or
+      // connection details, so never serialize their messages across IPC.
+      if (err instanceof PaymentPolicyError) throw new Error(`wallet request refused (${err.code})`)
+      console.error('[arcade] wallet provider request failed')
+      throw new Error('wallet payment failed')
+    }
+  })
+
+  ipcMain.handle('webgame:nostr:get-public-key', event => {
+    const session = requireWebSession(event)
+    if (!session.grants.nostrSign || !session.nostrSecret) {
+      throw new Error('Nostr signing capability is not granted for this game')
+    }
+    return getPublicKey(session.nostrSecret)
+  })
+
+  ipcMain.handle('webgame:nostr:sign-event', (event, rawTemplate: unknown) => {
+    const session = requireWebSession(event)
+    if (!session.grants.nostrSign || !session.nostrSecret) {
+      throw new Error('Nostr signing capability is not granted for this game')
+    }
+    const template = parseGuestNostrTemplate(rawTemplate)
+    if (!template) throw new Error('Nostr event template is malformed or outside session limits')
+    return finalizeEvent(template, session.nostrSecret)
+  })
+
   // Invoked by the shell renderer's preload (ipcRenderer.invoke).
   ipcMain.handle('game:back', () => {
     launcher.back()
@@ -569,15 +757,8 @@ app.whenReady().then(async () => {
   // Sent (fire-and-forget) by the web-game preload (ipcRenderer.send).
   // Using ipcMain.on so it works even if the sender is a WebContentsView
   // rather than the main BrowserWindow renderer.
-  ipcMain.on('game:back', () => {
-    launcher.back()
-  })
-
-  // Audit log: the web-game preload fires this after every successful NWC
-  // auto-payment so the operator can reconcile the booth wallet spend.
-  // console.error routes to the systemd journal on the deployed kiosk.
-  ipcMain.on('webln:paid', (_event, info: { amountSats: number; result: unknown }) => {
-    console.error(`[arcade] webln:paid — ${info.amountSats} sats | result: ${JSON.stringify(info.result)}`)
+  ipcMain.on('game:back', event => {
+    if (activeWebSession && event.sender === activeWebSession.view.webContents) launcher.back()
   })
 
   createWindow()
@@ -608,6 +789,7 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', () => app.quit())
 
 app.on('will-quit', () => {
+  destroyWebSession()
   globalShortcut.unregisterAll()
   localServer?.close()
 })

@@ -93,7 +93,7 @@
 
 /* ── Header ──────────────────────────────────────────────────────────────── */
 .gp-head { flex: 0 0 auto; padding: 1.1rem 1.4rem 0; }
-.gp-head-inner { display: flex; align-items: baseline; gap: 0.7rem; }
+.gp-head-inner { display: flex; align-items: center; gap: 0.7rem; }
 
 .gp-cursor {
   font-size: 1.3rem;
@@ -118,12 +118,31 @@
   margin: 0;
 }
 
-.gp-shortcut {
+.gp-close {
   font-family: var(--mono, monospace);
   font-size: 0.6rem;
   letter-spacing: 0.2em;
   color: color-mix(in srgb, var(--accent, #7cf3ff) 45%, transparent);
+  min-height: 2.75rem;
+  padding: 0 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--accent, #7cf3ff) 24%, transparent);
+  border-radius: 0.3rem;
+  background: rgba(124, 243, 255, 0.04);
+  cursor: pointer;
   white-space: nowrap;
+}
+
+.gp-close:hover,
+.gp-close:focus-visible {
+  color: var(--accent, #7cf3ff);
+  border-color: color-mix(in srgb, var(--accent, #7cf3ff) 65%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent, #7cf3ff) 25%, transparent);
+  outline: none;
+}
+
+.gp-add:focus-visible {
+  outline: 2px solid var(--accent, #7cf3ff);
+  outline-offset: 3px;
 }
 
 .gp-scanline-bar {

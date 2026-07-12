@@ -1,10 +1,25 @@
 {
+  "manifestVersion": 2,
   "name": "Space Zappers",
   "tagline": "Zap the alien invaders — Space Invaders on Nostr",
+  "description": "A fast, Nostr-native alien-blasting arcade challenge.",
+  "genres": ["arcade", "shooter"],
   "url": "https://www.spacezappers.com/",
   "gameId": "space-zappers",
   "order": 11,
   "accent": "#06b6d4",
+  "inputModes": ["gamepad", "keyboard"],
+  "controlHints": ["LEFT STICK / D-PAD = MOVE", "Ⓐ / SPACE = FIRE", "MENU / ESC = RETURN TO ARCADE"],
+  "sessionMinutes": 4,
+  "players": { "min": 1, "max": 1 },
+  "network": "required",
+  "capabilities": {
+    "nostrSign": true,
+    "walletPay": false,
+    "persistentStorage": true,
+    "externalNavigation": false
+  },
+  "allowedOrigins": ["https://www.spacezappers.com"],
   "controls": {
     "up": "ArrowUp",
     "down": "ArrowDown",

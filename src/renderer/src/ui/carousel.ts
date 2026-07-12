@@ -17,6 +17,12 @@ import { gsap } from 'gsap'
 import type { Game } from '../../../shared/types'
 import { CarouselModel, type SelectionListener } from './carousel-model'
 
+export interface CarouselOptions {
+  title?: string
+  wordmark?: string
+  accent?: string
+}
+
 /**
  * How many neighbours to show either side of the active tile in the filmstrip.
  * Capped at runtime so a small library (e.g. 5 games) never shows duplicate
@@ -110,6 +116,7 @@ function motifBackground(accent: string): string {
 export class Carousel {
   private readonly model: CarouselModel
   private readonly host: HTMLElement
+  private readonly options: Required<CarouselOptions>
 
   // Foreground (content) refs.
   private heroA!: HTMLElement
@@ -120,6 +127,7 @@ export class Carousel {
   private nameEl!: HTMLElement
   private taglineEl!: HTMLElement
   private ctaTextEl!: HTMLElement
+  private ctaEl!: HTMLButtonElement
   private ribbonEl!: HTMLElement
   private indexEl!: HTMLElement
   private badgesEl!: HTMLElement
@@ -127,6 +135,7 @@ export class Carousel {
   private dotsEl!: HTMLElement
 
   private readonly external = new Set<SelectionListener>()
+  private readonly activationListeners = new Set<(game: Game) => void>()
   private activeTl: gsap.core.Timeline | null = null
 
   /**
@@ -141,9 +150,14 @@ export class Carousel {
    */
   private readonly trimmedLogo = new Map<string, LogoInfo | null>()
 
-  constructor(games: readonly Game[], host: HTMLElement, startIndex = 0) {
+  constructor(games: readonly Game[], host: HTMLElement, startIndex = 0, options: CarouselOptions = {}) {
     this.model = new CarouselModel(games, startIndex)
     this.host = host
+    this.options = {
+      title: options.title || 'gamestr arcade',
+      wordmark: options.wordmark || options.title || 'gamestr arcade',
+      accent: options.accent || '#7cf3ff',
+    }
     this.build()
     // Internal subscription drives the DOM; direction is derived from index delta.
     this.renderImmediate(this.model.current(), this.model.currentIndex)
@@ -178,6 +192,12 @@ export class Carousel {
     return () => this.external.delete(listener)
   }
 
+  /** Subscribe to pointer/touch activation of the selected game. */
+  onActivate(listener: (game: Game) => void): () => void {
+    this.activationListeners.add(listener)
+    return () => this.activationListeners.delete(listener)
+  }
+
   /**
    * Re-render the current game in place (no animation).
    * Called when returning from a web game — the overlay is gone but the carousel
@@ -203,7 +223,7 @@ export class Carousel {
         <header class="topbar">
           <div class="brand">
             <span class="brand-mark"></span>
-            <span class="brand-word">GAMESTR<span class="brand-word-dim">ARCADE</span></span>
+            <span class="brand-word"></span>
           </div>
           <div class="topbar-index"></div>
         </header>
@@ -215,16 +235,16 @@ export class Carousel {
             <div class="logo-slot"></div>
             <h1 class="game-name"></h1>
             <p class="game-tagline"></p>
-            <div class="cta">
+            <button class="cta" type="button">
               <span class="cta-key">⏎</span>
               <span class="cta-text">PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;TO&nbsp;PLAY</span>
-            </div>
+            </button>
           </div>
         </section>
 
-        <nav class="filmstrip-wrap">
+        <nav class="filmstrip-wrap" aria-label="Game catalogue">
           <div class="filmstrip"></div>
-          <div class="dots"></div>
+          <div class="dots" aria-label="Jump to game"></div>
         </nav>
       </div>
     `
@@ -235,6 +255,7 @@ export class Carousel {
     this.logoEl = this.q('.logo-slot')
     this.nameEl = this.q('.game-name')
     this.taglineEl = this.q('.game-tagline')
+    this.ctaEl = this.q<HTMLButtonElement>('.cta')
     this.ctaTextEl = this.q('.cta-text')
     this.ribbonEl = this.q('.download-ribbon')
     this.metaEl = this.q('.showcase-meta')
@@ -242,6 +263,11 @@ export class Carousel {
     this.badgesEl = this.q('.showcase-badges')
     this.filmstripEl = this.q('.filmstrip')
     this.dotsEl = this.q('.dots')
+
+    const brand = this.q('.brand-word')
+    brand.textContent = this.options.wordmark.toUpperCase()
+    brand.setAttribute('aria-label', this.options.title)
+    this.ctaEl.addEventListener('click', () => this.activateCurrent())
 
     this.buildDots()
   }
@@ -256,19 +282,38 @@ export class Carousel {
 
   /** Paint a hero layer's background from a game's hero image or accent fallback. */
   private paintHero(layer: HTMLElement, game: Game): void {
-    const accent = game.accent || '#7cf3ff'
+    const accent = game.accent || this.options.accent
     if (game.hero) {
-      // Clean photographic hero: use it as the full-bleed background. The logo
-      // still renders on the left (handled in renderLogo) — hero + logo coexist.
-      layer.style.backgroundImage = `url("${game.hero}")`
+      layer.replaceChildren()
       layer.style.removeProperty('--motif')
       layer.classList.remove('hero-fancy')
       layer.classList.add('hero-image')
+      if (/\.mp4(?:$|[?#])/i.test(game.hero)) {
+        // Hero reels are ambient cabinet art: always muted and non-interactive.
+        // The whole layer cross-fades, so image and video heroes share one path.
+        const video = document.createElement('video')
+        video.className = 'hero-video'
+        video.src = game.hero
+        video.autoplay = true
+        video.muted = true
+        video.loop = true
+        video.playsInline = true
+        video.preload = 'metadata'
+        video.setAttribute('aria-hidden', 'true')
+        layer.style.backgroundImage = gradientHero(accent)
+        layer.appendChild(video)
+        void video.play().catch(() => { /* first interaction or next repaint retries */ })
+      } else {
+        // Clean photographic hero: use it as the full-bleed background. The logo
+        // still renders on the left (handled in renderLogo) — hero + logo coexist.
+        layer.style.backgroundImage = `url("${game.hero}")`
+      }
     } else {
       // No clean hero → the *fancy* accent-driven neon backdrop. The orbital motif
       // is a separate var-driven layer so it reads as a subject without a literal
       // monogram (which would clash with the logo-on-left treatment).
       layer.style.backgroundImage = gradientHero(accent)
+      layer.replaceChildren()
       layer.style.setProperty('--motif', motifBackground(accent))
       layer.classList.add('hero-fancy')
       layer.classList.remove('hero-image')
@@ -346,7 +391,7 @@ export class Carousel {
 
   /** Apply per-game theme + textual content (shared by immediate + animated paths). */
   private applyContent(game: Game, index: number): void {
-    const accent = game.accent || '#7cf3ff'
+    const accent = game.accent || this.options.accent
     this.host.style.setProperty('--accent', accent)
     this.host.style.setProperty('--accent-soft', accent + '26')
     this.host.style.setProperty('--accent-glow', accent + '88')
@@ -357,9 +402,14 @@ export class Carousel {
     const downloadOnly = !!game.downloadOnly
     this.host.classList.toggle('is-download-only', downloadOnly)
     this.ribbonEl.hidden = !downloadOnly
-    this.ctaTextEl.innerHTML = downloadOnly
-      ? 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;TO&nbsp;DOWNLOAD'
-      : 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;TO&nbsp;PLAY'
+    const unavailable = game.available === false
+    this.ctaEl.disabled = unavailable
+    this.ctaEl.setAttribute('aria-label', unavailable ? `${game.name} is unavailable` : `${downloadOnly ? 'Download' : 'Play'} ${game.name}`)
+    this.ctaTextEl.innerHTML = unavailable
+      ? 'NOT&nbsp;AVAILABLE&nbsp;ON&nbsp;THIS&nbsp;CABINET'
+      : downloadOnly
+        ? 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;TO&nbsp;DOWNLOAD'
+        : 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;FOR&nbsp;DETAILS'
 
     this.renderLogo(game)
     this.nameEl.textContent = game.name
@@ -430,6 +480,7 @@ export class Carousel {
       onComplete: () => {
         this.activeHero = incoming
         gsap.set(outgoing, { opacity: 0 })
+        outgoing.querySelector('video')?.pause()
         this.activeTl = null
       },
     })
@@ -468,11 +519,13 @@ export class Carousel {
       tile.type = 'button'
       tile.className = 'tile' + (offset === 0 ? ' tile-active' : '') + (game.downloadOnly ? ' tile-download' : '')
       tile.dataset.offset = String(offset)
-      tile.style.setProperty('--tile-accent', game.accent || '#7cf3ff')
-      tile.setAttribute('aria-label', game.name)
+      tile.style.setProperty('--tile-accent', game.accent || this.options.accent)
+      tile.setAttribute('aria-label', offset === 0 ? `Open details for ${game.name}` : `Select ${game.name}`)
+      if (offset === 0) tile.setAttribute('aria-current', 'true')
 
       const art = document.createElement('span')
       art.className = 'tile-art'
+      art.setAttribute('aria-hidden', 'true')
       if (game.logo) {
         const img = document.createElement('img')
         img.src = game.logo
@@ -524,10 +577,17 @@ export class Carousel {
       }
 
       // Clicking/tapping a tile selects it (pointer support for testing + touch).
-      tile.addEventListener('click', () => this.select(this.absolute(idx)))
+      tile.addEventListener('click', () => {
+        if (offset === 0) this.activateCurrent()
+        else this.select(this.absolute(idx))
+      })
       frag.appendChild(tile)
     }
     this.filmstripEl.replaceChildren(frag)
+
+    if (window.matchMedia('(max-width: 720px)').matches) {
+      this.filmstripEl.querySelector('.tile-active')?.scrollIntoView({ block: 'nearest', inline: 'center' })
+    }
 
     if (!reduceMotion) {
       gsap.fromTo(
@@ -544,7 +604,7 @@ export class Carousel {
       const dot = document.createElement('button')
       dot.type = 'button'
       dot.className = 'dot'
-      dot.setAttribute('aria-label', `Game ${i + 1}`)
+      dot.setAttribute('aria-label', `Select ${this.model.at(i).name}`)
       dot.addEventListener('click', () => this.select(i))
       frag.appendChild(dot)
     }
@@ -555,6 +615,9 @@ export class Carousel {
     const dots = this.dotsEl.children
     for (let i = 0; i < dots.length; i++) {
       dots[i].classList.toggle('dot-active', i === active)
+      ;(dots[i] as HTMLButtonElement).tabIndex = i === active ? 0 : -1
+      if (i === active) dots[i].setAttribute('aria-current', 'true')
+      else dots[i].removeAttribute('aria-current')
     }
   }
 
@@ -562,6 +625,12 @@ export class Carousel {
   private absolute(i: number): number {
     const n = this.model.length
     return ((Math.trunc(i) % n) + n) % n
+  }
+
+  private activateCurrent(): void {
+    const game = this.model.current()
+    if (game.available === false) return
+    for (const listener of this.activationListeners) listener(game)
   }
 }
 

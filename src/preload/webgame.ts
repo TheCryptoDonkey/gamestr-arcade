@@ -13,8 +13,9 @@
  *   - Left stick drives a virtual mouse cursor; A (button 0) synthesises a click
  *     at the cursor position so mouse-based web-game menus work.
  *   - Injects a small, unobtrusive on-screen hint bar.
- *   - Exposes `window.webln` backed by the booth's NWC wallet when configured,
- *     auto-paying invoices up to `maxSats` without operator intervention.
+ *   - Exposes narrow Nostr/WebLN facades only when the main-process session
+ *     grants those declared capabilities. Wallet and signing secrets never
+ *     enter this process; privileged operations are brokered over bound IPC.
  *
  * Control split:
  *   Left stick      → virtual mouse cursor          (mouse-based games / menus)
@@ -25,15 +26,11 @@
  *
  * Security:
  *   - contextIsolation: true — the page cannot reach this code.
- *   - sandbox: false — required for ipcRenderer.
- *   - The NWC secret (connection URL) is NEVER forwarded to the page; only the
- *     capped payment methods are exposed via contextBridge.exposeInMainWorld.
+ *   - sandbox: true — only Electron's restricted preload APIs are available.
+ *   - The NWC URL and ephemeral guest nsec live only in Electron's main process.
  */
 
 import { ipcRenderer, contextBridge } from 'electron'
-import { NostrWebLNProvider } from '@getalby/sdk'
-import { decode as decodeBolt11 } from 'light-bolt11-decoder'
-import { generateSecretKey, getPublicKey, finalizeEvent } from 'nostr-tools/pure'
 import type { GameControls } from '../shared/types'
 
 // ── Menu-button detector (pure, exported for unit tests) ──────────────────────
@@ -101,7 +98,8 @@ export function resolveControls(partial?: Partial<GameControls>): ResolvedContro
 
 /**
  * Snapshot of which logical directions / fire are currently active.
- * Derived from d-pad buttons ONLY (left stick is the cursor, not keys).
+ * Directions come from the d-pad/HAT and the left stick (both move the player);
+ * the stick additionally drives the virtual cursor.
  * Fire = A button (index 0) or X button (index 2); A also clicks the cursor.
  */
 export interface InputSnapshot {
@@ -116,6 +114,8 @@ export interface InputSnapshot {
 export interface KeyAction {
   type: 'keydown' | 'keyup'
   key: string
+  /** True for an auto-repeat keydown (held key), mirroring `KeyboardEvent.repeat`. */
+  repeat?: boolean
 }
 
 /**
@@ -162,21 +162,34 @@ export function eventKeyValue(token: string): string {
 }
 
 /**
+ * Synthetic key auto-repeat cadence, matched to the booth's X11 keyboard
+ * (`xset q`: auto-repeat delay 500 ms, rate 33/s ≈ 30 ms). A held pad direction
+ * therefore repeats exactly like a held keyboard key — essential for step/grid
+ * games (Snake, blockstr, Word5) that move per keydown and lean on OS key-repeat
+ * for continuous motion. Keyboard players already got this; the pad now matches.
+ */
+export const KEY_REPEAT_DELAY_MS = 500
+export const KEY_REPEAT_INTERVAL_MS = 30
+
+/**
  * Pure, testable gamepad-to-keyboard translator.
  *
- * Call `diff(snapshot, controls)` once per RAF frame with the current input
- * state. It returns the list of `KeyAction` events that need to be dispatched
- * (keydown on rising edge, keyup on falling edge). Holding a button produces
- * exactly one keydown; releasing produces one keyup — no spamming.
+ * Call `diff(snapshot, controls, now)` once per RAF frame with the current input
+ * state + timestamp. Returns the `KeyAction`s to dispatch: a keydown on the
+ * rising edge, auto-repeat keydowns (`repeat: true`) while a button is held — at
+ * the booth keyboard's cadence — and a keyup on the falling edge.
  */
 export class GamepadKeyTranslator {
   private prev: InputSnapshot = { up: false, down: false, left: false, right: false, fire: false }
+  // Per-channel timestamp (ms) at which the next auto-repeat keydown is due.
+  private repeatAt: Record<keyof InputSnapshot, number> = { up: 0, down: 0, left: 0, right: 0, fire: 0 }
 
   /**
-   * Diff the new snapshot against the previous frame.
-   * Returns zero or more {type, key} actions to dispatch.
+   * Diff the new snapshot against the previous frame at time `now` (ms).
+   * `now` defaults to 0 so pure edge behaviour stays testable without a clock;
+   * production passes the RAF timestamp so auto-repeat fires on schedule.
    */
-  diff(next: InputSnapshot, controls: ResolvedControls): KeyAction[] {
+  diff(next: InputSnapshot, controls: ResolvedControls, now = 0): KeyAction[] {
     const actions: KeyAction[] = []
 
     const channels: Array<[keyof InputSnapshot, keyof ResolvedControls]> = [
@@ -191,8 +204,17 @@ export class GamepadKeyTranslator {
       const wasActive = this.prev[input]
       const isActive  = next[input]
       if (!wasActive && isActive) {
+        // Rising edge — initial keydown, then arm the first repeat after the delay.
         actions.push({ type: 'keydown', key: controls[ctrl] })
+        this.repeatAt[input] = now + KEY_REPEAT_DELAY_MS
+      } else if (wasActive && isActive) {
+        // Held — emit auto-repeat keydowns at the keyboard cadence.
+        if (now >= this.repeatAt[input]) {
+          actions.push({ type: 'keydown', key: controls[ctrl], repeat: true })
+          this.repeatAt[input] = now + KEY_REPEAT_INTERVAL_MS
+        }
       } else if (wasActive && !isActive) {
+        // Falling edge — keyup.
         actions.push({ type: 'keyup', key: controls[ctrl] })
       }
     }
@@ -265,12 +287,32 @@ export function dpadFromHatAxes(pad: Gamepad): InputSnapshot {
 }
 
 /**
+ * Read movement directions from the LEFT ANALOGUE STICK (axes 0 = X, 1 = Y),
+ * past STICK_DEAD. Players reach for the stick to move, so it now drives the same
+ * movement keys as the d-pad. It ALSO drives the virtual cursor in the RAF loop
+ * (with a smaller deadzone) — the two coexist harmlessly: a movement game ignores
+ * the hidden cursor, a click game ignores the arrows it never binds. A firm push
+ * (≥ STICK_DEAD) moves; a gentle nudge (< STICK_DEAD) only aims the cursor.
+ * Pure; exported for tests.
+ */
+export function stickDirections(pad: Gamepad): InputSnapshot {
+  const x = pad.axes[0] ?? 0
+  const y = pad.axes[1] ?? 0
+  return {
+    up:    y <= -STICK_DEAD,
+    down:  y >=  STICK_DEAD,
+    left:  x <= -STICK_DEAD,
+    right: x >=  STICK_DEAD,
+    fire:  false,
+  }
+}
+
+/**
  * Build an `InputSnapshot` from a `Gamepad` object.
  *
- * Directions come from the d-pad via EITHER the Standard-Mapping buttons 12–15
- * OR — for non-standard pads (e.g. an official Xbox pad whose connection lands
- * outside Chromium's mapping table) — the HAT axes (see `dpadFromHatAxes`). The
- * left stick is deliberately excluded: it drives the virtual cursor, not keys.
+ * Directions come from the d-pad (Standard-Mapping buttons 12–15 OR the HAT axes
+ * of a non-standard pad — see `dpadFromHatAxes`) UNIONED with the left analogue
+ * stick (see `stickDirections`), so both the d-pad and the stick move the player.
  * Fire = A (index 0) or X (index 2); A additionally drives the cursor click.
  */
 export function snapshotFromGamepad(pad: Gamepad): InputSnapshot {
@@ -282,7 +324,7 @@ export function snapshotFromGamepad(pad: Gamepad): InputSnapshot {
     right: btn(DPAD.RIGHT),
     fire:  FIRE_BUTTONS.some(i => btn(i)),
   }
-  return unionSnapshots(buttons, dpadFromHatAxes(pad))
+  return unionSnapshots(unionSnapshots(buttons, dpadFromHatAxes(pad)), stickDirections(pad))
 }
 
 /**
@@ -380,93 +422,20 @@ export function risingEdge(prev: boolean, current: boolean): boolean {
   return !prev && current
 }
 
-/**
- * Determine whether an invoice amount is within the operator-configured cap.
- *
- * Pure function — exported so unit tests can verify the cap logic without any
- * Electron or NWC dependency.
- *
- * @param amountSats  The invoice amount in satoshis.
- * @param maxSats     The operator-configured ceiling (inclusive).
- * @returns `true` when the invoice may be auto-paid, `false` to reject.
- */
-export function shouldAutoPay(amountSats: number, maxSats: number): boolean {
-  return amountSats > 0 && amountSats <= maxSats
-}
+// ── Brokered WebLN facade ─────────────────────────────────────────────────────
 
 /**
- * Extract the satoshi amount from a BOLT-11 invoice string.
- *
- * Returns `null` when the invoice carries no amount (amount-less invoices are
- * never auto-paid — the operator cannot know what they will cost).
- * Returns `null` on any decode failure rather than throwing.
+ * Expose only the WebLN methods required by games. Main validates sender,
+ * frame origin, capability, invoice, rate, idempotency and budgets before the
+ * NWC provider is touched. Keysend, wallet signing and invoice creation are not
+ * available to untrusted game content.
  */
-export function bolt11Sats(bolt11: string): number | null {
-  try {
-    const decoded = decodeBolt11(bolt11)
-    const amountSection = decoded.sections.find(s => s.name === 'amount')
-    if (!amountSection) return null
-    // light-bolt11-decoder returns the value as a millisats string when the
-    // `outputString` argument of hrpToMillisat is true (which it is internally).
-    const milliStr = amountSection.value as string
-    const millis = parseInt(milliStr, 10)
-    if (isNaN(millis) || millis <= 0) return null
-    // Truncate to whole sats (never round up — ceiling is already conservative).
-    return Math.floor(millis / 1000)
-  } catch {
-    return null
-  }
-}
-
-// ── WebLN provider (NWC-backed, capped) ───────────────────────────────────────
-
-/**
- * Initialise a `window.webln` provider backed by the booth's NWC wallet and
- * expose it to the game page via `contextBridge.exposeInMainWorld`.
- *
- * Called once when the main process sends `arcade:webln`; subsequent calls
- * (e.g. on page reload) reinitialise with the same config.
- *
- * Security contract:
- *   - The `nwc` connection URL (which contains the wallet secret) is held only
- *     in this isolated preload scope and never forwarded to the page.
- *   - `sendPayment` rejects any invoice exceeding `maxSats` before touching the
- *     wallet, limiting unattended spend.
- */
-function initWebLN(nwc: string, maxSats: number): void {
-  let provider: NostrWebLNProvider | null = null
-
-  const getProvider = (): NostrWebLNProvider => {
-    if (!provider) {
-      provider = new NostrWebLNProvider({ nostrWalletConnectUrl: nwc })
-    }
-    return provider
-  }
-
+function initWebLN(): void {
   const weblnApi = {
-    enable: (): Promise<void> => getProvider().enable(),
-
-    getInfo: () => getProvider().getInfo(),
-
-    makeInvoice: (args: unknown) => getProvider().makeInvoice(args as Parameters<NostrWebLNProvider['makeInvoice']>[0]),
-
-    signMessage: (message: string) => getProvider().signMessage(message),
-
-    keysend: (args: unknown) => getProvider().keysend(args as Parameters<NostrWebLNProvider['keysend']>[0]),
-
-    sendPayment: async (bolt11: string): Promise<{ preimage: string }> => {
-      const sats = bolt11Sats(bolt11)
-      if (sats === null) {
-        throw new Error('[arcade] webln: invoice carries no amount — auto-pay refused')
-      }
-      if (!shouldAutoPay(sats, maxSats)) {
-        throw new Error(`[arcade] webln: invoice for ${sats} sats exceeds cap of ${maxSats} sats — auto-pay refused`)
-      }
-      const result = await getProvider().sendPayment(bolt11)
-      // Audit log → main process → systemd journal.
-      ipcRenderer.send('webln:paid', { amountSats: sats, result })
-      return result
-    },
+    enable: async (): Promise<void> => {},
+    getInfo: async () => ({ methods: ['sendPayment'] }),
+    sendPayment: (bolt11: string): Promise<{ preimage: string }> =>
+      ipcRenderer.invoke('webgame:wallet:pay', bolt11),
   }
 
   // contextBridge.exposeInMainWorld is safe to call multiple times with the
@@ -478,36 +447,23 @@ function initWebLN(nwc: string, maxSats: number): void {
   }
 }
 
-// ── Guest Nostr (NIP-07) provider ──────────────────────────────────────────────
+// ── Brokered guest Nostr (NIP-07) facade ──────────────────────────────────────
 
 /**
- * Inject a guest NIP-07 `window.nostr`, backed by an ephemeral key generated per
- * web-game session. Lets gamestr games that gate play behind a Nostr login
- * ("Connect extension") sign in as a throwaway guest — no nsec typing — and post
- * real, validly-signed scores under that guest pubkey (so they land on the
- * leaderboard). The secret key stays in this isolated preload; only the capped
- * `getPublicKey` / `signEvent` / `getRelays` methods cross the contextBridge.
+ * Inject a guest NIP-07 `window.nostr` only after main grants `nostrSign` for
+ * this manifest. Main owns the per-session key, validates the calling origin
+ * and strictly bounds event templates before signing.
  *
  * A fresh key each session keeps booth players distinct on the board. nip04/nip44
  * are intentionally omitted — a kiosk guest never needs to decrypt DMs.
  */
 function initGuestNostr(): void {
   if ((globalThis as Record<string, unknown>).__arcadeNostrExposed) return
-  const sk = generateSecretKey()
-  const pk = getPublicKey(sk)
 
   const nostrApi = {
-    getPublicKey: async (): Promise<string> => pk,
+    getPublicKey: (): Promise<string> => ipcRenderer.invoke('webgame:nostr:get-public-key'),
     signEvent: async (event: { kind: number; created_at?: number; tags?: string[][]; content?: string }) =>
-      finalizeEvent(
-        {
-          kind: event.kind,
-          created_at: event.created_at ?? Math.floor(Date.now() / 1000),
-          tags: event.tags ?? [],
-          content: event.content ?? '',
-        },
-        sk,
-      ),
+      ipcRenderer.invoke('webgame:nostr:sign-event', event),
     getRelays: async (): Promise<Record<string, { read: boolean; write: boolean }>> => ({}),
   }
 
@@ -548,7 +504,9 @@ export function dispatchKey(action: KeyAction): void {
     code,
     keyCode,
     which:      keyCode,
-    charCode:   action.type === 'keypress' ? keyCode : 0,
+    // KeyAction is keydown/keyup only; printable keypress gets its own event below.
+    charCode:   0,
+    repeat:     action.repeat ?? false,
     bubbles:    false,
     cancelable: true,
     composed:   true,
@@ -758,6 +716,28 @@ function initGamepadLoop(): void {
   let lastFrameTime     = 0     // for delta-time calculation
   let lastStickActive   = 0     // timestamp the left stick was last used (cursor engage)
 
+  // ── Temporary gamepad diagnostics (plan Phase 2A) ────────────────────────────
+  // Throttled so journald isn't spammed; forwarded to main via the webContents
+  // 'console-message' hook (wireGamepadConsole in index.ts). `focus`/`vis` reveal
+  // whether Chromium's Gamepad API is even fed (it only updates a focused, visible
+  // document). Remove with the rest of the [gp:*] logging in plan Phase 2D.
+  let lastGpDiag = 0
+  function gpSummary(): string {
+    const live = Array.from(navigator.getGamepads()).filter(Boolean) as Gamepad[]
+    const detail = live
+      .map(p => `${p.index}:"${(p.id || '').slice(0, 28)}" map=${p.mapping || 'none'} btn=${p.buttons.length} ax=${p.axes.length}`)
+      .join(' | ')
+    return `pads=${live.length} focus=${document.hasFocus()} vis=${document.visibilityState} ${detail}`
+  }
+  window.addEventListener('gamepadconnected', e => {
+    const g = (e as GamepadEvent).gamepad
+    console.log(`[gp:web] connected idx=${g.index} id="${g.id}" map=${g.mapping || 'none'}`)
+  })
+  window.addEventListener('gamepaddisconnected', e => {
+    const g = (e as GamepadEvent).gamepad
+    console.log(`[gp:web] disconnected idx=${g.index} id="${g.id}"`)
+  })
+
   // Listen for per-game control overrides sent by the main process after each
   // web game loads (and on reload). Until one arrives, DEFAULT_CONTROLS applies.
   ipcRenderer.on('arcade:controls', (_event, map: Partial<GameControls>) => {
@@ -772,23 +752,25 @@ function initGamepadLoop(): void {
     } catch {
       // Silently ignore — focus is best-effort.
     }
+    console.log(`[gp:web] controls applied; doc-focused=${document.hasFocus()}`)
   })
 
-  // Listen for WebLN config from the main process.  Arrives after controls on
-  // the same `did-finish-load` — only when the booth has an NWC wallet set.
-  ipcRenderer.on('arcade:webln', (_event, cfg: { nwc: string; maxSats: number }) => {
-    try {
-      initWebLN(cfg.nwc, cfg.maxSats)
-    } catch (err) {
-      // Fail gracefully — a broken NWC URL must not crash the whole preload.
-      console.error(`[arcade] webln: failed to initialise provider: ${String(err)}`)
-    }
+  // Main sends only non-sensitive boolean grants after each navigation. No NWC
+  // URL, budget, nsec, or other privileged configuration enters this process.
+  ipcRenderer.on('arcade:session-grants', (_event, grants: { nostrSign?: boolean; walletPay?: boolean }) => {
+    if (grants.nostrSign === true) initGuestNostr()
+    if (grants.walletPay === true) initWebLN()
   })
 
   function tick(now: number): void {
     // ── Delta time (seconds) ──────────────────────────────────────────────
     const dt = lastFrameTime > 0 ? Math.min((now - lastFrameTime) / 1000, 0.1) : 1 / 60
     lastFrameTime = now
+
+    if (now - lastGpDiag > 1000) {
+      lastGpDiag = now
+      console.log(`[gp:web] hb ${gpSummary()}`)
+    }
 
     const pads = navigator.getGamepads()
 
@@ -818,7 +800,7 @@ function initGamepadLoop(): void {
       combined = unionSnapshots(combined, snapshotFromGamepad(pad))
     }
 
-    const actions = keyTranslator.diff(combined, activeControls)
+    const actions = keyTranslator.diff(combined, activeControls, now)
     for (const action of actions) {
       dispatchKey(action)
     }
@@ -907,7 +889,6 @@ if (typeof document !== 'undefined') {
 
 if (typeof window !== 'undefined') {
   initKeyboardExit()
-  initGuestNostr()
 }
 
 if (typeof requestAnimationFrame !== 'undefined') {

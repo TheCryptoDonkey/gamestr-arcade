@@ -1,8 +1,13 @@
 {
+  "manifestVersion": 2,
   "name": "blockstr",
   "tagline": "Nostr-powered Tetris — stack blocks, top the chain",
   "url": "https://blockstr.io/",
   "gameId": "blockstr",
   "order": 7,
-  "accent": "#8b5cf6"
+  "accent": "#8b5cf6",
+  "inputModes": ["gamepad", "keyboard"],
+  "network": "required",
+  "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
+  "allowedOrigins": ["https://blockstr.io"]
 }

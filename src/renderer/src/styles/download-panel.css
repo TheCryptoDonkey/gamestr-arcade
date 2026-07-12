@@ -127,13 +127,27 @@
   color: var(--accent);
   word-break: break-all;
 }
-.dl-hint {
+.dl-close {
   font-family: var(--mono, 'Azeret Mono', monospace);
   font-weight: 600;
   font-size: 0.74rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-dim, #7e8aa6);
+  min-height: 2.75rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, rgba(126, 138, 166, 0.4));
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+  cursor: pointer;
+}
+
+.dl-close:hover,
+.dl-close:focus-visible {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 24%, transparent);
+  outline: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

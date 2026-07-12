@@ -1,10 +1,25 @@
 {
+  "manifestVersion": 2,
   "name": "Pallasite",
   "tagline": "Cosmic arcade Asteroids — mine the belt, top the chain",
+  "description": "Mine a neon asteroid belt, survive the swarm, and chase the global high score.",
+  "genres": ["arcade", "shooter"],
   "gameId": "pallasite",
   "order": 1,
   "accent": "#7cf3ff",
   "exec": "Pallasite.AppImage",
   "args": ["--no-sandbox"],
-  "url": "https://pallasite.app/"
+  "url": "https://pallasite.app/",
+  "inputModes": ["gamepad", "keyboard"],
+  "controlHints": ["LEFT STICK / D-PAD = MOVE", "Ⓐ / SPACE = FIRE", "MENU / ESC = RETURN TO ARCADE"],
+  "sessionMinutes": 5,
+  "players": { "min": 1, "max": 1 },
+  "network": "optional",
+  "capabilities": {
+    "nostrSign": true,
+    "walletPay": true,
+    "persistentStorage": true,
+    "externalNavigation": false
+  },
+  "allowedOrigins": ["https://pallasite.app"]
 }

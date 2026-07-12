@@ -18,7 +18,7 @@
  */
 
 import type { ArcadeConfig, LeaderboardEntry, LeaderboardProvider, ScoreScoring } from '../../../shared/types'
-import { createGamestrProvider } from '../leaderboard/gamestr'
+import { createGamestrCatalogue, type GamestrCatalogue } from '../leaderboard/gamestr'
 import { boardFor, type Period } from '../leaderboard/gamestr-reduce'
 import { readCachedBoard, writeCachedBoard } from '../leaderboard/cache'
 import { avatarCss, resolveProfiles, shortenNpub, type Profile } from '../leaderboard/profiles'
@@ -110,9 +110,9 @@ export class LeaderboardPanel {
             <span class="lb-subtitle">${escapeHtml(this.opts.subtitle)}</span>
             <span class="lb-status" data-state="reconnecting"><span class="lb-status-dot"></span><span class="lb-status-text">SYNC</span></span>
             <span class="lb-period-toggle">
-              <button class="lb-period-btn lb-period-active" data-period="today">TODAY</button>
+              <button class="lb-period-btn lb-period-active" data-period="today" aria-pressed="true">TODAY</button>
               <span class="lb-period-sep">|</span>
-              <button class="lb-period-btn" data-period="all">ALL TIME</button>
+              <button class="lb-period-btn" data-period="all" aria-pressed="false">ALL TIME</button>
             </span>
           </div>
         </header>
@@ -150,7 +150,9 @@ export class LeaderboardPanel {
       this.period = 'today'
       this.root.querySelectorAll('.lb-period-btn').forEach(btn => {
         const el = btn as HTMLElement
-        el.classList.toggle('lb-period-active', el.dataset.period === 'today')
+        const active = el.dataset.period === 'today'
+        el.classList.toggle('lb-period-active', active)
+        el.setAttribute('aria-pressed', String(active))
       })
     }
     this.gotLive = false
@@ -273,7 +275,9 @@ export class LeaderboardPanel {
     this.period = p
     this.root.querySelectorAll('.lb-period-btn').forEach(btn => {
       const el = btn as HTMLElement
-      el.classList.toggle('lb-period-active', el.dataset.period === p)
+      const active = el.dataset.period === p
+      el.classList.toggle('lb-period-active', active)
+      el.setAttribute('aria-pressed', String(active))
     })
     this.entries = boardFor(this.rawEntries, this.period, this.topN, Math.floor(Date.now() / 1000), this.boardDir())
     this.render()
@@ -428,11 +432,28 @@ export function mountLeaderboard(
     }
   }
 
+  let catalogue: GamestrCatalogue | null = null
+  let relayKey = ''
+  let statusSink: ((state: 'up' | 'down') => void) | undefined
+  const sharedProvider = (activeRelays: string[], onStatus?: (state: 'up' | 'down') => void): GamestrCatalogue => {
+    statusSink = onStatus
+    const nextKey = JSON.stringify(activeRelays)
+    if (!catalogue || nextKey !== relayKey) {
+      catalogue?.dispose()
+      relayKey = nextKey
+      catalogue = createGamestrCatalogue(activeRelays, {
+        onStatus: state => statusSink?.(state),
+      })
+    }
+    return catalogue
+  }
+
   const panel = new LeaderboardPanel(host, {
     relays,
     topN,
-    makeProvider: (activeRelays: string[], onStatus) => createGamestrProvider(activeRelays, topN, { onStatus }),
+    makeProvider: sharedProvider,
     resolve: resolveProfiles,
   })
+  window.addEventListener('beforeunload', () => catalogue?.dispose(), { once: true })
   return { show: (gameId, scoring) => panel.show(gameId, scoring), panel }
 }

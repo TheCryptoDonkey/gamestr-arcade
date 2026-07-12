@@ -1,1 +1,19 @@
-{ "name": "Neon Sentinel", "url": "https://example.test/neon", "gameId": "neon-sentinel", "order": 2 }
+{
+  "manifestVersion": 2,
+  "name": "Neon Sentinel",
+  "developer": "Test Studio",
+  "description": "A fixture exercising the versioned game contract.",
+  "genres": ["arcade", "shooter", "arcade"],
+  "url": "https://example.test/neon",
+  "gameId": "neon-sentinel",
+  "inputModes": ["gamepad", "keyboard", "invalid"],
+  "controlHints": ["D-PAD = MOVE", "A = FIRE"],
+  "sessionMinutes": 5,
+  "players": { "min": 1, "max": 2 },
+  "network": "optional",
+  "ageRating": "ALL AGES",
+  "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": true },
+  "rewardRules": { "enabled": true, "label": "TOP SCORE REWARD" },
+  "allowedOrigins": ["https://example.test/path", "https://cdn.example.test", "javascript:alert(1)"],
+  "order": 2
+}

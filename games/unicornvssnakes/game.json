@@ -1,4 +1,5 @@
 {
+  "manifestVersion": 2,
   "name": "Unicorn vs Snakes",
   "tagline": "Dergigi's whimsical arcade — unicorn dodges the snakes",
   "url": "https://unicorn.dergigi.com/",
@@ -7,5 +8,9 @@
   "accent": "#ec4899",
   "scoreKind": 5555,
   "scoreField": "score",
-  "scoreDir": "desc"
+  "scoreDir": "desc",
+  "inputModes": ["gamepad", "keyboard"],
+  "network": "required",
+  "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
+  "allowedOrigins": ["https://unicorn.dergigi.com"]
 }

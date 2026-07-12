@@ -101,6 +101,14 @@
   transform: translateZ(0);
 }
 
+.hero-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
 /* ── Fancy accent backdrop (games with no clean hero, or that opt out) ─────────
    A premium neon backdrop, not a flat fill. The layered gradients are set inline
    by `gradientHero()`; here we add the orbital MOTIF + a slow aurora drift + a
@@ -436,8 +444,8 @@
     0 0 60px var(--accent-soft);
 }
 
-/* The H1 name is redundant whenever the logo slot is populated (image OR wordmark
-   fallback both already show the name), so the H1 only exists as a hard fallback. */
+/* Keep the title visible when supplied image art is not a readable wordmark.
+   The text-only fallback already contains the title, so hide only that duplicate. */
 .game-name {
   font-family: var(--display);
   font-weight: 700;
@@ -447,8 +455,7 @@
   text-transform: uppercase;
   margin-top: 0.3rem;
 }
-.logo-slot:has(.logo-word) + .game-name,
-.logo-slot.has-logo + .game-name {
+.logo-slot:has(.logo-word) + .game-name {
   display: none;
 }
 
@@ -465,6 +472,10 @@
 
 /* ── Call to action ──────────────────────────────────────────────────────────── */
 .cta {
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
   margin-top: 2.2rem;
   display: inline-flex;
   align-items: center;
@@ -477,6 +488,22 @@
     0 0 0 1px rgba(5, 7, 15, 0.6) inset,
     0 0 34px var(--accent-soft);
   animation: cta-breathe 2.4s ease-in-out infinite;
+}
+.cta:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.cta:focus-visible,
+.tile:focus-visible,
+.dot:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 4px;
+}
+.cta:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  border-color: rgba(126, 138, 166, 0.35);
+  box-shadow: none;
+  animation: none;
 }
 @keyframes cta-breathe {
   0%,
@@ -644,12 +671,12 @@
   gap: 0.6rem;
 }
 .dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  padding: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0.5rem;
   border: none;
   border-radius: 50%;
-  background: rgba(126, 138, 166, 0.32);
+  background: radial-gradient(circle, rgba(126, 138, 166, 0.46) 0 0.25rem, transparent 0.28rem);
   cursor: none;
   transition:
     width 0.3s ease,
@@ -657,9 +684,9 @@
     box-shadow 0.3s ease;
 }
 .dot-active {
-  width: 1.6rem;
+  width: 2.4rem;
   border-radius: 999px;
-  background: var(--accent);
+  background: radial-gradient(ellipse, var(--accent) 0 0.65rem, transparent 0.7rem);
   box-shadow: 0 0 12px var(--accent-glow);
 }
 
@@ -852,6 +879,59 @@
   white-space: nowrap;
   pointer-events: none;
   animation: toast-in 0.2s ease-out;
+}
+
+/* ── Portrait / small-screen catalogue ───────────────────────────────────────
+   The booth contract is landscape, but the browser preview is also a useful
+   take-home catalogue. Keep selection and launch fully usable on a phone. */
+@media (max-width: 720px) {
+  .arcade { --edge: 1.15rem; cursor: auto; }
+  .topbar { top: 1.05rem; }
+  .brand-word { max-width: 68vw; overflow: hidden; font-size: 0.8rem; white-space: nowrap; }
+  .topbar-index { font-size: 0.72rem; }
+  .idx-cur { font-size: 1rem; }
+  .showcase {
+    bottom: 10.6rem;
+    align-items: flex-start;
+  }
+  .showcase-meta { max-width: 100%; }
+  .kicker { margin-bottom: 0.7rem; font-size: 0.58rem; letter-spacing: 0.25em; }
+  .has-logo.is-square .logo-img,
+  .has-logo:not(.is-wide):not(.is-square) .logo-img {
+    height: clamp(5rem, 22vh, 9rem);
+    max-width: 48vw;
+  }
+  .has-logo.is-wide .logo-img { width: min(70vw, 28rem); max-height: 18vh; }
+  .logo-word { font-size: clamp(2.7rem, 15vw, 5rem); }
+  .game-name { font-size: clamp(1.65rem, 8vw, 2.35rem); }
+  .game-tagline {
+    margin-top: 0.55rem;
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .cta { margin-top: 0.9rem; padding: 0.55rem 0.8rem 0.55rem 0.55rem; gap: 0.55rem; }
+  .cta-key { width: 2rem; height: 2rem; }
+  .cta-text { font-size: 0.72rem; letter-spacing: 0.1em; }
+  .filmstrip-wrap { bottom: 1.1rem; gap: 0; }
+  .filmstrip {
+    width: 100%;
+    height: 8rem;
+    justify-content: flex-start;
+    gap: 0.7rem;
+    padding-inline: calc(50vw - 3.8rem);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .filmstrip::-webkit-scrollbar { display: none; }
+  .tile { width: 5.3rem; height: 5.3rem; cursor: pointer; scroll-snap-align: center; }
+  .tile-active { width: 6.3rem; height: 6.3rem; }
+  .dots { display: none; }
+  .launch-error-toast { width: calc(100% - 2rem); white-space: normal; text-align: center; }
 }
 
 @keyframes toast-in {

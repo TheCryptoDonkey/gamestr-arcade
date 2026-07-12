@@ -1,21 +1,26 @@
 /**
- * Unit tests for the WebLN cap logic and bolt11 amount decoder
- * (src/preload/webgame.ts).
+ * Unit tests for the main-process wallet policy and launch-scoped broker.
  *
  * These are pure / side-effect-free — no Electron, no NWC connection, no real
  * Lightning wallet is needed. The test for `bolt11Sats` requires the
  * `light-bolt11-decoder` package, which is a production dependency.
  *
- * What still requires the real booth to verify:
- *   - The NWC handshake (enable → getInfo → sendPayment with a live wallet).
- *   - Whether the game's `window.webln.sendPayment()` call actually reaches the
- *     contextBridge-exposed method (contextIsolation boundary).
- *   - Whether Space Zappers calls `window.webln.enable()` on load and responds
- *     to the resolved WebLN provider.
+ * The actual NWC handshake still requires a funded booth wallet.
  */
 
-import { describe, it, expect } from 'vitest'
-import { shouldAutoPay, bolt11Sats } from '../src/preload/webgame'
+import { describe, it, expect, vi } from 'vitest'
+import {
+  PaymentPolicyError,
+  SessionPaymentBroker,
+  bolt11Sats,
+  millisatsToWholeSats,
+  paymentPolicyFromConfig,
+  shouldAutoPay,
+  type PaymentPolicy,
+} from '../src/main/payment-broker'
+
+const INVOICE_2000_SATS =
+  'lnbc20u1p3y0x3hpp5743k2g0fsqqxj7n8qzuhns5gmkk4djeejk3wkp64ppevgekvc0jsdqcve5kzar2v9nr5gpqd4hkuetesp5ez2g297jduwc20t6lmqlsg3man0vf2jfd8ar9fh8fhn2g8yttfkqxqy9gcqcqzys9qrsgqrzjqtx3k77yrrav9hye7zar2rtqlfkytl094dsp0ms5majzth6gt7ca6uhdkxl983uywgqqqqlgqqqvx5qqjqrzjqd98kxkpyw0l9tyy8r8q57k7zpy9zjmh6sez752wj6gcumqnj3yxzhdsmg6qq56utgqqqqqqqqqqqeqqjq7jd56882gtxhrjm03c93aacyfy306m4fq0tskf83c0nmet8zc2lxyyg3saz8x6vwcp26xnrlagf9semau3qm2glysp7sv95693fphvsp54l567'
 
 // ── shouldAutoPay ──────────────────────────────────────────────────────────────
 
@@ -55,6 +60,10 @@ describe('shouldAutoPay', () => {
 // ── bolt11Sats ─────────────────────────────────────────────────────────────────
 
 describe('bolt11Sats', () => {
+  it('extracts a checksum-valid 2,000 sat amount', () => {
+    expect(bolt11Sats(INVOICE_2000_SATS)).toBe(2000)
+  })
+
   it('returns null for an amount-less invoice (lnbc1...)', () => {
     // This is a well-known test vector with no amount in the HRP.
     const inv =
@@ -70,14 +79,9 @@ describe('bolt11Sats', () => {
     expect(bolt11Sats('')).toBeNull()
   })
 
-  it('extracts 1 sat from lnbc10n (10 millisats → 0 after floor, so null via floor-to-zero guard)', () => {
-    // lnbc10n = 10 millisats; floor(10/1000) = 0 → our null guard kicks in.
-    // We test this via shouldAutoPay to confirm zero-sat invoices are rejected
-    // regardless — bolt11Sats returning 0 or null both result in rejection.
-    const sats = bolt11Sats('lnbc10n1p3tl6xdsp5zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zygspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdpqgf5zqem9wd5ku6xmqcqzys9qrsgqjapf6nrugzlfe72uyyasxnpfv0r5j2czm6zq4xcjg3a6m8nfmgxu5rg73w5ufwwmfqgkxeyq5m7j7h9e4q0aqhqewknkfxapkzgsqqkeyuh')
-    // Either null or 0 — both must not auto-pay
-    const safeSats = sats ?? 0
-    expect(shouldAutoPay(safeSats, 100)).toBe(false)
+  it('rounds a fractional-sat invoice up for conservative cap accounting', () => {
+    expect(millisatsToWholeSats('10')).toBe(1)
+    expect(millisatsToWholeSats('1001')).toBe(2)
   })
 })
 
@@ -89,5 +93,101 @@ describe('cap enforcement end-to-end', () => {
     expect(sats).toBeNull()
     // In the sendPayment wrapper, null sats → throw without paying.
     expect(sats === null || !shouldAutoPay(sats!, 100)).toBe(true)
+  })
+})
+
+describe('paymentPolicyFromConfig', () => {
+  it('derives a bounded launch policy without retaining the NWC URL', () => {
+    expect(paymentPolicyFromConfig({ nwc: 'nostr+walletconnect://secret', maxSats: 20 })).toEqual({
+      maxPaymentSats: 20,
+      sessionBudgetSats: 100,
+      maxPaymentsPerMinute: 5,
+    })
+  })
+})
+
+describe('SessionPaymentBroker', () => {
+  const policy: PaymentPolicy = {
+    maxPaymentSats: 10,
+    sessionBudgetSats: 20,
+    maxPaymentsPerMinute: 3,
+  }
+
+  function brokerWith(
+    amounts: Record<string, number | null>,
+    overrides: Partial<PaymentPolicy> = {},
+    now: () => number = () => 1_000,
+  ) {
+    const payInvoice = vi.fn(async (invoice: string) => ({ preimage: `paid:${invoice}` }))
+    const broker = new SessionPaymentBroker({ ...policy, ...overrides }, {
+      payInvoice,
+      now,
+      decodeAmount: invoice => amounts[invoice] ?? null,
+    })
+    return { broker, payInvoice }
+  }
+
+  it('enforces per-payment and cumulative session ceilings', async () => {
+    const { broker, payInvoice } = brokerWith(
+      { lnbc1first: 7, lnbc1overcap: 11, lnbc1overbudget: 7 },
+      { sessionBudgetSats: 12 },
+    )
+    await expect(broker.pay('lnbc1first')).resolves.toEqual({ preimage: 'paid:lnbc1first' })
+    await expect(broker.pay('lnbc1overcap')).rejects.toMatchObject({ code: 'PAYMENT_CAP_EXCEEDED' })
+    await expect(broker.pay('lnbc1overbudget')).rejects.toMatchObject({ code: 'SESSION_BUDGET_EXCEEDED' })
+    expect(payInvoice).toHaveBeenCalledTimes(1)
+  })
+
+  it('rejects malformed and mixed-case invoices before amount decoding', async () => {
+    const { broker, payInvoice } = brokerWith({ lnbc1valid: 1 })
+    await expect(broker.pay('not-an-invoice')).rejects.toMatchObject({ code: 'INVALID_INVOICE' })
+    await expect(broker.pay('lnbc1VaLiD')).rejects.toMatchObject({ code: 'INVALID_INVOICE' })
+    expect(payInvoice).not.toHaveBeenCalled()
+  })
+
+  it('uses invoice identity for concurrent and later idempotent retries', async () => {
+    const { broker, payInvoice } = brokerWith({ lnbc1same: 5 })
+    const first = broker.pay('LNBC1SAME')
+    const duplicate = broker.pay('lnbc1same')
+    await expect(Promise.all([first, duplicate])).resolves.toEqual([
+      { preimage: 'paid:lnbc1same' },
+      { preimage: 'paid:lnbc1same' },
+    ])
+    expect(payInvoice).toHaveBeenCalledTimes(1)
+    expect(broker.snapshot()).toEqual({ reservedSats: 5, distinctPayments: 1 })
+  })
+
+  it('retains a failed attempt reservation and rejection for safe idempotency', async () => {
+    const payInvoice = vi.fn(async () => { throw new Error('ambiguous wallet timeout') })
+    const broker = new SessionPaymentBroker(policy, {
+      payInvoice,
+      decodeAmount: () => 5,
+    })
+    await expect(broker.pay('lnbc1timeout')).rejects.toThrow('ambiguous wallet timeout')
+    await expect(broker.pay('lnbc1timeout')).rejects.toThrow('ambiguous wallet timeout')
+    expect(payInvoice).toHaveBeenCalledTimes(1)
+    expect(broker.snapshot().reservedSats).toBe(5)
+  })
+
+  it('rate-limits distinct invoices in a rolling minute', async () => {
+    let now = 10_000
+    const { broker, payInvoice } = brokerWith(
+      { lnbc1one: 1, lnbc1two: 1, lnbc1three: 1 },
+      { maxPaymentsPerMinute: 2 },
+      () => now,
+    )
+    await broker.pay('lnbc1one')
+    await broker.pay('lnbc1two')
+    await expect(broker.pay('lnbc1three')).rejects.toMatchObject({ code: 'RATE_LIMITED' })
+    now += 60_001
+    await expect(broker.pay('lnbc1three')).resolves.toEqual({ preimage: 'paid:lnbc1three' })
+    expect(payInvoice).toHaveBeenCalledTimes(3)
+  })
+
+  it('rejects all requests after the launch session closes', async () => {
+    const { broker } = brokerWith({ lnbc1one: 1 })
+    broker.close()
+    await expect(broker.pay('lnbc1one')).rejects.toBeInstanceOf(PaymentPolicyError)
+    await expect(broker.pay('lnbc1one')).rejects.toMatchObject({ code: 'SESSION_CLOSED' })
   })
 })

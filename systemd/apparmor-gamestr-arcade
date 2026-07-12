@@ -1,0 +1,16 @@
+# Ubuntu 24.04+ restricts unprivileged user namespaces for unconfined programs.
+# Electron needs one to create Chromium's renderer sandbox. These profiles keep
+# the application otherwise unconfined while granting only the userns permission,
+# following Ubuntu's documented pattern for third-party Chromium applications.
+
+abi <abi/4.0>,
+
+include <tunables/global>
+
+/home/*/arcade-app/AppRun flags=(unconfined) {
+  userns,
+}
+
+/home/*/gamestr-arcade.AppImage flags=(unconfined) {
+  userns,
+}

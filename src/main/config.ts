@@ -38,7 +38,7 @@ export function parseConfig(raw: unknown): ArcadeConfig {
         ? { provider: 'gamestr', relays: lb.relays, topN: Number(lb.topN) || 5 }
         : { ...DEFAULT_CONFIG.leaderboard }
   return {
-    gamesDir: typeof o.gamesDir === 'string' ? o.gamesDir : DEFAULT_CONFIG.gamesDir,
+    gamesDir: typeof o.gamesDir === 'string' && o.gamesDir.trim() ? o.gamesDir.trim() : DEFAULT_CONFIG.gamesDir,
     theme: {
       title: o.theme?.title ?? DEFAULT_CONFIG.theme.title,
       wordmark: o.theme?.wordmark,
@@ -46,7 +46,7 @@ export function parseConfig(raw: unknown): ArcadeConfig {
       crt: o.theme?.crt ?? DEFAULT_CONFIG.theme.crt
     },
     attractTimeoutMs: Number(o.attractTimeoutMs) || DEFAULT_CONFIG.attractTimeoutMs,
-    kiosk: o.kiosk ?? DEFAULT_CONFIG.kiosk,
+    kiosk: typeof o.kiosk === 'boolean' ? o.kiosk : DEFAULT_CONFIG.kiosk,
     leaderboard,
     webln: parseWebLN(o.webln),
   }
@@ -55,7 +55,21 @@ export function parseConfig(raw: unknown): ArcadeConfig {
 function parseWebLN(raw: unknown): WebLNConfig | undefined {
   if (typeof raw !== 'object' || !raw) return undefined
   const o = raw as Record<string, unknown>
-  if (typeof o.nwc !== 'string' || !o.nwc.trim()) return undefined
-  const maxSats = typeof o.maxSats === 'number' ? o.maxSats : 100
-  return { nwc: o.nwc.trim(), maxSats }
+  if (typeof o.nwc !== 'string' || !o.nwc.trim().startsWith('nostr+walletconnect://')) return undefined
+  const maxSats = safeNonNegativeInt(o.maxSats, 100, 1_000_000)
+  const defaultSessionBudget = Number.isSafeInteger(maxSats * 5) ? maxSats * 5 : maxSats
+  return {
+    nwc: o.nwc.trim(),
+    maxSats,
+    sessionBudgetSats: safeNonNegativeInt(o.sessionBudgetSats, defaultSessionBudget, 10_000_000),
+    maxPaymentsPerMinute: safePositiveInt(o.maxPaymentsPerMinute, 5, 60),
+  }
+}
+
+function safeNonNegativeInt(raw: unknown, fallback: number, max: number): number {
+  return typeof raw === 'number' && Number.isSafeInteger(raw) && raw >= 0 && raw <= max ? raw : fallback
+}
+
+function safePositiveInt(raw: unknown, fallback: number, max: number): number {
+  return typeof raw === 'number' && Number.isSafeInteger(raw) && raw > 0 && raw <= max ? raw : fallback
 }

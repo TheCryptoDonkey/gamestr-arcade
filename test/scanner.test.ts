@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { scanGames } from '../src/main/scanner'
 import { join } from 'node:path'
+import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 
 const DIR = join(import.meta.dirname, 'fixtures/games')
 const REAL_GAMES = join(import.meta.dirname, '..', 'games')
@@ -17,6 +19,21 @@ describe('scanGames', () => {
     // A normal web game is not download-only.
     expect(neon!.downloadOnly).toBeUndefined()
     expect(neon!.downloadUrl).toBeUndefined()
+    expect(neon!.available).toBe(true)
+    expect(neon!.network).toBe('optional')
+    expect(neon).toMatchObject({
+      manifestVersion: 2,
+      developer: 'Test Studio',
+      genres: ['arcade', 'shooter'],
+      inputModes: ['gamepad', 'keyboard'],
+      controlHints: ['D-PAD = MOVE', 'A = FIRE'],
+      sessionMinutes: 5,
+      players: { min: 1, max: 2 },
+      ageRating: 'ALL AGES',
+      capabilities: { nostrSign: true, walletPay: false, persistentStorage: true },
+      rewardRules: { enabled: true, label: 'TOP SCORE REWARD' },
+      allowedOrigins: ['https://example.test', 'https://cdn.example.test'],
+    })
   })
 
   it('reads downloadOnly + downloadUrl from game.json', async () => {
@@ -45,6 +62,8 @@ describe('scanGames', () => {
     expect(g!.kind).toBe('appimage')
     expect(g!.exec).toBe('/some/absolute/path/Game.AppImage')
     expect(g!.gameId).toBe('exec-only')
+    expect(g!.available).toBe(false)
+    expect(g!.availabilityReason).toBe('Native game file is missing.')
   })
 
   it('reads a native tile from game.json.exec (relative path — resolved to folder)', async () => {
@@ -68,18 +87,56 @@ describe('scanGames', () => {
     const games = await scanGames(DIR)
     expect(games.map(g => g.order)).toEqual([...games.map(g => g.order)].sort((a, b) => a - b))
   })
+
+  it('blocks plaintext remote URLs while allowing a local offline mirror', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'gamestr-scanner-'))
+    try {
+      await Promise.all([
+        mkdir(join(root, 'remote-http')),
+        mkdir(join(root, 'loopback-http')),
+      ])
+      await Promise.all([
+        writeFile(join(root, 'remote-http', 'game.json'), JSON.stringify({ url: 'http://games.example.test/play' })),
+        writeFile(join(root, 'loopback-http', 'game.json'), JSON.stringify({ url: 'http://127.0.0.1:8090/' })),
+      ])
+
+      const games = await scanGames(root)
+      expect(games.find(game => game.id === 'remote-http')?.available).toBe(false)
+      expect(games.find(game => game.id === 'loopback-http')?.available).toBe(true)
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  it('prefers a cinematic hero reel over the static fallback', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'gamestr-scanner-'))
+    try {
+      const dir = join(root, 'reel-game')
+      await mkdir(dir)
+      await Promise.all([
+        writeFile(join(dir, 'game.json'), JSON.stringify({ name: 'Reel Game', url: 'https://example.test' })),
+        writeFile(join(dir, 'hero.png'), ''),
+        writeFile(join(dir, 'hero.mp4'), ''),
+      ])
+
+      const [game] = await scanGames(root)
+      expect(game.hero).toBe(join(dir, 'hero.mp4'))
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
 })
 
 describe('the shipped Pallasite tile', () => {
-  it('is classified as a packaged native tile (flagship runs as a local AppImage on the booth)', async () => {
+  it('falls back to its web build when the optional native package is not installed', async () => {
     const games = await scanGames(REAL_GAMES)
     const pallasite = games.find(g => g.id === 'pallasite')
     expect(pallasite, 'pallasite tile should be scanned from games/').toBeTruthy()
-    // game.json.exec wins over url: Pallasite ships as a 376 MB native AppImage
-    // alongside game.json on the booth, for the full-fat flagship experience.
-    expect(pallasite!.kind).toBe('appimage')
-    // Relative exec resolves against the tile folder.
-    expect(pallasite!.exec).toBe(join(REAL_GAMES, 'pallasite', 'Pallasite.AppImage'))
+    // On a booth with Pallasite.AppImage beside game.json the native build wins;
+    // a source checkout has no 376 MB binary, so the playable URL is used.
+    expect(pallasite!.kind).toBe('web')
+    expect(pallasite!.url).toBe('https://pallasite.app/')
+    expect(pallasite!.available).toBe(true)
     expect(pallasite!.gameId).toBe('pallasite')
     expect(pallasite!.order).toBe(1)
     expect(pallasite!.accent).toBe('#7cf3ff')

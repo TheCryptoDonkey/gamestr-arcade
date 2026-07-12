@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gamestr.dev/schemas/arcade-config.schema.json",
+  "title": "Gamestr Arcade Configuration",
+  "type": "object",
+  "properties": {
+    "gamesDir": { "type": "string", "minLength": 1 },
+    "theme": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "wordmark": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "accent": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+        "crt": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "attractTimeoutMs": { "type": "integer", "minimum": 1000, "maximum": 3600000 },
+    "kiosk": { "type": "boolean" },
+    "leaderboard": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["provider"],
+          "properties": { "provider": { "const": "none" } },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["provider", "relays", "topN"],
+          "properties": {
+            "provider": { "const": "gamestr" },
+            "relays": {
+              "type": "array",
+              "items": { "type": "string", "format": "uri", "pattern": "^wss://" },
+              "uniqueItems": true,
+              "maxItems": 20
+            },
+            "topN": { "type": "integer", "minimum": 1, "maximum": 100 }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "webln": {
+      "type": "object",
+      "required": ["nwc"],
+      "properties": {
+        "nwc": { "type": "string", "pattern": "^nostr\\+walletconnect://" },
+        "maxSats": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+        "sessionBudgetSats": { "type": "integer", "minimum": 0, "maximum": 10000000 },
+        "maxPaymentsPerMinute": { "type": "integer", "minimum": 1, "maximum": 60 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

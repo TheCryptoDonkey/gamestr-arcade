@@ -93,7 +93,7 @@ function makeFakeDeps(): { deps: LaunchDeps; state: FakeDepsState } {
     showShell: () => { state.shown = true },
     notifyReturned: () => { state.returned = true },
     notifyError: (msg) => { state.errors.push(msg) },
-    loadWeb: (url) => { state.loadedUrls.push(url) },
+    loadWeb: (game) => { state.loadedUrls.push(game.url ?? '') },
     closeWeb: () => { state.webClosed = true },
     now: () => state.clock,
   }
@@ -202,6 +202,15 @@ describe('Launcher — native AppImage', () => {
 })
 
 describe('Launcher — web game', () => {
+  it('refuses scanner-marked unavailable games even through the launch API', () => {
+    const { deps, state } = makeFakeDeps()
+    const launcher = new Launcher(deps)
+
+    expect(launcher.launch(makeWebGame({ available: false, availabilityReason: 'Invalid launch URL.' }))).toBe(false)
+    expect(state.loadedUrls).toEqual([])
+    expect(state.errors.at(-1)).toContain('Invalid launch URL')
+  })
+
   it('calls loadWeb with the game URL', () => {
     const { deps, state } = makeFakeDeps()
     const launcher = new Launcher(deps)
@@ -263,6 +272,19 @@ describe('Launcher — web game', () => {
     expect(state.loadedUrls).toHaveLength(0)
     expect(state.errors.length).toBe(1)
     expect(state.errors[0]).toContain('no URL')
+  })
+
+  it('recovers when isolated web-session construction throws', () => {
+    const { deps, state } = makeFakeDeps()
+    deps.loadWeb = () => { throw new Error('unsafe launch origin') }
+    const launcher = new Launcher(deps)
+
+    expect(launcher.launch(makeWebGame())).toBe(false)
+    expect(state.errors.at(-1)).toContain('unsafe launch origin')
+    expect(state.webClosed).toBe(true)
+
+    deps.loadWeb = game => { state.loadedUrls.push(game.url ?? '') }
+    expect(launcher.launch(makeWebGame({ url: 'https://example.test/recovered' }))).toBe(true)
   })
 
   // Fix #1 — did-fail-load must route through back() so running resets.

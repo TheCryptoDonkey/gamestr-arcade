@@ -33,20 +33,24 @@ games/
   <slug>/
     game.json          # required for web games; optional metadata for AppImage games
     MyGame.AppImage    # present → native game
-    logo.png           # optional: tile logo (else icon is auto-extracted from the AppImage on Linux)
+    logo.png           # optional: tile logo (recommended for every native game)
     hero.png           # optional: hero image shown in the detail panel
     hero.mp4           # optional: hero video (preferred over hero.png if both present)
-    music.ogg          # optional: attract-mode music track
-    voice.ogg          # optional: attract-mode voice line
 ```
 
 A loose `*.AppImage` file at the **top level** of the games folder is also picked up (slug = filename without extension).
 
 ### `game.json` fields
 
+Manifest v2 adds a player-facing launch contract while keeping every v1 manifest
+working. The canonical JSON Schema is
+[`schemas/game-manifest-v2.schema.json`](schemas/game-manifest-v2.schema.json).
+
 ```jsonc
 {
+  "manifestVersion": 2,
   "url":     "https://example.com/game",   // required for web games; absent for AppImage games
+  "exec":    "MyGame.AppImage",            // optional native build; URL is the fallback if absent
   "name":    "My Game",                    // display name (default: prettified slug)
   "tagline": "A short one-liner",          // shown under the name on the tile
   "gameId":  "my-game",                    // kind-30762 game tag the leaderboard filters on
@@ -54,17 +58,39 @@ A loose `*.AppImage` file at the **top level** of the games folder is also picke
                                            //  game publishes a different tag)
   "accent":  "#ff6a00",                    // tile accent colour (CSS hex)
   "order":   1,                            // sort order in the grid (default: 999)
-  "tHints":  ["arrows", "z to jump"]       // optional control hints shown in the detail panel
+  "inputModes": ["gamepad", "keyboard"],
+  "controlHints": ["D-PAD = MOVE", "Ⓐ = ACTION"],
+  "players": { "min": 1, "max": 1 },
+  "sessionMinutes": 5,
+  "network": "required",                  // required | optional | offline
+  "capabilities": {                        // requests, never automatic grants
+    "nostrSign": true,
+    "walletPay": false,
+    "persistentStorage": true,
+    "externalNavigation": false
+  },
+  "allowedOrigins": ["https://example.com"]
 }
 ```
+
+The selector shows these facts in a controller-accessible **Ready to Play** panel.
+If both `exec` and `url` are declared, an installed AppImage wins; when the binary
+is missing, the scanner falls back to the web build. An exec-only missing binary
+stays visible as **Not Ready** so the operator gets a useful diagnosis.
 
 `gameId` is the value the leaderboard reads from the `game` tag of kind-30762 events. If a game publishes its scores under a specific tag, set `gameId` to match — otherwise boards will be empty for that tile.
 
 ### Logo resolution order
 
 1. `logo.png` sibling in the game folder
-2. `.DirIcon` extracted from the AppImage (Linux only; cached in `~/.config/gamestr-arcade/icon-cache/`)
+2. Explicit `logoUrl`, then a safe icon discovered from the declared HTTPS game page
 3. Bundled placeholder icon
+
+The scanner deliberately does not execute an AppImage to extract `.DirIcon`.
+Ship `logo.png` beside every native title instead.
+
+Hero reels use `hero.mp4` (muted, looping, and preferred over `hero.png`). The
+static image remains the lightweight fallback.
 
 ---
 
@@ -84,11 +110,27 @@ Shipped alongside the AppImage (in `resources/`) via `extraResources`. Edit the 
     "provider": "gamestr",        // "gamestr" = kind-30762 via Nostr | "none" = hide boards
     "relays":   ["wss://relay.trotters.cc", "wss://nos.lol"],
     "topN":     5                 // how many scores to show per board
+  },
+  "webln": {                       // optional booth wallet; keep this file private
+    "nwc": "nostr+walletconnect://…",
+    "maxSats": 100,                // ceiling for one invoice
+    "sessionBudgetSats": 500,      // cumulative reservation per game launch
+    "maxPaymentsPerMinute": 5
   }
 }
 ```
 
-The file is read on every `games:list` IPC call (i.e. on every reload/rescan), so changes take effect immediately without restarting the app.
+When configured, wallet credentials stay in the Electron main process. A web
+game receives `sendPayment` only when its manifest explicitly requests
+`capabilities.walletPay`; invoices are amount-checked, rate-limited, deduplicated
+and charged against a launch-scoped budget. Amount-less invoices, keysend and
+invoice creation are not exposed. Protect a credential-bearing config with
+`chmod 600 arcade.config.json`.
+
+The renderer reload path re-reads the config. Theme, leaderboard and wallet
+policy changes therefore apply after **F5**. `gamesDir` and `kiosk` define
+process-level startup state and require an app/service restart; explicit
+`ARCADE_GAMES_DIR` and `ARCADE_KIOSK` environment values take precedence.
 
 ---
 
@@ -133,6 +175,20 @@ systemctl --user enable --now gamestr-arcade
 
 The service uses `Restart=always` with `RestartSec=2` — a one-off crash returns to the game grid within 2 seconds — **capped** by a `StartLimitBurst=4` / `StartLimitIntervalSec=120` guard so a persistently-failing launch can't crash-loop forever (it trips to `failed` after 4 starts in 2 min instead of hammering the machine).
 
+### Ubuntu 24.04+ Chromium sandbox
+
+Ubuntu restricts unprivileged user namespaces by default. Keep Electron's
+Chromium sandbox enabled by installing the narrow AppArmor grant shipped here:
+
+```bash
+sudo install -m 0644 systemd/apparmor-gamestr-arcade /etc/apparmor.d/gamestr-arcade
+sudo apparmor_parser -r /etc/apparmor.d/gamestr-arcade
+```
+
+Then run the Wayland override without `--no-sandbox` (the tracked
+`systemd/booth-wayland.conf` already does this). The profile grants `userns` only
+to the launcher paths; it does not disable AppArmor system-wide.
+
 **If the unit is stuck `failed`:** check `systemctl --user status gamestr-arcade`. Once the cause is fixed, clear the limit with `systemctl --user reset-failed gamestr-arcade`. If it core-dumps on *every* launch (SIGTRAP/SIGBUS, often after a burst of earlier crashes), the **GPU driver is wedged** — do a **clean reboot** to reset it. Don't paper over it by forcing software rendering globally; that pins the cabinet to a slideshow.
 
 See `systemd/gamestr-arcade.service` for the path placeholders you must update, and for the screen-blanking / DPMS commands to run once in the booth session.
@@ -158,7 +214,7 @@ gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout 
 | Key       | Action |
 |-----------|--------|
 | `Ctrl+Q`  | Quit the arcade (admin exit — kiosk mode hides the window chrome) |
-| `F5`      | Reload the renderer — rescans the games folder and reloads config |
+| `F5`      | Reload the renderer — rescans the active games folder and reloads non-startup config |
 | `c`       | Toggle the CRT scanline overlay on/off |
 | `m`       | Toggle audio mute on/off |
 

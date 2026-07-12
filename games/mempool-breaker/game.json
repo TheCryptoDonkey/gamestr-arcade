@@ -1,4 +1,5 @@
 {
+  "manifestVersion": 2,
   "name": "Mempool Breaker",
   "tagline": "Bitcoin brick-breaker — smash live mempool blocks",
   "url": "https://games.noderunners.network/mempoolbreaker/",
@@ -7,5 +8,9 @@
   "accent": "#f7931a",
   "heroUrl": "https://gamestr.io/games/mempool-breaker.png",
   "textLogo": true,
-  "source": "gamestr"
+  "source": "gamestr",
+  "inputModes": ["gamepad", "keyboard"],
+  "network": "required",
+  "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
+  "allowedOrigins": ["https://games.noderunners.network"]
 }

@@ -23,8 +23,41 @@ describe('parseConfig', () => {
     const c = parseConfig({ leaderboard: { provider: 'none' } })
     expect(c.leaderboard.provider).toBe('none')
   })
+  it('accepts only a non-empty gamesDir and boolean kiosk value', () => {
+    expect(parseConfig({ gamesDir: ' custom-games ', kiosk: false })).toMatchObject({
+      gamesDir: 'custom-games',
+      kiosk: false,
+    })
+    expect(parseConfig({ gamesDir: ' ', kiosk: 'false' })).toMatchObject({
+      gamesDir: DEFAULT_CONFIG.gamesDir,
+      kiosk: DEFAULT_CONFIG.kiosk,
+    })
+  })
   it('keeps a gamestr provider with relays', () => {
     const c = parseConfig({ leaderboard: { provider: 'gamestr', relays: ['wss://relay.trotters.cc'], topN: 5 } })
     expect(c.leaderboard).toEqual({ provider: 'gamestr', relays: ['wss://relay.trotters.cc'], topN: 5 })
+  })
+  it('normalises wallet payment/session/rate limits', () => {
+    const c = parseConfig({
+      webln: {
+        nwc: ' nostr+walletconnect://wallet?secret=test ',
+        maxSats: 20,
+        sessionBudgetSats: 70,
+        maxPaymentsPerMinute: 3,
+      },
+    })
+    expect(c.webln).toEqual({
+      nwc: 'nostr+walletconnect://wallet?secret=test',
+      maxSats: 20,
+      sessionBudgetSats: 70,
+      maxPaymentsPerMinute: 3,
+    })
+  })
+  it('uses conservative wallet defaults for invalid limits', () => {
+    const c = parseConfig({ webln: { nwc: 'nostr+walletconnect://wallet', maxSats: 1_000_001, sessionBudgetSats: 10_000_001, maxPaymentsPerMinute: 61 } })
+    expect(c.webln).toMatchObject({ maxSats: 100, sessionBudgetSats: 500, maxPaymentsPerMinute: 5 })
+  })
+  it('does not enable a malformed wallet connection URL', () => {
+    expect(parseConfig({ webln: { nwc: 'https://example.com/not-nwc' } }).webln).toBeUndefined()
   })
 })

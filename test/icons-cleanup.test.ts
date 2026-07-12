@@ -1,7 +1,8 @@
 /**
- * Tests for the extractDirIcon tmp-dir cleanup fix.
+ * Tests for the optional extractDirIcon helper's tmp-dir cleanup contract.
  *
- * The real extractDirIcon (in realIconDeps) uses a tmp squashfs-root directory
+ * Production no longer executes AppImages to inspect their icons. Trusted
+ * integrators can still supply extraction deps; those use a tmp directory
  * that must be removed in a finally block regardless of success or failure.
  * We test the exported testable variant with injected dependencies.
  */

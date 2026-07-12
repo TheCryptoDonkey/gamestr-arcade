@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck all TypeScript projects
+        run: npm run typecheck
+
+      - name: Validate configuration and game contracts
+        run: npm run validate
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build application
+        run: npm run build
+
+      - name: Audit full dependency tree
+        run: npm audit --audit-level=high
+
+      - name: Generate CycloneDX SBOM
+        run: npm sbom --sbom-format=cyclonedx > gamestr-arcade.cdx.json
+
+      - name: Package Linux AppImage
+        run: npm run dist
+
+      - name: Upload release evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: gamestr-arcade-linux-${{ github.sha }}
+          path: |
+            release/*.AppImage
+            gamestr-arcade.cdx.json
+          if-no-files-found: error
+          retention-days: 14

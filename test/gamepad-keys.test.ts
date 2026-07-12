@@ -8,11 +8,12 @@
  *   - keyInfo()                    — legacy keyCode lookup table
  *   - resolveControls()            — per-game override merging
  *
- * Control split (since virtual-cursor addition):
- *   Left stick                → virtual cursor          (NOT keyboard)
+ * Control split:
+ *   Left stick                → movement keys + virtual cursor (firm push = keys)
  *   A (button 0)              → cursor click + fire     (click AND Space)
  *   D-pad                     → arrow keys              (keyboard)
  *   X (button 2)              → fire (Space)            (keyboard)
+ *   Held button               → auto-repeat keydowns at the booth keyboard cadence
  *
  * What still requires a real gamepad and game page at the booth (NOT covered here):
  *   - dispatchKey() reaching a canvas game's event listeners
@@ -24,6 +25,8 @@ import { describe, it, expect } from 'vitest'
 import { Window } from 'happy-dom'
 import {
   GamepadKeyTranslator,
+  KEY_REPEAT_DELAY_MS,
+  KEY_REPEAT_INTERVAL_MS,
   DEFAULT_CONTROLS,
   resolveControls,
   snapshotFromGamepad,
@@ -206,6 +209,43 @@ describe('GamepadKeyTranslator — full press/hold/release cycle', () => {
   })
 })
 
+describe('GamepadKeyTranslator — auto-repeat (held key repeats like the keyboard)', () => {
+  it('no repeat before the initial delay elapses', () => {
+    const t = new GamepadKeyTranslator()
+    const snap = makeSnapshot({ left: true })
+    expect(t.diff(snap, DEFAULT_CONTROLS, 0)).toEqual([{ type: 'keydown', key: 'ArrowLeft' }])
+    expect(t.diff(snap, DEFAULT_CONTROLS, KEY_REPEAT_DELAY_MS - 1)).toHaveLength(0)
+  })
+
+  it('emits a repeat keydown once the delay passes, then again after the interval', () => {
+    const t = new GamepadKeyTranslator()
+    const snap = makeSnapshot({ left: true })
+    t.diff(snap, DEFAULT_CONTROLS, 0) // press
+    expect(t.diff(snap, DEFAULT_CONTROLS, KEY_REPEAT_DELAY_MS))
+      .toEqual([{ type: 'keydown', key: 'ArrowLeft', repeat: true }])
+    expect(t.diff(snap, DEFAULT_CONTROLS, KEY_REPEAT_DELAY_MS + KEY_REPEAT_INTERVAL_MS - 1)).toHaveLength(0)
+    expect(t.diff(snap, DEFAULT_CONTROLS, KEY_REPEAT_DELAY_MS + KEY_REPEAT_INTERVAL_MS))
+      .toEqual([{ type: 'keydown', key: 'ArrowLeft', repeat: true }])
+  })
+
+  it('release stops repeats and emits a single keyup', () => {
+    const t = new GamepadKeyTranslator()
+    const snap = makeSnapshot({ down: true })
+    t.diff(snap, DEFAULT_CONTROLS, 0)
+    t.diff(snap, DEFAULT_CONTROLS, KEY_REPEAT_DELAY_MS) // a repeat
+    expect(t.diff(IDLE, DEFAULT_CONTROLS, KEY_REPEAT_DELAY_MS + 5))
+      .toEqual([{ type: 'keyup', key: 'ArrowDown' }])
+  })
+
+  it('fire auto-repeats too (held shoot matches a held spacebar)', () => {
+    const t = new GamepadKeyTranslator()
+    const snap = makeSnapshot({ fire: true })
+    t.diff(snap, DEFAULT_CONTROLS, 0)
+    expect(t.diff(snap, DEFAULT_CONTROLS, KEY_REPEAT_DELAY_MS))
+      .toEqual([{ type: 'keydown', key: 'Space', repeat: true }])
+  })
+})
+
 // ── resolveControls ────────────────────────────────────────────────────────────
 
 describe('resolveControls', () => {
@@ -264,45 +304,46 @@ describe('snapshotFromGamepad — fire buttons', () => {
   })
 })
 
-describe('snapshotFromGamepad — left stick axes do NOT affect keyboard snapshot', () => {
-  // Since the virtual-cursor addition, the left stick drives the cursor only.
-  // It must never contribute to the keyboard InputSnapshot.
+describe('snapshotFromGamepad — left stick drives movement keys', () => {
+  // Players reach for the stick to move, so a firm push (≥ STICK_DEAD) maps to the
+  // same movement keys as the d-pad. Gentle nudges (< STICK_DEAD) stay cursor-only.
 
-  it('stick past deadzone left → left remains false (stick is cursor, not keys)', () => {
-    const snap = snapshotFromGamepad(fakeGamepad({ axes: [-(STICK_DEAD + 0.1), 0] }))
-    expect(snap.left).toBe(false)
-    expect(snap.right).toBe(false)
+  it('stick past deadzone left → left=true', () => {
+    expect(snapshotFromGamepad(fakeGamepad({ axes: [-(STICK_DEAD + 0.1), 0] })))
+      .toMatchObject({ left: true, right: false })
   })
 
-  it('stick past deadzone right → right remains false', () => {
-    const snap = snapshotFromGamepad(fakeGamepad({ axes: [STICK_DEAD + 0.1, 0] }))
-    expect(snap.right).toBe(false)
-    expect(snap.left).toBe(false)
+  it('stick past deadzone right → right=true', () => {
+    expect(snapshotFromGamepad(fakeGamepad({ axes: [STICK_DEAD + 0.1, 0] })))
+      .toMatchObject({ right: true, left: false })
   })
 
-  it('stick past deadzone up → up remains false', () => {
-    const snap = snapshotFromGamepad(fakeGamepad({ axes: [0, -(STICK_DEAD + 0.1)] }))
-    expect(snap.up).toBe(false)
-    expect(snap.down).toBe(false)
+  it('stick past deadzone up → up=true', () => {
+    expect(snapshotFromGamepad(fakeGamepad({ axes: [0, -(STICK_DEAD + 0.1)] })))
+      .toMatchObject({ up: true, down: false })
   })
 
-  it('stick past deadzone down → down remains false', () => {
-    const snap = snapshotFromGamepad(fakeGamepad({ axes: [0, STICK_DEAD + 0.1] }))
-    expect(snap.down).toBe(false)
-    expect(snap.up).toBe(false)
+  it('stick past deadzone down → down=true', () => {
+    expect(snapshotFromGamepad(fakeGamepad({ axes: [0, STICK_DEAD + 0.1] })))
+      .toMatchObject({ down: true, up: false })
   })
 
-  it('stick fully deflected in all directions → all keyboard directions false', () => {
-    const snap = snapshotFromGamepad(fakeGamepad({ axes: [1, 1] }))
-    expect(snap).toMatchObject({ up: false, down: false, left: false, right: false })
+  it('stick within deadzone → no movement keys (gentle nudge is cursor-only)', () => {
+    expect(snapshotFromGamepad(fakeGamepad({ axes: [STICK_DEAD - 0.1, 0] })))
+      .toMatchObject({ left: false, right: false })
+  })
+
+  it('stick deflected down-right → both down and right', () => {
+    expect(snapshotFromGamepad(fakeGamepad({ axes: [1, 1] })))
+      .toMatchObject({ down: true, right: true, up: false, left: false })
   })
 })
 
-describe('snapshotFromGamepad — d-pad only, stick ignored', () => {
-  it('d-pad left + stick right → only left=true (stick does not affect keyboard)', () => {
+describe('snapshotFromGamepad — d-pad and stick combine (union)', () => {
+  it('d-pad left + stick right → both left and right (union of d-pad and stick)', () => {
     const snap = snapshotFromGamepad(fakeGamepad({ pressed: [DPAD.LEFT], axes: [STICK_DEAD + 0.1, 0] }))
     expect(snap.left).toBe(true)
-    expect(snap.right).toBe(false)   // stick does not contribute
+    expect(snap.right).toBe(true)
   })
 })
 

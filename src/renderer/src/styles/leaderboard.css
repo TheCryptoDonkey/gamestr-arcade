@@ -447,3 +447,9 @@
     animation: none !important;
   }
 }
+
+@media (max-width: 720px) {
+  /* The score table competes with the play controls in portrait. The full board
+     remains a landscape-cabinet feature; selection stays touch accessible. */
+  .leaderboard { display: none; }
+}

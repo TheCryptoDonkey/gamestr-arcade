@@ -1,4 +1,5 @@
 {
+  "manifestVersion": 2,
   "name": "The Rabbit Hole",
   "tagline": "Arcade shooter — ← → move, SPACE to shoot",
   "url": "https://games.noderunners.network/spaceinvaders2/",
@@ -7,5 +8,9 @@
   "accent": "#a855f7",
   "heroUrl": "https://gamestr.io/games/rabbit-hole-logo.jpg",
   "textLogo": true,
-  "source": "gamestr"
+  "source": "gamestr",
+  "inputModes": ["gamepad", "keyboard"],
+  "network": "required",
+  "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
+  "allowedOrigins": ["https://games.noderunners.network"]
 }
