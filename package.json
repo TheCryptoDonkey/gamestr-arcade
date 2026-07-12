@@ -16,7 +16,7 @@
     "test": "vitest run",
     "pretest:watch": "install-electron --no",
     "test:watch": "vitest",
-    "dist": "electron-vite build && electron-builder --linux AppImage --x64",
+    "dist": "electron-vite build && electron-builder --linux AppImage --x64 --publish never",
     "validate:config": "node scripts/validate-config.mjs",
     "validate:manifests": "node scripts/validate-manifests.mjs",
     "validate": "npm run validate:config && npm run validate:manifests",
