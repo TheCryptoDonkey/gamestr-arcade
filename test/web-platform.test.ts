@@ -56,6 +56,8 @@ describe('public web platform boundaries', () => {
     expect(source).toContain('provider.enable()')
     expect(source).toContain('provider.sendPayment')
     expect(source).toContain("invoiceAmountMsats(invoicePayload.pr) !== BigInt(amount)")
+    expect(source).toContain("kind: 9734")
+    expect(source).toContain("callback.searchParams.set('nostr'")
     expect(page).toContain('(window as NostrWindow).webln')
     expect(page).not.toContain('NWC_URI')
     expect(page).not.toContain('phoenixd')

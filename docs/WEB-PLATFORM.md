@@ -66,8 +66,11 @@ Lightning address. After an explicit click, the browser resolves LNURL-pay,
 enforces a 1–100,000 sat user-selected bound, checks the returned BOLT11 amount
 exactly, and only then calls the visitor's injected WebLN provider. Gamestr
 does not proxy the request, handle a preimage, retain a wallet connection, or
-expose the cabinet Phoenixd/NWC authority. This first reward slice is a direct
-Lightning payment rather than a public NIP-57 zap receipt.
+expose the cabinet Phoenixd/NWC authority. Direct LNURL-pay remains the
+privacy-first default. If the recipient supports NIP-57, the sender may opt in
+to a public receipt; the UI explicitly warns that this reveals the sender's
+signing identity, obtains a NIP-07 signature on kind `9734`, and sends that
+request only to the LNURL callback rather than publishing it itself.
 
 The public web app never receives the cabinet NWC URI. A cross-origin game owns
 its own wallet UX. The Electron cabinet may broker narrowly bounded payments,
@@ -79,9 +82,9 @@ The first slice intentionally prioritises the jobs visible on gamestr.io today:
 discovery, editorial filters, live scores, game pages, identity and developer
 onboarding. Remaining replacement work should land in this order:
 
-1. optional signed NIP-57 zap receipts and NWC providers selected by the user;
+1. optional NWC providers selected and permissioned by the user;
 2. optional Nostr-synchronised preference lists with local-first fallback;
-3. domain cutover, redirects and long-term compatibility for old score URLs.
+3. domain cutover after the external PortFast records move.
 
 Free-text direct messaging is not part of the arcade core. If social
 coordination is added, it should use existing Nostr clients or explicit,

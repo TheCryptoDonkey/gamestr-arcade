@@ -499,18 +499,21 @@ function rewardDialog(pubkey: string, profile: Profile): void {
   const lede = el('p', '', 'Pay directly from your own WebLN wallet to the player’s Lightning address. Gamestr never sees wallet credentials or routes this through the cabinet wallet.')
   const amountLabel = el('label', '', 'Amount in sats'); const amount = el('input'); amount.type = 'number'; amount.min = '1'; amount.max = '100000'; amount.step = '1'; amount.required = true; amount.value = '21'; amountLabel.append(amount)
   const presets = el('div', 'reward-presets'); for (const value of [21, 100, 500, 1000]) presets.append(button(`${value} SATS`, 'secondary', () => { amount.value = String(value) }))
+  const zapLabel = el('label', 'zap-option'); const publicZap = el('input'); publicZap.type = 'checkbox'; zapLabel.append(publicZap, el('span', '', 'Create a public Nostr zap receipt (reveals your signing identity)'))
   const destination = el('p', 'reward-destination', `TO ${profile.lud16}`)
   const privacy = el('p', 'reward-privacy', 'Your browser contacts the recipient’s Lightning service only after you approve. The wallet still shows the final invoice for authorization.')
   const status = el('output', 'studio-status'); status.setAttribute('aria-live', 'polite')
   const actions = el('div', 'hero-actions'); const pay = button('OPEN MY WALLET', 'primary', () => undefined); pay.type = 'submit'; const cancel = button('CANCEL', 'secondary', () => modal.remove()); actions.append(pay, cancel)
-  form.append(el('p', 'kicker', 'USER-OWNED LIGHTNING'), heading, lede, amountLabel, presets, destination, privacy, actions, status); modal.append(form); document.body.append(modal); amount.focus(); amount.select()
+  form.append(el('p', 'kicker', 'USER-OWNED LIGHTNING'), heading, lede, amountLabel, presets, zapLabel, destination, privacy, actions, status); modal.append(form); document.body.append(modal); amount.focus(); amount.select()
   const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') { modal.remove(); window.removeEventListener('keydown', escape) } }; window.addEventListener('keydown', escape)
   form.addEventListener('submit', async event => {
     event.preventDefault(); const provider = (window as NostrWindow).webln
     if (!provider) { status.className = 'studio-status error'; status.textContent = 'No WebLN wallet was found. Install or connect a WebLN-capable wallet and retry.'; return }
     pay.disabled = true; status.className = 'studio-status'; status.textContent = 'Requesting an exact-amount invoice from the player’s Lightning address…'
     try {
-      await rewardLightningAddress(profile.lud16!, Number(amount.value), provider)
+      const signer = (window as NostrWindow).nostr
+      if (publicZap.checked && !signer) throw new Error('A NIP-07 signer is required for a public zap receipt.')
+      await rewardLightningAddress(profile.lud16!, Number(amount.value), provider, fetch, publicZap.checked ? { zap: { recipientPubkey: pubkey, signer: signer!, relays: RELAYS } } : {})
       status.className = 'studio-status success'; status.textContent = `${Number(amount.value).toLocaleString()} sats sent directly to ${profile.name ?? shortenNpub(pubkey)}.`
       setTimeout(() => modal.remove(), 1800)
     } catch (error) {

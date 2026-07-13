@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@getalby/sdk": "^8.0.3",
+    "@scure/base": "^1.2.6",
     "gsap": "^3.12.5",
     "light-bolt11-decoder": "^3.2.0",
     "nostr-tools": "^2.23.5",
