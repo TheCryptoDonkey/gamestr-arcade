@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Operator Payment Lab</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <p class="eyebrow">GAMESTR ARCADE / OPERATOR</p>
+    <h1>Payment Lab</h1>
+    <p class="lede">Use disposable invoices only. The arcade enforces its launch budget before the NWC gateway applies its independent wallet limits.</p>
+
+    <section aria-labelledby="status-heading">
+      <h2 id="status-heading">Wallet capability</h2>
+      <output id="wallet-status" class="status pending" aria-live="polite">Checking…</output>
+    </section>
+
+    <form id="payment-form">
+      <label for="invoice">BOLT-11 invoice</label>
+      <textarea id="invoice" name="invoice" rows="5" spellcheck="false" autocomplete="off" required placeholder="lnbc…"></textarea>
+      <div class="actions">
+        <button id="pay" type="submit">Pay invoice</button>
+        <button id="repeat" type="button">Repeat same invoice</button>
+        <button id="clear" type="button" class="secondary">Clear log</button>
+      </div>
+    </form>
+
+    <section aria-labelledby="log-heading">
+      <h2 id="log-heading">Session log</h2>
+      <ol id="log" aria-live="polite"></ol>
+    </section>
+
+    <aside>
+      <strong>Required checks</strong>
+      <ul>
+        <li>A valid 1-sat invoice succeeds once.</li>
+        <li>Repeating it returns the cached result without paying twice.</li>
+        <li>An amount above the booth cap is refused.</li>
+        <li>Enough distinct invoices eventually hit the session budget or rate limit.</li>
+      </ul>
+    </aside>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

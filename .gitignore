@@ -22,3 +22,7 @@ games/**/*.mp4
 
 # Local game mirrors — served by the local static server; never committed.
 games/**/site/
+
+# The operator payment lab is first-party diagnostic code, not a mirrored game.
+!games/payment-lab/site/
+!games/payment-lab/site/**
