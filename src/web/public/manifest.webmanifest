@@ -1,0 +1,13 @@
+{
+  "name": "Gamestr — Nostr-native arcade",
+  "short_name": "Gamestr",
+  "description": "Play independent games and compete on verified Nostr leaderboards.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#08090d",
+  "theme_color": "#08090d",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "featured": ["pallasite", "blockstr", "sats-man", "mempool-breaker"],
+  "trending": ["space-zappers", "axenstax", "word5", "nostrich-run"],
+  "new": ["forge-realms", "hang-on-fren", "nogames-miner-v1", "nogames-snake-v1"],
+  "hero": {
+    "mempool-breaker": "/editorial/mempool-breaker.webp",
+    "the-rabbit-hole": "/editorial/the-rabbit-hole.webp"
+  }
+}

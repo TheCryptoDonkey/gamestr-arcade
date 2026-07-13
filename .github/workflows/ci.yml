@@ -38,6 +38,9 @@ jobs:
       - name: Build application
         run: npm run build
 
+      - name: Build and validate web platform
+        run: npm run build:web && npm run validate:web
+
       - name: Audit full dependency tree
         run: npm audit --audit-level=high
 
@@ -54,5 +57,6 @@ jobs:
           path: |
             release/*.AppImage
             gamestr-arcade.cdx.json
+            dist-web/**
           if-no-files-found: error
           retention-days: 14
