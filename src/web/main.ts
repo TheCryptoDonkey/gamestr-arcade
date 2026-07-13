@@ -521,7 +521,19 @@ function toast(message: string, tone: 'good' | 'warn'): void {
   document.querySelector('.toast')?.remove(); const node = el('div', `toast ${tone}`, message); node.setAttribute('role', 'status'); document.body.append(node); setTimeout(() => node.remove(), 5000)
 }
 
+function updateMetadata(): void {
+  const current = route()
+  const game = current.name === 'game' ? state.games.find(item => item.slug === current.slug) : undefined
+  const title = game ? `${game.name} — Gamestr` : current.name === 'scores' ? 'Verified scores — Gamestr' : current.name === 'developers' ? 'Build for Gamestr' : current.name === 'challenge' ? 'Signed challenge — Gamestr' : current.name === 'invite' ? 'Game invitation — Gamestr' : current.name === 'player' ? 'Nostr player — Gamestr' : 'Gamestr — play free, own your score'
+  const description = game?.description ?? game?.tagline ?? 'The Nostr-native arcade for independent games, verified scores, signed challenges, and direct Lightning rewards.'
+  document.title = title
+  const canonical = `https://gamestr.io${location.pathname === '/' ? '/' : location.pathname}`
+  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', canonical)
+  for (const [selector, value] of [['meta[name="description"]', description], ['meta[property="og:title"]', title], ['meta[property="og:description"]', description], ['meta[property="og:url"]', canonical]]) document.querySelector<HTMLMetaElement>(selector)?.setAttribute('content', value)
+}
+
 function render(): void {
+  updateMetadata()
   const current = route()
   const content = current.name === 'home' ? home()
     : current.name === 'scores' ? scoresPage()

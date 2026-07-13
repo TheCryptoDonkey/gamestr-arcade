@@ -96,3 +96,11 @@ The tracked Caddy site in `deploy/web/gamestr-web.Caddyfile` supplies SPA fallba
 TLS, immutable asset caching, mutable shell caching and enforced security
 headers. The sslip.io hostname is a temporary preview; the final domain is a DNS
 and Caddy-site change, not an application rebuild.
+
+`deploy/web/gamestr-web.production.Caddyfile` is the final apex site and sends
+`www` plus the temporary preview hostname to the canonical origin while
+preserving every path. `scripts/cutover-web-domain.sh` refuses to install it
+until both apex and `www` resolve to `95.217.39.110`, then validates Caddy,
+reloads it, and proves the HTTPS application shell. The current authoritative
+PortFast zone still points the apex to `185.18.221.186`; changing those DNS
+records is the only external cutover action remaining.

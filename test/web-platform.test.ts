@@ -58,6 +58,18 @@ describe('public web platform boundaries', () => {
     expect(page).not.toContain('phoenixd')
   })
 
+  it('ships canonical production metadata and a DNS-gated domain cutover', async () => {
+    const html = await read('src/web/index.html')
+    const caddy = await read('deploy/web/gamestr-web.production.Caddyfile')
+    const cutover = await read('scripts/cutover-web-domain.sh')
+    expect(html).toContain('rel="canonical" href="https://gamestr.io/"')
+    expect(html).toContain('property="og:title"')
+    expect(caddy).toContain('gamestr.io {')
+    expect(caddy).toContain('www.gamestr.io, gamestr.95-217-39-110.sslip.io')
+    expect(cutover).toContain('both apex and www must resolve')
+    expect(cutover).toContain('caddy validate')
+  })
+
   it('sandboxes embedded games without top-navigation authority', async () => {
     const source = await read('src/web/main.ts')
     const sandbox = source.match(/setAttribute\('sandbox', '([^']+)'\)/)?.[1]
