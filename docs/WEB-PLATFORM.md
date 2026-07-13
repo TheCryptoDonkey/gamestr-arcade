@@ -18,6 +18,8 @@ fork into incompatible web and cabinet versions.
 - sandboxed in-page play with a clear direct-origin fallback;
 - developer guide generated around the same Manifest v2 contract;
 - browser-side Manifest v2 validation and NIP-07-signed NIP-89 submissions;
+- device-local favourites and followed-player verified activity;
+- self-contained, seven-day signed game invitations with no messaging inbox;
 - offline-capable PWA shell and locally hosted editorial art;
 - strict script CSP, no analytics SDK and no first-party player database.
 
@@ -40,6 +42,15 @@ origin in `web`. The signed event is a portable submission receipt, not an
 automatic trust grant: the curated catalogue remains reviewed and build-time
 validated. The page never accepts an `nsec`.
 
+Favourites and follows are deliberately local browser preferences, bounded to
+250 entries each. They are not uploaded to Gamestr or presented as a global
+social graph. Structured invitations use the application-local ephemeral kind `23033`
+with `game`, reviewed origin `r`, and `expiration` tags. The complete signed
+event travels inside the shared URL and is never published to relays; the receiver verifies its Schnorr
+signature, seven-day maximum lifetime, and exact catalogue ID/origin match
+before offering play. There is no free-text body, recipient database, relay
+inbox, or private-message claim.
+
 The public web app never receives the cabinet NWC URI. A cross-origin game owns
 its own wallet UX. The Electron cabinet may broker narrowly bounded payments,
 but that authority stays in its main process and the hardened NWC gateway.
@@ -50,9 +61,10 @@ The first slice intentionally prioritises the jobs visible on gamestr.io today:
 discovery, editorial filters, live scores, game pages, identity and developer
 onboarding. Remaining replacement work should land in this order:
 
-1. tournaments, follows, favourites and structured game invitations;
+1. signed tournaments and challenge standings;
 2. web-native rewards through user-owned WebLN/NWC, never the booth wallet;
-3. domain cutover, redirects and long-term compatibility for old score URLs.
+3. optional Nostr-synchronised preference lists with local-first fallback;
+4. domain cutover, redirects and long-term compatibility for old score URLs.
 
 Free-text direct messaging is not part of the arcade core. If social
 coordination is added, it should use existing Nostr clients or explicit,

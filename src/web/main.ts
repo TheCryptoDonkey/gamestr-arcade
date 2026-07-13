@@ -3,6 +3,8 @@ import { createGamestrCatalogue } from '../renderer/src/leaderboard/gamestr'
 import { boardFor } from '../renderer/src/leaderboard/gamestr-reduce'
 import { avatarCss, hexToNpub, resolveProfiles, shortenNpub, type Profile } from '../renderer/src/leaderboard/profiles'
 import type { LeaderboardEntry } from '../shared/types'
+import { decodeInvitation, encodeInvitation, invitationTemplate, parseInvitation, type GameInvitationEvent } from './game-invitation'
+import { readSocialState, toggleSocialItem, writeSocialState } from './social-state'
 
 interface WebGame {
   slug: string; gameId: string; name: string; tagline: string; description?: string; developer?: string
@@ -12,7 +14,10 @@ interface WebGame {
 }
 
 interface NostrWindow extends Window {
-  nostr?: { getPublicKey(): Promise<string> }
+  nostr?: {
+    getPublicKey(): Promise<string>
+    signEvent(event: { created_at: number; kind: number; tags: string[][]; content: string }): Promise<GameInvitationEvent>
+  }
 }
 
 const RELAYS = ['wss://relay.gamestr.io', 'wss://relay.trotters.cc', 'wss://nos.lol', 'wss://relay.damus.io']
@@ -22,6 +27,7 @@ const state = {
   scores: new Map<string, LeaderboardEntry[]>(), relay: 'connecting' as 'connecting' | 'up' | 'down',
   pubkey: localStorage.getItem('gamestr:pubkey') ?? '',
   profiles: new Map<string, Profile>(), profileRequests: new Set<string>(),
+  social: readSocialState(), activityMode: 'all' as 'all' | 'following',
 }
 
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] => {
@@ -31,7 +37,7 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, t
   return node
 }
 
-function route(): { name: 'home' | 'scores' | 'developers' | 'game' | 'player' | 'score'; slug?: string; id?: string } {
+function route(): { name: 'home' | 'scores' | 'developers' | 'game' | 'player' | 'score' | 'invite'; slug?: string; id?: string } {
   const path = location.pathname.replace(/\/+$/, '') || '/'
   if (path === '/scores') return { name: 'scores' }
   if (path === '/developers') return { name: 'developers' }
@@ -40,7 +46,19 @@ function route(): { name: 'home' | 'scores' | 'developers' | 'game' | 'player' |
   const player = /^\/player\/([0-9a-f]{64})$/.exec(path)
   if (player) return { name: 'player', id: player[1] }
   const score = /^\/score\/([0-9a-f]{64})$/.exec(path)
-  return score ? { name: 'score', id: score[1] } : { name: 'home' }
+  if (score) return { name: 'score', id: score[1] }
+  const invite = /^\/invite\/([A-Za-z0-9_-]{1,4096})$/.exec(path)
+  return invite ? { name: 'invite', id: invite[1] } : { name: 'home' }
+}
+
+function toggleFavourite(game: WebGame): void {
+  state.social = toggleSocialItem(state.social, 'favourites', game.slug); writeSocialState(state.social); render()
+  toast(state.social.favourites.includes(game.slug) ? `${game.name} added to your arcade.` : `${game.name} removed from your arcade.`, 'good')
+}
+
+function toggleFollow(pubkey: string): void {
+  state.social = toggleSocialItem(state.social, 'follows', pubkey); writeSocialState(state.social); render()
+  toast(state.social.follows.includes(pubkey) ? 'Player followed on this device.' : 'Player unfollowed.', 'good')
 }
 
 function navigate(path: string): void {
@@ -125,7 +143,7 @@ function filters(): HTMLElement {
   input.addEventListener('input', () => { state.query = input.value; renderGameGrid() })
   search.append(input)
   const tabs = el('div', 'filter-tabs'); tabs.setAttribute('role', 'group'); tabs.setAttribute('aria-label', 'Game filters')
-  for (const [key, label] of [['all', 'ALL'], ['featured', 'FEATURED'], ['trending', 'TRENDING'], ['new', 'NEW']]) {
+  for (const [key, label] of [['all', 'ALL'], ['favourites', `MY ARCADE${state.social.favourites.length ? ` (${state.social.favourites.length})` : ''}`], ['featured', 'FEATURED'], ['trending', 'TRENDING'], ['new', 'NEW']]) {
     tabs.append(button(label, state.filter === key ? 'selected' : '', () => { state.filter = key; renderGameGrid() }))
   }
   const genres = Array.from(new Set(state.games.flatMap(game => game.genres.map(g => g.toLowerCase())))).sort()
@@ -140,6 +158,7 @@ function filteredGames(): WebGame[] {
   const q = state.query.trim().toLowerCase()
   return state.games.filter(game => {
     if (state.filter === 'featured' && !game.featured) return false
+    if (state.filter === 'favourites' && !state.social.favourites.includes(game.slug)) return false
     if (state.filter === 'trending' && !game.trending) return false
     if (state.filter === 'new' && !game.newRelease) return false
     if (state.genre !== 'all' && !game.genres.some(g => g.toLowerCase() === state.genre)) return false
@@ -161,7 +180,10 @@ function gameCard(game: WebGame): HTMLElement {
   if (game.newRelease) flags.append(el('span', '', 'NEW'))
   art.append(flags)
   const body = el('div', 'game-body')
-  const titleRow = el('div', 'title-row'); titleRow.append(el('h3', '', game.name), button('PLAY', 'play-small', () => openGame(game)))
+  const titleRow = el('div', 'title-row'); titleRow.append(el('h3', '', game.name))
+  const cardActions = el('div', 'card-actions')
+  const favourite = button(state.social.favourites.includes(game.slug) ? '★' : '☆', 'favourite-button', () => toggleFavourite(game)); favourite.setAttribute('aria-label', `${state.social.favourites.includes(game.slug) ? 'Remove' : 'Add'} ${game.name} ${state.social.favourites.includes(game.slug) ? 'from' : 'to'} favourites`)
+  cardActions.append(favourite, button('PLAY', 'play-small', () => openGame(game))); titleRow.append(cardActions)
   body.append(titleRow, el('p', '', game.tagline))
   const tags = el('div', 'tags'); game.genres.slice(0, 3).forEach(genre => tags.append(el('span', '', genre.toUpperCase())))
   const scores = state.scores.get(game.gameId) ?? []
@@ -182,18 +204,23 @@ function renderGameGrid(): void {
 
 function activityPanel(): HTMLElement {
   const aside = el('aside', 'activity-panel')
-  const heading = el('div', 'section-heading'); heading.append(el('div', '', 'LIVE SCORES'), linkButton('VIEW ALL', '/scores'))
+  const heading = el('div', 'section-heading'); heading.append(el('div', '', state.activityMode === 'following' ? 'FOLLOWING' : 'LIVE SCORES'), linkButton('VIEW ALL', '/scores'))
+  const modes = el('div', 'activity-modes'); modes.setAttribute('role', 'group'); modes.setAttribute('aria-label', 'Activity filter')
+  for (const [mode, label] of [['all', 'ALL'], ['following', `FOLLOWING ${state.social.follows.length ? `(${state.social.follows.length})` : ''}`]] as const) {
+    modes.append(button(label, state.activityMode === mode ? 'selected' : '', () => { state.activityMode = mode; document.querySelector('.activity-panel')?.replaceWith(activityPanel()) }))
+  }
   const list = el('ol', 'activity-list')
   const latest = state.games.flatMap(game => (state.scores.get(game.gameId) ?? []).map(score => ({ game, score })))
+    .filter(({ score }) => state.activityMode === 'all' || state.social.follows.includes(score.pubkey))
     .sort((a, b) => b.score.at - a.score.at).slice(0, 8)
-  if (!latest.length) list.append(el('li', 'activity-empty', state.relay === 'down' ? 'Relays are unavailable. Retrying…' : 'Listening for verified score events…'))
+  if (!latest.length) list.append(el('li', 'activity-empty', state.activityMode === 'following' && !state.social.follows.length ? 'Follow players from their profile to build your activity feed.' : state.relay === 'down' ? 'Relays are unavailable. Retrying…' : 'Listening for verified score events…'))
   latest.forEach(({ game, score }) => {
     const item = el('li'); const avatar = el('span', 'mini-avatar', shortenNpub(score.pubkey).slice(0, 2).toUpperCase())
     const text = el('span'); text.append(el('strong', '', shortenNpub(score.pubkey)), el('small', '', `${game.name} · ${new Date(score.at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`))
     item.append(avatar, text, el('b', '', score.score.toLocaleString())); list.append(item)
   })
   const trust = el('div', 'trust-note'); trust.append(el('strong', '', 'VERIFIED, NOT TRUSTED'), el('p', '', 'Every score signature is checked in your browser. Invalid and explicitly cheated events never reach the board.'))
-  aside.append(heading, list, trust); return aside
+  aside.append(heading, modes, list, trust); return aside
 }
 
 function linkButton(label: string, path: string): HTMLAnchorElement {
@@ -276,7 +303,7 @@ function gamePage(slug: string): HTMLElement {
   if (game.hero) art.style.backgroundImage = `linear-gradient(90deg, rgba(8,9,13,.2), #08090d), url("${game.hero}")`
   if (game.logo) { const image = el('img'); image.src = game.logo; image.alt = `${game.name} logo`; art.append(image) }
   const copy = el('div', 'detail-copy'); copy.append(el('p', 'kicker', game.genres.join(' · ').toUpperCase()), el('h1', '', game.name), el('p', 'page-lede', game.description ?? game.tagline))
-  const actions = el('div', 'hero-actions'); actions.append(button('PLAY NOW', 'primary', () => openGame(game))); const original = el('a', 'secondary button-link', 'OPEN ORIGINAL'); original.href = game.url; original.target = '_blank'; original.rel = 'noopener noreferrer'; actions.append(original); copy.append(actions)
+  const actions = el('div', 'hero-actions'); actions.append(button('PLAY NOW', 'primary', () => openGame(game)), button(state.social.favourites.includes(game.slug) ? '★ IN MY ARCADE' : '☆ ADD TO MY ARCADE', 'secondary', () => toggleFavourite(game)), button('INVITE TO PLAY', 'secondary', () => void shareInvitation(game))); const original = el('a', 'secondary button-link', 'OPEN ORIGINAL'); original.href = game.url; original.target = '_blank'; original.rel = 'noopener noreferrer'; actions.append(original); copy.append(actions)
   const facts = el('dl', 'game-facts'); for (const [label, value] of [['IDENTITY', 'NOSTR'], ['SCORES', 'VERIFIED'], ['WALLET', game.walletPay ? 'LIGHTNING' : 'OPTIONAL'], ['PLAYERS', game.players ? `${game.players.min}–${game.players.max}` : '1']]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) } copy.append(facts)
   main.append(art, copy)
   const board = el('section', 'detail-board'); board.append(el('h2', '', 'GLOBAL LEADERBOARD'))
@@ -291,7 +318,7 @@ function ensureProfile(pubkey: string): void {
   const dispose = resolveProfiles(RELAYS, [pubkey], (resolved, profile) => {
     state.profiles.set(resolved, profile)
     const current = route()
-    if (current.name === 'player' && current.id === resolved) render()
+    if ((current.name === 'player' && current.id === resolved) || current.name === 'invite') render()
   })
   setTimeout(dispose, 6_000)
 }
@@ -306,7 +333,15 @@ function playerPage(pubkey: string): HTMLElement {
   else avatar.style.background = avatarCss(pubkey)
   const copy = el('div'); copy.append(el('p', 'kicker', 'NOSTR PLAYER'), el('h1', '', profile?.name ?? shortenNpub(pubkey)), el('p', 'player-npub', hexToNpub(pubkey)))
   const external = el('a', 'button-link', 'VIEW ON NOSTR'); external.href = `https://njump.me/${hexToNpub(pubkey)}`; external.target = '_blank'; external.rel = 'noopener noreferrer'; copy.append(external)
+  if (pubkey !== state.pubkey) copy.append(button(state.social.follows.includes(pubkey) ? '✓ FOLLOWING' : '+ FOLLOW PLAYER', 'secondary follow-button', () => toggleFollow(pubkey)))
   identity.append(avatar, copy); main.append(identity)
+
+  if (pubkey === state.pubkey) {
+    const favouriteGames = state.games.filter(game => state.social.favourites.includes(game.slug))
+    const favourites = el('section', 'player-favourites'); favourites.append(el('h2', '', 'MY ARCADE'))
+    const grid = el('div', 'game-grid'); grid.append(...favouriteGames.map(gameCard)); if (!favouriteGames.length) grid.append(el('p', 'empty-state', 'Favourite games appear here. Add them from the arcade or a game page.'))
+    favourites.append(grid); main.append(favourites)
+  }
 
   const bests = state.games.map(game => {
     const entries = (state.scores.get(game.gameId) ?? []).filter(entry => entry.pubkey === pubkey)
@@ -334,6 +369,25 @@ function scorePage(eventId: string): HTMLElement {
   return main
 }
 
+function invitationPage(encoded: string): HTMLElement {
+  const main = el('main', 'page invitation-page'); main.id = 'main'
+  const signed = decodeInvitation(encoded)
+  const invitation = signed ? parseInvitation(signed) : undefined
+  const game = invitation ? state.games.find(candidate => candidate.gameId === invitation.gameId && candidate.url === invitation.gameUrl) : undefined
+  if (!invitation || !game) {
+    main.append(el('p', 'kicker', 'SIGNED GAME INVITATION'), el('h1', '', 'Invitation unavailable'), el('p', 'page-lede', 'This link is invalid, expired, or points outside the reviewed Gamestr catalogue.'), linkButton('BROWSE THE ARCADE', '/'))
+    return main
+  }
+  ensureProfile(invitation.event.pubkey)
+  const inviter = state.profiles.get(invitation.event.pubkey)?.name ?? shortenNpub(invitation.event.pubkey)
+  const card = el('section', 'invitation-card'); card.style.setProperty('--accent', game.accent)
+  card.append(el('span', 'invite-proof', '✓ SIGNATURE VERIFIED'), el('p', 'kicker', `${inviter} INVITED YOU`), el('h1', '', game.name), el('p', 'page-lede', game.tagline))
+  const facts = el('dl', 'game-facts')
+  for (const [label, value] of [['FROM', inviter], ['EXPIRES', new Date(invitation.expiresAt * 1000).toLocaleDateString()], ['GAME', game.gameId], ['ORIGIN', new URL(game.url).host]]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) }
+  const actions = el('div', 'hero-actions'); actions.append(button('ACCEPT & PLAY', 'primary', () => openGame(game)), playerLink(invitation.event.pubkey, 'button-link'), linkButton('NOT NOW', '/'))
+  card.append(facts, actions); main.append(card); return main
+}
+
 function openGame(game: WebGame): void {
   const modal = el('div', 'play-modal'); modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true'); modal.setAttribute('aria-label', `Playing ${game.name}`)
   const bar = el('div', 'play-bar'); bar.append(el('strong', '', game.name), el('span', '', 'SANDBOXED WEB SESSION'))
@@ -344,6 +398,21 @@ function openGame(game: WebGame): void {
   const fallback = el('p', 'frame-note', 'If the publisher blocks embedding, choose OPEN DIRECT. Your game still runs from its original sovereign origin.')
   modal.append(bar, frame, fallback); document.body.append(modal); document.body.classList.add('playing'); close.focus()
   const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') { close.click(); window.removeEventListener('keydown', escape) } }; window.addEventListener('keydown', escape)
+}
+
+async function shareInvitation(game: WebGame): Promise<void> {
+  const signer = (window as NostrWindow).nostr
+  if (!signer) { toast('Connect a NIP-07 signer to create a verifiable invitation.', 'warn'); return }
+  try {
+    const signed = await signer.signEvent(invitationTemplate(game.gameId, game.url))
+    if (!parseInvitation(signed)) throw new Error('invalid signed invitation')
+    const url = `${location.origin}/invite/${encodeInvitation(signed)}`
+    if (navigator.share) await navigator.share({ title: `Play ${game.name} on Gamestr`, text: `Join me for ${game.name}.`, url })
+    else { await navigator.clipboard.writeText(url); toast('Signed invitation link copied.', 'good') }
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') return
+    toast('Invitation signing or sharing was cancelled.', 'warn')
+  }
 }
 
 function footer(): HTMLElement {
@@ -364,7 +433,8 @@ function render(): void {
       : current.name === 'developers' ? developersPage()
         : current.name === 'game' ? gamePage(current.slug!)
           : current.name === 'player' ? playerPage(current.id!)
-            : scorePage(current.id!)
+            : current.name === 'score' ? scorePage(current.id!)
+              : invitationPage(current.id!)
   app.replaceChildren(header(), content, footer())
 }
 

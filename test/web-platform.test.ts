@@ -23,6 +23,17 @@ describe('public web platform boundaries', () => {
     expect(source).toContain('/score/')
     expect(source).toContain("current.name === 'player'")
     expect(source).toContain('scorePage(current.id!)')
+    expect(source).toContain('/invite/')
+    expect(source).toContain('invitationPage(current.id!)')
+  })
+
+  it('keeps social preferences local and invitations structured', async () => {
+    const social = await read('src/web/social-state.ts')
+    const invitation = await read('src/web/game-invitation.ts')
+    expect(social).toContain("gamestr:social:v1")
+    expect(invitation).toContain('GAME_INVITE_KIND = 23033')
+    expect(invitation).toContain("content: ''")
+    expect(invitation).toContain('verifyEvent(event)')
   })
 
   it('sandboxes embedded games without top-navigation authority', async () => {
