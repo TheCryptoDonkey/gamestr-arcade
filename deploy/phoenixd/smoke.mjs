@@ -12,14 +12,14 @@ const bridgePubkey = getPublicKey(bridgeSecret)
 const clientSecret = bytes(requiredHex('CLIENT_SECRET', process.env.CLIENT_SECRET))
 const relay = await Relay.connect(process.env.RELAY)
 
-function request(secret) {
+function request(secret, payload = { method: 'get_info', params: {} }) {
   const pubkey = getPublicKey(secret)
   const key = getConversationKey(secret, bridgePubkey)
   return finalizeEvent({
     kind: REQUEST_KIND,
     created_at: Math.floor(Date.now() / 1000),
     tags: [['p', bridgePubkey]],
-    content: encrypt(JSON.stringify({ method: 'get_info', params: {} }), key),
+    content: encrypt(JSON.stringify(payload), key),
   }, secret)
 }
 
@@ -33,17 +33,16 @@ async function expectResponse(event, secret, shouldRespond) {
   sub.close()
   if (!shouldRespond) {
     if (response) throw new Error('gateway responded to an unauthorised client')
-    return
+    return null
   }
   if (!response || !verifyEvent(response) || response.pubkey !== bridgePubkey) throw new Error('missing valid gateway response')
   const key = getConversationKey(secret, bridgePubkey)
   const payload = JSON.parse(decrypt(response.content, key))
-  if (payload.error || payload.result_type !== 'get_info' || !payload.result?.methods?.includes('pay_invoice')) {
-    throw new Error('unexpected gateway response')
-  }
+  return payload
 }
 
-await expectResponse(request(clientSecret), clientSecret, true)
+const info = await expectResponse(request(clientSecret), clientSecret, true)
+if (info.error || info.result_type !== 'get_info' || !info.result?.methods?.includes('pay_invoice')) throw new Error('unexpected gateway response')
 const attacker = generateSecretKey()
 await expectResponse(request(attacker), attacker, false)
 relay.close()

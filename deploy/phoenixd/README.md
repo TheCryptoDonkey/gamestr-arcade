@@ -27,6 +27,17 @@ The live smoke test sends a signed `get_info` request from the pinned client and
 docker compose run --rm --no-deps gateway node smoke.mjs
 ```
 
+For a controlled live invoice, pass it only through the one-off container's
+environment. `EXPECT_ERROR` asserts a policy refusal without accepting a false
+positive from a timeout or malformed response:
+
+```sh
+docker compose run --rm --no-deps \
+  -e PAYMENT_INVOICE='<bolt11>' \
+  -e EXPECT_ERROR='per-payment limit exceeded' \
+  gateway node payment-smoke.mjs
+```
+
 Do not fund the wallet until the smoke test passes and the generated NWC URI has been installed on the intended physical booth.
 
 ## Health and backups
