@@ -110,6 +110,22 @@ function looksLikeImage(contentType: string, bytes: Buffer): boolean {
 }
 
 const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000 // 24 h
+const CACHE_EXTENSIONS = ['.png', '.jpg', '.gif', '.webp', '.svg', '.avif', '.ico'] as const
+
+function imageExtension(contentType: string, bytes: Buffer): string | null {
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return '.png'
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return '.jpg'
+  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) return '.gif'
+  if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46) return '.webp'
+  const mime = contentType.split(';', 1)[0].trim().toLowerCase()
+  const known: Record<string, string> = {
+    'image/svg+xml': '.svg', 'image/avif': '.avif', 'image/x-icon': '.ico',
+    'image/vnd.microsoft.icon': '.ico', 'image/jpeg': '.jpg',
+  }
+  if (known[mime]) return known[mime]
+  const subtype = /^image\/([a-z0-9.+-]+)$/.exec(mime)?.[1]
+  return subtype && /^[a-z0-9]+$/.test(subtype) ? `.${subtype}` : null
+}
 
 /**
  * Fetch `url` and cache it under `cacheDir`, keyed by SHA-1 of the URL.
@@ -127,17 +143,21 @@ export async function fetchAndCache(
 ): Promise<string | null> {
   try {
     const key = createHash('sha1').update(url).digest('hex')
-    const cachePath = join(cacheDir, key)
-
-    // Return cached file if still fresh.
-    const fileAge = await stat(cachePath)
-      .then(s => Date.now() - s.mtimeMs)
-      .catch(() => Infinity)
-    if (fileAge < CACHE_MAX_AGE_MS) return cachePath
+    // Keep a real image extension: Chromium's file-backed media handler uses it
+    // to produce the correct Content-Type. The previous extensionless cache
+    // paths were valid bytes but rendered as missing artwork in Electron.
+    for (const extension of CACHE_EXTENSIONS) {
+      const cached = join(cacheDir, `${key}${extension}`)
+      const fileAge = await stat(cached).then(s => Date.now() - s.mtimeMs).catch(() => Infinity)
+      if (fileAge < CACHE_MAX_AGE_MS) return cached
+    }
 
     const result = await fetchFn(url)
     if (!result.ok) return null
     if (!looksLikeImage(result.contentType, result.bytes)) return null
+    const extension = imageExtension(result.contentType, result.bytes)
+    if (!extension) return null
+    const cachePath = join(cacheDir, `${key}${extension}`)
 
     await mkdir(cacheDir, { recursive: true })
     await writeFile(cachePath, result.bytes)

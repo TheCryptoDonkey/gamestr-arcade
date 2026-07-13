@@ -33,9 +33,9 @@ games/
   <slug>/
     game.json          # required for web games; optional metadata for AppImage games
     MyGame.AppImage    # present → native game
-    logo.png           # optional: tile logo (recommended for every native game)
-    hero.png           # optional: hero image shown in the detail panel
-    hero.mp4           # optional: hero video (preferred over hero.png if both present)
+    logo.webp          # optional: tile logo (PNG/JPEG/SVG also supported)
+    hero.webp          # optional: hero image (PNG/JPEG also supported)
+    hero.mp4           # optional: hero video (WebM also supported; preferred over images)
 ```
 
 A loose `*.AppImage` file at the **top level** of the games folder is also picked up (slug = filename without extension).
@@ -82,15 +82,15 @@ stays visible as **Not Ready** so the operator gets a useful diagnosis.
 
 ### Logo resolution order
 
-1. `logo.png` sibling in the game folder
+1. `logo.png`, `logo.webp`, `logo.jpg`, `logo.jpeg` or `logo.svg` sibling
 2. Explicit `logoUrl`, then a safe icon discovered from the declared HTTPS game page
 3. Bundled placeholder icon
 
 The scanner deliberately does not execute an AppImage to extract `.DirIcon`.
 Ship `logo.png` beside every native title instead.
 
-Hero reels use `hero.mp4` (muted, looping, and preferred over `hero.png`). The
-static image remains the lightweight fallback.
+Hero reels use `hero.mp4` or `hero.webm` (muted, looping, and preferred over
+WebP/PNG/JPEG sibling art). The static image remains the lightweight fallback.
 
 ---
 

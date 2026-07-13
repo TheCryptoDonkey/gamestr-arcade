@@ -125,6 +125,24 @@ describe('scanGames', () => {
       await rm(root, { recursive: true, force: true })
     }
   })
+
+  it('uses optimized WebP sibling art without a network resolver', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'gamestr-scanner-'))
+    try {
+      const dir = join(root, 'webp-game')
+      await mkdir(dir)
+      await Promise.all([
+        writeFile(join(dir, 'game.json'), JSON.stringify({ name: 'WebP Game', url: 'https://example.test' })),
+        writeFile(join(dir, 'logo.webp'), ''),
+        writeFile(join(dir, 'hero.webp'), ''),
+      ])
+      const [game] = await scanGames(root)
+      expect(game.logo).toBe(join(dir, 'logo.webp'))
+      expect(game.hero).toBe(join(dir, 'hero.webp'))
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
 })
 
 describe('the shipped Pallasite tile', () => {

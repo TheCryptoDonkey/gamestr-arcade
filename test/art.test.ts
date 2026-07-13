@@ -127,6 +127,7 @@ describe('fetchAndCache', () => {
     const result = await fetchAndCache('https://example.com/logo.png', cacheDir, fetchFn)
     expect(result).toBeTruthy()
     expect(result).toMatch(cacheDir)
+    expect(result).toMatch(/\.png$/)
     expect(fetchFn).toHaveBeenCalledOnce()
     // File should exist on disk.
     const s = await stat(result!)
@@ -177,6 +178,7 @@ describe('fetchAndCache', () => {
     // First fetch writes the file.
     const first = await fetchAndCache(url, cacheDir, fetchFn)
     expect(first).toBeTruthy()
+    expect(first).toMatch(/\.jpg$/)
     expect(fetchFn).toHaveBeenCalledOnce()
 
     // Second call — cache should be fresh (just written); fetch should NOT be called again.
@@ -195,7 +197,7 @@ describe('fetchAndCache', () => {
     // Pre-write a stale cache file.
     const { createHash } = await import('node:crypto')
     const key = createHash('sha1').update(url).digest('hex')
-    const cachePath = join(cacheDir, key)
+    const cachePath = join(cacheDir, `${key}.png`)
     await writeFile(cachePath, pngBytes())
     // Set mtime to 25 hours ago.
     const staleTime = new Date(Date.now() - 25 * 60 * 60 * 1000)

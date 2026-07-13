@@ -56,8 +56,8 @@ export interface Game {
   downloadUrl?: string  // QR target for a download-only game; falls back to `url`
   gameId: string        // kind-30762 `game` tag value (leaderboard key)
   tHints?: string[]     // optional `#t` server-side filter hints; defaults to [gameId]
-  logo: string          // absolute path to resolved logo png
-  hero?: string         // absolute path to hero png|mp4
+  logo: string          // absolute path to resolved logo image
+  hero?: string         // absolute path to hero image or video
   accent?: string       // hex colour
   sounds?: { music?: string; voice?: string }
   controls?: GameControls  // gamepad→keyboard overrides for this game

@@ -28,6 +28,14 @@ async function exists(path: string): Promise<boolean> {
   try { await stat(path); return true } catch { return false }
 }
 
+async function firstExisting(dir: string, names: readonly string[]): Promise<string | undefined> {
+  for (const name of names) {
+    const path = join(dir, name)
+    if (await exists(path)) return path
+  }
+  return undefined
+}
+
 function stringArray(value: unknown): string[] | undefined {
   if (!Array.isArray(value)) return undefined
   const out = Array.from(new Set(value.filter((v): v is string => typeof v === 'string').map(v => v.trim()).filter(Boolean)))
@@ -152,10 +160,8 @@ async function build(
   resolveHero: HeroResolver,
   appImagePath?: string
 ): Promise<Game> {
-  const siblingLogo = (await exists(join(dir, 'logo.png'))) ? join(dir, 'logo.png') : undefined
-  const heroPng = join(dir, 'hero.png')
-  const heroMp4 = join(dir, 'hero.mp4')
-  const siblingHero = (await exists(heroMp4)) ? heroMp4 : (await exists(heroPng)) ? heroPng : undefined
+  const siblingLogo = await firstExisting(dir, ['logo.png', 'logo.webp', 'logo.jpg', 'logo.jpeg', 'logo.svg'])
+  const siblingHero = await firstExisting(dir, ['hero.mp4', 'hero.webm', 'hero.webp', 'hero.png', 'hero.jpg', 'hero.jpeg'])
 
   // game.json optional art URLs.
   const logoUrl: string | undefined = meta?.logoUrl
