@@ -27,5 +27,4 @@ gamestr.95-217-39-110.sslip.io {
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(self), fullscreen=(self)"
 		-Server
 	}
-
 }
