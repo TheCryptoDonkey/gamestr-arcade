@@ -21,6 +21,7 @@ for (const game of catalogue) {
   slugs.add(game.slug)
   if (game.slug === 'payment-lab') fail('operator diagnostics must never enter the public catalogue')
   if (typeof game.url !== 'string' || !game.url.startsWith('https://')) fail(`${game.slug} needs an HTTPS URL`)
+  if (!game.hero && !game.logo) fail(`${game.slug} needs visible artwork`)
   if (!Array.isArray(game.genres) || game.genres.length === 0) fail(`${game.slug} needs genres`)
   const routeHtml = await read(`game/${game.slug}/index.html`).catch(() => fail(`prerendered game route is missing: ${game.slug}`))
   if (!routeHtml.includes(`${webOrigin}/game/${game.slug}/`) || !routeHtml.includes(`<title>${game.name} — Gamestr</title>`)) fail(`game route metadata is invalid: ${game.slug}`)

@@ -6,6 +6,7 @@
   "order": 4,
   "accent": "#ffd76b",
   "url": "https://hang-on-fren.playechoseven.com/",
+  "heroUrl": "https://hang-on-fren.playechoseven.com/icons/icon-512.png",
   "inputModes": ["gamepad", "keyboard"],
   "network": "required",
   "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },

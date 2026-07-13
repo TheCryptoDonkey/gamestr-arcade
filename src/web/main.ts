@@ -82,6 +82,14 @@ function button(label: string, className: string, action: () => void): HTMLButto
   return node
 }
 
+function playLink(game: WebGame, label = 'PLAY', className = 'play-small'): HTMLAnchorElement {
+  const link = el('a', `${className} button-link play-link`, label)
+  link.href = game.url
+  link.target = '_blank'
+  link.rel = 'noopener noreferrer'
+  return link
+}
+
 function header(): HTMLElement {
   const head = el('header', 'site-header')
   const brand = el('a', 'brand')
@@ -131,7 +139,7 @@ function hero(games: WebGame[]): HTMLElement {
   copy.append(el('p', 'hero-lede', 'Discover independent games, compete on cryptographically verified leaderboards, and carry one identity across the arcade. No platform account required.'))
   const actions = el('div', 'hero-actions')
   actions.append(button('EXPLORE GAMES', 'primary', () => document.querySelector('#games')?.scrollIntoView({ behavior: 'smooth' })))
-  if (featured) actions.append(button(`PLAY ${featured.name.toUpperCase()}`, 'secondary', () => openGame(featured)))
+  if (featured) actions.append(playLink(featured, `PLAY ${featured.name.toUpperCase()} ↗`, 'secondary'))
   copy.append(actions)
   const proof = el('dl', 'proof-strip')
   for (const [value, label] of [[String(games.length), 'PLAYABLE GAMES'], ['2', 'SCORE KINDS'], ['0', 'CUSTODIAL ACCOUNTS']]) {
@@ -191,7 +199,7 @@ function gameCard(game: WebGame): HTMLElement {
   const titleRow = el('div', 'title-row'); titleRow.append(el('h3', '', game.name))
   const cardActions = el('div', 'card-actions')
   const favourite = button(state.social.favourites.includes(game.slug) ? '★' : '☆', 'favourite-button', () => toggleFavourite(game)); favourite.setAttribute('aria-label', `${state.social.favourites.includes(game.slug) ? 'Remove' : 'Add'} ${game.name} ${state.social.favourites.includes(game.slug) ? 'from' : 'to'} favourites`)
-  cardActions.append(favourite, button('PLAY', 'play-small', () => openGame(game))); titleRow.append(cardActions)
+  cardActions.append(favourite, playLink(game)); titleRow.append(cardActions)
   body.append(titleRow, el('p', '', game.tagline))
   const tags = el('div', 'tags'); game.genres.slice(0, 3).forEach(genre => tags.append(el('span', '', genre.toUpperCase())))
   const scores = state.scores.get(game.gameId) ?? []
@@ -276,7 +284,7 @@ function scoresPage(): HTMLElement {
     const entries = state.scores.get(game.gameId) ?? []
     const board = boardFor(entries, 'all', 5, Math.floor(Date.now() / 1000), game.scoreDir ?? 'desc')
     if (!board.length) continue
-    const section = el('section', 'score-board'); const heading = el('div', 'section-heading'); heading.append(el('h2', '', game.name), button('PLAY', 'play-small', () => openGame(game))); section.append(heading)
+    const section = el('section', 'score-board'); const heading = el('div', 'section-heading'); heading.append(el('h2', '', game.name), playLink(game)); section.append(heading)
     const list = el('ol'); board.forEach((entry, index) => { const row = el('li'); row.append(el('span', 'rank', String(index + 1).padStart(2, '0')), playerLink(entry.pubkey), scoreLink(entry)); list.append(row) }); section.append(list); grid.append(section)
   }
   if (!grid.children.length) grid.append(el('p', 'empty-state', 'Verified boards are syncing from Nostr relays…'))
@@ -293,7 +301,7 @@ function developersPage(): HTMLElement {
   ]
   const list = el('div', 'dev-steps'); steps.forEach(([number, title, body]) => { const item = el('section'); item.append(el('b', '', number), el('h2', '', title), el('p', '', body)); list.append(item) }); main.append(list)
   const event = el('pre'); event.textContent = JSON.stringify({ kind: 30762, tags: [['game', 'your-game'], ['score', '4200'], ['sats', '21']], content: '' }, null, 2)
-  const safety = el('section', 'dev-safety'); safety.append(el('h2', '', 'Trust boundary'), el('p', '', 'The web app validates structure and Schnorr signatures, bounds retained events, ignores cheated scores, and never asks for an nsec. Games open sandboxed when embedding works and always retain a direct-origin fallback.'))
+  const safety = el('section', 'dev-safety'); safety.append(el('h2', '', 'Trust boundary'), el('p', '', 'The web app validates structure and Schnorr signatures, bounds retained events, ignores cheated scores, and never asks for an nsec. Play links open the reviewed publisher origin directly in a separate tab.'))
   const studioHost = el('div'); studioHost.id = 'manifest-studio-host'
   main.append(el('h2', '', 'Canonical score event'), event, safety, studioHost)
   setTimeout(() => {
@@ -317,7 +325,7 @@ function gamePage(slug: string): HTMLElement {
   if (game.hero) art.style.backgroundImage = `linear-gradient(90deg, rgba(8,9,13,.2), #08090d), url("${game.hero}")`
   if (game.logo) { const image = el('img'); image.src = game.logo; image.alt = `${game.name} logo`; art.append(image) }
   const copy = el('div', 'detail-copy'); copy.append(el('p', 'kicker', game.genres.join(' · ').toUpperCase()), el('h1', '', game.name), el('p', 'page-lede', game.description ?? game.tagline))
-  const actions = el('div', 'hero-actions'); actions.append(button('PLAY NOW', 'primary', () => openGame(game)), button(state.social.favourites.includes(game.slug) ? '★ IN MY ARCADE' : '☆ ADD TO MY ARCADE', 'secondary', () => toggleFavourite(game)), button('INVITE TO PLAY', 'secondary', () => void shareInvitation(game)), button('CREATE CHALLENGE', 'secondary', () => createChallengeDialog(game))); const original = el('a', 'secondary button-link', 'OPEN ORIGINAL'); original.href = game.url; original.target = '_blank'; original.rel = 'noopener noreferrer'; actions.append(original); copy.append(actions)
+  const actions = el('div', 'hero-actions'); actions.append(playLink(game, 'PLAY ON PUBLISHER SITE ↗', 'primary'), button(state.social.favourites.includes(game.slug) ? '★ IN MY ARCADE' : '☆ ADD TO MY ARCADE', 'secondary', () => toggleFavourite(game)), button('INVITE TO PLAY', 'secondary', () => void shareInvitation(game)), button('CREATE CHALLENGE', 'secondary', () => createChallengeDialog(game))); copy.append(actions)
   const facts = el('dl', 'game-facts'); for (const [label, value] of [['IDENTITY', 'NOSTR'], ['SCORES', 'VERIFIED'], ['WALLET', game.walletPay ? 'LIGHTNING' : 'OPTIONAL'], ['PLAYERS', game.players ? `${game.players.min}–${game.players.max}` : '1']]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) } copy.append(facts)
   main.append(art, copy)
   const board = el('section', 'detail-board'); board.append(el('h2', '', 'GLOBAL LEADERBOARD'))
@@ -364,7 +372,7 @@ function playerPage(pubkey: string): HTMLElement {
   }).filter(item => item.entry)
   const section = el('section', 'player-bests'); section.append(el('h2', '', 'PERSONAL BESTS'))
   const grid = el('div', 'score-boards')
-  bests.forEach(({ game, entry }) => { const card = el('article', 'personal-best'); card.append(el('span', '', game.name), scoreLink(entry), button('PLAY', 'play-small', () => openGame(game))); grid.append(card) })
+  bests.forEach(({ game, entry }) => { const card = el('article', 'personal-best'); card.append(el('span', '', game.name), scoreLink(entry), playLink(game)); grid.append(card) })
   if (!bests.length) grid.append(el('p', 'empty-state', 'No verified scores have synced for this player yet.'))
   section.append(grid); main.append(section); return main
 }
@@ -381,7 +389,7 @@ function scorePage(eventId: string): HTMLElement {
   main.append(el('p', 'kicker', 'VERIFIED NOSTR EVENT'), el('h1', '', match.entry.score.toLocaleString()), el('p', 'page-lede', `${match.game.name} · ${new Date(match.entry.at * 1000).toLocaleString()}`))
   const facts = el('dl', 'score-facts')
   for (const [label, value] of [['PLAYER', shortenNpub(match.entry.pubkey)], ['SATS', String(match.entry.sats ?? 0)], ['SIGNATURE', 'VALID'], ['EVENT', eventId]]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) }
-  main.append(facts, playerLink(match.entry.pubkey, 'button-link'), button(`PLAY ${match.game.name.toUpperCase()}`, 'primary', () => openGame(match!.game)))
+  main.append(facts, playerLink(match.entry.pubkey, 'button-link'), playLink(match.game, `PLAY ${match.game.name.toUpperCase()} ↗`, 'primary'))
   const profile = state.profiles.get(match.entry.pubkey)
   if (profile?.lud16 && match.entry.pubkey !== state.pubkey) main.append(button('⚡ REWARD THIS SCORE', 'reward-button', () => rewardDialog(match!.entry.pubkey, profile)))
   return main
@@ -402,7 +410,7 @@ function invitationPage(encoded: string): HTMLElement {
   card.append(el('span', 'invite-proof', '✓ SIGNATURE VERIFIED'), el('p', 'kicker', `${inviter} INVITED YOU`), el('h1', '', game.name), el('p', 'page-lede', game.tagline))
   const facts = el('dl', 'game-facts')
   for (const [label, value] of [['FROM', inviter], ['EXPIRES', new Date(invitation.expiresAt * 1000).toLocaleDateString()], ['GAME', game.gameId], ['ORIGIN', new URL(game.url).host]]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) }
-  const actions = el('div', 'hero-actions'); actions.append(button('ACCEPT & PLAY', 'primary', () => openGame(game)), playerLink(invitation.event.pubkey, 'button-link'), linkButton('NOT NOW', '/'))
+  const actions = el('div', 'hero-actions'); actions.append(playLink(game, 'ACCEPT & PLAY ↗', 'primary'), playerLink(invitation.event.pubkey, 'button-link'), linkButton('NOT NOW', '/'))
   card.append(facts, actions); main.append(card); return main
 }
 
@@ -423,7 +431,7 @@ function challengePage(encoded: string): HTMLElement {
   hero.append(el('span', 'invite-proof', '✓ SIGNED CHALLENGE'), el('p', 'kicker', `${phase} · ${game.name.toUpperCase()}`), el('h1', '', challenge.name), el('p', 'page-lede', `Created by ${creator}. Every standing comes from a locally verified Nostr score inside the signed time window.`))
   const facts = el('dl', 'game-facts')
   for (const [label, value] of [['STATUS', phase], ['START', new Date(challenge.startsAt * 1000).toLocaleString()], ['END', new Date(challenge.endsAt * 1000).toLocaleString()], ['ORIGIN', new URL(game.url).host]]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) }
-  const actions = el('div', 'hero-actions'); actions.append(button(phase === 'FINAL' ? 'PLAY THIS GAME' : 'ENTER & PLAY', 'primary', () => openGame(game)), playerLink(challenge.event.pubkey, 'button-link')); hero.append(facts, actions); main.append(hero)
+  const actions = el('div', 'hero-actions'); actions.append(playLink(game, phase === 'FINAL' ? 'PLAY THIS GAME ↗' : 'ENTER & PLAY ↗', 'primary'), playerLink(challenge.event.pubkey, 'button-link')); hero.append(facts, actions); main.append(hero)
   const standings = el('section', 'challenge-standings'); const heading = el('div', 'section-heading'); heading.append(el('h2', '', phase === 'FINAL' ? 'FINAL STANDINGS' : 'LIVE STANDINGS'), el('span', '', `${new Date(challenge.startsAt * 1000).toLocaleDateString()} — ${new Date(challenge.endsAt * 1000).toLocaleDateString()}`)); standings.append(heading)
   const eligible = (state.scores.get(game.gameId) ?? []).filter(entry => entry.at >= challenge.startsAt && entry.at <= challenge.endsAt)
   const ranked = boardFor(eligible, 'all', 50, Math.min(now, challenge.endsAt), game.scoreDir ?? 'desc')
@@ -431,18 +439,6 @@ function challengePage(encoded: string): HTMLElement {
   ranked.forEach((entry, index) => { const row = el('li'); row.append(el('span', 'rank', String(index + 1).padStart(2, '0')), playerLink(entry.pubkey), el('small', '', new Date(entry.at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })), scoreLink(entry)); list.append(row) })
   if (!ranked.length) list.append(el('li', 'activity-empty', phase === 'FINAL' ? 'No verified scores landed during this challenge.' : 'Waiting for the first verified score in this challenge window…'))
   standings.append(list); main.append(standings); return main
-}
-
-function openGame(game: WebGame): void {
-  const modal = el('div', 'play-modal'); modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true'); modal.setAttribute('aria-label', `Playing ${game.name}`)
-  const bar = el('div', 'play-bar'); bar.append(el('strong', '', game.name), el('span', '', 'SANDBOXED WEB SESSION'))
-  const original = el('a', 'text-link', 'OPEN DIRECT'); original.href = game.url; original.target = '_blank'; original.rel = 'noopener noreferrer'
-  const close = button('CLOSE', 'close-button', () => { modal.remove(); document.body.classList.remove('playing') })
-  bar.append(original, close)
-  const frame = el('iframe'); frame.src = game.url; frame.title = game.name; frame.allow = 'autoplay; fullscreen; gamepad'; frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups'); frame.referrerPolicy = 'strict-origin-when-cross-origin'
-  const fallback = el('p', 'frame-note', 'If the publisher blocks embedding, choose OPEN DIRECT. Your game still runs from its original sovereign origin.')
-  modal.append(bar, frame, fallback); document.body.append(modal); document.body.classList.add('playing'); close.focus()
-  const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') { close.click(); window.removeEventListener('keydown', escape) } }; window.addEventListener('keydown', escape)
 }
 
 async function shareInvitation(game: WebGame): Promise<void> {

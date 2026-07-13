@@ -2,7 +2,7 @@
   "manifestVersion": 2,
   "name": "Miner",
   "tagline": "Gold Miner — time your grab for the big haul",
-  "url": "https://npub1n0games63frevnx3llju3sypf2q4streuwzgr4wwd2y5hlqa5c9s29nfk3.nsite.lol/game/naddr1qvzqqqyp7vpzpx73mhnp4zj8jexdrll9erqgzj5ptqk8ncuys82uu65ff07pmfstqqyx66twv4ez6a33wmgevg",
+  "url": "https://npub1n0games63frevnx3llju3sypf2q4streuwzgr4wwd2y5hlqa5c9s29nfk3.nsite.run/game/naddr1qvzqqqyp7vpzpx73mhnp4zj8jexdrll9erqgzj5ptqk8ncuys82uu65ff07pmfstqqyx66twv4ez6a33wmgevg",
   "gameId": "nogames-miner-v1",
   "order": 23,
   "accent": "#eab308",
@@ -12,5 +12,5 @@
   "inputModes": ["gamepad", "keyboard"],
   "network": "required",
   "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
-  "allowedOrigins": ["https://npub1n0games63frevnx3llju3sypf2q4streuwzgr4wwd2y5hlqa5c9s29nfk3.nsite.lol"]
+  "allowedOrigins": ["https://npub1n0games63frevnx3llju3sypf2q4streuwzgr4wwd2y5hlqa5c9s29nfk3.nsite.run"]
 }

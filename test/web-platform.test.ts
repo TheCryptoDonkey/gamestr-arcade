@@ -77,12 +77,13 @@ describe('public web platform boundaries', () => {
     expect(caddy).toContain('{path}/index.html')
   })
 
-  it('sandboxes embedded games without top-navigation authority', async () => {
+  it('uses real external play links so publisher frame policies cannot break play', async () => {
     const source = await read('src/web/main.ts')
-    const sandbox = source.match(/setAttribute\('sandbox', '([^']+)'\)/)?.[1]
-    expect(sandbox).toContain('allow-scripts')
-    expect(sandbox).not.toContain('allow-top-navigation')
-    expect(source).toContain("original.rel = 'noopener noreferrer'")
+    expect(source).toContain('function playLink')
+    expect(source).toContain("link.target = '_blank'")
+    expect(source).toContain("link.rel = 'noopener noreferrer'")
+    expect(source).not.toContain("el('iframe')")
+    expect(source).not.toContain('openGame(')
   })
 
   it('keeps the service worker same-origin and GET-only', async () => {
