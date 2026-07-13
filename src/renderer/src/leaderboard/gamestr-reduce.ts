@@ -118,7 +118,7 @@ export function parseScoreEvent(e: ScoreEvent, gameId: string): LeaderboardEntry
   const pubkey = parsePlayer(e.tags, e.pubkey)
   const sats = parseSats(e.tags)
   if (!pubkey || sats === null) return null
-  return { pubkey, score, sats, at: e.created_at }
+  return { eventId: e.id, pubkey, score, sats, at: e.created_at }
 }
 
 /**
@@ -140,6 +140,7 @@ export function parseAnyScoreEvent(e: ScoreEvent): ParsedAnyScore | null {
   const sats = parseSats(e.tags)
   if (!pubkey || sats === null) return null
   const entry: LeaderboardEntry = {
+    eventId: e.id,
     pubkey,
     score,
     sats,
@@ -164,7 +165,7 @@ export function parse5555Event(e: ScoreEvent, gameId: string, field: string): Le
   const pubkey = parsePlayer(e.tags, e.pubkey)
   const sats = parseSats(e.tags)
   if (!pubkey || sats === null) return null
-  return { pubkey, score, sats, at: e.created_at }
+  return { eventId: e.id, pubkey, score, sats, at: e.created_at }
 }
 
 /**

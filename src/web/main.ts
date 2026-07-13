@@ -1,7 +1,7 @@
 import './style.css'
 import { createGamestrCatalogue } from '../renderer/src/leaderboard/gamestr'
 import { boardFor } from '../renderer/src/leaderboard/gamestr-reduce'
-import { shortenNpub } from '../renderer/src/leaderboard/profiles'
+import { avatarCss, hexToNpub, resolveProfiles, shortenNpub, type Profile } from '../renderer/src/leaderboard/profiles'
 import type { LeaderboardEntry } from '../shared/types'
 
 interface WebGame {
@@ -21,6 +21,7 @@ const state = {
   games: [] as WebGame[], query: '', filter: 'all', genre: 'all', selected: null as WebGame | null,
   scores: new Map<string, LeaderboardEntry[]>(), relay: 'connecting' as 'connecting' | 'up' | 'down',
   pubkey: localStorage.getItem('gamestr:pubkey') ?? '',
+  profiles: new Map<string, Profile>(), profileRequests: new Set<string>(),
 }
 
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] => {
@@ -30,12 +31,16 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, t
   return node
 }
 
-function route(): { name: 'home' | 'scores' | 'developers' | 'game'; slug?: string } {
+function route(): { name: 'home' | 'scores' | 'developers' | 'game' | 'player' | 'score'; slug?: string; id?: string } {
   const path = location.pathname.replace(/\/+$/, '') || '/'
   if (path === '/scores') return { name: 'scores' }
   if (path === '/developers') return { name: 'developers' }
   const game = /^\/game\/([a-z0-9-]+)$/.exec(path)
-  return game ? { name: 'game', slug: game[1] } : { name: 'home' }
+  if (game) return { name: 'game', slug: game[1] }
+  const player = /^\/player\/([0-9a-f]{64})$/.exec(path)
+  if (player) return { name: 'player', id: player[1] }
+  const score = /^\/score\/([0-9a-f]{64})$/.exec(path)
+  return score ? { name: 'score', id: score[1] } : { name: 'home' }
 }
 
 function navigate(path: string): void {
@@ -70,7 +75,7 @@ function header(): HTMLElement {
   }
   const relay = el('span', `relay-pill ${state.relay}`, state.relay === 'up' ? 'NOSTR LIVE' : state.relay === 'down' ? 'RELAYS OFFLINE' : 'CONNECTING')
   relay.title = 'Score events are verified locally before display'
-  const identity = button(state.pubkey ? shortenNpub(state.pubkey) : 'CONNECT NOSTR', 'identity-button', connectIdentity)
+  const identity = button(state.pubkey ? shortenNpub(state.pubkey) : 'CONNECT NOSTR', 'identity-button', state.pubkey ? () => navigate(`/player/${state.pubkey}`) : connectIdentity)
   head.append(brand, nav, relay, identity)
   return head
 }
@@ -195,6 +200,21 @@ function linkButton(label: string, path: string): HTMLAnchorElement {
   const link = el('a', 'text-link', label); link.href = path; link.addEventListener('click', e => { e.preventDefault(); navigate(path) }); return link
 }
 
+function playerLink(pubkey: string, className = 'player'): HTMLAnchorElement {
+  const link = el('a', className, state.profiles.get(pubkey)?.name ?? shortenNpub(pubkey))
+  link.href = `/player/${pubkey}`
+  link.addEventListener('click', event => { event.preventDefault(); navigate(link.getAttribute('href')!) })
+  return link
+}
+
+function scoreLink(entry: LeaderboardEntry): HTMLElement {
+  if (!entry.eventId) return el('strong', '', entry.score.toLocaleString())
+  const link = el('a', 'score-link', entry.score.toLocaleString())
+  link.href = `/score/${entry.eventId}`
+  link.addEventListener('click', event => { event.preventDefault(); navigate(link.getAttribute('href')!) })
+  return link
+}
+
 function home(): HTMLElement {
   const main = el('main'); main.id = 'main'; main.append(hero(state.games))
   const layout = el('div', 'content-layout')
@@ -222,7 +242,7 @@ function scoresPage(): HTMLElement {
     const board = boardFor(entries, 'all', 5, Math.floor(Date.now() / 1000), game.scoreDir ?? 'desc')
     if (!board.length) continue
     const section = el('section', 'score-board'); const heading = el('div', 'section-heading'); heading.append(el('h2', '', game.name), button('PLAY', 'play-small', () => openGame(game))); section.append(heading)
-    const list = el('ol'); board.forEach((entry, index) => { const row = el('li'); row.append(el('span', 'rank', String(index + 1).padStart(2, '0')), el('span', 'player', shortenNpub(entry.pubkey)), el('strong', '', entry.score.toLocaleString())); list.append(row) }); section.append(list); grid.append(section)
+    const list = el('ol'); board.forEach((entry, index) => { const row = el('li'); row.append(el('span', 'rank', String(index + 1).padStart(2, '0')), playerLink(entry.pubkey), scoreLink(entry)); list.append(row) }); section.append(list); grid.append(section)
   }
   if (!grid.children.length) grid.append(el('p', 'empty-state', 'Verified boards are syncing from Nostr relays…'))
   main.append(grid); return main
@@ -255,7 +275,56 @@ function gamePage(slug: string): HTMLElement {
   main.append(art, copy)
   const board = el('section', 'detail-board'); board.append(el('h2', '', 'GLOBAL LEADERBOARD'))
   const entries = boardFor(state.scores.get(game.gameId) ?? [], 'all', 10, Math.floor(Date.now() / 1000), game.scoreDir ?? 'desc')
-  const list = el('ol'); entries.forEach((entry, index) => { const item = el('li'); item.append(el('span', 'rank', String(index + 1).padStart(2, '0')), el('span', 'player', shortenNpub(entry.pubkey)), el('strong', '', entry.score.toLocaleString())); list.append(item) }); if (!entries.length) list.append(el('li', 'activity-empty', 'Syncing verified scores…')); board.append(list); main.append(board)
+  const list = el('ol'); entries.forEach((entry, index) => { const item = el('li'); item.append(el('span', 'rank', String(index + 1).padStart(2, '0')), playerLink(entry.pubkey), scoreLink(entry)); list.append(item) }); if (!entries.length) list.append(el('li', 'activity-empty', 'Syncing verified scores…')); board.append(list); main.append(board)
+  return main
+}
+
+function ensureProfile(pubkey: string): void {
+  if (state.profiles.has(pubkey) || state.profileRequests.has(pubkey)) return
+  state.profileRequests.add(pubkey)
+  const dispose = resolveProfiles(RELAYS, [pubkey], (resolved, profile) => {
+    state.profiles.set(resolved, profile)
+    const current = route()
+    if (current.name === 'player' && current.id === resolved) render()
+  })
+  setTimeout(dispose, 6_000)
+}
+
+function playerPage(pubkey: string): HTMLElement {
+  ensureProfile(pubkey)
+  const profile = state.profiles.get(pubkey)
+  const main = el('main', 'page player-page'); main.id = 'main'
+  const identity = el('section', 'player-identity')
+  const avatar = el('div', 'player-avatar')
+  if (profile?.picture) { const image = el('img'); image.src = profile.picture; image.alt = ''; avatar.append(image) }
+  else avatar.style.background = avatarCss(pubkey)
+  const copy = el('div'); copy.append(el('p', 'kicker', 'NOSTR PLAYER'), el('h1', '', profile?.name ?? shortenNpub(pubkey)), el('p', 'player-npub', hexToNpub(pubkey)))
+  const external = el('a', 'button-link', 'VIEW ON NOSTR'); external.href = `https://njump.me/${hexToNpub(pubkey)}`; external.target = '_blank'; external.rel = 'noopener noreferrer'; copy.append(external)
+  identity.append(avatar, copy); main.append(identity)
+
+  const bests = state.games.map(game => {
+    const entries = (state.scores.get(game.gameId) ?? []).filter(entry => entry.pubkey === pubkey)
+    return { game, entry: boardFor(entries, 'all', 1, Math.floor(Date.now() / 1000), game.scoreDir ?? 'desc')[0] }
+  }).filter(item => item.entry)
+  const section = el('section', 'player-bests'); section.append(el('h2', '', 'PERSONAL BESTS'))
+  const grid = el('div', 'score-boards')
+  bests.forEach(({ game, entry }) => { const card = el('article', 'personal-best'); card.append(el('span', '', game.name), scoreLink(entry), button('PLAY', 'play-small', () => openGame(game))); grid.append(card) })
+  if (!bests.length) grid.append(el('p', 'empty-state', 'No verified scores have synced for this player yet.'))
+  section.append(grid); main.append(section); return main
+}
+
+function scorePage(eventId: string): HTMLElement {
+  let match: { game: WebGame; entry: LeaderboardEntry } | undefined
+  for (const game of state.games) {
+    const entry = (state.scores.get(game.gameId) ?? []).find(candidate => candidate.eventId === eventId)
+    if (entry) { match = { game, entry }; break }
+  }
+  const main = el('main', 'page score-detail'); main.id = 'main'
+  if (!match) { main.append(el('p', 'kicker', 'VERIFIED SCORE'), el('h1', '', 'Syncing event…'), el('p', 'page-lede', 'This score has not arrived from the configured relays yet. The app will continue reconnecting.')); return main }
+  main.append(el('p', 'kicker', 'VERIFIED NOSTR EVENT'), el('h1', '', match.entry.score.toLocaleString()), el('p', 'page-lede', `${match.game.name} · ${new Date(match.entry.at * 1000).toLocaleString()}`))
+  const facts = el('dl', 'score-facts')
+  for (const [label, value] of [['PLAYER', shortenNpub(match.entry.pubkey)], ['SATS', String(match.entry.sats ?? 0)], ['SIGNATURE', 'VALID'], ['EVENT', eventId]]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) }
+  main.append(facts, playerLink(match.entry.pubkey, 'button-link'), button(`PLAY ${match.game.name.toUpperCase()}`, 'primary', () => openGame(match!.game)))
   return main
 }
 
@@ -283,7 +352,13 @@ function toast(message: string, tone: 'good' | 'warn'): void {
 }
 
 function render(): void {
-  const current = route(); const content = current.name === 'home' ? home() : current.name === 'scores' ? scoresPage() : current.name === 'developers' ? developersPage() : gamePage(current.slug!)
+  const current = route()
+  const content = current.name === 'home' ? home()
+    : current.name === 'scores' ? scoresPage()
+      : current.name === 'developers' ? developersPage()
+        : current.name === 'game' ? gamePage(current.slug!)
+          : current.name === 'player' ? playerPage(current.id!)
+            : scorePage(current.id!)
   app.replaceChildren(header(), content, footer())
 }
 

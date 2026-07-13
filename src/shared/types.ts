@@ -96,6 +96,7 @@ export interface Game {
 }
 
 export interface LeaderboardEntry {
+  eventId?: string       // verified Nostr event id, when sourced from a relay
   pubkey: string        // hex (player)
   name?: string         // resolved from kind-0, async
   picture?: string

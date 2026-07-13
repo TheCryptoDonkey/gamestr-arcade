@@ -17,6 +17,14 @@ describe('public web platform boundaries', () => {
     expect(source).not.toContain('document.write')
   })
 
+  it('provides canonical player and score deep-link routes', async () => {
+    const source = await read('src/web/main.ts')
+    expect(source).toContain('/player/')
+    expect(source).toContain('/score/')
+    expect(source).toContain("current.name === 'player'")
+    expect(source).toContain('scorePage(current.id!)')
+  })
+
   it('sandboxes embedded games without top-navigation authority', async () => {
     const source = await read('src/web/main.ts')
     const sandbox = source.match(/setAttribute\('sandbox', '([^']+)'\)/)?.[1]

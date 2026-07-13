@@ -77,6 +77,7 @@ describe('parseAnyScoreEvent', () => {
     expect(result!.gameId).toBe('sats-man')
     expect(result!.entry.pubkey).toBe(P1)
     expect(result!.entry.score).toBe(500)
+    expect(result!.entry.eventId).toBe(e.id)
   })
   it('returns null when game tag is absent', () => {
     const e = ev({ tags: [['p', P1], ['score', '500']] })
