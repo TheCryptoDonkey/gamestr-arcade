@@ -1,6 +1,6 @@
 {
   "name": "gamestr-arcade",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "Gamestr arcade kiosk — Electron front-end for a self-contained arcade machine.",
