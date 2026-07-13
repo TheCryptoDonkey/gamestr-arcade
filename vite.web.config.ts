@@ -11,6 +11,7 @@ const gamesDir = join(projectRoot, 'games')
 const webRoot = join(projectRoot, 'src/web')
 const outDir = join(projectRoot, 'dist-web')
 const manifestSchema = join(projectRoot, 'schemas/game-manifest-v2.schema.json')
+const webOrigin = (process.env.GAMESTR_WEB_ORIGIN ?? 'https://gamestr.95-217-39-110.sslip.io').replace(/\/$/, '')
 const virtualValidator = 'virtual:gamestr-manifest-validator'
 const resolvedVirtualValidator = `\0${virtualValidator}`
 
@@ -99,7 +100,7 @@ function htmlEscape(value: string): string {
 }
 
 function routeShell(shell: string, title: string, description: string, path: string, image?: string): string {
-  const canonical = `https://gamestr.io${path}`
+  const canonical = `${webOrigin}${path}`
   let html = shell
     .replace(/<title>[^<]*<\/title>/, `<title>${htmlEscape(title)}</title>`)
     .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${htmlEscape(description)}">`)
@@ -108,7 +109,7 @@ function routeShell(shell: string, title: string, description: string, path: str
     .replace(/<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${canonical}">`)
     .replace(/<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${canonical}">`)
   if (image) {
-    const absolute = image.startsWith('/') ? `https://gamestr.io${image}` : image
+    const absolute = image.startsWith('/') ? `${webOrigin}${image}` : image
     html = html.replace('<meta property="og:type"', `<meta property="og:image" content="${htmlEscape(absolute)}">\n  <meta property="og:type"`)
   }
   return html

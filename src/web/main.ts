@@ -539,7 +539,7 @@ function updateMetadata(): void {
   const title = game ? `${game.name} — Gamestr` : current.name === 'scores' ? 'Verified scores — Gamestr' : current.name === 'developers' ? 'Build for Gamestr' : current.name === 'challenge' ? 'Signed challenge — Gamestr' : current.name === 'invite' ? 'Game invitation — Gamestr' : current.name === 'player' ? 'Nostr player — Gamestr' : 'Gamestr — play free, own your score'
   const description = game?.description ?? game?.tagline ?? 'The Nostr-native arcade for independent games, verified scores, signed challenges, and direct Lightning rewards.'
   document.title = title
-  const canonical = `https://gamestr.io${location.pathname === '/' ? '/' : location.pathname}`
+  const canonical = `${location.origin}${location.pathname === '/' ? '/' : location.pathname}`
   document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', canonical)
   for (const [selector, value] of [['meta[name="description"]', description], ['meta[property="og:title"]', title], ['meta[property="og:description"]', description], ['meta[property="og:url"]', canonical]]) document.querySelector<HTMLMetaElement>(selector)?.setAttribute('content', value)
 }

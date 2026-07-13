@@ -3,6 +3,7 @@ import { readFile, readdir, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 
 const root = new URL('../dist-web/', import.meta.url)
+const webOrigin = (process.env.GAMESTR_WEB_ORIGIN ?? 'https://gamestr.95-217-39-110.sslip.io').replace(/\/$/, '')
 const fail = message => { throw new Error(`web build validation failed: ${message}`) }
 const read = path => readFile(new URL(path, root), 'utf8')
 
@@ -22,7 +23,7 @@ for (const game of catalogue) {
   if (typeof game.url !== 'string' || !game.url.startsWith('https://')) fail(`${game.slug} needs an HTTPS URL`)
   if (!Array.isArray(game.genres) || game.genres.length === 0) fail(`${game.slug} needs genres`)
   const routeHtml = await read(`game/${game.slug}/index.html`).catch(() => fail(`prerendered game route is missing: ${game.slug}`))
-  if (!routeHtml.includes(`https://gamestr.io/game/${game.slug}/`) || !routeHtml.includes(`<title>${game.name} — Gamestr</title>`)) fail(`game route metadata is invalid: ${game.slug}`)
+  if (!routeHtml.includes(`${webOrigin}/game/${game.slug}/`) || !routeHtml.includes(`<title>${game.name} — Gamestr</title>`)) fail(`game route metadata is invalid: ${game.slug}`)
 }
 if (!catalogue.some(game => game.featured) || !catalogue.some(game => game.trending) || !catalogue.some(game => game.newRelease)) {
   fail('editorial featured, trending, and new collections must all be populated')

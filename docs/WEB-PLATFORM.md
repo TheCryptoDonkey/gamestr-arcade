@@ -76,15 +76,16 @@ The public web app never receives the cabinet NWC URI. A cross-origin game owns
 its own wallet UX. The Electron cabinet may broker narrowly bounded payments,
 but that authority stays in its main process and the hardened NWC gateway.
 
-## Replacement roadmap
+## Clone roadmap
 
-The first slice intentionally prioritises the jobs visible on gamestr.io today:
+This independent clone intentionally prioritises the jobs visible on gamestr.io today:
 discovery, editorial filters, live scores, game pages, identity and developer
-onboarding. Remaining replacement work should land in this order:
+onboarding. It does not control, replace, redirect, or claim the upstream
+`gamestr.io` domain. Remaining work should land in this order:
 
 1. optional NWC providers selected and permissioned by the user;
 2. optional Nostr-synchronised preference lists with local-first fallback;
-3. domain cutover after the external PortFast records move.
+3. an optional dedicated clone domain owned by this project.
 
 Free-text direct messaging is not part of the arcade core. If social
 coordination is added, it should use existing Nostr clients or explicit,
@@ -97,18 +98,12 @@ structured game invitations instead of creating another private-message silo.
 directory on the Hetzner host, and atomically swaps `/opt/gamestr-web/current`.
 The tracked Caddy site in `deploy/web/gamestr-web.Caddyfile` supplies SPA fallback,
 TLS, immutable asset caching, mutable shell caching and enforced security
-headers. The sslip.io hostname is a temporary preview; the final domain is a DNS
-and Caddy-site change, not an application rebuild.
+headers. The clone is currently hosted at
+`https://gamestr.95-217-39-110.sslip.io/`, which is also its canonical origin.
+`GAMESTR_WEB_ORIGIN` may set a future project-owned domain at build time; no
+deployment code modifies or depends on the upstream `gamestr.io` DNS zone.
 
-`deploy/web/gamestr-web.production.Caddyfile` is the final apex site and sends
-`www` plus the temporary preview hostname to the canonical origin while
-preserving every path. `scripts/cutover-web-domain.sh` refuses to install it
-until both apex and `www` resolve to `95.217.39.110`, then validates Caddy,
-reloads it, and proves the HTTPS application shell. The current authoritative
-PortFast zone still points the apex to `185.18.221.186`; changing those DNS
-records is the only external cutover action remaining.
-
-Legacy route compatibility is handled in the client before cutover: existing
+Legacy route compatibility is handled in the clone client: existing
 `/player/<pubkey>` and `/score/<event>` links remain canonical, the older
 four-segment score route resolves its final event ID, and `/game/naddr…` links
 decode their NIP-19 identifier. Known renamed games map explicitly; unavailable
