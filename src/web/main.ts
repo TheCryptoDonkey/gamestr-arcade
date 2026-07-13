@@ -7,6 +7,7 @@ import { decodeInvitation, encodeInvitation, invitationTemplate, parseInvitation
 import { challengeTemplate, decodeChallenge, encodeChallenge, parseChallenge } from './game-challenge'
 import { readSocialState, toggleSocialItem, writeSocialState } from './social-state'
 import { rewardLightningAddress, type WebLNProvider } from './lightning-reward'
+import { decode as decodeNip19 } from 'nostr-tools/nip19'
 
 interface WebGame {
   slug: string; gameId: string; name: string; tagline: string; description?: string; developer?: string
@@ -44,10 +45,12 @@ function route(): { name: 'home' | 'scores' | 'developers' | 'game' | 'player' |
   const path = location.pathname.replace(/\/+$/, '') || '/'
   if (path === '/scores') return { name: 'scores' }
   if (path === '/developers') return { name: 'developers' }
-  const game = /^\/game\/([a-z0-9-]+)$/.exec(path)
+  const game = /^\/game\/([a-zA-Z0-9_-]+)$/.exec(path)
   if (game) return { name: 'game', slug: game[1] }
   const player = /^\/player\/([0-9a-f]{64})$/.exec(path)
   if (player) return { name: 'player', id: player[1] }
+  const legacyScore = /^\/score\/[0-9a-f]{64}\/[a-zA-Z0-9_-]+\/([0-9a-f]{64})$/.exec(path)
+  if (legacyScore) return { name: 'score', id: legacyScore[1] }
   const score = /^\/score\/([0-9a-f]{64})$/.exec(path)
   if (score) return { name: 'score', id: score[1] }
   const invite = /^\/invite\/([A-Za-z0-9_-]{1,4096})$/.exec(path)
@@ -301,8 +304,14 @@ function developersPage(): HTMLElement {
 }
 
 function gamePage(slug: string): HTMLElement {
-  const game = state.games.find(item => item.slug === slug)
-  if (!game) { const main = el('main', 'page'); main.id = 'main'; main.append(el('h1', '', 'Game not found'), linkButton('BACK TO ARCADE', '/')); return main }
+  let identifier = slug
+  if (slug.startsWith('naddr1')) {
+    try { const decoded = decodeNip19(slug); if (decoded.type === 'naddr') identifier = decoded.data.identifier } catch { /* invalid legacy link */ }
+  }
+  const aliases: Record<string, string> = { 'miner-v1': 'nogames-miner-v1', 'snake-v1': 'nogames-snake-v1' }
+  identifier = aliases[identifier] ?? identifier
+  const game = state.games.find(item => item.slug === identifier || item.gameId === identifier)
+  if (!game) { const main = el('main', 'page retired-game'); main.id = 'main'; main.append(el('p', 'kicker', 'LEGACY GAME LINK'), el('h1', '', 'This cabinet moved on'), el('p', 'page-lede', 'The signed legacy link is recognised, but that game is not in the reviewed web catalogue. Nothing was silently substituted.'), linkButton('BROWSE CURRENT GAMES', '/')); return main }
   const main = el('main', 'game-detail'); main.id = 'main'; main.style.setProperty('--accent', game.accent)
   const art = el('div', 'detail-art')
   if (game.hero) art.style.backgroundImage = `linear-gradient(90deg, rgba(8,9,13,.2), #08090d), url("${game.hero}")`

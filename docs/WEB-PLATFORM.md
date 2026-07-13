@@ -104,3 +104,10 @@ until both apex and `www` resolve to `95.217.39.110`, then validates Caddy,
 reloads it, and proves the HTTPS application shell. The current authoritative
 PortFast zone still points the apex to `185.18.221.186`; changing those DNS
 records is the only external cutover action remaining.
+
+Legacy route compatibility is handled in the client before cutover: existing
+`/player/<pubkey>` and `/score/<event>` links remain canonical, the older
+four-segment score route resolves its final event ID, and `/game/naddr…` links
+decode their NIP-19 identifier. Known renamed games map explicitly; unavailable
+legacy games receive an honest retired-game page instead of launching an
+unrelated title or silently dropping visitors on the homepage.

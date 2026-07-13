@@ -27,6 +27,9 @@ describe('public web platform boundaries', () => {
     expect(source).toContain('invitationPage(current.id!)')
     expect(source).toContain('/challenge/')
     expect(source).toContain('challengePage(current.id!)')
+    expect(source).toContain("slug.startsWith('naddr1')")
+    expect(source).toContain("decoded.data.identifier")
+    expect(source).toContain('legacyScore')
   })
 
   it('keeps social preferences local and invitations structured', async () => {
@@ -62,12 +65,15 @@ describe('public web platform boundaries', () => {
     const html = await read('src/web/index.html')
     const caddy = await read('deploy/web/gamestr-web.production.Caddyfile')
     const cutover = await read('scripts/cutover-web-domain.sh')
+    const config = await read('vite.web.config.ts')
     expect(html).toContain('rel="canonical" href="https://gamestr.io/"')
     expect(html).toContain('property="og:title"')
     expect(caddy).toContain('gamestr.io {')
     expect(caddy).toContain('www.gamestr.io, gamestr.95-217-39-110.sslip.io')
     expect(cutover).toContain('both apex and www must resolve')
     expect(cutover).toContain('caddy validate')
+    expect(config).toContain('prerenderRoutes(games)')
+    expect(caddy).toContain('{path}/index.html')
   })
 
   it('sandboxes embedded games without top-navigation authority', async () => {

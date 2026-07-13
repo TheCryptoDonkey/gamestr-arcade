@@ -21,6 +21,8 @@ for (const game of catalogue) {
   if (game.slug === 'payment-lab') fail('operator diagnostics must never enter the public catalogue')
   if (typeof game.url !== 'string' || !game.url.startsWith('https://')) fail(`${game.slug} needs an HTTPS URL`)
   if (!Array.isArray(game.genres) || game.genres.length === 0) fail(`${game.slug} needs genres`)
+  const routeHtml = await read(`game/${game.slug}/index.html`).catch(() => fail(`prerendered game route is missing: ${game.slug}`))
+  if (!routeHtml.includes(`https://gamestr.io/game/${game.slug}/`) || !routeHtml.includes(`<title>${game.name} — Gamestr</title>`)) fail(`game route metadata is invalid: ${game.slug}`)
 }
 if (!catalogue.some(game => game.featured) || !catalogue.some(game => game.trending) || !catalogue.some(game => game.newRelease)) {
   fail('editorial featured, trending, and new collections must all be populated')
@@ -33,6 +35,7 @@ for (const icon of manifest.icons ?? []) {
   await stat(new URL(icon.src.replace(/^\//, ''), root)).catch(() => fail(`manifest icon is missing: ${icon.src}`))
 }
 await stat(new URL('sw.js', root)).catch(() => fail('service worker is missing'))
+for (const route of ['scores', 'developers']) await stat(new URL(`${route}/index.html`, root)).catch(() => fail(`prerendered route is missing: ${route}`))
 const schema = await read('schemas/game-manifest-v2.schema.json').then(JSON.parse).catch(() => fail('Manifest v2 schema is missing'))
 if (schema?.$schema !== 'https://json-schema.org/draft/2020-12/schema' || schema?.properties?.manifestVersion?.const !== 2) fail('Manifest v2 schema is not canonical')
 

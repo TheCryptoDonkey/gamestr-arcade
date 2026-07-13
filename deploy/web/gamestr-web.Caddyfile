@@ -3,7 +3,7 @@ gamestr.95-217-39-110.sslip.io {
 	encode zstd gzip
 
 	# SPA deep links: real files win, browser routes fall back to the shell.
-	try_files {path} /index.html
+	try_files {path} {path}/index.html /index.html
 	file_server
 
 	@immutable path /assets/* /game-art/* /editorial/*

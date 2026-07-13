@@ -94,6 +94,40 @@ async function copyArt(): Promise<void> {
   }
 }
 
+function htmlEscape(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+function routeShell(shell: string, title: string, description: string, path: string, image?: string): string {
+  const canonical = `https://gamestr.io${path}`
+  let html = shell
+    .replace(/<title>[^<]*<\/title>/, `<title>${htmlEscape(title)}</title>`)
+    .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${htmlEscape(description)}">`)
+    .replace(/<meta property="og:title" content="[^"]*">/, `<meta property="og:title" content="${htmlEscape(title)}">`)
+    .replace(/<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${htmlEscape(description)}">`)
+    .replace(/<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${canonical}">`)
+    .replace(/<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${canonical}">`)
+  if (image) {
+    const absolute = image.startsWith('/') ? `https://gamestr.io${image}` : image
+    html = html.replace('<meta property="og:type"', `<meta property="og:image" content="${htmlEscape(absolute)}">\n  <meta property="og:type"`)
+  }
+  return html
+}
+
+async function prerenderRoutes(games: WebGame[]): Promise<void> {
+  const shell = await readFile(join(outDir, 'index.html'), 'utf8')
+  const routes = [
+    { path: '/scores', title: 'Verified scores — Gamestr', description: 'Live cryptographically verified Nostr leaderboards across the Gamestr arcade.' },
+    { path: '/developers', title: 'Build for Gamestr', description: 'Validate, sign, and publish a sovereign Nostr game for web players and physical cabinets.' },
+    ...games.map(game => ({ path: `/game/${game.slug}`, title: `${game.name} — Gamestr`, description: game.description ?? game.tagline, image: game.hero })),
+  ]
+  for (const route of routes) {
+    const directory = join(outDir, route.path.slice(1))
+    await mkdir(directory, { recursive: true })
+    await writeFile(join(directory, 'index.html'), routeShell(shell, route.title, route.description, `${route.path}/`, route.image))
+  }
+}
+
 function webData(): Plugin {
   return {
     name: 'gamestr-web-catalogue',
@@ -121,10 +155,12 @@ function webData(): Plugin {
       })
     },
     async closeBundle() {
-      await writeFile(join(outDir, 'catalogue.json'), `${JSON.stringify(await catalogue(), null, 2)}\n`)
+      const games = await catalogue()
+      await writeFile(join(outDir, 'catalogue.json'), `${JSON.stringify(games, null, 2)}\n`)
       await mkdir(join(outDir, 'schemas'), { recursive: true })
       await copyFile(manifestSchema, join(outDir, 'schemas/game-manifest-v2.schema.json'))
       await copyArt()
+      await prerenderRoutes(games)
     },
   }
 }

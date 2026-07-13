@@ -2,7 +2,7 @@ gamestr.io {
 	root * /opt/gamestr-web/current
 	encode zstd gzip
 
-	try_files {path} /index.html
+	try_files {path} {path}/index.html /index.html
 	file_server
 
 	@immutable path /assets/* /game-art/* /editorial/*
