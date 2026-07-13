@@ -1,4 +1,6 @@
 import { defineConfig, type Plugin } from 'vite'
+import Ajv2020 from 'ajv/dist/2020.js'
+import standaloneCode from 'ajv/dist/standalone/index.js'
 import { existsSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { copyFile, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
@@ -8,6 +10,9 @@ const projectRoot = import.meta.dirname
 const gamesDir = join(projectRoot, 'games')
 const webRoot = join(projectRoot, 'src/web')
 const outDir = join(projectRoot, 'dist-web')
+const manifestSchema = join(projectRoot, 'schemas/game-manifest-v2.schema.json')
+const virtualValidator = 'virtual:gamestr-manifest-validator'
+const resolvedVirtualValidator = `\0${virtualValidator}`
 
 interface WebGame {
   slug: string
@@ -98,6 +103,11 @@ function webData(): Plugin {
         res.setHeader('cache-control', 'no-store')
         res.end(JSON.stringify(await catalogue()))
       })
+      server.middlewares.use('/schemas/game-manifest-v2.schema.json', async (_req, res) => {
+        res.setHeader('content-type', 'application/schema+json; charset=utf-8')
+        res.setHeader('cache-control', 'no-store')
+        res.end(await readFile(manifestSchema))
+      })
       server.middlewares.use('/game-art', async (req, res, next) => {
         const match = /^\/([a-z0-9-]+)\/(hero|logo)\.(png|jpg|webp|svg)$/.exec(req.url ?? '')
         if (!match) return next()
@@ -112,7 +122,28 @@ function webData(): Plugin {
     },
     async closeBundle() {
       await writeFile(join(outDir, 'catalogue.json'), `${JSON.stringify(await catalogue(), null, 2)}\n`)
+      await mkdir(join(outDir, 'schemas'), { recursive: true })
+      await copyFile(manifestSchema, join(outDir, 'schemas/game-manifest-v2.schema.json'))
       await copyArt()
+    },
+  }
+}
+
+function manifestValidator(): Plugin {
+  return {
+    name: 'gamestr-manifest-validator',
+    resolveId(id) { if (id === virtualValidator) return resolvedVirtualValidator },
+    async load(id) {
+      if (id !== resolvedVirtualValidator) return
+      const schema = JSON.parse(await readFile(manifestSchema, 'utf8'))
+      // URL syntax and HTTPS/credential policy are checked with the browser's URL parser after structural validation.
+      const ajv = new Ajv2020({ allErrors: true, strict: true, strictRequired: false, formats: { uri: true }, code: { source: true, esm: true } })
+      let code = standaloneCode(ajv, ajv.compile(schema))
+      code = code
+        .replace('const func2 = require("ajv/dist/runtime/ucs2length").default;', 'const func2 = str => Array.from(str).length;')
+        .replace('const func0 = require("ajv/dist/runtime/equal").default;', 'const func0 = (a,b) => a === b || (a && b && typeof a === "object" && typeof b === "object" && Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(key => func0(a[key], b[key])));')
+      if (code.includes('require(')) throw new Error('Manifest validator contains a non-browser runtime dependency')
+      return code
     },
   }
 }
@@ -120,7 +151,7 @@ function webData(): Plugin {
 export default defineConfig({
   root: webRoot,
   publicDir: join(webRoot, 'public'),
-  plugins: [webData()],
+  plugins: [manifestValidator(), webData()],
   build: { outDir, emptyOutDir: true, sourcemap: true },
   server: { host: '127.0.0.1', port: 4174 },
 })

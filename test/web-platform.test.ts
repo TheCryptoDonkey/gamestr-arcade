@@ -39,6 +39,18 @@ describe('public web platform boundaries', () => {
     expect(worker).toContain('url.origin !== self.location.origin')
   })
 
+  it('uses the canonical schema and NIP-07 for signed submissions without collecting keys', async () => {
+    const source = await read('src/web/developer-studio.ts')
+    const eventSource = await read('src/web/developer-submission.ts')
+    const config = await read('vite.web.config.ts')
+    expect(eventSource).toContain("kind: 31990")
+    expect(source).toContain("signer.signEvent")
+    expect(source).toContain("verifyEvent(event)")
+    expect(source).not.toMatch(/type=["']password["']/)
+    expect(source).not.toContain('nsec')
+    expect(config).toContain('schemas/game-manifest-v2.schema.json')
+  })
+
   it('has unique editorial collections with no operator game', async () => {
     const editorial = JSON.parse(await read('web.editorial.json')) as Record<string, unknown>
     for (const key of ['featured', 'trending', 'new']) {

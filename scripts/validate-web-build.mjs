@@ -33,11 +33,15 @@ for (const icon of manifest.icons ?? []) {
   await stat(new URL(icon.src.replace(/^\//, ''), root)).catch(() => fail(`manifest icon is missing: ${icon.src}`))
 }
 await stat(new URL('sw.js', root)).catch(() => fail('service worker is missing'))
+const schema = await read('schemas/game-manifest-v2.schema.json').then(JSON.parse).catch(() => fail('Manifest v2 schema is missing'))
+if (schema?.$schema !== 'https://json-schema.org/draft/2020-12/schema' || schema?.properties?.manifestVersion?.const !== 2) fail('Manifest v2 schema is not canonical')
 
 const assetFiles = await readdir(new URL('assets/', root))
 for (const name of assetFiles.filter(name => name.endsWith('.js') && !name.endsWith('.js.map'))) {
   const info = await stat(new URL(`assets/${name}`, root))
   if (info.size > 150_000) fail(`JavaScript entry exceeds 150 KB: ${name}`)
+  const source = await read(`assets/${name}`)
+  if (source.includes('require(')) fail(`browser script contains a CommonJS runtime dependency: ${name}`)
 }
 
-console.log(`Validated web build: ${catalogue.length} games, installable PWA, bounded scripts, strict script CSP.`)
+console.log(`Validated web build: ${catalogue.length} games, canonical submission schema, installable PWA, bounded scripts, strict script CSP.`)

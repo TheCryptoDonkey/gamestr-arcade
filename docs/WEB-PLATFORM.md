@@ -17,6 +17,7 @@ fork into incompatible web and cabinet versions.
 - NIP-07 public-key connection with no nsec, password or custodial account;
 - sandboxed in-page play with a clear direct-origin fallback;
 - developer guide generated around the same Manifest v2 contract;
+- browser-side Manifest v2 validation and NIP-07-signed NIP-89 submissions;
 - offline-capable PWA shell and locally hosted editorial art;
 - strict script CSP, no analytics SDK and no first-party player database.
 
@@ -30,7 +31,14 @@ Nostr relays ──untrusted events──> bounded parser ──> signature chec
 NIP-07 extension ──public key only────────────────────> local identity label
 
 Manifest v2 files ──build-time validation──> catalogue.json ──> web + cabinet
+developer manifest ──same schema──> NIP-07 approval ──> signed NIP-89 receipt
 ```
+
+Developer submission events use replaceable kind `31990` records with a stable
+`d` tag (`gamestr-game:<gameId>`), the score event kind in `k`, and the game
+origin in `web`. The signed event is a portable submission receipt, not an
+automatic trust grant: the curated catalogue remains reviewed and build-time
+validated. The page never accepts an `nsec`.
 
 The public web app never receives the cabinet NWC URI. A cross-origin game owns
 its own wallet UX. The Electron cabinet may broker narrowly bounded payments,
@@ -42,11 +50,9 @@ The first slice intentionally prioritises the jobs visible on gamestr.io today:
 discovery, editorial filters, live scores, game pages, identity and developer
 onboarding. Remaining replacement work should land in this order:
 
-1. player profiles and canonical score-event detail routes;
-2. signed catalogue submissions and developer self-service validation;
-3. tournaments, follows and opt-in activity notifications;
-4. web-native rewards through user-owned WebLN/NWC, never the booth wallet;
-5. domain cutover, redirects and long-term compatibility for old score URLs.
+1. tournaments, follows, favourites and structured game invitations;
+2. web-native rewards through user-owned WebLN/NWC, never the booth wallet;
+3. domain cutover, redirects and long-term compatibility for old score URLs.
 
 Free-text direct messaging is not part of the arcade core. If social
 coordination is added, it should use existing Nostr clients or explicit,

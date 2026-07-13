@@ -254,12 +254,18 @@ function developersPage(): HTMLElement {
   const steps = [
     ['1', 'Declare the game', 'Add a Manifest v2 file with a stable gameId, HTTPS URL, genres, art, controls, and only the capabilities you actually need.'],
     ['2', 'Publish signed scores', 'Emit kind 30762 with game and score tags, or kind 5555 with a declared score field. Sign as the player or use a clearly documented game authority.'],
-    ['3', 'Submit without surrendering hosting', 'Open a catalogue pull request. The same manifest feeds web discovery and cabinet installs; your game stays on your origin.'],
+    ['3', 'Submit without surrendering hosting', 'Validate below, approve a NIP-07 signature, and publish a portable NIP-89 submission. Curated listing remains an explicit review; your game stays on your origin.'],
   ]
   const list = el('div', 'dev-steps'); steps.forEach(([number, title, body]) => { const item = el('section'); item.append(el('b', '', number), el('h2', '', title), el('p', '', body)); list.append(item) }); main.append(list)
   const event = el('pre'); event.textContent = JSON.stringify({ kind: 30762, tags: [['game', 'your-game'], ['score', '4200'], ['sats', '21']], content: '' }, null, 2)
   const safety = el('section', 'dev-safety'); safety.append(el('h2', '', 'Trust boundary'), el('p', '', 'The web app validates structure and Schnorr signatures, bounds retained events, ignores cheated scores, and never asks for an nsec. Games open sandboxed when embedding works and always retain a direct-origin fallback.'))
-  main.append(el('h2', '', 'Canonical score event'), event, safety); return main
+  const studioHost = el('div'); studioHost.id = 'manifest-studio-host'
+  main.append(el('h2', '', 'Canonical score event'), event, safety, studioHost)
+  setTimeout(() => {
+    const host = document.querySelector<HTMLElement>('#manifest-studio-host')
+    if (host) void import('./developer-studio').then(({ mountDeveloperStudio }) => mountDeveloperStudio(host, RELAYS))
+  })
+  return main
 }
 
 function gamePage(slug: string): HTMLElement {
@@ -364,6 +370,7 @@ function render(): void {
 
 function refreshScores(): void {
   const current = route()
+  if (current.name === 'developers') return
   if (current.name !== 'home') { render(); return }
   renderGameGrid()
   document.querySelector('.activity-panel')?.replaceWith(activityPanel())
