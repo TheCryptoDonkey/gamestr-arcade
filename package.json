@@ -27,8 +27,8 @@
     "@getalby/sdk": "^8.0.3",
     "gsap": "^3.12.5",
     "light-bolt11-decoder": "^3.2.0",
-    "nostr-tools": "^2.23.5",
-    "qrcode-generator": "^1.5.2"
+    "nostr-tools": "^2.23.9",
+    "qrcode-generator": "^2.0.4"
   },
   "devDependencies": {
     "@electron-toolkit/tsconfig": "^2.0.0",
