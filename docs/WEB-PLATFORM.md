@@ -57,7 +57,7 @@ structured game invitations instead of creating another private-message silo.
 `npm run build:web` emits a self-contained static release in `dist-web/`.
 `scripts/deploy-web.sh` validates it, uploads it into a commit-addressed release
 directory on the Hetzner host, and atomically swaps `/opt/gamestr-web/current`.
-The tracked Caddy site in `deploy/web/gamestr-web.caddy` supplies SPA fallback,
+The tracked Caddy site in `deploy/web/gamestr-web.Caddyfile` supplies SPA fallback,
 TLS, immutable asset caching, mutable shell caching and enforced security
 headers. The sslip.io hostname is a temporary preview; the final domain is a DNS
 and Caddy-site change, not an application rebuild.

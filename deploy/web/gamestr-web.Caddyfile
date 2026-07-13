@@ -15,6 +15,9 @@ gamestr.95-217-39-110.sslip.io {
 	@mutable path / /index.html /sw.js /manifest.webmanifest
 	header @mutable Cache-Control "no-cache, no-store, must-revalidate"
 
+	@route not path /assets/* /game-art/* /editorial/* /catalogue.json /sw.js /manifest.webmanifest
+	header @route Cache-Control "no-cache, no-store, must-revalidate"
+
 	header {
 		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https: wss:; frame-src https:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
@@ -25,10 +28,4 @@ gamestr.95-217-39-110.sslip.io {
 		-Server
 	}
 
-	log {
-		output file /var/log/caddy/gamestr-web.log {
-			roll_size 25mb
-			roll_keep 10
-		}
-	}
 }
