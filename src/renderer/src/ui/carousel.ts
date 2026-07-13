@@ -14,6 +14,7 @@
  */
 
 import { gsap } from 'gsap'
+import { stillImage } from './art'
 import type { Game } from '../../../shared/types'
 import { CarouselModel, type SelectionListener } from './carousel-model'
 
@@ -526,11 +527,12 @@ export class Carousel {
       const art = document.createElement('span')
       art.className = 'tile-art'
       art.setAttribute('aria-hidden', 'true')
-      if (game.logo) {
+      const tileArt = game.logo || stillImage(game.hero)
+      if (tileArt) {
         const img = document.createElement('img')
-        img.src = game.logo
+        img.src = tileArt
         img.alt = ''
-        img.className = 'tile-img'
+        img.className = `tile-img${game.logo ? '' : ' tile-img-hero'}`
         art.appendChild(img)
       } else {
         art.classList.add('tile-art-mono')
@@ -633,6 +635,7 @@ export class Carousel {
     for (const listener of this.activationListeners) listener(game)
   }
 }
+
 
 /**
  * Analyse a logo bitmap: detect whether it's a transparent cut-out or an opaque
