@@ -66,7 +66,7 @@ async function catalogue(): Promise<WebGame[]> {
       url: manifest.url,
       accent: /^#[0-9a-f]{6}$/i.test(manifest.accent) ? manifest.accent : '#7cf3ff',
       hero: editorial.hero?.[entry.name] ?? (localHero ? `/game-art/${entry.name}/${localHero}` : manifest.heroUrl ?? (localLogo ? `/game-art/${entry.name}/${localLogo}` : undefined)),
-      logo: localLogo ? `/game-art/${entry.name}/${localLogo}` : manifest.logoUrl,
+      logo: editorial.logo?.[entry.name] ?? (localLogo ? `/game-art/${entry.name}/${localLogo}` : manifest.logoUrl),
       featured: editorial.featured?.includes(entry.name) ?? false,
       trending: editorial.trending?.includes(entry.name) ?? false,
       newRelease: editorial.new?.includes(entry.name) ?? false,

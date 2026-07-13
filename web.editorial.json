@@ -3,7 +3,15 @@
   "trending": ["space-zappers", "axenstax", "word5", "nostrich-run"],
   "new": ["neon-sentinel", "forge-realms", "hang-on-fren", "nogames-miner-v1", "nogames-snake-v1"],
   "hero": {
+    "neon-sentinel": "/editorial/neon-sentinel-hero.webp",
+    "hang-on-fren": "/editorial/hang-on-fren-hero.webp",
+    "nogames-miner-v1": "/editorial/nogames-miner-v1-hero.webp",
+    "nogames-snake-v1": "/editorial/nogames-snake-v1-hero.webp",
     "mempool-breaker": "/editorial/mempool-breaker.webp",
     "the-rabbit-hole": "/editorial/the-rabbit-hole.webp"
+  },
+  "logo": {
+    "neon-sentinel": "/editorial/neon-sentinel-logo.webp",
+    "hang-on-fren": "/editorial/hang-on-fren-logo.webp"
   }
 }

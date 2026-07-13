@@ -22,6 +22,9 @@ for (const game of catalogue) {
   if (game.slug === 'payment-lab') fail('operator diagnostics must never enter the public catalogue')
   if (typeof game.url !== 'string' || !game.url.startsWith('https://')) fail(`${game.slug} needs an HTTPS URL`)
   if (!game.hero && !game.logo) fail(`${game.slug} needs visible artwork`)
+  for (const asset of [game.hero, game.logo].filter(value => typeof value === 'string' && value.startsWith('/'))) {
+    await stat(new URL(asset.slice(1), root)).catch(() => fail(`${game.slug} local artwork is missing: ${asset}`))
+  }
   if (!Array.isArray(game.genres) || game.genres.length === 0) fail(`${game.slug} needs genres`)
   const routeHtml = await read(`game/${game.slug}/index.html`).catch(() => fail(`prerendered game route is missing: ${game.slug}`))
   if (!routeHtml.includes(`${webOrigin}/game/${game.slug}/`) || !routeHtml.includes(`<title>${game.name} — Gamestr</title>`)) fail(`game route metadata is invalid: ${game.slug}`)

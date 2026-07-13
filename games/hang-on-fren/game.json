@@ -2,6 +2,8 @@
   "manifestVersion": 2,
   "name": "Hang On, Fren",
   "tagline": "Riviera Vespa racer — ten regions, one finish line",
+  "description": "A Riviera Vespa road tribute starring DNI. Grab roses, cross ten regions, and reach the finish line before time runs out.",
+  "genres": ["arcade", "racing", "casual"],
   "gameId": "hangonfren",
   "order": 4,
   "accent": "#ffd76b",

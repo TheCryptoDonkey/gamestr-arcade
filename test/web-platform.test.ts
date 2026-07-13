@@ -112,5 +112,11 @@ describe('public web platform boundaries', () => {
       expect(new Set(values).size).toBe(values.length)
       expect(values).not.toContain('payment-lab')
     }
+    expect((editorial.hero as Record<string, string>)['neon-sentinel']).toMatch(/^\/editorial\//)
+    expect((editorial.logo as Record<string, string>)['neon-sentinel']).toMatch(/^\/editorial\//)
+    expect((editorial.hero as Record<string, string>)['hang-on-fren']).toMatch(/^\/editorial\//)
+    expect((editorial.logo as Record<string, string>)['hang-on-fren']).toMatch(/^\/editorial\//)
+    expect((editorial.hero as Record<string, string>)['nogames-miner-v1']).toMatch(/^\/editorial\//)
+    expect((editorial.hero as Record<string, string>)['nogames-snake-v1']).toMatch(/^\/editorial\//)
   })
 })
