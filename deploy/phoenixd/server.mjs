@@ -1,4 +1,5 @@
 import process from 'node:process'
+import http from 'node:http'
 import { getPublicKey, finalizeEvent, verifyEvent } from 'nostr-tools/pure'
 import { getConversationKey, encrypt, decrypt } from 'nostr-tools/nip44'
 import { Relay } from 'nostr-tools/relay'
@@ -38,6 +39,24 @@ const authority = new PaymentAuthority({
   maxPaymentsPerMinute: positiveInt('MAX_PAYMENTS_PER_MINUTE', process.env.MAX_PAYMENTS_PER_MINUTE, 5, 60),
 })
 
+let relayReady = false
+const healthServer = http.createServer(async (request, response) => {
+  if (request.method !== 'GET' || request.url !== '/healthz') {
+    response.writeHead(404).end()
+    return
+  }
+  try {
+    if (!relayReady) throw new Error('relay unavailable')
+    await phoenixd('GET', '/getbalance')
+    response.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' })
+    response.end('{"status":"ok"}\n')
+  } catch {
+    response.writeHead(503, { 'content-type': 'application/json', 'cache-control': 'no-store' })
+    response.end('{"status":"unavailable"}\n')
+  }
+})
+healthServer.listen(8080, '127.0.0.1')
+
 function decryptRequest(event) {
   const key = getConversationKey(bridgeSecret, event.pubkey)
   return JSON.parse(decrypt(event.content, key))
@@ -58,6 +77,7 @@ function responseEvent(request, resultType, result, error) {
 
 async function run() {
   const relay = await Relay.connect(relayUrl.toString())
+  relayReady = true
   console.log(JSON.stringify({ event: 'ready', relay: relayUrl.origin, bridgePubkey, clientPubkey }))
   let queue = Promise.resolve()
   const sub = relay.subscribe([{ kinds: [23194], '#p': [bridgePubkey], since: Math.floor(Date.now() / 1000) - 10 }], {
@@ -79,10 +99,10 @@ async function run() {
       }).catch(cause => console.error(JSON.stringify({ event: 'handler_error', reason: cause.message })))
     },
   })
-  const shutdown = () => { sub.close(); relay.close(); process.exit(0) }
+  const shutdown = () => { relayReady = false; sub.close(); relay.close(); healthServer.close(() => process.exit(0)) }
   process.once('SIGINT', shutdown)
   process.once('SIGTERM', shutdown)
-  relay.onclose = () => process.exit(1)
+  relay.onclose = () => { relayReady = false; process.exit(1) }
 }
 
 run().catch(cause => { console.error(JSON.stringify({ event: 'fatal', reason: cause.message })); process.exit(1) })

@@ -1,0 +1,26 @@
+{
+  "manifestVersion": 2,
+  "url": "https://gamestr.invalid/payment-lab",
+  "name": "Operator Payment Lab",
+  "tagline": "Controlled Lightning payment and policy diagnostics",
+  "description": "Operator-only local tool for validating NWC payments, duplicate suppression, payment caps and session budgets.",
+  "developer": "Gamestr Arcade",
+  "genres": ["Operator", "Diagnostics"],
+  "gameId": "gamestr-operator-payment-lab",
+  "accent": "#facc15",
+  "textLogo": true,
+  "inputModes": ["keyboard", "pointer"],
+  "controlHints": ["PASTE = INVOICE", "ENTER = PAY", "ESC = EXIT"],
+  "players": { "min": 1, "max": 1 },
+  "sessionMinutes": 10,
+  "network": "required",
+  "ageRating": "Operator",
+  "capabilities": {
+    "nostrSign": false,
+    "walletPay": true,
+    "persistentStorage": false,
+    "externalNavigation": false
+  },
+  "rewardRules": { "enabled": false },
+  "order": 900
+}

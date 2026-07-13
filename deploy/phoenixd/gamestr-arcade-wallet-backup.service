@@ -1,0 +1,12 @@
+[Unit]
+Description=Encrypted backup of the Gamestr Arcade Phoenixd wallet
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/gamestr-arcade-phoenixd/backup.sh
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/backups/gamestr-arcade-phoenixd
+NoNewPrivileges=true

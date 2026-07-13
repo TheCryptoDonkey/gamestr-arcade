@@ -28,3 +28,14 @@ docker compose run --rm --no-deps gateway node smoke.mjs
 ```
 
 Do not fund the wallet until the smoke test passes and the generated NWC URI has been installed on the intended physical booth.
+
+## Health and backups
+
+Both containers have live health checks. The gateway is healthy only when its
+relay connection is established and Phoenixd answers an authenticated balance
+request.
+
+`backup.sh` encrypts `seed.dat` and `phoenix.conf` to an age public recipient;
+the decryption identity must remain off-server. Install the supplied systemd
+unit and timer only after `backup-recipient.txt` contains that public recipient.
+The job retains 14 daily encrypted archives and SHA-256 sidecars.
