@@ -4,6 +4,7 @@ import { boardFor } from '../renderer/src/leaderboard/gamestr-reduce'
 import { avatarCss, hexToNpub, resolveProfiles, shortenNpub, type Profile } from '../renderer/src/leaderboard/profiles'
 import type { LeaderboardEntry } from '../shared/types'
 import { decodeInvitation, encodeInvitation, invitationTemplate, parseInvitation, type GameInvitationEvent } from './game-invitation'
+import { challengeTemplate, decodeChallenge, encodeChallenge, parseChallenge } from './game-challenge'
 import { readSocialState, toggleSocialItem, writeSocialState } from './social-state'
 
 interface WebGame {
@@ -37,7 +38,7 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, t
   return node
 }
 
-function route(): { name: 'home' | 'scores' | 'developers' | 'game' | 'player' | 'score' | 'invite'; slug?: string; id?: string } {
+function route(): { name: 'home' | 'scores' | 'developers' | 'game' | 'player' | 'score' | 'invite' | 'challenge'; slug?: string; id?: string } {
   const path = location.pathname.replace(/\/+$/, '') || '/'
   if (path === '/scores') return { name: 'scores' }
   if (path === '/developers') return { name: 'developers' }
@@ -48,7 +49,9 @@ function route(): { name: 'home' | 'scores' | 'developers' | 'game' | 'player' |
   const score = /^\/score\/([0-9a-f]{64})$/.exec(path)
   if (score) return { name: 'score', id: score[1] }
   const invite = /^\/invite\/([A-Za-z0-9_-]{1,4096})$/.exec(path)
-  return invite ? { name: 'invite', id: invite[1] } : { name: 'home' }
+  if (invite) return { name: 'invite', id: invite[1] }
+  const challenge = /^\/challenge\/([A-Za-z0-9_-]{1,4096})$/.exec(path)
+  return challenge ? { name: 'challenge', id: challenge[1] } : { name: 'home' }
 }
 
 function toggleFavourite(game: WebGame): void {
@@ -303,7 +306,7 @@ function gamePage(slug: string): HTMLElement {
   if (game.hero) art.style.backgroundImage = `linear-gradient(90deg, rgba(8,9,13,.2), #08090d), url("${game.hero}")`
   if (game.logo) { const image = el('img'); image.src = game.logo; image.alt = `${game.name} logo`; art.append(image) }
   const copy = el('div', 'detail-copy'); copy.append(el('p', 'kicker', game.genres.join(' · ').toUpperCase()), el('h1', '', game.name), el('p', 'page-lede', game.description ?? game.tagline))
-  const actions = el('div', 'hero-actions'); actions.append(button('PLAY NOW', 'primary', () => openGame(game)), button(state.social.favourites.includes(game.slug) ? '★ IN MY ARCADE' : '☆ ADD TO MY ARCADE', 'secondary', () => toggleFavourite(game)), button('INVITE TO PLAY', 'secondary', () => void shareInvitation(game))); const original = el('a', 'secondary button-link', 'OPEN ORIGINAL'); original.href = game.url; original.target = '_blank'; original.rel = 'noopener noreferrer'; actions.append(original); copy.append(actions)
+  const actions = el('div', 'hero-actions'); actions.append(button('PLAY NOW', 'primary', () => openGame(game)), button(state.social.favourites.includes(game.slug) ? '★ IN MY ARCADE' : '☆ ADD TO MY ARCADE', 'secondary', () => toggleFavourite(game)), button('INVITE TO PLAY', 'secondary', () => void shareInvitation(game)), button('CREATE CHALLENGE', 'secondary', () => createChallengeDialog(game))); const original = el('a', 'secondary button-link', 'OPEN ORIGINAL'); original.href = game.url; original.target = '_blank'; original.rel = 'noopener noreferrer'; actions.append(original); copy.append(actions)
   const facts = el('dl', 'game-facts'); for (const [label, value] of [['IDENTITY', 'NOSTR'], ['SCORES', 'VERIFIED'], ['WALLET', game.walletPay ? 'LIGHTNING' : 'OPTIONAL'], ['PLAYERS', game.players ? `${game.players.min}–${game.players.max}` : '1']]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) } copy.append(facts)
   main.append(art, copy)
   const board = el('section', 'detail-board'); board.append(el('h2', '', 'GLOBAL LEADERBOARD'))
@@ -318,7 +321,7 @@ function ensureProfile(pubkey: string): void {
   const dispose = resolveProfiles(RELAYS, [pubkey], (resolved, profile) => {
     state.profiles.set(resolved, profile)
     const current = route()
-    if ((current.name === 'player' && current.id === resolved) || current.name === 'invite') render()
+    if ((current.name === 'player' && current.id === resolved) || current.name === 'invite' || current.name === 'challenge') render()
   })
   setTimeout(dispose, 6_000)
 }
@@ -388,6 +391,33 @@ function invitationPage(encoded: string): HTMLElement {
   card.append(facts, actions); main.append(card); return main
 }
 
+function challengePage(encoded: string): HTMLElement {
+  const main = el('main', 'page challenge-page'); main.id = 'main'
+  const signed = decodeChallenge(encoded)
+  const challenge = signed ? parseChallenge(signed) : undefined
+  const game = challenge ? state.games.find(candidate => candidate.gameId === challenge.gameId && candidate.url === challenge.gameUrl) : undefined
+  if (!challenge || !game) {
+    main.append(el('p', 'kicker', 'SIGNED CHALLENGE'), el('h1', '', 'Challenge unavailable'), el('p', 'page-lede', 'This challenge is invalid, too old, or points outside the reviewed Gamestr catalogue.'), linkButton('BROWSE THE ARCADE', '/'))
+    return main
+  }
+  ensureProfile(challenge.event.pubkey)
+  const creator = state.profiles.get(challenge.event.pubkey)?.name ?? shortenNpub(challenge.event.pubkey)
+  const now = Math.floor(Date.now() / 1000)
+  const phase = now < challenge.startsAt ? 'UPCOMING' : now <= challenge.endsAt ? 'LIVE NOW' : 'FINAL'
+  const hero = el('section', 'challenge-hero'); hero.style.setProperty('--accent', game.accent)
+  hero.append(el('span', 'invite-proof', '✓ SIGNED CHALLENGE'), el('p', 'kicker', `${phase} · ${game.name.toUpperCase()}`), el('h1', '', challenge.name), el('p', 'page-lede', `Created by ${creator}. Every standing comes from a locally verified Nostr score inside the signed time window.`))
+  const facts = el('dl', 'game-facts')
+  for (const [label, value] of [['STATUS', phase], ['START', new Date(challenge.startsAt * 1000).toLocaleString()], ['END', new Date(challenge.endsAt * 1000).toLocaleString()], ['ORIGIN', new URL(game.url).host]]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) }
+  const actions = el('div', 'hero-actions'); actions.append(button(phase === 'FINAL' ? 'PLAY THIS GAME' : 'ENTER & PLAY', 'primary', () => openGame(game)), playerLink(challenge.event.pubkey, 'button-link')); hero.append(facts, actions); main.append(hero)
+  const standings = el('section', 'challenge-standings'); const heading = el('div', 'section-heading'); heading.append(el('h2', '', phase === 'FINAL' ? 'FINAL STANDINGS' : 'LIVE STANDINGS'), el('span', '', `${new Date(challenge.startsAt * 1000).toLocaleDateString()} — ${new Date(challenge.endsAt * 1000).toLocaleDateString()}`)); standings.append(heading)
+  const eligible = (state.scores.get(game.gameId) ?? []).filter(entry => entry.at >= challenge.startsAt && entry.at <= challenge.endsAt)
+  const ranked = boardFor(eligible, 'all', 50, Math.min(now, challenge.endsAt), game.scoreDir ?? 'desc')
+  const list = el('ol', 'challenge-board')
+  ranked.forEach((entry, index) => { const row = el('li'); row.append(el('span', 'rank', String(index + 1).padStart(2, '0')), playerLink(entry.pubkey), el('small', '', new Date(entry.at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })), scoreLink(entry)); list.append(row) })
+  if (!ranked.length) list.append(el('li', 'activity-empty', phase === 'FINAL' ? 'No verified scores landed during this challenge.' : 'Waiting for the first verified score in this challenge window…'))
+  standings.append(list); main.append(standings); return main
+}
+
 function openGame(game: WebGame): void {
   const modal = el('div', 'play-modal'); modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true'); modal.setAttribute('aria-label', `Playing ${game.name}`)
   const bar = el('div', 'play-bar'); bar.append(el('strong', '', game.name), el('span', '', 'SANDBOXED WEB SESSION'))
@@ -415,6 +445,37 @@ async function shareInvitation(game: WebGame): Promise<void> {
   }
 }
 
+function createChallengeDialog(game: WebGame): void {
+  const modal = el('div', 'challenge-modal'); modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true'); modal.setAttribute('aria-labelledby', 'challenge-title')
+  const form = el('form', 'challenge-form')
+  const heading = el('h2', '', `Challenge players in ${game.name}`); heading.id = 'challenge-title'
+  const lede = el('p', '', 'Scores already signed by players during the challenge window become the live standings. No registration or tournament database.')
+  const nameLabel = el('label', '', 'Challenge name'); const name = el('input'); name.type = 'text'; name.required = true; name.maxLength = 60; name.placeholder = `${game.name} Open`; nameLabel.append(name)
+  const durationLabel = el('label', '', 'Duration'); const duration = el('select')
+  for (const [seconds, label] of [['3600', '1 HOUR'], ['86400', '24 HOURS'], ['604800', '7 DAYS']]) { const option = el('option', '', label); option.value = seconds; if (seconds === '86400') option.selected = true; duration.append(option) }
+  durationLabel.append(duration)
+  const status = el('output', 'studio-status'); status.setAttribute('aria-live', 'polite')
+  const actions = el('div', 'hero-actions'); const create = button('SIGN & CREATE', 'primary', () => undefined); create.type = 'submit'; const cancel = button('CANCEL', 'secondary', () => modal.remove()); actions.append(create, cancel)
+  form.append(el('p', 'kicker', 'SIGNED CHALLENGE'), heading, lede, nameLabel, durationLabel, actions, status); modal.append(form); document.body.append(modal); name.focus()
+  const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') { modal.remove(); window.removeEventListener('keydown', escape) } }; window.addEventListener('keydown', escape)
+  form.addEventListener('submit', async event => {
+    event.preventDefault(); const signer = (window as NostrWindow).nostr
+    if (!signer) { status.className = 'studio-status error'; status.textContent = 'Connect a NIP-07 signer before creating a challenge.'; return }
+    create.disabled = true; status.className = 'studio-status'; status.textContent = 'Waiting for your Nostr signer…'
+    try {
+      const signed = await signer.signEvent(challengeTemplate(game.gameId, game.url, name.value, Number(duration.value)))
+      if (!parseChallenge(signed)) throw new Error('Signer returned an invalid challenge.')
+      const url = `${location.origin}/challenge/${encodeChallenge(signed)}`
+      if (navigator.share) await navigator.share({ title: name.value.trim(), text: `Compete in ${name.value.trim()} on Gamestr.`, url })
+      else { await navigator.clipboard.writeText(url); toast('Signed challenge link copied.', 'good') }
+      modal.remove()
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') { create.disabled = false; return }
+      status.className = 'studio-status error'; status.textContent = error instanceof Error ? error.message : 'Challenge creation failed.'; create.disabled = false
+    }
+  })
+}
+
 function footer(): HTMLElement {
   const foot = el('footer'); const brand = el('div'); brand.append(el('strong', '', 'GAMESTR'), el('p', '', 'An open arcade protocol surface. Scores live on Nostr. Games live wherever their creators choose.'))
   const links = el('div'); links.append(linkButton('ARCADE', '/'), linkButton('SCORES', '/scores'), linkButton('BUILD', '/developers'))
@@ -434,7 +495,8 @@ function render(): void {
         : current.name === 'game' ? gamePage(current.slug!)
           : current.name === 'player' ? playerPage(current.id!)
             : current.name === 'score' ? scorePage(current.id!)
-              : invitationPage(current.id!)
+              : current.name === 'invite' ? invitationPage(current.id!)
+                : challengePage(current.id!)
   app.replaceChildren(header(), content, footer())
 }
 

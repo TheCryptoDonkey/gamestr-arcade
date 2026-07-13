@@ -34,7 +34,8 @@ export async function validateManifestJson(raw: string): Promise<ValidationResul
 }
 
 export async function publishEvent(event: SignedEvent, relays: string[], timeoutMs = 8_000): Promise<{ accepted: string[]; rejected: string[] }> {
-  if (!verifyEvent(event) || event.kind !== 31990) throw new Error('Signer returned an invalid event.')
+  const canonical = { id: event.id, pubkey: event.pubkey, created_at: event.created_at, kind: event.kind, tags: event.tags, content: event.content, sig: event.sig }
+  if (!verifyEvent(canonical) || event.kind !== 31990) throw new Error('Signer returned an invalid event.')
   const unique = Array.from(new Set(relays)).filter(url => url.startsWith('wss://')).slice(0, 6)
   const outcomes = await Promise.all(unique.map(url => new Promise<{ url: string; ok: boolean }>(resolve => {
     let settled = false

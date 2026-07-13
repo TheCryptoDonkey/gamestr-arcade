@@ -25,6 +25,8 @@ describe('public web platform boundaries', () => {
     expect(source).toContain('scorePage(current.id!)')
     expect(source).toContain('/invite/')
     expect(source).toContain('invitationPage(current.id!)')
+    expect(source).toContain('/challenge/')
+    expect(source).toContain('challengePage(current.id!)')
   })
 
   it('keeps social preferences local and invitations structured', async () => {
@@ -33,7 +35,16 @@ describe('public web platform boundaries', () => {
     expect(social).toContain("gamestr:social:v1")
     expect(invitation).toContain('GAME_INVITE_KIND = 23033')
     expect(invitation).toContain("content: ''")
-    expect(invitation).toContain('verifyEvent(event)')
+    expect(invitation).toContain('signatureIsValid(event)')
+  })
+
+  it('derives signed challenge standings from verified score timestamps', async () => {
+    const source = await read('src/web/main.ts')
+    const challenge = await read('src/web/game-challenge.ts')
+    expect(challenge).toContain('GAME_CHALLENGE_KIND = 23034')
+    expect(challenge).toContain('signatureIsValid(event)')
+    expect(source).toContain('entry.at >= challenge.startsAt && entry.at <= challenge.endsAt')
+    expect(source).toContain("boardFor(eligible")
   })
 
   it('sandboxes embedded games without top-navigation authority', async () => {
@@ -56,7 +67,7 @@ describe('public web platform boundaries', () => {
     const config = await read('vite.web.config.ts')
     expect(eventSource).toContain("kind: 31990")
     expect(source).toContain("signer.signEvent")
-    expect(source).toContain("verifyEvent(event)")
+    expect(source).toContain("verifyEvent(canonical)")
     expect(source).not.toMatch(/type=["']password["']/)
     expect(source).not.toContain('nsec')
     expect(config).toContain('schemas/game-manifest-v2.schema.json')

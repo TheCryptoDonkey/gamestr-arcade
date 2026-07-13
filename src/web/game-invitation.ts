@@ -21,6 +21,10 @@ export interface GameInvitation {
   expiresAt: number
 }
 
+function signatureIsValid(event: GameInvitationEvent): boolean {
+  return verifyEvent({ id: event.id, pubkey: event.pubkey, created_at: event.created_at, kind: event.kind, tags: event.tags, content: event.content, sig: event.sig })
+}
+
 export function invitationTemplate(gameId: string, gameUrl: string, nowSeconds = Math.floor(Date.now() / 1000)) {
   return {
     kind: GAME_INVITE_KIND,
@@ -41,7 +45,7 @@ function tagValue(tags: string[][], name: string): string | undefined {
 }
 
 export function parseInvitation(event: GameInvitationEvent, nowSeconds = Math.floor(Date.now() / 1000)): GameInvitation | undefined {
-  if (event.kind !== GAME_INVITE_KIND || !verifyEvent(event) || event.content !== '') return
+  if (event.kind !== GAME_INVITE_KIND || !signatureIsValid(event) || event.content !== '') return
   const gameId = tagValue(event.tags, 'game')
   const gameUrl = tagValue(event.tags, 'r')
   const expiresAt = Number(tagValue(event.tags, 'expiration'))
