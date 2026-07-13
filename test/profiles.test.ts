@@ -1,10 +1,18 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { finalizeEvent, getPublicKey } from 'nostr-tools/pure'
-import { hexToNpub, shortenNpub, avatarSeed, avatarGradient, avatarCss, resolveProfiles } from '../src/renderer/src/leaderboard/profiles'
+import { hexToNpub, shortenNpub, avatarSeed, avatarGradient, avatarCss, resolveProfiles, sanitiseLightningAddress } from '../src/renderer/src/leaderboard/profiles'
 
 // A known Nostr pubkey ↔ npub pair (fiatjaf) pins the bech32 encoder.
 const FIATJAF_HEX = '3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d'
 const FIATJAF_NPUB = 'npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6'
+
+describe('sanitiseLightningAddress', () => {
+  it('normalises valid addresses and rejects ambiguous domains', () => {
+    expect(sanitiseLightningAddress(' Player@Example.COM ')).toBe('player@example.com')
+    expect(sanitiseLightningAddress('player@example..com')).toBeUndefined()
+    expect(sanitiseLightningAddress('https://example.com')).toBeUndefined()
+  })
+})
 
 describe('hexToNpub (bech32)', () => {
   it('encodes a known pubkey to its canonical npub', () => {

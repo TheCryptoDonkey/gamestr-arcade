@@ -21,6 +21,7 @@ fork into incompatible web and cabinet versions.
 - device-local favourites and followed-player verified activity;
 - self-contained, seven-day signed game invitations with no messaging inbox;
 - signed challenge links with bounded windows and live verified-score standings;
+- direct player rewards through the visitor's own WebLN wallet;
 - offline-capable PWA shell and locally hosted editorial art;
 - strict script CSP, no analytics SDK and no first-party player database.
 
@@ -60,6 +61,14 @@ the same signature-checked score stream by accepting only score timestamps
 inside the signed window. There is no registration table, tournament backend,
 or alternate score trust path.
 
+Player rewards are resolved from the recipient's signed kind-0 `lud16`
+Lightning address. After an explicit click, the browser resolves LNURL-pay,
+enforces a 1–100,000 sat user-selected bound, checks the returned BOLT11 amount
+exactly, and only then calls the visitor's injected WebLN provider. Gamestr
+does not proxy the request, handle a preimage, retain a wallet connection, or
+expose the cabinet Phoenixd/NWC authority. This first reward slice is a direct
+Lightning payment rather than a public NIP-57 zap receipt.
+
 The public web app never receives the cabinet NWC URI. A cross-origin game owns
 its own wallet UX. The Electron cabinet may broker narrowly bounded payments,
 but that authority stays in its main process and the hardened NWC gateway.
@@ -70,7 +79,7 @@ The first slice intentionally prioritises the jobs visible on gamestr.io today:
 discovery, editorial filters, live scores, game pages, identity and developer
 onboarding. Remaining replacement work should land in this order:
 
-1. web-native rewards through user-owned WebLN/NWC, never the booth wallet;
+1. optional signed NIP-57 zap receipts and NWC providers selected by the user;
 2. optional Nostr-synchronised preference lists with local-first fallback;
 3. domain cutover, redirects and long-term compatibility for old score URLs.
 

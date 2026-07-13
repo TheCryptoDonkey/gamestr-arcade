@@ -47,6 +47,17 @@ describe('public web platform boundaries', () => {
     expect(source).toContain("boardFor(eligible")
   })
 
+  it('uses only a user-provided WebLN wallet for exact-amount rewards', async () => {
+    const source = await read('src/web/lightning-reward.ts')
+    const page = await read('src/web/main.ts')
+    expect(source).toContain('provider.enable()')
+    expect(source).toContain('provider.sendPayment')
+    expect(source).toContain("invoiceAmountMsats(invoicePayload.pr) !== BigInt(amount)")
+    expect(page).toContain('(window as NostrWindow).webln')
+    expect(page).not.toContain('NWC_URI')
+    expect(page).not.toContain('phoenixd')
+  })
+
   it('sandboxes embedded games without top-navigation authority', async () => {
     const source = await read('src/web/main.ts')
     const sandbox = source.match(/setAttribute\('sandbox', '([^']+)'\)/)?.[1]

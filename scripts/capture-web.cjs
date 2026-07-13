@@ -8,6 +8,7 @@ const width = Number(process.env.WEB_CAPTURE_WIDTH || 1440)
 const height = Number(process.env.WEB_CAPTURE_HEIGHT || 1000)
 const scrollY = Number(process.env.WEB_CAPTURE_SCROLL_Y || 0)
 const inspectSelector = process.env.WEB_CAPTURE_INSPECT_SELECTOR
+const clickSelector = process.env.WEB_CAPTURE_CLICK_SELECTOR
 
 app.whenReady().then(async () => {
   const window = new BrowserWindow({ width, height, show: false, webPreferences: { sandbox: true, contextIsolation: true } })
@@ -18,6 +19,10 @@ app.whenReady().then(async () => {
   })
   await window.loadURL(target)
   await new Promise(resolve => setTimeout(resolve, 2500))
+  if (clickSelector) {
+    await window.webContents.executeJavaScript(`document.querySelector(${JSON.stringify(clickSelector)})?.click()`)
+    await new Promise(resolve => setTimeout(resolve, 250))
+  }
   if (scrollY) {
     await window.webContents.executeJavaScript(`window.scrollTo({ top: ${JSON.stringify(scrollY)}, behavior: 'instant' })`)
     await new Promise(resolve => setTimeout(resolve, 250))

@@ -144,6 +144,7 @@ export function avatarCss(pubkey: string): string {
 export interface Profile {
   name?: string
   picture?: string
+  lud16?: string
 }
 
 /** A resolved-profiles map keyed by hex pubkey. */
@@ -188,6 +189,19 @@ function sanitisePicture(raw: unknown): string | undefined {
   }
 }
 
+export function sanitiseLightningAddress(raw: unknown): string | undefined {
+  if (typeof raw !== 'string') return undefined
+  const value = raw.trim().toLowerCase()
+  if (value.length > 254 || !/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[a-z0-9.-]+$/.test(value)) return undefined
+  const [name, domain] = value.split('@')
+  if (!name || !domain || domain.startsWith('.') || domain.endsWith('.') || domain.includes('..')) return undefined
+  try {
+    const url = new URL(`https://${domain}/`)
+    if (url.hostname !== domain || url.username || url.password) return undefined
+  } catch { return undefined }
+  return value
+}
+
 function parseProfileContent(content: string): Profile | null {
   try {
     const o = JSON.parse(content) as Record<string, unknown>
@@ -197,8 +211,9 @@ function parseProfileContent(content: string): Profile | null {
       : typeof o.name === 'string' ? o.name : undefined
     const name = rawName?.trim().slice(0, 80) || undefined
     const picture = sanitisePicture(o.picture)
-    if (!name && !picture) return null
-    return { name, picture }
+    const lud16 = sanitiseLightningAddress(o.lud16)
+    if (!name && !picture && !lud16) return null
+    return { name, picture, lud16 }
   } catch {
     return null
   }

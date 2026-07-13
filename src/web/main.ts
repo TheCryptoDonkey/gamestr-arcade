@@ -6,6 +6,7 @@ import type { LeaderboardEntry } from '../shared/types'
 import { decodeInvitation, encodeInvitation, invitationTemplate, parseInvitation, type GameInvitationEvent } from './game-invitation'
 import { challengeTemplate, decodeChallenge, encodeChallenge, parseChallenge } from './game-challenge'
 import { readSocialState, toggleSocialItem, writeSocialState } from './social-state'
+import { rewardLightningAddress, type WebLNProvider } from './lightning-reward'
 
 interface WebGame {
   slug: string; gameId: string; name: string; tagline: string; description?: string; developer?: string
@@ -19,6 +20,7 @@ interface NostrWindow extends Window {
     getPublicKey(): Promise<string>
     signEvent(event: { created_at: number; kind: number; tags: string[][]; content: string }): Promise<GameInvitationEvent>
   }
+  webln?: WebLNProvider
 }
 
 const RELAYS = ['wss://relay.gamestr.io', 'wss://relay.trotters.cc', 'wss://nos.lol', 'wss://relay.damus.io']
@@ -321,7 +323,7 @@ function ensureProfile(pubkey: string): void {
   const dispose = resolveProfiles(RELAYS, [pubkey], (resolved, profile) => {
     state.profiles.set(resolved, profile)
     const current = route()
-    if ((current.name === 'player' && current.id === resolved) || current.name === 'invite' || current.name === 'challenge') render()
+    if ((current.name === 'player' && current.id === resolved) || current.name === 'invite' || current.name === 'challenge' || current.name === 'score') render()
   })
   setTimeout(dispose, 6_000)
 }
@@ -337,6 +339,7 @@ function playerPage(pubkey: string): HTMLElement {
   const copy = el('div'); copy.append(el('p', 'kicker', 'NOSTR PLAYER'), el('h1', '', profile?.name ?? shortenNpub(pubkey)), el('p', 'player-npub', hexToNpub(pubkey)))
   const external = el('a', 'button-link', 'VIEW ON NOSTR'); external.href = `https://njump.me/${hexToNpub(pubkey)}`; external.target = '_blank'; external.rel = 'noopener noreferrer'; copy.append(external)
   if (pubkey !== state.pubkey) copy.append(button(state.social.follows.includes(pubkey) ? '✓ FOLLOWING' : '+ FOLLOW PLAYER', 'secondary follow-button', () => toggleFollow(pubkey)))
+  if (profile?.lud16 && pubkey !== state.pubkey) copy.append(button('⚡ REWARD PLAYER', 'reward-button', () => rewardDialog(pubkey, profile)))
   identity.append(avatar, copy); main.append(identity)
 
   if (pubkey === state.pubkey) {
@@ -365,10 +368,13 @@ function scorePage(eventId: string): HTMLElement {
   }
   const main = el('main', 'page score-detail'); main.id = 'main'
   if (!match) { main.append(el('p', 'kicker', 'VERIFIED SCORE'), el('h1', '', 'Syncing event…'), el('p', 'page-lede', 'This score has not arrived from the configured relays yet. The app will continue reconnecting.')); return main }
+  ensureProfile(match.entry.pubkey)
   main.append(el('p', 'kicker', 'VERIFIED NOSTR EVENT'), el('h1', '', match.entry.score.toLocaleString()), el('p', 'page-lede', `${match.game.name} · ${new Date(match.entry.at * 1000).toLocaleString()}`))
   const facts = el('dl', 'score-facts')
   for (const [label, value] of [['PLAYER', shortenNpub(match.entry.pubkey)], ['SATS', String(match.entry.sats ?? 0)], ['SIGNATURE', 'VALID'], ['EVENT', eventId]]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) }
   main.append(facts, playerLink(match.entry.pubkey, 'button-link'), button(`PLAY ${match.game.name.toUpperCase()}`, 'primary', () => openGame(match!.game)))
+  const profile = state.profiles.get(match.entry.pubkey)
+  if (profile?.lud16 && match.entry.pubkey !== state.pubkey) main.append(button('⚡ REWARD THIS SCORE', 'reward-button', () => rewardDialog(match!.entry.pubkey, profile)))
   return main
 }
 
@@ -472,6 +478,34 @@ function createChallengeDialog(game: WebGame): void {
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') { create.disabled = false; return }
       status.className = 'studio-status error'; status.textContent = error instanceof Error ? error.message : 'Challenge creation failed.'; create.disabled = false
+    }
+  })
+}
+
+function rewardDialog(pubkey: string, profile: Profile): void {
+  if (!profile.lud16) return
+  const modal = el('div', 'challenge-modal'); modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true'); modal.setAttribute('aria-labelledby', 'reward-title')
+  const form = el('form', 'challenge-form reward-form')
+  const heading = el('h2', '', `Reward ${profile.name ?? shortenNpub(pubkey)}`); heading.id = 'reward-title'
+  const lede = el('p', '', 'Pay directly from your own WebLN wallet to the player’s Lightning address. Gamestr never sees wallet credentials or routes this through the cabinet wallet.')
+  const amountLabel = el('label', '', 'Amount in sats'); const amount = el('input'); amount.type = 'number'; amount.min = '1'; amount.max = '100000'; amount.step = '1'; amount.required = true; amount.value = '21'; amountLabel.append(amount)
+  const presets = el('div', 'reward-presets'); for (const value of [21, 100, 500, 1000]) presets.append(button(`${value} SATS`, 'secondary', () => { amount.value = String(value) }))
+  const destination = el('p', 'reward-destination', `TO ${profile.lud16}`)
+  const privacy = el('p', 'reward-privacy', 'Your browser contacts the recipient’s Lightning service only after you approve. The wallet still shows the final invoice for authorization.')
+  const status = el('output', 'studio-status'); status.setAttribute('aria-live', 'polite')
+  const actions = el('div', 'hero-actions'); const pay = button('OPEN MY WALLET', 'primary', () => undefined); pay.type = 'submit'; const cancel = button('CANCEL', 'secondary', () => modal.remove()); actions.append(pay, cancel)
+  form.append(el('p', 'kicker', 'USER-OWNED LIGHTNING'), heading, lede, amountLabel, presets, destination, privacy, actions, status); modal.append(form); document.body.append(modal); amount.focus(); amount.select()
+  const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') { modal.remove(); window.removeEventListener('keydown', escape) } }; window.addEventListener('keydown', escape)
+  form.addEventListener('submit', async event => {
+    event.preventDefault(); const provider = (window as NostrWindow).webln
+    if (!provider) { status.className = 'studio-status error'; status.textContent = 'No WebLN wallet was found. Install or connect a WebLN-capable wallet and retry.'; return }
+    pay.disabled = true; status.className = 'studio-status'; status.textContent = 'Requesting an exact-amount invoice from the player’s Lightning address…'
+    try {
+      await rewardLightningAddress(profile.lud16!, Number(amount.value), provider)
+      status.className = 'studio-status success'; status.textContent = `${Number(amount.value).toLocaleString()} sats sent directly to ${profile.name ?? shortenNpub(pubkey)}.`
+      setTimeout(() => modal.remove(), 1800)
+    } catch (error) {
+      status.className = 'studio-status error'; status.textContent = error instanceof Error ? error.message : 'Lightning reward failed or was cancelled.'; pay.disabled = false
     }
   })
 }
