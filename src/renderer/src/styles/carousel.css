@@ -182,7 +182,7 @@
   z-index: 1;
   pointer-events: none;
   background:
-    linear-gradient(95deg, rgba(3, 4, 10, 0.92) 0%, rgba(3, 4, 10, 0.6) 30%, rgba(3, 4, 10, 0) 64%),
+    linear-gradient(95deg, rgba(3, 4, 10, 0.94) 0%, rgba(3, 4, 10, 0.72) 34%, rgba(3, 4, 10, 0) 66%),
     linear-gradient(0deg, rgba(3, 4, 10, 0.97) 0%, rgba(3, 4, 10, 0.45) 26%, rgba(3, 4, 10, 0) 50%),
     radial-gradient(135% 130% at 46% 46%, rgba(3, 4, 10, 0) 50%, rgba(3, 4, 10, 0.78) 100%);
 }
@@ -396,6 +396,8 @@
    as a deliberate "cartridge plate": rounded, inset, with an accent rim + glow so
    it reads as a designed badge. The image is clipped to the rounded plate. */
 .has-logo.is-plated {
+  /* Hug the artwork — a block-level slot would drag the plate across the column. */
+  width: fit-content;
   padding: clamp(0.85rem, 1.5vh, 1.25rem);
   border-radius: 1.25rem;
   background:
@@ -440,6 +442,7 @@
   text-transform: uppercase;
   color: var(--ink);
   text-shadow:
+    0 3px 10px rgba(3, 4, 10, 0.9),
     0 0 18px var(--accent-soft),
     0 0 60px var(--accent-soft);
 }
@@ -454,6 +457,10 @@
   letter-spacing: -0.01em;
   text-transform: uppercase;
   margin-top: 0.3rem;
+  /* Must survive a bright full-bleed hero video behind it. */
+  text-shadow:
+    0 2px 8px rgba(3, 4, 10, 0.92),
+    0 0 28px rgba(3, 4, 10, 0.7);
 }
 .logo-slot:has(.logo-word) + .game-name {
   display: none;
@@ -466,7 +473,11 @@
   font-size: clamp(1rem, 1.5vw, 1.35rem);
   line-height: 1.5;
   letter-spacing: 0.01em;
-  color: var(--ink-dim);
+  /* Brighter than --ink-dim and shadowed: hero videos wash out dim grey. */
+  color: color-mix(in srgb, var(--ink) 45%, var(--ink-dim));
+  text-shadow:
+    0 2px 6px rgba(3, 4, 10, 0.9),
+    0 0 22px rgba(3, 4, 10, 0.75);
   max-width: 46ch;
 }
 
@@ -937,6 +948,40 @@
   .tile-active { width: 6.3rem; height: 6.3rem; }
   .dots { display: none; }
   .launch-error-toast { width: calc(100% - 2rem); white-space: normal; text-align: center; }
+}
+
+/* ── Short landscape displays (768p-class booth laptops) ─────────────────────
+   The showcase is bottom-anchored, so on short screens its kicker can climb
+   into the top bar. Tighten the stack and cap the logo so they never meet. */
+@media (max-height: 840px) and (min-width: 721px) {
+  .has-logo.is-square .logo-img,
+  .has-logo:not(.is-wide):not(.is-square) .logo-img {
+    height: clamp(7.5rem, 21vh, 12rem);
+  }
+  .has-logo.is-wide .logo-img { max-height: 24vh; }
+  .has-logo.is-bare.is-square::before,
+  .has-logo:not(.is-plated):not(.is-wide)::before {
+    width: clamp(10rem, 28vh, 16rem);
+    height: clamp(10rem, 28vh, 16rem);
+  }
+  .kicker { margin-bottom: 1rem; }
+  .game-tagline { margin-top: 0.8rem; }
+  .cta { margin-top: 1.5rem; }
+}
+
+/* Very short windows (small dev/preview windows, not booth hardware): shrink the
+   whole showcase stack so it stays clear of the top bar even here. */
+@media (max-height: 620px) and (min-width: 721px) {
+  .has-logo.is-square .logo-img,
+  .has-logo:not(.is-wide):not(.is-square) .logo-img {
+    height: clamp(4.5rem, 15vh, 7rem);
+  }
+  .has-logo.is-wide .logo-img { max-height: 17vh; }
+  .kicker { margin-bottom: 0.6rem; }
+  .logo-word { font-size: clamp(2.2rem, 6vw, 4.5rem); }
+  .game-name { font-size: clamp(1.6rem, 3vw, 2.4rem); }
+  .game-tagline { margin-top: 0.5rem; font-size: 0.95rem; }
+  .cta { margin-top: 1rem; }
 }
 
 @keyframes toast-in {
