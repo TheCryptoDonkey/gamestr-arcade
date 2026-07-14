@@ -80,6 +80,10 @@ export class LeaderboardPanel {
   private readonly profileCache: ProfileCache
   private gotLive = false
   private period: Period = 'today'
+  /** True once the player explicitly picks a period — auto-fallback then stands down. */
+  private periodPinned = false
+  /** True while the panel is showing All Time only because Today was empty. */
+  private autoFellBack = false
   private scoring: ScoreScoring | undefined
   private rawEntries: LeaderboardEntry[] = []
   private readonly topN: number
@@ -148,19 +152,17 @@ export class LeaderboardPanel {
     // Reset to Today on each game switch so users always land on the most relevant view.
     if (this.period !== 'today') {
       this.period = 'today'
-      this.root.querySelectorAll('.lb-period-btn').forEach(btn => {
-        const el = btn as HTMLElement
-        const active = el.dataset.period === 'today'
-        el.classList.toggle('lb-period-active', active)
-        el.setAttribute('aria-pressed', String(active))
-      })
+      this.syncPeriodButtons()
     }
+    this.periodPinned = false
+    this.autoFellBack = false
     this.gotLive = false
     this.profiles.clear()
 
     // 1. Cache-first: instant board, no empty flash.
     this.rawEntries = readCachedBoard(gameId)
     this.entries = boardFor(this.rawEntries, this.period, this.topN, Math.floor(Date.now() / 1000), this.boardDir())
+    this.applyAutoPeriod()
     this.render()
     this.setStatus('reconnecting')
 
@@ -178,6 +180,7 @@ export class LeaderboardPanel {
       this.gotLive = true
       this.rawEntries = raw
       this.entries = boardFor(raw, this.period, this.topN, Math.floor(Date.now() / 1000), this.boardDir())
+      this.applyAutoPeriod()
       this.setStatus('live')
       writeCachedBoard(gameId, raw)
       this.render()
@@ -272,16 +275,54 @@ export class LeaderboardPanel {
 
   private setPeriod(p: Period): void {
     if (p === this.period) return
+    // An explicit player choice always wins over the empty-Today auto-fallback.
+    this.periodPinned = true
+    this.autoFellBack = false
     this.period = p
-    this.root.querySelectorAll('.lb-period-btn').forEach(btn => {
-      const el = btn as HTMLElement
-      const active = el.dataset.period === p
-      el.classList.toggle('lb-period-active', active)
-      el.setAttribute('aria-pressed', String(active))
-    })
+    this.syncPeriodButtons()
     this.entries = boardFor(this.rawEntries, this.period, this.topN, Math.floor(Date.now() / 1000), this.boardDir())
     this.render()
     this.resolveVisibleProfiles()
+  }
+
+  private syncPeriodButtons(): void {
+    this.root.querySelectorAll('.lb-period-btn').forEach(btn => {
+      const el = btn as HTMLElement
+      const active = el.dataset.period === this.period
+      el.classList.toggle('lb-period-active', active)
+      el.setAttribute('aria-pressed', String(active))
+    })
+  }
+
+  /**
+   * Keep the board alive at a fresh booth: with no scores today and no explicit
+   * player choice, show All Time rather than an empty panel — and snap back to
+   * Today the moment a today score lands.
+   */
+  private applyAutoPeriod(): void {
+    if (this.periodPinned) return
+    const now = Math.floor(Date.now() / 1000)
+    if (this.autoFellBack && this.period === 'all') {
+      // Snap back when a today score lands — or when live data withdraws the
+      // all-time history that justified the fallback in the first place.
+      const today = boardFor(this.rawEntries, 'today', this.topN, now, this.boardDir())
+      if (today.length > 0 || this.entries.length === 0) {
+        this.period = 'today'
+        this.autoFellBack = false
+        this.entries = today
+        this.syncPeriodButtons()
+      }
+      return
+    }
+    if (this.period === 'today' && this.entries.length === 0) {
+      const allTime = boardFor(this.rawEntries, 'all', this.topN, now, this.boardDir())
+      if (allTime.length > 0) {
+        this.period = 'all'
+        this.autoFellBack = true
+        this.entries = allTime
+        this.syncPeriodButtons()
+      }
+    }
   }
 
   /** Live-patch a single row's name/picture once its profile resolves. */
@@ -314,6 +355,12 @@ export class LeaderboardPanel {
     }
     const frag = document.createDocumentFragment()
     this.entries.forEach((e, i) => frag.appendChild(this.renderRow(e, i)))
+    if (this.autoFellBack) {
+      const nudge = document.createElement('li')
+      nudge.className = 'lb-nudge'
+      nudge.innerHTML = `<span class="lb-nudge-star">★</span> TODAY IS WIDE OPEN — BE THE FIRST`
+      frag.appendChild(nudge)
+    }
     this.listEl.replaceChildren(frag)
   }
 

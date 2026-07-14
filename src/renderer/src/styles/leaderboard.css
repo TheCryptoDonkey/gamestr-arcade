@@ -401,6 +401,31 @@
   color: var(--ink-dim);
 }
 
+/* ── Empty-Today nudge (auto-fallback to All Time keeps the board alive) ──── */
+.lb-nudge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  text-align: center;
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-indent: 0.2em;
+  color: var(--ink-dim);
+  border: 1px dashed color-mix(in srgb, var(--accent) 28%, transparent);
+  border-radius: 0.6rem;
+  background: radial-gradient(120% 120% at 50% 0%, var(--accent-soft), transparent 75%);
+}
+.lb-nudge-star {
+  color: var(--accent);
+  text-shadow: 0 0 14px var(--accent-glow);
+  animation: lb-star 2.6s ease-in-out infinite;
+}
+
 /* ── Period toggle ────────────────────────────────────────────────────────── */
 .lb-period-toggle {
   display: inline-flex;
