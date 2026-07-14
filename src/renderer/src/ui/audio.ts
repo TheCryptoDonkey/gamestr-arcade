@@ -83,6 +83,18 @@ export class ArcadeAudio {
     this.blip(ctx, { type: 'sine', from: 310, to: 180, dur: 0.18, peak: 0.07, t })
   }
 
+  /** A warm ascending sparkle — celebrations and the donation ask. */
+  playChime(): void {
+    const ctx = this.audible()
+    if (!ctx) return
+    const t = ctx.now
+    // Gentle major arpeggio with a shimmer on top — friendly, not demanding.
+    this.blip(ctx, { type: 'sine', from: 523, to: 523, dur: 0.14, peak: 0.12, t })
+    this.blip(ctx, { type: 'sine', from: 659, to: 659, dur: 0.14, peak: 0.12, t: t + 0.09 })
+    this.blip(ctx, { type: 'sine', from: 784, to: 784, dur: 0.2, peak: 0.13, t: t + 0.18 })
+    this.blip(ctx, { type: 'triangle', from: 1568, to: 1568, dur: 0.26, peak: 0.05, t: t + 0.18 })
+  }
+
   // ── plumbing ──────────────────────────────────────────────────────────────────
 
   private ensureCtx(): (AudioContext & { now: number }) | null {

@@ -17,6 +17,7 @@
     "tagline": { "type": "string", "maxLength": 140 },
     "description": { "type": "string", "maxLength": 1200 },
     "developer": { "type": "string", "maxLength": 100 },
+    "tips": { "type": "string", "minLength": 6, "maxLength": 320 },
     "genres": {
       "type": "array",
       "items": { "type": "string", "minLength": 1, "maxLength": 32 },

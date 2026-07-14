@@ -52,6 +52,17 @@
         "maxPaymentsPerMinute": { "type": "integer", "minimum": 1, "maximum": 60 }
       },
       "additionalProperties": false
+    },
+    "donation": {
+      "type": "object",
+      "required": ["address"],
+      "properties": {
+        "address": { "type": "string", "minLength": 6, "maxLength": 320 },
+        "message": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "minSessionSeconds": { "type": "integer", "minimum": 0, "maximum": 3600 },
+        "showSeconds": { "type": "integer", "minimum": 5, "maximum": 300 }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

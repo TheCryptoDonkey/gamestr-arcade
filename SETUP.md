@@ -60,6 +60,9 @@ working. The canonical JSON Schema is
   "order":   1,                            // sort order in the grid (default: 999)
   "inputModes": ["gamepad", "keyboard"],
   "controlHints": ["D-PAD = MOVE", "Ⓐ = ACTION"],
+  "tips": "you@walletofsatoshi.com",         // author Lightning address — the post-game
+                                           // zap ask tips YOU instead of the booth
+  "developer": "Your Studio",              // named on the zap card when tips is set
   "players": { "min": 1, "max": 1 },
   "sessionMinutes": 5,
   "network": "required",                  // required | optional | offline
@@ -116,9 +119,20 @@ Shipped alongside the AppImage (in `resources/`) via `extraResources`. Edit the 
     "maxSats": 100,                // ceiling for one invoice
     "sessionBudgetSats": 500,      // cumulative reservation per game launch
     "maxPaymentsPerMinute": 5
+  },
+  "donation": {                    // optional post-game "zap the arcade" ask
+    "address": "you@coinos.io",    // RECEIVE-side Lightning address (or LNURL) — shown as a QR
+    "message": "ZAP THE ARCADE — IT KEEPS THE GAMES FREE",  // headline under the title (optional)
+    "minSessionSeconds": 45,       // only ask after a session at least this long
+    "showSeconds": 30              // auto-dismiss after this long (any button also dismisses)
   }
 }
 ```
+
+The donation card appears when a player returns from a game that lasted at
+least `minSessionSeconds` — one big `lightning:` QR any wallet can scan. It is
+a receive-only address (safe to display), never touches the `webln` spend
+credentials, and is omitted entirely when the block is absent.
 
 For a self-hosted least-authority wallet, use the isolated Phoenixd deployment in
 [`deploy/phoenixd`](deploy/phoenixd/README.md). Never commit the generated NWC URI:

@@ -64,6 +64,8 @@ export interface Game {
   /** Versioned manifest metadata. Missing means the legacy v1 folder contract. */
   manifestVersion?: number
   developer?: string
+  /** Author-declared Lightning address (or LNURL) for post-game tips. */
+  tips?: string
   description?: string
   genres?: string[]
   inputModes?: GameInputMode[]
@@ -193,4 +195,19 @@ export interface ArcadeConfig {
    * their own QR / payment flow.
    */
   webln?: WebLNConfig
+  /**
+   * Optional post-game donation ask. `address` is a RECEIVE-side Lightning
+   * address (or LNURL) rendered as a QR — safe to expose to the renderer,
+   * unlike the webln spend credentials. When absent, no ask is ever shown.
+   */
+  donation?: DonationConfig
+}
+
+export interface DonationConfig {
+  address: string
+  message?: string
+  /** Only ask after a session at least this long (default 45 s) — never beg after a bounce. */
+  minSessionSeconds?: number
+  /** Auto-dismiss after this long (default 30 s). */
+  showSeconds?: number
 }

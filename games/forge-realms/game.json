@@ -6,8 +6,20 @@
   "gameId": "forge-realms",
   "order": 10,
   "accent": "#6366f1",
-  "inputModes": ["gamepad", "keyboard"],
+  "inputModes": [
+    "gamepad",
+    "keyboard"
+  ],
   "network": "required",
-  "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
-  "allowedOrigins": ["https://forgesworn.dev"]
+  "capabilities": {
+    "nostrSign": true,
+    "walletPay": false,
+    "persistentStorage": false,
+    "externalNavigation": false
+  },
+  "allowedOrigins": [
+    "https://forgesworn.dev"
+  ],
+  "developer": "The Crypto Donkey",
+  "tips": "profusemeat89@walletofsatoshi.com"
 }

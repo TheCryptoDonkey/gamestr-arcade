@@ -19,6 +19,7 @@ import './styles/games-panel.css'
 import './styles/download-panel.css'
 import './styles/ready-panel.css'
 import './styles/launch-overlay.css'
+import './styles/donation-panel.css'
 import { Carousel } from './ui/carousel'
 import { InputController } from './ui/input'
 import { formatScore, mountLeaderboard } from './ui/leaderboard-panel'
@@ -30,6 +31,7 @@ import { GamesPanel } from './ui/games-panel'
 import { DownloadPanel } from './ui/download-panel'
 import { ReadyPanel } from './ui/ready-panel'
 import { LaunchOverlay } from './ui/launch-overlay'
+import { DonationPanel } from './ui/donation-panel'
 import { RelayStore } from './leaderboard/relay-store'
 import { ArcadeAudio } from './ui/audio'
 import { AttractMode } from './ui/attract'
@@ -240,12 +242,20 @@ async function boot(): Promise<void> {
   // dismissed by game:web-ready / game:returned / game:error below.
   const launchOverlay = new LaunchOverlay(host)
 
+  // Post-game donation ask: raised on return from a real session (gated below
+  // on minSessionSeconds), dismissed by any control press or its own timer.
+  const donationPanel = new DonationPanel(host, { onClose: () => attract.start() })
+  let sessionStartedAt = 0
+  let sessionGame: Game | null = null
+
   const startGame = (game: Game): void => {
     if (inWebGame || downloadPanel.isOpen) return
     audio.playSelect()
     attract.stop()
     if (inElectron) {
       void window.arcade.launch(game.id)
+      sessionStartedAt = Date.now()
+      sessionGame = game
       if (game.kind === 'web') {
         inWebGame = true
         launchOverlay.show(game)
@@ -269,6 +279,7 @@ async function boot(): Promise<void> {
   })
 
   const requestLaunch = (game = carousel.current()): void => {
+    if (donationPanel.isOpen) { donationPanel.close(); return }
     if (inWebGame || downloadPanel.isOpen || gamesPanel.isOpen || relayPanel.isOpen) return
     // Download-only titles keep their direct take-home QR path.
     if (game.downloadOnly) {
@@ -296,20 +307,24 @@ async function boot(): Promise<void> {
   // cursor. up/left → previous row, down/right → next, Ⓐ/Enter → ADD, Ⓑ/Start/Esc → close.
   const input = new InputController({
     onPrev: () => {
+      if (donationPanel.isOpen) { donationPanel.close(); return }
       if (gamesPanel.isOpen) gamesPanel.moveSelection(-1)
       else if (!readyPanel.isOpen && !downloadPanel.isOpen && !relayPanel.isOpen) carousel.prev()
     },
     onNext: () => {
+      if (donationPanel.isOpen) { donationPanel.close(); return }
       if (gamesPanel.isOpen) gamesPanel.moveSelection(1)
       else if (!readyPanel.isOpen && !downloadPanel.isOpen && !relayPanel.isOpen) carousel.next()
     },
     onLaunch: () => {
+      if (donationPanel.isOpen) { donationPanel.close(); return }
       if (gamesPanel.isOpen) { gamesPanel.activateSelected(); return }
       if (readyPanel.isOpen) { readyPanel.confirm(); return }
       if (downloadPanel.isOpen || relayPanel.isOpen) return
       requestLaunch()
     },
     onBack: () => {
+      if (donationPanel.isOpen) { donationPanel.close(); return }
       if (readyPanel.isOpen) { readyPanel.close(); return }
       if (relayPanel.isOpen) { relayPanel.close(); return }
       if (gamesPanel.isOpen) { gamesPanel.close(); return }
@@ -357,6 +372,7 @@ async function boot(): Promise<void> {
       if (gamesPanel.isOpen) attract.stop(); else attract.start()
     }
     else if (e.key === 'Escape') {
+      donationPanel.close()
       readyPanel.close()
       relayPanel.close()
       gamesPanel.close()
@@ -374,12 +390,34 @@ async function boot(): Promise<void> {
       attract.start()
       carousel.refocus()
       host.focus()
+      // The donation ask: only after a real session, never after a bounce.
+      // A game author's manifest `tips` address wins (zap the developer);
+      // the booth's own donation config is the fallback (zap the arcade).
+      const donation = config.donation
+      const playedMs = sessionStartedAt ? Date.now() - sessionStartedAt : 0
+      const playedGame = sessionGame
+      sessionStartedAt = 0
+      sessionGame = null
+      const tipAddress = playedGame?.tips
+      if (playedGame && (tipAddress || donation) && playedMs >= (donation?.minSessionSeconds ?? 45) * 1000) {
+        attract.stop()
+        donationPanel.show(playedGame, {
+          address: tipAddress ?? donation!.address,
+          message: tipAddress
+            ? `ZAP ${(playedGame.developer ?? 'THE DEVELOPER').toUpperCase()} — VALUE FOR VALUE`
+            : donation!.message,
+          showSeconds: donation?.showSeconds,
+        })
+        audio.playChime()
+      }
     })
     window.arcade.onWebReady(() => {
       launchOverlay.hide()
     })
     window.arcade.onError(msg => {
       inWebGame = false
+      sessionStartedAt = 0
+      sessionGame = null
       launchOverlay.hide()
       attract.start()
       showErrorToast(msg)

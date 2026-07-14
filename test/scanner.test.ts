@@ -158,6 +158,9 @@ describe('the shipped Pallasite tile', () => {
     expect(pallasite!.gameId).toBe('pallasite')
     expect(pallasite!.order).toBe(1)
     expect(pallasite!.accent).toBe('#7cf3ff')
+    // Author-declared tips address — the post-game zap ask goes to the developer.
+    expect(pallasite!.tips).toBe('profusemeat89@walletofsatoshi.com')
+    expect(pallasite!.developer).toBe('The Crypto Donkey')
   })
 
   it('ships the official key-art hero alongside the cyan logo', async () => {

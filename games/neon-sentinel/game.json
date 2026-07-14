@@ -3,17 +3,32 @@
   "name": "Neon Sentinel",
   "tagline": "Hold the relay, save the keys, don't get TIME LOCKED",
   "description": "A radar-first Nostr rescue shooter with Defender-style waves, a seeded daily gauntlet, and 600B pressure.",
-  "genres": ["arcade", "shooter", "action"],
+  "genres": [
+    "arcade",
+    "shooter",
+    "action"
+  ],
   "gameId": "neonsentinel",
   "order": 2,
   "accent": "#22d3ee",
   "url": "https://neonsentinel.com/",
   "logoUrl": "https://neonsentinel.com/brand/icon-512.png",
   "heroUrl": "https://neonsentinel.com/brand/neon-sentinel-key-art-v2.png",
-  "inputModes": ["gamepad", "keyboard", "touch"],
-  "controlHints": ["LEFT STICK / D-PAD = MOVE", "A / SPACE = FIRE", "START / ESC = PAUSE"],
+  "inputModes": [
+    "gamepad",
+    "keyboard",
+    "touch"
+  ],
+  "controlHints": [
+    "LEFT STICK / D-PAD = MOVE",
+    "A / SPACE = FIRE",
+    "START / ESC = PAUSE"
+  ],
   "sessionMinutes": 5,
-  "players": { "min": 1, "max": 1 },
+  "players": {
+    "min": 1,
+    "max": 1
+  },
   "network": "required",
   "capabilities": {
     "nostrSign": true,
@@ -21,5 +36,9 @@
     "persistentStorage": true,
     "externalNavigation": false
   },
-  "allowedOrigins": ["https://neonsentinel.com"]
+  "allowedOrigins": [
+    "https://neonsentinel.com"
+  ],
+  "developer": "The Crypto Donkey",
+  "tips": "profusemeat89@walletofsatoshi.com"
 }

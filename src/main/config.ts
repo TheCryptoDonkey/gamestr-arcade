@@ -1,4 +1,4 @@
-import type { ArcadeConfig, WebLNConfig } from '../shared/types'
+import type { ArcadeConfig, DonationConfig, WebLNConfig } from '../shared/types'
 
 /**
  * Default relay set — kept in sync with Pallasite's `DEFAULT_RELAYS` so the
@@ -49,6 +49,21 @@ export function parseConfig(raw: unknown): ArcadeConfig {
     kiosk: typeof o.kiosk === 'boolean' ? o.kiosk : DEFAULT_CONFIG.kiosk,
     leaderboard,
     webln: parseWebLN(o.webln),
+    donation: parseDonation(o.donation),
+  }
+}
+
+function parseDonation(raw: unknown): DonationConfig | undefined {
+  if (typeof raw !== 'object' || !raw) return undefined
+  const o = raw as Record<string, unknown>
+  if (typeof o.address !== 'string') return undefined
+  const address = o.address.trim()
+  if (address.length < 6 || address.length > 320) return undefined
+  return {
+    address,
+    message: typeof o.message === 'string' && o.message.trim() ? o.message.trim().slice(0, 120) : undefined,
+    minSessionSeconds: safeNonNegativeInt(o.minSessionSeconds, 45, 3600),
+    showSeconds: safePositiveInt(o.showSeconds, 30, 300),
   }
 }
 

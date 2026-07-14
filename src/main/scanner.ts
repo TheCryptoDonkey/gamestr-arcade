@@ -207,6 +207,9 @@ async function build(
     controls: meta?.controls ?? undefined,
     manifestVersion: Number.isSafeInteger(manifestVersion) && manifestVersion > 0 ? manifestVersion : undefined,
     developer: typeof meta?.developer === 'string' ? meta.developer.trim() || undefined : undefined,
+    // Author-declared Lightning address — the post-game zap ask tips the game's
+    // developer directly, falling back to the booth's own donation address.
+    tips: typeof meta?.tips === 'string' && meta.tips.trim().length >= 6 ? meta.tips.trim() : undefined,
     description: typeof meta?.description === 'string' ? meta.description.trim() || undefined : undefined,
     genres: stringArray(meta?.genres),
     inputModes: inputModes(meta?.inputModes),

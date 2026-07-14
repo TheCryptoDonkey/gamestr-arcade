@@ -19,5 +19,11 @@
       "wss://relay.ditto.pub"
     ],
     "topN": 5
+  },
+  "donation": {
+    "address": "profusemeat89@walletofsatoshi.com",
+    "message": "ZAP THE ARCADE — IT KEEPS THE GAMES FREE",
+    "minSessionSeconds": 45,
+    "showSeconds": 30
   }
 }

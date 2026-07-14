@@ -1,0 +1,121 @@
+/* ── Post-game donation ask ───────────────────────────────────────────────────
+   One big Lightning QR at the moment goodwill peaks. Accent-themed to the game
+   just played, dismissed by any control, auto-fades back to the grid. Sits
+   above the grid chrome but below the CRT-independent panels (ready 260). */
+
+.donate {
+  position: absolute;
+  inset: 0;
+  z-index: 230;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(80% 70% at 50% 50%, rgba(3, 4, 10, 0.88) 30%, rgba(3, 4, 10, 0.62) 100%);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.35s ease,
+    visibility 0s linear 0.35s;
+}
+.donate.is-open {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.35s ease,
+    visibility 0s;
+}
+
+.donate-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  padding: clamp(1.6rem, 3vh, 2.6rem) clamp(2.2rem, 4vw, 3.6rem);
+  text-align: center;
+  border-radius: 1.4rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--accent) 10%, rgba(8, 12, 24, 0.92)), rgba(5, 7, 15, 0.94));
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.7),
+    0 0 60px color-mix(in srgb, var(--accent) 22%, transparent);
+  transform: translateY(0.6rem) scale(0.985);
+  transition: transform 0.35s ease;
+}
+.donate.is-open .donate-card {
+  transform: translateY(0) scale(1);
+}
+
+.donate-kicker {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  color: var(--accent);
+}
+
+.donate-title {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+
+.donate-sub {
+  margin: 0;
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: clamp(0.8rem, 1.2vw, 1rem);
+  letter-spacing: 0.16em;
+  color: var(--ink-dim);
+  max-width: 44ch;
+}
+
+.donate-qr {
+  width: clamp(13rem, 30vh, 19rem);
+  height: clamp(13rem, 30vh, 19rem);
+  margin-top: 0.4rem;
+  padding: 0.9rem;
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 0 40px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.donate-qr svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.donate-address {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: clamp(0.85rem, 1.3vw, 1.05rem);
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  word-break: break-all;
+  max-width: 46ch;
+}
+
+.donate-hint {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  color: var(--ink-dim);
+  animation: donate-hint 2.2s ease-in-out infinite;
+}
+@keyframes donate-hint {
+  0%,
+  100% { opacity: 0.9; }
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .donate-hint { animation: none; }
+}

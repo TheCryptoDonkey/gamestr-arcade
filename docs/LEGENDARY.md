@@ -67,6 +67,13 @@ A launcher is legendary when:
 
 ## Next — the experience layer (weeks)
 
+4b. **Post-game donation ask — SHIPPED.** When a player returns from a session of
+   at least `donation.minSessionSeconds` (so never after a bounce), the cabinet
+   raises one accent-themed card: "ENJOYED <GAME>? ZAP THE ARCADE" with a single
+   big `lightning:` QR. Any button continues; it auto-dismisses back to attract.
+   Config-driven (`donation` block in arcade.config.json — receive-only address,
+   never the spend credentials).
+
 5. **Sound design pass.** Navigation blips, selection sting, launch whoosh, attract
    loop — offline Web Audio assets, respecting the `m` mute toggle. Silence is the
    biggest "unfinished" tell on a cabinet.
