@@ -47,7 +47,7 @@ export interface LeaderboardPanelOptions {
 type ConnState = 'live' | 'reconnecting'
 
 /** Format a score with thin-space grouping (e.g. 184 320) — condensed, arcade. */
-function formatScore(n: number): string {
+export function formatScore(n: number): string {
   return Math.trunc(n)
     .toString()
     .replace(/\B(?=(\d{3})+(?!\d))/g, ' ')

@@ -59,10 +59,11 @@ A launcher is legendary when:
    Blockstr), and the Payment Lab terminal itself. Pay-gated games (Blockstr,
    Sats-Man) use their own landing art — replace with gameplay reels if their
    developers share press kits.
-4. **Attract mode v2 — the demo reel.** Today it dims the grid and overlays INSERT
-   COIN. Legendary: a GSAP timeline cycling each game's hero video full-bleed with its
-   title card, top-three scores, and the INSERT COIN pulse. The cabinet should look
-   *alive* from across the room. (GSAP is already a dependency.)
+4. **Attract mode v2 — SHIPPED.** Idle now enters a cinema reel: the operational
+   chrome (board, CTA, filmstrip, kicker) fades away, the hero art cycles vivid and
+   full-bleed with each game's title block, and a top-three scores strip (fed from
+   the cached all-time board, no extra relay traffic) rides above the INSERT COIN
+   pulse. Any input restores the full grid, replaying the chrome's entrance.
 
 ## Next — the experience layer (weeks)
 

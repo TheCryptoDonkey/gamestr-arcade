@@ -33,7 +33,7 @@
   inset: 0;
   background:
     radial-gradient(75% 32% at 50% 80%, rgba(3, 4, 10, 0.9), transparent 70%),
-    radial-gradient(130% 100% at 50% 120%, rgba(3, 4, 10, 0.72), transparent 62%),
+    radial-gradient(120% 70% at 50% 118%, rgba(3, 4, 10, 0.6), transparent 60%),
     linear-gradient(180deg, rgba(3, 4, 10, 0.42) 0%, rgba(3, 4, 10, 0) 26%);
   animation: attract-veil 3.4s ease-in-out infinite;
 }
@@ -126,10 +126,94 @@
   }
 }
 
+/* ── Top-scores strip (fed from the cached all-time board) ──────────────────── */
+.attract-scores {
+  display: inline-flex;
+  align-items: baseline;
+  gap: clamp(1rem, 2.2vw, 2.2rem);
+  padding: 0.55rem 1.4rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+  border-radius: 999px;
+  background: rgba(3, 4, 10, 0.55);
+  backdrop-filter: blur(6px);
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: clamp(0.7rem, 1.1vw, 0.95rem);
+  letter-spacing: 0.14em;
+  color: var(--ink-dim);
+}
+.attract-scores-empty {
+  display: none;
+}
+.as-title {
+  color: var(--accent);
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+}
+.as-row {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.55ch;
+  white-space: nowrap;
+}
+.as-rank {
+  color: var(--accent);
+  opacity: 0.75;
+  font-size: 0.85em;
+}
+.as-name {
+  color: var(--ink);
+  max-width: 16ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.as-score {
+  color: var(--ink);
+  font-weight: 600;
+}
+.as-row-first .as-name,
+.as-row-first .as-score {
+  color: #ffd76a;
+  text-shadow: 0 0 14px rgba(255, 215, 106, 0.35);
+}
+
+/* ── Cinema: while attract runs, the reel owns the screen ───────────────────────
+   Operational chrome (board, CTA, filmstrip, kicker, index) fades out; the
+   showcase title block gets a gentle push-in. Everything restores on exit. */
+.arcade .leaderboard,
+.arcade .cta,
+.arcade .filmstrip-wrap,
+.arcade .kicker,
+.arcade .topbar-index {
+  transition: opacity 0.6s ease;
+}
+.arcade .showcase-meta {
+  transition: transform 0.9s ease;
+}
+.arcade.attract-cinema .leaderboard,
+.arcade.attract-cinema .cta,
+.arcade.attract-cinema .filmstrip-wrap,
+.arcade.attract-cinema .kicker,
+.arcade.attract-cinema .topbar-index {
+  /* The board's lb-enter animation fills forwards; a filled animation's opacity
+     beats any declaration, so it must be cleared for the fade to win. Clearing
+     it also replays the entrance when the chrome returns — a free flourish. */
+  animation: none;
+  opacity: 0;
+  pointer-events: none;
+}
+.arcade.attract-cinema .showcase-meta {
+  transform: scale(1.05);
+  transform-origin: left bottom;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .attract-veil,
   .attract-coin,
   .attract-bullet {
     animation: none !important;
+  }
+  .arcade .showcase-meta {
+    transition: none;
   }
 }

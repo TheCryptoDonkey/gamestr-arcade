@@ -119,11 +119,19 @@ export interface AttractCarousel {
   next(): void
 }
 
+/** One row of the attract top-scores strip (already formatted for display). */
+export interface AttractScoreRow {
+  label: string
+  score: string
+}
+
 export interface AttractModeOptions {
   timeoutMs: number
   /** How often to auto-advance the carousel while in attract (ms). */
   advanceMs?: number
   carousel: AttractCarousel
+  /** Fires each time attract engages — the shell seeds the scores strip here. */
+  onEnter?: () => void
 }
 
 export class AttractMode {
@@ -131,11 +139,17 @@ export class AttractMode {
   private readonly carousel: AttractCarousel
   private readonly advanceMs: number
   private readonly overlay: HTMLElement
+  private readonly scoresEl: HTMLElement
+  /** The shell root that gets `attract-cinema` (hides operational chrome). */
+  private readonly cinemaRoot: HTMLElement
+  private readonly enterHook: (() => void) | undefined
   private advanceHandle: number | null = null
 
   constructor(host: HTMLElement, opts: AttractModeOptions) {
     this.carousel = opts.carousel
     this.advanceMs = opts.advanceMs ?? 5200
+    this.enterHook = opts.onEnter
+    this.cinemaRoot = host.closest('.arcade') ?? host
 
     this.overlay = document.createElement('div')
     this.overlay.className = 'attract'
@@ -143,6 +157,7 @@ export class AttractMode {
     this.overlay.innerHTML = `
       <div class="attract-veil"></div>
       <div class="attract-banner">
+        <div class="attract-scores"></div>
         <div class="attract-coin">
           <span class="attract-bullet">●</span>
           <span class="attract-text">INSERT COIN</span>
@@ -154,6 +169,7 @@ export class AttractMode {
       </div>
     `
     host.appendChild(this.overlay)
+    this.scoresEl = this.overlay.querySelector('.attract-scores') as HTMLElement
 
     this.timer = new AttractTimer({
       timeoutMs: opts.timeoutMs,
@@ -187,9 +203,42 @@ export class AttractMode {
     return this.timer.isActive
   }
 
+  /**
+   * Replace the top-scores strip for the game currently on the reel.
+   * Rows arrive pre-formatted; labels may be relay-sourced names, so they are
+   * rendered with textContent — never markup. Empty rows hide the strip.
+   */
+  setScores(rows: AttractScoreRow[]): void {
+    this.scoresEl.replaceChildren()
+    this.scoresEl.classList.toggle('attract-scores-empty', rows.length === 0)
+    if (rows.length === 0) return
+    const title = document.createElement('span')
+    title.className = 'as-title'
+    title.textContent = '★ TOP SCORES'
+    this.scoresEl.appendChild(title)
+    rows.forEach((row, i) => {
+      const el = document.createElement('span')
+      el.className = 'as-row' + (i === 0 ? ' as-row-first' : '')
+      const rank = document.createElement('span')
+      rank.className = 'as-rank'
+      rank.textContent = String(i + 1).padStart(2, '0')
+      const name = document.createElement('span')
+      name.className = 'as-name'
+      name.textContent = row.label
+      const score = document.createElement('span')
+      score.className = 'as-score'
+      score.textContent = row.score
+      el.append(rank, name, score)
+      this.scoresEl.appendChild(el)
+    })
+  }
+
   private enter(): void {
     this.overlay.classList.add('attract-on')
     this.overlay.setAttribute('aria-hidden', 'false')
+    // Cinema: fade the operational chrome so the hero reel owns the screen.
+    this.cinemaRoot.classList.add('attract-cinema')
+    this.enterHook?.()
     // Attract is silent by design — visuals + marquee only.
     this.advanceHandle = window.setInterval(() => this.carousel.next(), this.advanceMs)
   }
@@ -197,6 +246,7 @@ export class AttractMode {
   private exit(): void {
     this.overlay.classList.remove('attract-on')
     this.overlay.setAttribute('aria-hidden', 'true')
+    this.cinemaRoot.classList.remove('attract-cinema')
     if (this.advanceHandle !== null) {
       clearInterval(this.advanceHandle)
       this.advanceHandle = null

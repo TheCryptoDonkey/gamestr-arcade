@@ -160,12 +160,14 @@ describe('the shipped Pallasite tile', () => {
     expect(pallasite!.accent).toBe('#7cf3ff')
   })
 
-  it('uses the accent backdrop, not the busy og-image hero', async () => {
+  it('ships the official key-art hero alongside the cyan logo', async () => {
     const games = await scanGames(REAL_GAMES)
     const pallasite = games.find(g => g.id === 'pallasite')
-    // hero.png was removed so the carousel falls back to the fancy accent backdrop.
-    expect(pallasite!.hero).toBeUndefined()
-    // …but the clean cyan logo is still present for the logo-on-left treatment.
+    // The og-image hero was once removed as too busy behind the showcase text;
+    // the showcase now carries its own scrim + text shadows, so the key art is
+    // back as a deliberate full-bleed hero.
+    expect(pallasite!.hero).toMatch(/pallasite\/hero\.webp$/)
+    // The clean cyan logo is still present for the logo-on-left treatment.
     expect(pallasite!.logo).toMatch(/pallasite\/logo\.png$/)
   })
 })

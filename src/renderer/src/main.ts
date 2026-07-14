@@ -21,7 +21,10 @@ import './styles/ready-panel.css'
 import './styles/launch-overlay.css'
 import { Carousel } from './ui/carousel'
 import { InputController } from './ui/input'
-import { mountLeaderboard } from './ui/leaderboard-panel'
+import { formatScore, mountLeaderboard } from './ui/leaderboard-panel'
+import { readCachedBoard } from './leaderboard/cache'
+import { boardFor } from './leaderboard/gamestr-reduce'
+import { shortenNpub } from './leaderboard/profiles'
 import { RelayPanel } from './ui/relay-panel'
 import { GamesPanel } from './ui/games-panel'
 import { DownloadPanel } from './ui/download-panel'
@@ -129,13 +132,6 @@ async function boot(): Promise<void> {
   const crtAnchor = host.querySelector<HTMLElement>('.crt-anchor') ?? host
   const crt = new CrtOverlay(crtAnchor, { enabled: config.theme.crt })
 
-  // Attract mode (idle demo loop). Overlays the cabinet under the CRT.
-  const attract = new AttractMode(crtAnchor, {
-    timeoutMs: config.attractTimeoutMs,
-    carousel,
-  })
-  attract.start()
-
   // Per-game scoring (kind 5555 Other Stuff games carry their own score field +
   // direction; most games omit these and use the kind-30762 default).
   const scoringOf = (game: Game) =>
@@ -143,11 +139,31 @@ async function boot(): Promise<void> {
       ? { kind: game.scoreKind, field: game.scoreField, dir: game.scoreDir }
       : undefined
 
+  // Feed the attract reel's top-scores strip from the cached all-time board —
+  // no extra relay traffic, and cache freshness is maintained by the live panel.
+  function attractScoresFor(game: Game): void {
+    const raw = readCachedBoard(game.gameId)
+    const dir = scoringOf(game)?.dir ?? 'desc'
+    const top = boardFor(raw, 'all', 3, Math.floor(Date.now() / 1000), dir)
+    attract.setScores(
+      top.map(e => ({ label: e.name ?? shortenNpub(e.pubkey), score: formatScore(e.score) })),
+    )
+  }
+
+  // Attract mode (idle demo reel). Overlays the cabinet under the CRT.
+  const attract = new AttractMode(crtAnchor, {
+    timeoutMs: config.attractTimeoutMs,
+    carousel,
+    onEnter: () => attractScoresFor(carousel.current()),
+  })
+  attract.start()
+
   // Drive the board + SFX off carousel selection. Stay silent while attract is
   // auto-advancing so idle demo mode makes no sound at all.
   carousel.onChange(game => {
     showBoard(game.gameId, scoringOf(game))
-    if (!attract.isActive) audio.playMove()
+    if (attract.isActive) attractScoresFor(game)
+    else audio.playMove()
   })
   // Seed the board with the initial selection (onChange only fires on movement).
   showBoard(carousel.current().gameId, scoringOf(carousel.current()))
