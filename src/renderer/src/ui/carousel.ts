@@ -43,9 +43,10 @@ interface LogoInfo {
   transparent: boolean
 }
 
-/** gamestr editorial badges to surface for a game (TRENDING / NEW). */
+/** Badges to surface for a game — editorial (TRENDING / NEW) + local heat. */
 function gameBadges(game: Game): Array<{ label: string; cls: string }> {
   const out: Array<{ label: string; cls: string }> = []
+  if (game.hotTonight) out.push({ label: 'HOT TONIGHT', cls: 'badge-hot' })
   if (game.trending) out.push({ label: 'TRENDING', cls: 'badge-trend' })
   if (game.newRelease) out.push({ label: 'NEW', cls: 'badge-new' })
   return out

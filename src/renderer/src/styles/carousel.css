@@ -767,11 +767,16 @@
   line-height: 1.2;
 }
 
-/* Shared palette — amber TRENDING, accent-cyan NEW. */
+/* Shared palette — amber TRENDING, accent-cyan NEW, ember HOT TONIGHT. */
 .badge-trend { color: #05070f; background: #ffb347; }
 .badge-new {
   color: #05070f;
   background: var(--accent, #7cf3ff);
+}
+.badge-hot {
+  color: #fff;
+  background: linear-gradient(120deg, #ff5e4d, #ff2e63);
+  box-shadow: 0 0 14px rgba(255, 78, 80, 0.55);
 }
 
 /* ── Download-only treatment ──────────────────────────────────────────────────

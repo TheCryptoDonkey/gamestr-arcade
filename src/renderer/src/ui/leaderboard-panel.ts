@@ -52,6 +52,9 @@ export interface LeaderboardPanelOptions {
 
 type ConnState = 'live' | 'reconnecting'
 
+/** A "new record" must have been scored this recently to be celebrated. */
+export const RECORD_FRESHNESS_SEC = 10 * 60
+
 /** Format a score with thin-space grouping (e.g. 184 320) — condensed, arcade. */
 export function formatScore(n: number): string {
   return Math.trunc(n)
@@ -298,15 +301,19 @@ export class LeaderboardPanel {
 
   /**
    * Fire `onNewTopScore` when the all-time #1 changes across live updates.
-   * The first live update after a game switch only SEEDS the baseline — the
-   * backlog a relay pages in must never read as fireworks.
+   * The first live update after a game switch only SEEDS the baseline, and the
+   * new #1 must carry a fresh timestamp — relays racing to page in backlog on a
+   * cold boot deliver multiple "live" updates, and old history must never read
+   * as fireworks no matter how it arrives.
    */
   private detectNewRecord(raw: LeaderboardEntry[], gameId: string, wasLive: boolean): void {
-    const top = boardFor(raw, 'all', 1, Math.floor(Date.now() / 1000), this.boardDir())[0]
+    const nowSec = Math.floor(Date.now() / 1000)
+    const top = boardFor(raw, 'all', 1, nowSec, this.boardDir())[0]
     const key = top ? `${top.pubkey}:${top.score}:${top.at}` : null
     const prev = this.lastTopKey
     this.lastTopKey = key
     if (!wasLive || !top || !key || prev === null || key === prev) return
+    if (nowSec - top.at > RECORD_FRESHNESS_SEC) return
     this.opts.onNewTopScore?.(top, gameId)
   }
 

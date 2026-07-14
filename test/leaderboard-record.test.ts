@@ -76,6 +76,19 @@ describe('LeaderboardPanel — live record detection', () => {
     expect(onNewTopScore.mock.calls[0][1]).toBe('beta')
   })
 
+  it('never celebrates a stale-timestamped #1 — relay backlog is not news', () => {
+    const host = makeHost()
+    const { provider, fire } = capturingProvider()
+    const onNewTopScore = vi.fn()
+    const panel = new LeaderboardPanel(host, { relays: [], makeProvider: () => provider, resolve: () => () => {}, onNewTopScore })
+
+    panel.show('alpha')
+    fire([A]) // seed
+    // A second relay pages in an old, higher score — a #1 change, but history.
+    fire([A, { pubkey: 'd'.repeat(64), score: 9999, sats: 0, at: NOW - 3 * 60 * 60 }])
+    expect(onNewTopScore).not.toHaveBeenCalled()
+  })
+
   it('respects ranking direction — a lower time wins on asc boards', () => {
     const host = makeHost()
     const { provider, fire } = capturingProvider()

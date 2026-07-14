@@ -82,9 +82,11 @@ A launcher is legendary when:
    banner sweeps in (with a chime outside silent attract). Strictly witnessed-live:
    the first update after a game switch only seeds the baseline, so relay backlog
    never reads as fireworks.
-7. **Session stats for curation.** Local play counts and last-played per game; surface
-   "MOST PLAYED TONIGHT" and feed catalogue order. Operators learn what works, players
-   see the heat.
+7. **Session stats — SHIPPED.** Real sessions (30 s+; bounces filtered) are recorded
+   device-local per game — plays, total time, recency. The most-played game of the
+   last 12 hours (minimum two plays) wears an ember HOT TONIGHT badge on the
+   showcase and its tile, seeded at boot so it survives restarts. Nothing leaves
+   the machine. Catalogue reordering by heat remains a possible follow-up.
 8. **Claim your run.** A QR handoff so a player can attach their own npub to the run
    they just played (signed claim, no nsec at the cabinet). Turns anonymous booth runs
    into owned identity — the core gamestr promise, at the cabinet.

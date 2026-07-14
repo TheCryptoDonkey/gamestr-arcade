@@ -33,6 +33,7 @@ import { ReadyPanel } from './ui/ready-panel'
 import { LaunchOverlay } from './ui/launch-overlay'
 import { DonationPanel } from './ui/donation-panel'
 import { RelayStore } from './leaderboard/relay-store'
+import { hottestTonight, recordSession } from './session-stats'
 import { ArcadeAudio } from './ui/audio'
 import { AttractMode } from './ui/attract'
 import { CrtOverlay } from './ui/crt'
@@ -161,6 +162,23 @@ async function boot(): Promise<void> {
     game.scoreKind || game.scoreField || game.scoreDir
       ? { kind: game.scoreKind, field: game.scoreField, dir: game.scoreDir }
       : undefined
+
+  // HOT TONIGHT: flag this cabinet's most-played game of the recent window and
+  // repaint the showcase whenever the holder changes (also seeded at boot so
+  // the badge survives an evening's restarts).
+  function applyHotBadge(): void {
+    const hot = hottestTonight()
+    let changed = false
+    for (const g of games) {
+      const flag = hot !== null && g.gameId === hot.gameId ? true : undefined
+      if (g.hotTonight !== flag) {
+        g.hotTonight = flag
+        changed = true
+      }
+    }
+    if (changed) carousel.refocus()
+  }
+  applyHotBadge()
 
   // Feed the attract reel's top-scores strip from the cached all-time board —
   // no extra relay traffic, and cache freshness is maintained by the live panel.
@@ -411,6 +429,12 @@ async function boot(): Promise<void> {
       attract.start()
       carousel.refocus()
       host.focus()
+      // Session stats: real sessions feed the HOT TONIGHT badge (bounces are
+      // filtered inside recordSession).
+      if (sessionGame && sessionStartedAt) {
+        recordSession(sessionGame.gameId, Date.now() - sessionStartedAt)
+        applyHotBadge()
+      }
       // The donation ask: only after a real session, never after a bounce.
       // A game author's manifest `tips` address wins (zap the developer);
       // the booth's own donation config is the fallback (zap the arcade).

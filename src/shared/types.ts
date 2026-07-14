@@ -95,6 +95,8 @@ export interface Game {
   trending?: boolean
   newRelease?: boolean
   featured?: boolean
+  /** Runtime flag: this cabinet's most-played game tonight (local session stats). */
+  hotTonight?: boolean
 }
 
 export interface LeaderboardEntry {
