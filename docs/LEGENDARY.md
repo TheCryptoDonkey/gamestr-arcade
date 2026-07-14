@@ -53,9 +53,12 @@ A launcher is legendary when:
    revealing the game only when it has actually loaded. A 12 s escalation points at
    the Back control, a 45 s safety reveal covers pages that never settle, and Ⓑ/Esc
    bail out cleanly mid-load.
-3. **Complete the art.** 7/17 games lack hero art (blockstr, nostrich-run, pallasite,
-   payment-lab, sats-man, satsnake, word5). Hero reels are the difference between a
-   cinematic tile and a flat one — source or generate `hero.webp`/`hero.mp4` for all.
+3. **Complete the art — SHIPPED.** All 17 games now carry hero art. Sourced
+   authentically per game: Pallasite's official key art, live gameplay captures
+   (Sat Snake, Nostrich Run), in-game boards and title cards (WORD5, Sats-Man,
+   Blockstr), and the Payment Lab terminal itself. Pay-gated games (Blockstr,
+   Sats-Man) use their own landing art — replace with gameplay reels if their
+   developers share press kits.
 4. **Attract mode v2 — the demo reel.** Today it dims the grid and overlays INSERT
    COIN. Legendary: a GSAP timeline cycling each game's hero video full-bleed with its
    title card, top-three scores, and the INSERT COIN pulse. The cabinet should look
