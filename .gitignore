@@ -27,3 +27,6 @@ games/**/site/
 # The operator payment lab is first-party diagnostic code, not a mirrored game.
 !games/payment-lab/site/
 !games/payment-lab/site/**
+
+# Playwright MCP session artefacts (local only)
+.playwright-mcp/
