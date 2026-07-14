@@ -115,6 +115,8 @@ interface ActiveWebSession {
   walletProvider: NostrWebLNProvider | null
   walletEnabled: Promise<void> | null
   paymentBroker: SessionPaymentBroker<WalletPaymentResult> | null
+  /** Safety attach: reveals the view even if `did-finish-load` never fires. */
+  readyTimer: ReturnType<typeof setTimeout> | null
 }
 
 let activeWebSession: ActiveWebSession | null = null
@@ -148,6 +150,7 @@ function destroyWebSession(): void {
   webView = null
   if (!current) return
 
+  if (current.readyTimer !== null) clearTimeout(current.readyTimer)
   current.paymentBroker?.close()
   current.walletProvider?.close()
   win?.removeListener('resize', sizeWebView)
@@ -184,6 +187,9 @@ function createWebSession(game: Game): ActiveWebSession {
       allowRunningInsecureContent: false,
       safeDialogs: true,
       spellcheck: false,
+      // The view stays detached (invisible) until the game finishes loading —
+      // without this, Chromium throttles the hidden page and slows that load.
+      backgroundThrottling: false,
     },
   })
 
@@ -196,6 +202,7 @@ function createWebSession(game: Game): ActiveWebSession {
     walletProvider: null,
     walletEnabled: null,
     paymentBroker: null,
+    readyTimer: null,
   }
 
   if (grants.walletPay && cachedWebLN) {
@@ -241,7 +248,9 @@ function createWebSession(game: Game): ActiveWebSession {
     }
   })
 
-  win.contentView.addChildView(view)
+  // The view is NOT attached here: it loads detached while the shell shows the
+  // launch overlay, and `loadWeb` reveals it on `did-finish-load` (or the safety
+  // timer). Bounds are kept current so the reveal is already correctly sized.
   sizeWebView()
   win.on('resize', sizeWebView)
 
@@ -287,6 +296,9 @@ function requireWebSession(event: IpcMainInvokeEvent): ActiveWebSession {
 
 /** Transient systemd unit name for the currently-running native game (one at a time). */
 const GAME_UNIT = 'gamestr-arcade-game'
+
+/** How long a web game may load before the view is revealed regardless. */
+const WEB_REVEAL_SAFETY_MS = 45_000
 
 /** Resolve a system binary to an absolute path. The electron main launched from a
  *  FUSE-mounted AppImage can inherit an EMPTY $PATH, so `spawn('systemd-run', …)`
@@ -457,17 +469,31 @@ function buildLaunchDeps(): LaunchDeps {
           )
           .catch(() => {})
       }
-      view.webContents.on('did-finish-load', sendSessionSetup)
+      // Reveal: the detached view is attached only once the game has actually
+      // loaded, so the shell's launch overlay owns the screen until the game is
+      // ready instead of the player staring at a blank page. A safety timer
+      // reveals it regardless, in case a page never settles into `load`.
+      const reveal = () => {
+        if (activeWebSession?.view !== view || !win) return
+        if (activeWebSession.readyTimer !== null) {
+          clearTimeout(activeWebSession.readyTimer)
+          activeWebSession.readyTimer = null
+        }
+        win.contentView.addChildView(view) // idempotent for existing children
+        sizeWebView()
+        win.webContents.send('game:web-ready')
+      }
+      view.webContents.on('did-finish-load', () => {
+        sendSessionSetup()
+        reveal()
+      })
+      session.readyTimer = setTimeout(reveal, WEB_REVEAL_SAFETY_MS)
 
       view.webContents.loadURL(url).catch(err => {
         console.error(`[arcade] loadURL error: ${err}`)
       })
-      // Bring the view to the front.
       // The back-hint bar and gamepad/keyboard exit are handled by the
       // webgame preload — no executeJavaScript injection needed here.
-      if (win) {
-        win.contentView.addChildView(view) // addChildView is idempotent for existing children
-      }
     },
 
     closeWeb() {

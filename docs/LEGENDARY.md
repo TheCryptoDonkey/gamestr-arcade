@@ -47,10 +47,12 @@ A launcher is legendary when:
    fresh booth. When Today has no rows and All Time does, fall back automatically
    (label it `ALL TIME — TODAY STARTS WITH YOU`). The toggle stays manual after first
    player interaction.
-2. **Launch interstitial.** Neon Sentinel took ~19 s from Start Game to playable with
-   no launcher-owned feedback. Show a full-screen accent-themed "LOADING <GAME>" card
-   (hero art + spinner) until the game window first paints; on timeout, a friendly
-   retry/back card. This one change makes every slow web game feel intentional.
+2. **Launch interstitial — SHIPPED.** Neon Sentinel took ~19 s from Start Game to
+   playable with no launcher-owned feedback. The web view now loads detached while
+   the shell shows a full-screen accent-themed loading card (hero art + spinner),
+   revealing the game only when it has actually loaded. A 12 s escalation points at
+   the Back control, a 45 s safety reveal covers pages that never settle, and Ⓑ/Esc
+   bail out cleanly mid-load.
 3. **Complete the art.** 7/17 games lack hero art (blockstr, nostrich-run, pallasite,
    payment-lab, sats-man, satsnake, word5). Hero reels are the difference between a
    cinematic tile and a flat one — source or generate `hero.webp`/`hero.mp4` for all.

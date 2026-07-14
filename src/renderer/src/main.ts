@@ -18,6 +18,7 @@ import './styles/relay-panel.css'
 import './styles/games-panel.css'
 import './styles/download-panel.css'
 import './styles/ready-panel.css'
+import './styles/launch-overlay.css'
 import { Carousel } from './ui/carousel'
 import { InputController } from './ui/input'
 import { mountLeaderboard } from './ui/leaderboard-panel'
@@ -25,6 +26,7 @@ import { RelayPanel } from './ui/relay-panel'
 import { GamesPanel } from './ui/games-panel'
 import { DownloadPanel } from './ui/download-panel'
 import { ReadyPanel } from './ui/ready-panel'
+import { LaunchOverlay } from './ui/launch-overlay'
 import { RelayStore } from './leaderboard/relay-store'
 import { ArcadeAudio } from './ui/audio'
 import { AttractMode } from './ui/attract'
@@ -218,13 +220,20 @@ async function boot(): Promise<void> {
   // input controller routes Back/Escape to the exit path while in-game.
   let inWebGame = false
 
+  // Interstitial shown while a web game loads detached in the main process;
+  // dismissed by game:web-ready / game:returned / game:error below.
+  const launchOverlay = new LaunchOverlay(host)
+
   const startGame = (game: Game): void => {
     if (inWebGame || downloadPanel.isOpen) return
     audio.playSelect()
     attract.stop()
     if (inElectron) {
       void window.arcade.launch(game.id)
-      if (game.kind === 'web') inWebGame = true
+      if (game.kind === 'web') {
+        inWebGame = true
+        launchOverlay.show(game)
+      }
     } else {
       // No-op in the browser preview; pulse the CTA so the press is visible.
       host.classList.add('cta-fired')
@@ -343,14 +352,19 @@ async function boot(): Promise<void> {
   if (inElectron) {
     window.arcade.onReturn(() => {
       inWebGame = false
+      launchOverlay.hide()
       // Resume attract watching — the timeout restarts from now so the player
       // gets the full idle period before demo mode kicks in again.
       attract.start()
       carousel.refocus()
       host.focus()
     })
+    window.arcade.onWebReady(() => {
+      launchOverlay.hide()
+    })
     window.arcade.onError(msg => {
       inWebGame = false
+      launchOverlay.hide()
       attract.start()
       showErrorToast(msg)
     })

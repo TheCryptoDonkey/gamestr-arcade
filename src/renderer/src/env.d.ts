@@ -11,6 +11,7 @@ declare global {
       gamestrCatalogue(): Promise<GamestrCatalogueResult>
       gamestrImport(slug: string): Promise<GamestrImportResult>
       onReturn(cb: () => void): void
+      onWebReady(cb: () => void): void
       onError(cb: (msg: string) => void): void
     }
   }

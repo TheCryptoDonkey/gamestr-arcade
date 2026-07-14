@@ -1,0 +1,134 @@
+/* ── Launch interstitial ──────────────────────────────────────────────────────
+   Full-screen card shown while a web game loads detached in the main process.
+   Sits above the grid and the ready panel's ghost (260 closes on confirm),
+   below nothing that matters during a load — errors dismiss it first. */
+
+.launch-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 240;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-deep, #03040a);
+  opacity: 0;
+  transition: opacity 0.32s ease;
+}
+.launch-overlay.is-open {
+  opacity: 1;
+}
+
+.lo-backdrop {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: saturate(112%);
+  transform: scale(1.02);
+  animation: lo-drift 14s ease-in-out infinite alternate;
+}
+/* Accent-driven fallback when the game has no still hero image. */
+.lo-backdrop-fancy {
+  background:
+    radial-gradient(120% 90% at 70% 30%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 62%),
+    radial-gradient(100% 100% at 20% 80%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 58%),
+    var(--bg-deep, #03040a);
+}
+@keyframes lo-drift {
+  from { transform: scale(1.02) translate3d(-0.6%, 0, 0); }
+  to   { transform: scale(1.06) translate3d(0.6%, -0.5%, 0); }
+}
+
+.lo-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(90% 80% at 50% 52%, rgba(3, 4, 10, 0.82) 0%, rgba(3, 4, 10, 0.55) 55%, rgba(3, 4, 10, 0.88) 100%);
+}
+
+.lo-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 2.4rem 3.4rem;
+  text-align: center;
+  max-width: min(46rem, 84vw);
+}
+
+.lo-logo {
+  height: clamp(5.5rem, 16vh, 9rem);
+  width: auto;
+  max-width: 60vw;
+  object-fit: contain;
+  border-radius: 0.9rem;
+  filter: drop-shadow(0 12px 34px rgba(0, 0, 0, 0.65))
+    drop-shadow(0 0 26px color-mix(in srgb, var(--accent) 28%, transparent));
+}
+
+.lo-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.46em;
+  text-indent: 0.46em;
+  color: var(--accent);
+}
+.lo-kicker-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
+  animation: kicker-pulse 1.8s ease-in-out infinite;
+}
+
+.lo-title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-shadow:
+    0 2px 8px rgba(3, 4, 10, 0.92),
+    0 0 28px rgba(3, 4, 10, 0.7);
+}
+
+.lo-spinner {
+  width: 3rem;
+  height: 3rem;
+  margin-top: 0.4rem;
+  border-radius: 50%;
+  border: 3px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  border-top-color: var(--accent);
+  box-shadow: 0 0 22px var(--accent-soft);
+  animation: lo-spin 0.9s linear infinite;
+}
+@keyframes lo-spin {
+  to { transform: rotate(360deg); }
+}
+
+.lo-sub {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 0.74rem;
+  letter-spacing: 0.24em;
+  text-indent: 0.24em;
+  color: var(--ink-dim);
+}
+.lo-sub-slow {
+  display: none;
+  color: var(--accent);
+}
+.launch-overlay.is-slow .lo-sub-loading { display: none; }
+.launch-overlay.is-slow .lo-sub-slow { display: block; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lo-backdrop { animation: none; }
+}
