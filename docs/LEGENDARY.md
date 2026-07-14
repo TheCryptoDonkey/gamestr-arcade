@@ -77,9 +77,11 @@ A launcher is legendary when:
 5. **Sound design pass.** Navigation blips, selection sting, launch whoosh, attract
    loop — offline Web Audio assets, respecting the `m` mute toggle. Silence is the
    biggest "unfinished" tell on a cabinet.
-6. **Live score moments.** When a verified score arrives while the grid is showing,
-   celebrate it: "★ NEW TOP SCORE — <name> just took #1 on <game>". The leaderboard
-   is live; make sure everyone *feels* it.
+6. **Live score moments — SHIPPED.** When a live relay update dethrones the all-time
+   #1 for the game on screen, a gold "★ NEW RECORD — <name> TAKES #1 ON <game>"
+   banner sweeps in (with a chime outside silent attract). Strictly witnessed-live:
+   the first update after a game switch only seeds the baseline, so relay backlog
+   never reads as fireworks.
 7. **Session stats for curation.** Local play counts and last-played per game; surface
    "MOST PLAYED TONIGHT" and feed catalogue order. Operators learn what works, players
    see the heat.

@@ -127,8 +127,29 @@ async function boot(): Promise<void> {
   // browser preview they stay silent until the first gesture resumes the ctx.
   const audio = new ArcadeAudio({ muted: false })
 
+  // Live record celebration: a new all-time #1 witnessed on the relay feed
+  // becomes a moment the whole room sees (and hears, outside silent attract).
+  function celebrateRecord(entry: import('../../shared/types').LeaderboardEntry, gameId: string): void {
+    const recordGame = games.find(g => g.gameId === gameId)
+    const label = (entry.name ?? shortenNpub(entry.pubkey)).toUpperCase()
+    const existing = appHost.querySelector<HTMLElement>('.record-toast')
+    if (existing) existing.remove()
+    const el = document.createElement('div')
+    el.className = 'record-toast'
+    el.setAttribute('role', 'status')
+    el.innerHTML = `<span class="record-star">★</span> NEW RECORD — <b></b> TAKES #1${recordGame ? ' ON ' + '<i></i>' : ''} · <span class="record-score"></span>`
+    ;(el.querySelector('b') as HTMLElement).textContent = label
+    if (recordGame) (el.querySelector('i') as HTMLElement).textContent = recordGame.name.toUpperCase()
+    ;(el.querySelector('.record-score') as HTMLElement).textContent = formatScore(entry.score)
+    appHost.appendChild(el)
+    window.setTimeout(() => el.remove(), 7000)
+    if (!attract.isActive) audio.playChime()
+  }
+
   // Leaderboard board on the right (null when provider is 'none').
-  const { show: showBoard, panel: lbPanel } = mountLeaderboard(host, config, inElectron)
+  const { show: showBoard, panel: lbPanel } = mountLeaderboard(host, config, inElectron, {
+    onNewTopScore: (entry, gameId) => celebrateRecord(entry, gameId),
+  })
 
   // CRT overlay mounted at the carousel's `.crt-anchor`, gated by config.
   const crtAnchor = host.querySelector<HTMLElement>('.crt-anchor') ?? host

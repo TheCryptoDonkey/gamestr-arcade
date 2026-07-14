@@ -42,6 +42,12 @@ export interface LeaderboardPanelOptions {
   subtitle?: string
   /** Max entries to show on the board (default 10). */
   topN?: number
+  /**
+   * Fires when a LIVE update dethrones the all-time #1 the panel had already
+   * seen live for the current game — i.e. a record witnessed as it happens,
+   * never the initial page-in of history after a game switch.
+   */
+  onNewTopScore?: (entry: LeaderboardEntry, gameId: string) => void
 }
 
 type ConnState = 'live' | 'reconnecting'
@@ -84,6 +90,8 @@ export class LeaderboardPanel {
   private periodPinned = false
   /** True while the panel is showing All Time only because Today was empty. */
   private autoFellBack = false
+  /** Identity of the last live-seen all-time #1 (per current game) for record detection. */
+  private lastTopKey: string | null = null
   private scoring: ScoreScoring | undefined
   private rawEntries: LeaderboardEntry[] = []
   private readonly topN: number
@@ -157,6 +165,7 @@ export class LeaderboardPanel {
     this.periodPinned = false
     this.autoFellBack = false
     this.gotLive = false
+    this.lastTopKey = null
     this.profiles.clear()
 
     // 1. Cache-first: instant board, no empty flash.
@@ -177,6 +186,7 @@ export class LeaderboardPanel {
     })
     this.unsubscribeScores = provider.subscribe(gameId, raw => {
       if (gameId !== this.currentGameId) return
+      const wasLive = this.gotLive
       this.gotLive = true
       this.rawEntries = raw
       this.entries = boardFor(raw, this.period, this.topN, Math.floor(Date.now() / 1000), this.boardDir())
@@ -185,6 +195,7 @@ export class LeaderboardPanel {
       writeCachedBoard(gameId, raw)
       this.render()
       this.resolveVisibleProfiles()
+      this.detectNewRecord(raw, gameId, wasLive)
     }, this.scoring)
 
     // Fallback: if no live update lands shortly, drop the dot to "reconnecting"
@@ -283,6 +294,20 @@ export class LeaderboardPanel {
     this.entries = boardFor(this.rawEntries, this.period, this.topN, Math.floor(Date.now() / 1000), this.boardDir())
     this.render()
     this.resolveVisibleProfiles()
+  }
+
+  /**
+   * Fire `onNewTopScore` when the all-time #1 changes across live updates.
+   * The first live update after a game switch only SEEDS the baseline — the
+   * backlog a relay pages in must never read as fireworks.
+   */
+  private detectNewRecord(raw: LeaderboardEntry[], gameId: string, wasLive: boolean): void {
+    const top = boardFor(raw, 'all', 1, Math.floor(Date.now() / 1000), this.boardDir())[0]
+    const key = top ? `${top.pubkey}:${top.score}:${top.at}` : null
+    const prev = this.lastTopKey
+    this.lastTopKey = key
+    if (!wasLive || !top || !key || prev === null || key === prev) return
+    this.opts.onNewTopScore?.(top, gameId)
   }
 
   private syncPeriodButtons(): void {
@@ -451,6 +476,7 @@ export function mountLeaderboard(
   host: HTMLElement,
   config: ArcadeConfig,
   inElectron: boolean,
+  hooks?: Pick<LeaderboardPanelOptions, 'onNewTopScore'>,
 ): { show: (gameId: string, scoring?: ScoreScoring) => void; panel: LeaderboardPanel | null } {
   if (config.leaderboard.provider === 'none') return { show: () => {}, panel: null }
   const { relays, topN } = config.leaderboard
@@ -465,6 +491,7 @@ export function mountLeaderboard(
       relays,
       makeProvider: () => staticProvider(gameId => (boards ? boards(gameId) : [])),
       resolve: () => () => {}, // names are pre-filled in the mock; no relay calls
+      onNewTopScore: hooks?.onNewTopScore,
     })
     let pending: { gameId: string; scoring?: ScoreScoring } | null = null
     void ready.then(() => {
@@ -500,6 +527,7 @@ export function mountLeaderboard(
     topN,
     makeProvider: sharedProvider,
     resolve: resolveProfiles,
+    onNewTopScore: hooks?.onNewTopScore,
   })
   window.addEventListener('beforeunload', () => catalogue?.dispose(), { once: true })
   return { show: (gameId, scoring) => panel.show(gameId, scoring), panel }

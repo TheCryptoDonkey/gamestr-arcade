@@ -401,6 +401,63 @@
   color: var(--ink-dim);
 }
 
+/* ── Live record toast (a new all-time #1 witnessed on the feed) ──────────── */
+.record-toast {
+  position: absolute;
+  top: clamp(4.5rem, 9vh, 7rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 210;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.6ch;
+  padding: 0.75rem 1.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 215, 106, 0.6);
+  background: linear-gradient(160deg, rgba(64, 48, 8, 0.92), rgba(10, 8, 2, 0.94));
+  box-shadow:
+    0 14px 50px rgba(0, 0, 0, 0.6),
+    0 0 44px rgba(255, 215, 106, 0.28);
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: clamp(0.78rem, 1.2vw, 1rem);
+  letter-spacing: 0.16em;
+  color: #ffd76a;
+  white-space: nowrap;
+  animation: record-in 0.4s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+.record-toast b,
+.record-toast i {
+  font-style: normal;
+  font-weight: 700;
+  color: #fff;
+}
+.record-toast .record-score {
+  color: #fff;
+  font-weight: 700;
+}
+.record-star {
+  color: #ffd76a;
+  text-shadow: 0 0 16px rgba(255, 215, 106, 0.7);
+  animation: lb-star 1.6s ease-in-out infinite;
+}
+@keyframes record-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-0.8rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .record-toast,
+  .record-star {
+    animation: none;
+  }
+}
+
 /* ── Empty-Today nudge (auto-fallback to All Time keeps the board alive) ──── */
 .lb-nudge {
   display: flex;
