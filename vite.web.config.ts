@@ -50,6 +50,7 @@ interface WebGame {
   accent: string
   hero?: string
   logo?: string
+  artOverlay?: boolean
   featured: boolean
   trending: boolean
   newRelease: boolean
@@ -90,7 +91,10 @@ async function catalogue(): Promise<WebGame[]> {
       url: manifest.url,
       accent: /^#[0-9a-f]{6}$/i.test(manifest.accent) ? manifest.accent : '#7cf3ff',
       hero: editorial.hero?.[entry.name] ?? (localHero ? `/game-art/${entry.name}/${localHero}` : manifest.heroUrl ?? (localLogo ? `/game-art/${entry.name}/${localLogo}` : undefined)),
-      logo: editorial.logo?.[entry.name] ?? (localLogo ? `/game-art/${entry.name}/${localLogo}` : manifest.logoUrl),
+      logo: editorial.logo?.[entry.name] === null
+        ? undefined
+        : editorial.logo?.[entry.name] ?? (localLogo ? `/game-art/${entry.name}/${localLogo}` : manifest.logoUrl),
+      artOverlay: editorial.logo?.[entry.name] !== null,
       featured: (edition.featured ?? editorial.featured)?.includes(entry.name) ?? false,
       trending: (edition.trending ?? editorial.trending)?.includes(entry.name) ?? false,
       newRelease: (edition.newReleases ?? editorial.new)?.includes(entry.name) ?? false,

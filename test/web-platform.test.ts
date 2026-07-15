@@ -95,8 +95,9 @@ describe('public web platform boundaries', () => {
     expect(worker).toContain('url.origin !== self.location.origin')
   })
 
-  it('uses the canonical schema and NIP-07 for signed submissions without collecting keys', async () => {
+  it('uses the canonical schema and Signet-backed Nostr signing without collecting keys', async () => {
     const source = await read('src/web/developer-studio.ts')
+    const access = await read('src/web/nostr-access.ts')
     const eventSource = await read('src/web/developer-submission.ts')
     const config = await read('vite.web.config.ts')
     expect(eventSource).toContain("kind: 31990")
@@ -104,6 +105,9 @@ describe('public web platform boundaries', () => {
     expect(source).toContain("verifyEvent(canonical)")
     expect(source).not.toMatch(/type=["']password["']/)
     expect(source).not.toContain('nsec')
+    expect(access).toContain("from 'signet-login'")
+    expect(access).toContain("'local-signet', 'remote-signet', 'nip07'")
+    expect(access).not.toContain("'nsec'")
     expect(config).toContain('schemas/game-manifest-v2.schema.json')
   })
 
@@ -118,7 +122,7 @@ describe('public web platform boundaries', () => {
     expect((editorial.hero as Record<string, string>)['neon-sentinel']).toMatch(/^\/editorial\//)
     expect((editorial.logo as Record<string, string>)['neon-sentinel']).toMatch(/^\/editorial\//)
     expect((editorial.hero as Record<string, string>)['hang-on-fren']).toMatch(/^\/editorial\//)
-    expect((editorial.logo as Record<string, string>)['hang-on-fren']).toMatch(/^\/editorial\//)
+    expect((editorial.logo as Record<string, string | null>)['hang-on-fren']).toBeNull()
     expect((editorial.hero as Record<string, string>)['nogames-miner-v1']).toMatch(/^\/editorial\//)
     expect((editorial.hero as Record<string, string>)['nogames-snake-v1']).toMatch(/^\/editorial\//)
   })

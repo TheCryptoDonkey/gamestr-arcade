@@ -38,7 +38,8 @@
     "gsap": "^3.12.5",
     "light-bolt11-decoder": "^3.2.0",
     "nostr-tools": "^2.23.5",
-    "qrcode-generator": "^1.5.2"
+    "qrcode-generator": "^1.5.2",
+    "signet-login": "^0.14.2"
   },
   "devDependencies": {
     "@electron-toolkit/tsconfig": "^2.0.0",

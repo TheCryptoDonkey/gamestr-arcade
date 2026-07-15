@@ -1,15 +1,12 @@
 import { verifyEvent } from 'nostr-tools/pure'
 import validateSchema from 'virtual:gamestr-manifest-validator'
 import { publicManifestErrors, submissionEvent, type PublicGameManifest } from './developer-submission'
+import { connectNostrAccess, currentNostrSigner } from './nostr-access'
+import { WEB_EDITION } from './web-edition'
 export { publicManifestErrors, submissionEvent, type PublicGameManifest } from './developer-submission'
 
 interface SignedEvent {
   id: string; pubkey: string; created_at: number; kind: number; tags: string[][]; content: string; sig: string
-}
-
-interface NostrSigner {
-  getPublicKey(): Promise<string>
-  signEvent(event: { created_at: number; kind: number; tags: string[][]; content: string }): Promise<SignedEvent>
 }
 
 export interface ValidationResult {
@@ -117,10 +114,15 @@ export function mountDeveloperStudio(host: HTMLElement, relays: string[]): void 
   textarea.addEventListener('input', () => { validated = undefined; publishButton.disabled = true; status.textContent = 'Manifest changed. Validate again before signing.' })
   publishButton.addEventListener('click', async () => {
     if (!validated) return
-    const signer = (window as Window & { nostr?: NostrSigner }).nostr
-    if (!signer) { status.className = 'studio-status error'; status.textContent = 'A NIP-07 signer is required. No private key is accepted by this page.'; return }
     publishButton.disabled = true; status.className = 'studio-status'; status.textContent = 'Waiting for your Nostr signer…'
     try {
+      let signer = currentNostrSigner()
+      if (!signer) {
+        status.textContent = 'Choose a signing-capable Signet or Nostr connection…'
+        await connectNostrAccess({ appName: WEB_EDITION.pwaName, relays, signingRequired: true })
+        signer = currentNostrSigner()
+      }
+      if (!signer) throw new Error('A signing-capable Signet or Nostr session is required. No private key is accepted by this page.')
       const signed = await signer.signEvent(submissionEvent(validated))
       const result = await publishEvent(signed, relays)
       if (!result.accepted.length) throw new Error('No relay accepted the signed event.')

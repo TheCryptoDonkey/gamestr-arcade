@@ -3,25 +3,22 @@ import { createGamestrCatalogue } from '../renderer/src/leaderboard/gamestr'
 import { boardFor } from '../renderer/src/leaderboard/gamestr-reduce'
 import { avatarCss, hexToNpub, lightningDestination, playerIdentity, resolveProfiles, shortenNpub, type Profile } from '../renderer/src/leaderboard/profiles'
 import type { LeaderboardEntry } from '../shared/types'
-import { decodeInvitation, encodeInvitation, invitationTemplate, parseInvitation, type GameInvitationEvent } from './game-invitation'
+import { decodeInvitation, encodeInvitation, invitationTemplate, parseInvitation } from './game-invitation'
 import { challengeTemplate, decodeChallenge, encodeChallenge, parseChallenge } from './game-challenge'
 import { readSocialState, toggleSocialItem, writeSocialState } from './social-state'
 import { rewardLightningAddress, type WebLNProvider } from './lightning-reward'
 import { decode as decodeNip19 } from 'nostr-tools/nip19'
 import { WEB_EDITION } from './web-edition'
+import { connectNostrAccess, currentNostrSigner, NOSTR_SESSION_EVENT, restoreNostrAccess, type ArcadeNostrSigner, type NostrAccess } from './nostr-access'
 
 interface WebGame {
   slug: string; gameId: string; name: string; tagline: string; description?: string; developer?: string
-  genres: string[]; url: string; accent: string; hero?: string; logo?: string
+  genres: string[]; url: string; accent: string; hero?: string; logo?: string; artOverlay?: boolean
   featured: boolean; trending: boolean; newRelease: boolean; walletPay: boolean
   players?: { min: number; max: number }; scoreKind?: number; scoreField?: string; scoreDir?: 'asc' | 'desc'
 }
 
 interface NostrWindow extends Window {
-  nostr?: {
-    getPublicKey(): Promise<string>
-    signEvent(event: { created_at: number; kind: number; tags: string[][]; content: string }): Promise<GameInvitationEvent>
-  }
   webln?: WebLNProvider
 }
 
@@ -31,10 +28,17 @@ const app = document.querySelector<HTMLDivElement>('#app')!
 const state = {
   games: [] as WebGame[], query: '', filter: 'all', genre: 'all', selected: null as WebGame | null,
   scores: new Map<string, LeaderboardEntry[]>(), relay: 'connecting' as 'connecting' | 'up' | 'down',
-  pubkey: localStorage.getItem('gamestr:pubkey') ?? '',
+  pubkey: '', identityConnecting: false,
   profiles: new Map<string, Profile>(), profileRequests: new Set<string>(),
   social: readSocialState(), activityMode: 'all' as 'all' | 'following',
 }
+
+window.addEventListener(NOSTR_SESSION_EVENT, event => {
+  const access = (event as CustomEvent<NostrAccess>).detail
+  if (!access || !/^[0-9a-f]{64}$/.test(access.pubkey)) return
+  state.pubkey = access.pubkey
+  if (app.childElementCount) render()
+})
 
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] => {
   const node = document.createElement(tag)
@@ -117,25 +121,28 @@ function header(): HTMLElement {
   }
   const relay = el('span', `relay-pill ${state.relay}`, state.relay === 'up' ? 'NOSTR LIVE' : state.relay === 'down' ? 'RELAYS OFFLINE' : 'CONNECTING')
   relay.title = 'Score events are verified locally before display'
-  const identity = button(state.pubkey ? shortenNpub(state.pubkey) : 'CONNECT NOSTR', 'identity-button', state.pubkey ? () => navigate(`/player/${state.pubkey}`) : connectIdentity)
+  const identity = button(state.pubkey ? shortenNpub(state.pubkey) : state.identityConnecting ? 'OPENING SIGNET…' : 'CONNECT NOSTR', 'identity-button', state.pubkey ? () => navigate(`/player/${state.pubkey}`) : () => void connectIdentity())
+  identity.disabled = state.identityConnecting
   head.append(brand, nav, relay, identity)
   return head
 }
 
-async function connectIdentity(): Promise<void> {
-  const provider = (window as NostrWindow).nostr
-  if (!provider) {
-    toast('No NIP-07 signer found. Install a Nostr extension or continue anonymously.', 'warn')
-    return
-  }
+async function connectIdentity(signingRequired = false): Promise<ArcadeNostrSigner | undefined> {
+  if (state.identityConnecting) return currentNostrSigner()
+  state.identityConnecting = true
+  render()
   try {
-    const pubkey = await provider.getPublicKey()
-    if (!/^[0-9a-f]{64}$/.test(pubkey)) throw new Error('invalid public key')
-    state.pubkey = pubkey
-    localStorage.setItem('gamestr:pubkey', pubkey)
+    const access = await connectNostrAccess({ appName: WEB_EDITION.pwaName, relays: RELAYS, signingRequired })
+    if (!access) return undefined
+    toast(access.canSignEvents ? 'Nostr signer connected through Signet.' : 'Nostr identity connected through Signet. Signing can be connected when needed.', 'good')
+    return currentNostrSigner()
+  } catch (error) {
+    toast(error instanceof Error ? `Signet login failed: ${error.message}` : 'Signet login was cancelled or refused.', 'warn')
+    return undefined
+  } finally {
+    state.identityConnecting = false
     render()
-    toast('Nostr identity connected. Your secret key never entered Gamestr.', 'good')
-  } catch { toast('Nostr connection was cancelled or refused.', 'warn') }
+  }
 }
 
 function hero(games: WebGame[]): HTMLElement {
@@ -202,7 +209,7 @@ function gameCard(game: WebGame): HTMLElement {
   const art = el('button', 'game-art'); art.type = 'button'; art.setAttribute('aria-label', `View ${game.name}`)
   if (game.hero) art.style.backgroundImage = `linear-gradient(180deg, transparent 20%, rgba(8,9,13,.92)), url("${game.hero}")`
   if (game.logo) { const img = el('img'); img.src = game.logo; img.alt = ''; img.loading = 'lazy'; art.append(img) }
-  else art.append(el('span', 'wordmark', game.name))
+  else if (game.artOverlay !== false) art.append(el('span', 'wordmark', game.name))
   art.addEventListener('click', () => navigate(`/game/${game.slug}`))
   const flags = el('div', 'card-flags')
   if (game.featured) flags.append(el('span', '', 'FEATURED'))
@@ -328,7 +335,7 @@ function developersPage(): HTMLElement {
   const steps = [
     ['1', 'Declare the game', 'Add a Manifest v2 file with a stable gameId, HTTPS URL, genres, art, controls, and only the capabilities you actually need.'],
     ['2', 'Publish signed scores', 'Emit kind 30762 with game and score tags, or kind 5555 with a declared score field. Sign as the player or use a clearly documented game authority.'],
-    ['3', 'Submit without surrendering hosting', 'Validate below, approve a NIP-07 signature, and publish a portable NIP-89 submission. Curated listing remains an explicit review; your game stays on your origin.'],
+    ['3', 'Submit without surrendering hosting', 'Validate below, approve with Signet or your Nostr signer, and publish a portable NIP-89 submission. Curated listing remains an explicit review; your game stays on your origin.'],
   ]
   const list = el('div', 'dev-steps'); steps.forEach(([number, title, body]) => { const item = el('section'); item.append(el('b', '', number), el('h2', '', title), el('p', '', body)); list.append(item) }); main.append(list)
   const event = el('pre'); event.textContent = JSON.stringify({ kind: 30762, tags: [['game', 'your-game'], ['score', '4200'], ['sats', '21']], content: '' }, null, 2)
@@ -511,8 +518,8 @@ function challengePage(encoded: string): HTMLElement {
 }
 
 async function shareInvitation(game: WebGame): Promise<void> {
-  const signer = (window as NostrWindow).nostr
-  if (!signer) { toast('Connect a NIP-07 signer to create a verifiable invitation.', 'warn'); return }
+  const signer = currentNostrSigner() ?? await connectIdentity(true)
+  if (!signer) { toast('Connect a signing-capable Signet or Nostr session to create a verifiable invitation.', 'warn'); return }
   try {
     const signed = await signer.signEvent(invitationTemplate(game.gameId, game.url))
     if (!parseInvitation(signed)) throw new Error('invalid signed invitation')
@@ -539,8 +546,9 @@ function createChallengeDialog(game: WebGame): void {
   form.append(el('p', 'kicker', 'SIGNED CHALLENGE'), heading, lede, nameLabel, durationLabel, actions, status); modal.append(form); document.body.append(modal); name.focus()
   const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') { modal.remove(); window.removeEventListener('keydown', escape) } }; window.addEventListener('keydown', escape)
   form.addEventListener('submit', async event => {
-    event.preventDefault(); const signer = (window as NostrWindow).nostr
-    if (!signer) { status.className = 'studio-status error'; status.textContent = 'Connect a NIP-07 signer before creating a challenge.'; return }
+    event.preventDefault()
+    const signer = currentNostrSigner() ?? await connectIdentity(true)
+    if (!signer) { status.className = 'studio-status error'; status.textContent = 'Connect a signing-capable Signet or Nostr session before creating a challenge.'; return }
     create.disabled = true; status.className = 'studio-status'; status.textContent = 'Waiting for your Nostr signer…'
     try {
       const signed = await signer.signEvent(challengeTemplate(game.gameId, game.url, name.value, Number(duration.value)))
@@ -578,8 +586,8 @@ function rewardDialog(pubkey: string, profile: Profile): void {
     if (!provider) { status.className = 'studio-status error'; status.textContent = 'No WebLN wallet was found. Install or connect a WebLN-capable wallet and retry.'; return }
     pay.disabled = true; status.className = 'studio-status'; status.textContent = 'Requesting an exact-amount invoice from the player’s Lightning address…'
     try {
-      const signer = (window as NostrWindow).nostr
-      if (publicZap.checked && !signer) throw new Error('A NIP-07 signer is required for a public zap receipt.')
+      const signer = publicZap.checked ? currentNostrSigner() ?? await connectIdentity(true) : undefined
+      if (publicZap.checked && !signer) throw new Error('A signing-capable Signet or Nostr session is required for a public zap receipt.')
       await rewardLightningAddress(lightning, Number(amount.value), provider, fetch, publicZap.checked ? { zap: { recipientPubkey: pubkey, signer: signer!, relays: RELAYS } } : {})
       status.className = 'studio-status success'; status.textContent = `${Number(amount.value).toLocaleString()} sats sent directly to ${identity.label}.`
       setTimeout(() => modal.remove(), 1800)
@@ -665,6 +673,8 @@ async function boot(): Promise<void> {
   window.addEventListener('beforeunload', () => feed.dispose(), { once: true })
   if ('serviceWorker' in navigator && import.meta.env.PROD) void navigator.serviceWorker.register('/sw.js')
   render()
+  localStorage.removeItem('gamestr:pubkey')
+  void restoreNostrAccess(RELAYS)
 }
 
 void boot()

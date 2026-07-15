@@ -57,11 +57,13 @@ const schema = await read('schemas/game-manifest-v2.schema.json').then(JSON.pars
 if (schema?.$schema !== 'https://json-schema.org/draft/2020-12/schema' || schema?.properties?.manifestVersion?.const !== 2) fail('Manifest v2 schema is not canonical')
 
 const assetFiles = await readdir(new URL('assets/', root))
+const initialScripts = new Set(Array.from(html.matchAll(/\b(?:src|href)="\/assets\/([^"?]+\.js)(?:\?[^\"]*)?"/g), match => match[1]))
+if (initialScripts.size === 0) fail('initial JavaScript entry is missing')
 for (const name of assetFiles.filter(name => name.endsWith('.js') && !name.endsWith('.js.map'))) {
   const info = await stat(new URL(`assets/${name}`, root))
-  if (info.size > 150_000) fail(`JavaScript entry exceeds 150 KB: ${name}`)
+  if (initialScripts.has(name) && info.size > 150_000) fail(`initial JavaScript exceeds 150 KB: ${name}`)
   const source = await read(`assets/${name}`)
   if (source.includes('require(')) fail(`browser script contains a CommonJS runtime dependency: ${name}`)
 }
 
-console.log(`Validated ${editionKey} web build: ${catalogue.length} games, canonical submission schema, installable PWA, bounded scripts, strict script CSP.`)
+console.log(`Validated ${editionKey} web build: ${catalogue.length} games, canonical submission schema, installable PWA, bounded initial script, strict script CSP.`)

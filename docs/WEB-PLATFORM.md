@@ -14,10 +14,11 @@ the catalogue cannot silently fork into incompatible web and cabinet versions.
 - deep-linked game pages and verified global boards;
 - broad, bounded Nostr relay subscription for kinds 30762 and 5555;
 - local Schnorr verification before any score is displayed;
-- NIP-07 public-key connection with no nsec, password or custodial account;
+- Signet Access login with local/cross-device Signet, NIP-07, NIP-46 bunker,
+  NostrConnect and Amber choices, with no nsec, password or custodial account;
 - sandboxed in-page play with a clear direct-origin fallback;
 - developer guide generated around the same Manifest v2 contract;
-- browser-side Manifest v2 validation and NIP-07-signed NIP-89 submissions;
+- browser-side Manifest v2 validation and Signet-backed NIP-89 submissions;
 - device-local favourites and followed-player verified activity;
 - self-contained, seven-day signed game invitations with no messaging inbox;
 - signed challenge links with bounded windows and live verified-score standings;
@@ -32,10 +33,10 @@ game publisher origin ──sandboxed iframe/direct link──> player browser
                                                       │
 Nostr relays ──untrusted events──> bounded parser ──> signature check ──> board
                                                       │
-NIP-07 extension ──public key only────────────────────> local identity label
+Signet Access ──verified pubkey + optional signer─────> local identity label
 
 Manifest v2 files ──build-time validation──> catalogue.json ──> web + cabinet
-developer manifest ──same schema──> NIP-07 approval ──> signed NIP-89 receipt
+developer manifest ──same schema──> signer approval ──> signed NIP-89 receipt
 ```
 
 Developer submission events use replaceable kind `31990` records with a stable
@@ -78,6 +79,12 @@ reveals the sender's signing identity, obtains a NIP-07 signature on kind
 `9734`, and sends that request only to the LNURL callback rather than publishing
 it itself. Without either receive field, the UI tells the player how to enable
 zaps in their Nostr profile.
+
+The Connect Nostr control uses the bundled `signet-login` picker rather than
+assuming an extension already exists. The allowed methods deliberately exclude
+the SDK's in-memory nsec fallback. Identity-only Signet/Amber sessions can read
+personalised views; invitations, challenges, submissions and public zap
+receipts require a live NIP-07 or NIP-46-capable signer.
 
 The public web app never receives the cabinet NWC URI. A cross-origin game owns
 its own wallet UX. The Electron cabinet may broker narrowly bounded payments,
