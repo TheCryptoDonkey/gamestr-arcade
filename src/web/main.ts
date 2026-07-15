@@ -10,6 +10,7 @@ import { rewardLightningAddress, type WebLNProvider } from './lightning-reward'
 import { decode as decodeNip19 } from 'nostr-tools/nip19'
 import { WEB_EDITION } from './web-edition'
 import { connectNostrAccess, currentNostrSigner, NOSTR_SESSION_EVENT, restoreNostrAccess, type ArcadeNostrSigner, type NostrAccess } from './nostr-access'
+import { loadWellKnownMembers } from './well-known-members'
 
 interface WebGame {
   slug: string; gameId: string; name: string; tagline: string; description?: string; developer?: string
@@ -30,6 +31,7 @@ const state = {
   scores: new Map<string, LeaderboardEntry[]>(), relay: 'connecting' as 'connecting' | 'up' | 'down',
   pubkey: '', identityConnecting: false,
   profiles: new Map<string, Profile>(), profileRequests: new Set<string>(),
+  members: new Map<string, string>(),
   social: readSocialState(), activityMode: 'all' as 'all' | 'following',
 }
 
@@ -258,7 +260,10 @@ function activityPanel(): HTMLElement {
     const item = el('li'); const avatar = el('span', 'mini-avatar', identity.label.slice(0, 2).toUpperCase())
     avatar.style.background = avatarCss(score.pubkey)
     if (profile?.picture) { const image = el('img'); image.src = profile.picture; image.alt = ''; avatar.replaceChildren(image) }
-    const text = el('span'); text.append(el('strong', '', identity.label))
+    const text = el('span')
+    const nameRow = el('span', 'player-primary-row'); nameRow.append(el('strong', '', identity.label))
+    const badge = memberBadge(score.pubkey); if (badge) nameRow.append(badge)
+    text.append(nameRow)
     if (identity.nip05) text.append(el('small', 'player-nip05', identity.nip05))
     text.append(el('small', '', `${game.name} · ${new Date(score.at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`))
     item.append(avatar, text, el('b', '', score.score.toLocaleString())); list.append(item)
@@ -281,11 +286,24 @@ function playerLink(player: string | LeaderboardEntry, className = 'player'): HT
   ensureProfile(pubkey)
   const identity = playerIdentity(pubkey, entry, state.profiles.get(pubkey))
   const link = el('a', className)
-  link.append(el('span', 'player-primary', identity.label))
+  const primary = el('span', 'player-primary-row'); primary.append(el('span', 'player-primary', identity.label))
+  const badge = memberBadge(pubkey); if (badge) primary.append(badge)
+  link.append(primary)
   if (identity.nip05) link.append(el('small', 'player-nip05', identity.nip05))
   link.href = `/player/${pubkey}`
   link.addEventListener('click', event => { event.preventDefault(); navigate(link.getAttribute('href')!) })
   return link
+}
+
+function memberBadge(pubkey: string): HTMLElement | undefined {
+  if (WEB_EDITION.key !== '600') return undefined
+  const name = state.members.get(pubkey.toLowerCase())
+  if (!name) return undefined
+  const badge = el('span', 'member-badge', '600B ✓')
+  const description = `Verified 600.wtf well-known member: ${name}@600.wtf`
+  badge.title = description
+  badge.setAttribute('aria-label', description)
+  return badge
 }
 
 function scoreLink(entry: LeaderboardEntry): HTMLElement {
@@ -673,6 +691,12 @@ async function boot(): Promise<void> {
   window.addEventListener('beforeunload', () => feed.dispose(), { once: true })
   if ('serviceWorker' in navigator && import.meta.env.PROD) void navigator.serviceWorker.register('/sw.js')
   render()
+  if (WEB_EDITION.key === '600') {
+    void loadWellKnownMembers().then(members => {
+      state.members = members
+      render()
+    }).catch(() => undefined)
+  }
   localStorage.removeItem('gamestr:pubkey')
   void restoreNostrAccess(RELAYS)
 }

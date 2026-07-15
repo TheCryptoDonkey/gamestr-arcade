@@ -122,6 +122,7 @@ describe('public web platform boundaries', () => {
     expect((editorial.hero as Record<string, string>)['neon-sentinel']).toMatch(/^\/editorial\//)
     expect((editorial.logo as Record<string, string>)['neon-sentinel']).toMatch(/^\/editorial\//)
     expect((editorial.hero as Record<string, string>)['hang-on-fren']).toMatch(/^\/editorial\//)
+    expect((editorial.logo as Record<string, string | null>)['pallasite']).toBeNull()
     expect((editorial.logo as Record<string, string | null>)['hang-on-fren']).toBeNull()
     expect((editorial.hero as Record<string, string>)['nogames-miner-v1']).toMatch(/^\/editorial\//)
     expect((editorial.hero as Record<string, string>)['nogames-snake-v1']).toMatch(/^\/editorial\//)
