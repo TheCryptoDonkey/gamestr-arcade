@@ -101,6 +101,33 @@ function parseGameId(tags: string[][]): string | null {
   return gameId.length > 0 && gameId.length <= 256 && gameId.trim() === gameId ? gameId : null
 }
 
+function parseSignedLabel(tags: string[][], name: string, maxLength: number): string | undefined {
+  const tagged = singleTagValue(tags, name)
+  if (!tagged.valid || tagged.value === undefined) return
+  const value = tagged.value.trim()
+  if (!value || value.length > maxLength || /[\u0000-\u001f\u007f]/.test(value)) return
+  return value
+}
+
+function parseSignedPlayerName(tags: string[][]): string | undefined {
+  return parseSignedLabel(tags, 'playerName', 80) ?? parseSignedLabel(tags, 'player', 80)
+}
+
+function parseSignedNip05(tags: string[][]): string | undefined {
+  const value = parseSignedLabel(tags, 'nip05', 254)?.toLowerCase()
+  if (!value || !/^[a-z0-9._-]{1,64}@[a-z0-9.-]+$/.test(value)) return
+  const [, domain] = value.split('@')
+  if (!domain || domain.startsWith('.') || domain.endsWith('.') || domain.includes('..')) return
+  return value
+}
+
+function signedIdentity(tags: string[][]): Pick<LeaderboardEntry, 'signedName' | 'signedNip05'> {
+  return {
+    signedName: parseSignedPlayerName(tags),
+    signedNip05: parseSignedNip05(tags),
+  }
+}
+
 /** Extract the canonical game bucket from a structurally valid score event. */
 export function scoreGameId(e: ScoreEvent): string | null {
   return isReasonableEventTimestamp(e.created_at) ? parseGameId(e.tags) : null
@@ -118,7 +145,7 @@ export function parseScoreEvent(e: ScoreEvent, gameId: string): LeaderboardEntry
   const pubkey = parsePlayer(e.tags, e.pubkey)
   const sats = parseSats(e.tags)
   if (!pubkey || sats === null) return null
-  return { eventId: e.id, pubkey, score, sats, at: e.created_at }
+  return { eventId: e.id, pubkey, score, sats, at: e.created_at, ...signedIdentity(e.tags) }
 }
 
 /**
@@ -145,6 +172,7 @@ export function parseAnyScoreEvent(e: ScoreEvent): ParsedAnyScore | null {
     score,
     sats,
     at: e.created_at,
+    ...signedIdentity(e.tags),
   }
   return { gameId, entry }
 }
@@ -165,7 +193,7 @@ export function parse5555Event(e: ScoreEvent, gameId: string, field: string): Le
   const pubkey = parsePlayer(e.tags, e.pubkey)
   const sats = parseSats(e.tags)
   if (!pubkey || sats === null) return null
-  return { eventId: e.id, pubkey, score, sats, at: e.created_at }
+  return { eventId: e.id, pubkey, score, sats, at: e.created_at, ...signedIdentity(e.tags) }
 }
 
 /**

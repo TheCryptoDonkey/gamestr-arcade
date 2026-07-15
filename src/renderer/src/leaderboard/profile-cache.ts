@@ -17,7 +17,7 @@
  */
 
 import type { KeyValueStore } from './cache'
-import type { Profile } from './profiles'
+import { sanitiseLightningAddress, sanitiseLnurl, sanitiseNip05, sanitisePicture, type Profile } from './profiles'
 
 /** 24-hour TTL for a "booth day". */
 export const PROFILE_TTL_MS = 24 * 60 * 60 * 1000
@@ -29,6 +29,9 @@ interface CachedProfile {
   at: number
   name?: string
   picture?: string
+  nip05?: string
+  lud16?: string
+  lud06?: string
 }
 
 function isCachedProfile(v: unknown): v is CachedProfile {
@@ -86,8 +89,12 @@ export class ProfileCache {
       if (!isCachedProfile(rec)) return undefined
       if (this.now() - rec.at > PROFILE_TTL_MS) return undefined
       const profile: Profile = {}
-      if (rec.name) profile.name = rec.name
-      if (rec.picture) profile.picture = rec.picture
+      if (typeof rec.name === 'string') profile.name = rec.name.trim().slice(0, 80) || undefined
+      profile.picture = sanitisePicture(rec.picture)
+      profile.nip05 = sanitiseNip05(rec.nip05)
+      profile.lud16 = sanitiseLightningAddress(rec.lud16)
+      profile.lud06 = sanitiseLnurl(rec.lud06)
+      if (!profile.name && !profile.picture && !profile.nip05 && !profile.lud16 && !profile.lud06) return undefined
       // Warm the in-memory memo so subsequent reads within the session are free.
       this.memo.set(pubkey, profile)
       return profile
@@ -106,6 +113,9 @@ export class ProfileCache {
     const rec: CachedProfile = { at: this.now() }
     if (profile.name) rec.name = profile.name
     if (profile.picture) rec.picture = profile.picture
+    if (profile.nip05) rec.nip05 = profile.nip05
+    if (profile.lud16) rec.lud16 = profile.lud16
+    if (profile.lud06) rec.lud06 = profile.lud06
     try {
       this.store.setItem(STORE_PREFIX + pubkey, JSON.stringify(rec))
     } catch {

@@ -2,11 +2,11 @@
 
 ## Product boundary
 
-The web platform is the public arcade, discovery surface and verified-score
-network. Electron remains a hardened cabinet host for local mirrors, native
-games, controller routing and a booth-owned payment wallet. Both products read
-the same Manifest v2 files and score parsers, so the catalogue cannot silently
-fork into incompatible web and cabinet versions.
+The web platform is a public arcade and discovery surface for Gamestr.io's
+signed score network. Electron remains a hardened cabinet host for local
+mirrors, native games, controller routing and a booth-owned payment wallet.
+Both products read the same Manifest v2 files and Gamestr.io score parsers, so
+the catalogue cannot silently fork into incompatible web and cabinet versions.
 
 ## First public slice
 
@@ -61,16 +61,23 @@ the same signature-checked score stream by accepting only score timestamps
 inside the signed window. There is no registration table, tournament backend,
 or alternate score trust path.
 
-Player rewards are resolved from the recipient's signed kind-0 `lud16`
-Lightning address. After an explicit click, the browser resolves LNURL-pay,
-enforces a 1–100,000 sat user-selected bound, checks the returned BOLT11 amount
-exactly, and only then calls the visitor's injected WebLN provider. Gamestr
-does not proxy the request, handle a preimage, retain a wallet connection, or
-expose the cabinet Phoenixd/NWC authority. Direct LNURL-pay remains the
-privacy-first default. If the recipient supports NIP-57, the sender may opt in
-to a public receipt; the UI explicitly warns that this reveals the sender's
-signing identity, obtains a NIP-07 signature on kind `9734`, and sends that
-request only to the LNURL callback rather than publishing it itself.
+Visible player identity is resolved from signed data in this order: the
+player's latest kind-0 name, the player name signed by the game in the score
+event, kind-0 or score-event NIP-05, then a shortened npub. Scores remain
+attributed and linked to Gamestr.io in both the web app and cabinet.
+
+Player zaps are resolved from the recipient's signed kind-0 `lud16` Lightning
+address or `lud06` LNURL. After an explicit click, the browser resolves
+LNURL-pay, enforces a 1–100,000 sat user-selected bound, checks the returned
+BOLT11 amount exactly, and only then calls the visitor's injected WebLN
+provider. This arcade does not proxy the request, handle a preimage, retain a
+wallet connection, or expose the cabinet Phoenixd/NWC authority. Direct
+LNURL-pay remains the privacy-first default. If the recipient supports NIP-57,
+the sender may opt in to a public receipt; the UI explicitly warns that this
+reveals the sender's signing identity, obtains a NIP-07 signature on kind
+`9734`, and sends that request only to the LNURL callback rather than publishing
+it itself. Without either receive field, the UI tells the player how to enable
+zaps in their Nostr profile.
 
 The public web app never receives the cabinet NWC URI. A cross-origin game owns
 its own wallet UX. The Electron cabinet may broker narrowly bounded payments,

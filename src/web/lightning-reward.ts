@@ -41,6 +41,21 @@ export function lightningAddressEndpoint(address: string): string | undefined {
   return `https://${domain}/.well-known/lnurlp/${encodeURIComponent(name)}`
 }
 
+export function lud06Endpoint(lud06: string): string | undefined {
+  const value = lud06.trim().toLowerCase()
+  if (!value.startsWith('lnurl1') || value.length > 2_000) return
+  try {
+    const decoded = bech32.decode(value as `${string}1${string}`, 2_000)
+    if (decoded.prefix !== 'lnurl') return
+    const raw = new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(bech32.fromWords(decoded.words)))
+    return httpsUrl(raw)?.href
+  } catch { return }
+}
+
+export function lightningDestinationEndpoint(destination: string): string | undefined {
+  return lightningAddressEndpoint(destination) ?? lud06Endpoint(destination)
+}
+
 function invoiceAmountMsats(invoice: string): bigint | undefined {
   try {
     const raw = decode(invoice).sections.find(section => section.name === 'amount')?.value
@@ -57,8 +72,8 @@ export async function rewardLightningAddress(
   options: RewardOptions = {},
 ): Promise<{ preimage?: string }> {
   if (!Number.isSafeInteger(sats) || sats < 1 || sats > MAX_REWARD_SATS) throw new Error('Reward must be between 1 and 100,000 sats.')
-  const endpoint = lightningAddressEndpoint(address)
-  if (!endpoint) throw new Error('Player Lightning address is invalid.')
+  const endpoint = lightningDestinationEndpoint(address)
+  if (!endpoint) throw new Error('Player Lightning address or LNURL is invalid.')
   const amount = sats * 1_000
   const metadataResponse = await fetcher(endpoint, { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(8_000) })
   if (!metadataResponse.ok) throw new Error('Lightning address provider is unavailable.')

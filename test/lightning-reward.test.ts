@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { finalizeEvent, generateSecretKey, verifyEvent } from 'nostr-tools/pure'
-import { lightningAddressEndpoint, rewardLightningAddress } from '../src/web/lightning-reward'
+import { bech32 } from '@scure/base'
+import { lightningAddressEndpoint, lightningDestinationEndpoint, rewardLightningAddress } from '../src/web/lightning-reward'
 
 const INVOICE_2000_SATS = 'lnbc20u1p3y0x3hpp5743k2g0fsqqxj7n8qzuhns5gmkk4djeejk3wkp64ppevgekvc0jsdqcve5kzar2v9nr5gpqd4hkuetesp5ez2g297jduwc20t6lmqlsg3man0vf2jfd8ar9fh8fhn2g8yttfkqxqy9gcqcqzys9qrsgqrzjqtx3k77yrrav9hye7zar2rtqlfkytl094dsp0ms5majzth6gt7ca6uhdkxl983uywgqqqqlgqqqvx5qqjqrzjqd98kxkpyw0l9tyy8r8q57k7zpy9zjmh6sez752wj6gcumqnj3yxzhdsmg6qq56utgqqqqqqqqqqqeqqjq7jd56882gtxhrjm03c93aacyfy306m4fq0tskf83c0nmet8zc2lxyyg3saz8x6vwcp26xnrlagf9semau3qm2glysp7sv95693fphvsp54l567'
 
@@ -9,6 +10,12 @@ describe('user-owned Lightning rewards', () => {
     expect(lightningAddressEndpoint('Player@Example.com')).toBe('https://example.com/.well-known/lnurlp/player')
     expect(lightningAddressEndpoint('bad@@example.com')).toBeUndefined()
     expect(lightningAddressEndpoint('player@../evil')).toBeUndefined()
+  })
+
+  it('accepts a lud06 LNURL which decodes to an HTTPS pay endpoint', () => {
+    const endpoint = 'https://pay.example.com/lnurl'
+    const lud06 = bech32.encode('lnurl', bech32.toWords(new TextEncoder().encode(endpoint)), 2_000)
+    expect(lightningDestinationEndpoint(lud06)).toBe(endpoint)
   })
 
   it('checks metadata and exact invoice amount before opening WebLN', async () => {

@@ -9,7 +9,7 @@
  * We test via LeaderboardPanel.show() and a controllable resolve function.
  */
 
-import { describe, it, expect, vi } from 'vitest'
+import { beforeEach, describe, it, expect, vi } from 'vitest'
 import { LeaderboardPanel } from '../src/renderer/src/ui/leaderboard-panel'
 import type { LeaderboardProvider, LeaderboardEntry } from '../src/shared/types'
 import type { Profile } from '../src/renderer/src/leaderboard/profiles'
@@ -41,6 +41,31 @@ const ENTRY_A: LeaderboardEntry = { pubkey: PUBKEY_A, score: 1000, sats: 0, at: 
 const ENTRY_B: LeaderboardEntry = { pubkey: PUBKEY_B, score: 900, sats: 0, at: NOW - 1 }
 
 describe('LeaderboardPanel — stale profile callback guard', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    document.body.replaceChildren()
+  })
+
+  it('shows the game-signed identity immediately, then patches in kind-0 and NIP-05', () => {
+    const host = makeHost()
+    let profileCallback: ((pubkey: string, profile: Profile) => void) | undefined
+    const entry: LeaderboardEntry = { ...ENTRY_A, signedName: 'DAZ', signedNip05: 'daz@600.wtf' }
+    const panel = new LeaderboardPanel(host, {
+      relays: ['wss://relay.test'],
+      makeProvider: () => ({ subscribe(_gameId, onUpdate) { onUpdate([entry]); return () => {} } }),
+      resolve: (_relays, _pubkeys, callback) => { profileCallback = callback; return () => {} },
+    })
+
+    panel.show('alpha')
+    expect(host.querySelector('.lb-title')?.textContent).toBe('GAMESTR.IO TOP SCORES')
+    expect(host.querySelector('.lb-name')?.textContent).toBe('DAZ')
+    expect(host.querySelector('.lb-nip05')?.textContent).toBe('daz@600.wtf')
+
+    profileCallback?.(PUBKEY_A, { name: 'Alice', nip05: 'alice@example.com' })
+    expect(host.querySelector('.lb-name')?.textContent).toBe('Alice')
+    expect(host.querySelector('.lb-nip05')?.textContent).toBe('alice@example.com')
+  })
+
   it('a profile callback from a previous game does not update current profiles', async () => {
     const host = makeHost()
 

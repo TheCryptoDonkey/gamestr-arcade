@@ -294,6 +294,16 @@
   letter-spacing: 0.01em;
   color: var(--ink-dim);
 }
+.lb-nip05 {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .lb-sats {
   display: inline-flex;
   align-items: center;

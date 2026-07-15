@@ -1,7 +1,7 @@
 import './style.css'
 import { createGamestrCatalogue } from '../renderer/src/leaderboard/gamestr'
 import { boardFor } from '../renderer/src/leaderboard/gamestr-reduce'
-import { avatarCss, hexToNpub, resolveProfiles, shortenNpub, type Profile } from '../renderer/src/leaderboard/profiles'
+import { avatarCss, hexToNpub, lightningDestination, playerIdentity, resolveProfiles, shortenNpub, type Profile } from '../renderer/src/leaderboard/profiles'
 import type { LeaderboardEntry } from '../shared/types'
 import { decodeInvitation, encodeInvitation, invitationTemplate, parseInvitation, type GameInvitationEvent } from './game-invitation'
 import { challengeTemplate, decodeChallenge, encodeChallenge, parseChallenge } from './game-challenge'
@@ -26,6 +26,7 @@ interface NostrWindow extends Window {
 }
 
 const RELAYS = ['wss://relay.gamestr.io', 'wss://relay.trotters.cc', 'wss://nos.lol', 'wss://relay.damus.io']
+const GAMESTR_ORIGIN = 'https://gamestr.io'
 const app = document.querySelector<HTMLDivElement>('#app')!
 const state = {
   games: [] as WebGame[], query: '', filter: 'all', genre: 'all', selected: null as WebGame | null,
@@ -233,7 +234,7 @@ function renderGameGrid(): void {
 
 function activityPanel(): HTMLElement {
   const aside = el('aside', 'activity-panel')
-  const heading = el('div', 'section-heading'); heading.append(el('div', '', state.activityMode === 'following' ? 'FOLLOWING' : 'LIVE SCORES'), linkButton('VIEW ALL', '/scores'))
+  const heading = el('div', 'section-heading'); heading.append(el('div', '', state.activityMode === 'following' ? 'FOLLOWING' : 'GAMESTR.IO LIVE SCORES'), externalLink('GAMESTR.IO ↗', `${GAMESTR_ORIGIN}/scores`))
   const modes = el('div', 'activity-modes'); modes.setAttribute('role', 'group'); modes.setAttribute('aria-label', 'Activity filter')
   for (const [mode, label] of [['all', 'ALL'], ['following', `FOLLOWING ${state.social.follows.length ? `(${state.social.follows.length})` : ''}`]] as const) {
     modes.append(button(label, state.activityMode === mode ? 'selected' : '', () => { state.activityMode = mode; document.querySelector('.activity-panel')?.replaceWith(activityPanel()) }))
@@ -244,11 +245,18 @@ function activityPanel(): HTMLElement {
     .sort((a, b) => b.score.at - a.score.at).slice(0, 8)
   if (!latest.length) list.append(el('li', 'activity-empty', state.activityMode === 'following' && !state.social.follows.length ? 'Follow players from their profile to build your activity feed.' : state.relay === 'down' ? 'Relays are unavailable. Retrying…' : 'Listening for verified score events…'))
   latest.forEach(({ game, score }) => {
-    const item = el('li'); const avatar = el('span', 'mini-avatar', shortenNpub(score.pubkey).slice(0, 2).toUpperCase())
-    const text = el('span'); text.append(el('strong', '', shortenNpub(score.pubkey)), el('small', '', `${game.name} · ${new Date(score.at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`))
+    ensureProfile(score.pubkey)
+    const profile = state.profiles.get(score.pubkey)
+    const identity = playerIdentity(score.pubkey, score, profile)
+    const item = el('li'); const avatar = el('span', 'mini-avatar', identity.label.slice(0, 2).toUpperCase())
+    avatar.style.background = avatarCss(score.pubkey)
+    if (profile?.picture) { const image = el('img'); image.src = profile.picture; image.alt = ''; avatar.replaceChildren(image) }
+    const text = el('span'); text.append(el('strong', '', identity.label))
+    if (identity.nip05) text.append(el('small', 'player-nip05', identity.nip05))
+    text.append(el('small', '', `${game.name} · ${new Date(score.at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`))
     item.append(avatar, text, el('b', '', score.score.toLocaleString())); list.append(item)
   })
-  const trust = el('div', 'trust-note'); trust.append(el('strong', '', 'VERIFIED, NOT TRUSTED'), el('p', '', 'Every score signature is checked in your browser. Invalid and explicitly cheated events never reach the board.'))
+  const trust = el('div', 'trust-note'); trust.append(el('strong', '', 'GAMESTR.IO · VERIFIED LOCALLY'), el('p', '', 'These are Gamestr.io score events from Nostr. Every signature is checked in your browser; invalid and explicitly cheated events never reach the board.'))
   aside.append(heading, modes, list, trust); return aside
 }
 
@@ -256,8 +264,18 @@ function linkButton(label: string, path: string): HTMLAnchorElement {
   const link = el('a', 'text-link', label); link.href = path; link.addEventListener('click', e => { e.preventDefault(); navigate(path) }); return link
 }
 
-function playerLink(pubkey: string, className = 'player'): HTMLAnchorElement {
-  const link = el('a', className, state.profiles.get(pubkey)?.name ?? shortenNpub(pubkey))
+function externalLink(label: string, url: string, className = 'text-link'): HTMLAnchorElement {
+  const link = el('a', className, label); link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer'; return link
+}
+
+function playerLink(player: string | LeaderboardEntry, className = 'player'): HTMLAnchorElement {
+  const entry = typeof player === 'string' ? undefined : player
+  const pubkey = typeof player === 'string' ? player : player.pubkey
+  ensureProfile(pubkey)
+  const identity = playerIdentity(pubkey, entry, state.profiles.get(pubkey))
+  const link = el('a', className)
+  link.append(el('span', 'player-primary', identity.label))
+  if (identity.nip05) link.append(el('small', 'player-nip05', identity.nip05))
   link.href = `/player/${pubkey}`
   link.addEventListener('click', event => { event.preventDefault(); navigate(link.getAttribute('href')!) })
   return link
@@ -291,14 +309,14 @@ function developerCallout(): HTMLElement {
 
 function scoresPage(): HTMLElement {
   const main = el('main', 'page'); main.id = 'main'
-  main.append(el('p', 'kicker', 'CRYPTOGRAPHICALLY VERIFIED'), el('h1', '', 'Live score network'), el('p', 'page-lede', 'One public scoreboard assembled from signed Nostr events—not a platform database. Switch games without surrendering your identity.'))
+  main.append(el('p', 'kicker', 'GAMESTR.IO · CRYPTOGRAPHICALLY VERIFIED'), el('h1', '', 'Live score network'), el('p', 'page-lede', 'Gamestr.io scores, assembled from signed Nostr events rather than a platform database. Profiles come from each player’s signed kind-0 metadata, with the game-signed player name as the fallback.'), externalLink('OPEN THE SCORE NETWORK ON GAMESTR.IO ↗', `${GAMESTR_ORIGIN}/scores`, 'button-link gamestr-source-link'))
   const grid = el('div', 'score-boards')
   for (const game of state.games) {
     const entries = state.scores.get(game.gameId) ?? []
     const board = boardFor(entries, 'all', 5, Math.floor(Date.now() / 1000), game.scoreDir ?? 'desc')
     if (!board.length) continue
     const section = el('section', 'score-board'); const heading = el('div', 'section-heading'); heading.append(el('h2', '', game.name), playLink(game)); section.append(heading)
-    const list = el('ol'); board.forEach((entry, index) => { const row = el('li'); row.append(el('span', 'rank', String(index + 1).padStart(2, '0')), playerLink(entry.pubkey), scoreLink(entry)); list.append(row) }); section.append(list); grid.append(section)
+    const list = el('ol'); board.forEach((entry, index) => { const row = el('li'); row.append(el('span', 'rank', String(index + 1).padStart(2, '0')), playerLink(entry), scoreLink(entry)); list.append(row) }); section.append(list); grid.append(section)
   }
   if (!grid.children.length) grid.append(el('p', 'empty-state', 'Verified boards are syncing from Nostr relays…'))
   main.append(grid); return main
@@ -341,35 +359,70 @@ function gamePage(slug: string): HTMLElement {
   const actions = el('div', 'hero-actions'); actions.append(playLink(game, 'PLAY ON PUBLISHER SITE ↗', 'primary'), button(state.social.favourites.includes(game.slug) ? '★ IN MY ARCADE' : '☆ ADD TO MY ARCADE', 'secondary', () => toggleFavourite(game)), button('INVITE TO PLAY', 'secondary', () => void shareInvitation(game)), button('CREATE CHALLENGE', 'secondary', () => createChallengeDialog(game))); copy.append(actions)
   const facts = el('dl', 'game-facts'); for (const [label, value] of [['IDENTITY', 'NOSTR'], ['SCORES', 'VERIFIED'], ['WALLET', game.walletPay ? 'LIGHTNING' : 'OPTIONAL'], ['PLAYERS', game.players ? `${game.players.min}–${game.players.max}` : '1']]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) } copy.append(facts)
   main.append(art, copy)
-  const board = el('section', 'detail-board'); board.append(el('h2', '', 'GLOBAL LEADERBOARD'))
+  const board = el('section', 'detail-board')
+  const boardHeading = el('div', 'section-heading'); boardHeading.append(el('h2', '', 'GAMESTR.IO LEADERBOARD'), externalLink('OPEN ON GAMESTR.IO ↗', `${GAMESTR_ORIGIN}/${encodeURIComponent(game.gameId)}`)); board.append(boardHeading)
   const entries = boardFor(state.scores.get(game.gameId) ?? [], 'all', 10, Math.floor(Date.now() / 1000), game.scoreDir ?? 'desc')
-  const list = el('ol'); entries.forEach((entry, index) => { const item = el('li'); item.append(el('span', 'rank', String(index + 1).padStart(2, '0')), playerLink(entry.pubkey), scoreLink(entry)); list.append(item) }); if (!entries.length) list.append(el('li', 'activity-empty', 'Syncing verified scores…')); board.append(list); main.append(board)
+  const list = el('ol'); entries.forEach((entry, index) => { const item = el('li'); item.append(el('span', 'rank', String(index + 1).padStart(2, '0')), playerLink(entry), scoreLink(entry)); list.append(item) }); if (!entries.length) list.append(el('li', 'activity-empty', 'Syncing verified Gamestr.io scores…')); board.append(list); main.append(board)
   return main
 }
 
+const queuedProfiles = new Set<string>()
+let profileBatchTimer: number | undefined
+let profileRenderTimer: number | undefined
+
+function scheduleProfileRender(): void {
+  if (profileRenderTimer !== undefined) return
+  profileRenderTimer = window.setTimeout(() => {
+    profileRenderTimer = undefined
+    render()
+  }, 0)
+}
+
 function ensureProfile(pubkey: string): void {
-  if (state.profiles.has(pubkey) || state.profileRequests.has(pubkey)) return
+  if (!/^[0-9a-f]{64}$/.test(pubkey) || state.profiles.has(pubkey) || state.profileRequests.has(pubkey)) return
   state.profileRequests.add(pubkey)
-  const dispose = resolveProfiles(RELAYS, [pubkey], (resolved, profile) => {
-    state.profiles.set(resolved, profile)
-    const current = route()
-    if ((current.name === 'player' && current.id === resolved) || current.name === 'invite' || current.name === 'challenge' || current.name === 'score') render()
-  })
-  setTimeout(dispose, 6_000)
+  queuedProfiles.add(pubkey)
+  if (profileBatchTimer !== undefined) return
+  profileBatchTimer = window.setTimeout(() => {
+    profileBatchTimer = undefined
+    const pubkeys = Array.from(queuedProfiles)
+    queuedProfiles.clear()
+    const dispose = resolveProfiles(RELAYS, pubkeys, (resolved, profile) => {
+      state.profiles.set(resolved, profile)
+      scheduleProfileRender()
+    })
+    setTimeout(dispose, 6_000)
+  }, 0)
+}
+
+function latestPlayerEntry(pubkey: string): LeaderboardEntry | undefined {
+  return state.games.flatMap(game => state.scores.get(game.gameId) ?? [])
+    .filter(entry => entry.pubkey === pubkey)
+    .sort((a, b) => b.at - a.at)[0]
+}
+
+function zapSetupNote(): HTMLElement {
+  return el('p', 'zap-setup-note', 'To receive zaps, players need to add a lightning address (lud16) or LNURL (lud06) to their Nostr profile.')
 }
 
 function playerPage(pubkey: string): HTMLElement {
   ensureProfile(pubkey)
   const profile = state.profiles.get(pubkey)
+  const scoreIdentity = latestPlayerEntry(pubkey)
+  const identityLabel = playerIdentity(pubkey, scoreIdentity, profile)
   const main = el('main', 'page player-page'); main.id = 'main'
   const identity = el('section', 'player-identity')
   const avatar = el('div', 'player-avatar')
   if (profile?.picture) { const image = el('img'); image.src = profile.picture; image.alt = ''; avatar.append(image) }
   else avatar.style.background = avatarCss(pubkey)
-  const copy = el('div'); copy.append(el('p', 'kicker', 'NOSTR PLAYER'), el('h1', '', profile?.name ?? shortenNpub(pubkey)), el('p', 'player-npub', hexToNpub(pubkey)))
+  const copy = el('div'); copy.append(el('p', 'kicker', 'GAMESTR.IO PLAYER'), el('h1', '', identityLabel.label))
+  if (identityLabel.nip05) copy.append(el('p', 'player-profile-nip05', identityLabel.nip05))
+  copy.append(el('p', 'player-npub', hexToNpub(pubkey)))
   const external = el('a', 'button-link', 'VIEW ON NOSTR'); external.href = `https://njump.me/${hexToNpub(pubkey)}`; external.target = '_blank'; external.rel = 'noopener noreferrer'; copy.append(external)
+  copy.append(externalLink('VIEW ON GAMESTR.IO ↗', `${GAMESTR_ORIGIN}/player/${pubkey}`, 'button-link gamestr-source-link'))
   if (pubkey !== state.pubkey) copy.append(button(state.social.follows.includes(pubkey) ? '✓ FOLLOWING' : '+ FOLLOW PLAYER', 'secondary follow-button', () => toggleFollow(pubkey)))
-  if (profile?.lud16 && pubkey !== state.pubkey) copy.append(button('⚡ REWARD PLAYER', 'reward-button', () => rewardDialog(pubkey, profile)))
+  if (lightningDestination(profile) && pubkey !== state.pubkey) copy.append(button('⚡ ZAP PLAYER', 'reward-button', () => rewardDialog(pubkey, profile!)))
+  else if (pubkey !== state.pubkey) copy.append(zapSetupNote())
   identity.append(avatar, copy); main.append(identity)
 
   if (pubkey === state.pubkey) {
@@ -399,12 +452,15 @@ function scorePage(eventId: string): HTMLElement {
   const main = el('main', 'page score-detail'); main.id = 'main'
   if (!match) { main.append(el('p', 'kicker', 'VERIFIED SCORE'), el('h1', '', 'Syncing event…'), el('p', 'page-lede', 'This score has not arrived from the configured relays yet. The app will continue reconnecting.')); return main }
   ensureProfile(match.entry.pubkey)
-  main.append(el('p', 'kicker', 'VERIFIED NOSTR EVENT'), el('h1', '', match.entry.score.toLocaleString()), el('p', 'page-lede', `${match.game.name} · ${new Date(match.entry.at * 1000).toLocaleString()}`))
-  const facts = el('dl', 'score-facts')
-  for (const [label, value] of [['PLAYER', shortenNpub(match.entry.pubkey)], ['SATS', String(match.entry.sats ?? 0)], ['SIGNATURE', 'VALID'], ['EVENT', eventId]]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) }
-  main.append(facts, playerLink(match.entry.pubkey, 'button-link'), playLink(match.game, `PLAY ${match.game.name.toUpperCase()} ↗`, 'primary'))
   const profile = state.profiles.get(match.entry.pubkey)
-  if (profile?.lud16 && match.entry.pubkey !== state.pubkey) main.append(button('⚡ REWARD THIS SCORE', 'reward-button', () => rewardDialog(match!.entry.pubkey, profile)))
+  const identity = playerIdentity(match.entry.pubkey, match.entry, profile)
+  main.append(el('p', 'kicker', 'VERIFIED GAMESTR.IO SCORE'), el('h1', '', match.entry.score.toLocaleString()), el('p', 'page-lede', `${match.game.name} · ${new Date(match.entry.at * 1000).toLocaleString()}`))
+  const facts = el('dl', 'score-facts')
+  const factValues = [['PLAYER', identity.label], ...(identity.nip05 ? [['NIP-05', identity.nip05]] : []), ['SATS', String(match.entry.sats ?? 0)], ['SIGNATURE', 'VALID'], ['EVENT', eventId]]
+  for (const [label, value] of factValues) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) }
+  main.append(facts, playerLink(match.entry, 'button-link'), playLink(match.game, `PLAY ${match.game.name.toUpperCase()} ↗`, 'primary'), externalLink('VIEW ORIGINAL ON GAMESTR.IO ↗', `${GAMESTR_ORIGIN}/${encodeURIComponent(match.game.gameId)}/score/${eventId}`, 'button-link gamestr-source-link'))
+  if (lightningDestination(profile) && match.entry.pubkey !== state.pubkey) main.append(button('⚡ ZAP THIS SCORE', 'reward-button', () => rewardDialog(match!.entry.pubkey, profile!)))
+  else if (match.entry.pubkey !== state.pubkey) main.append(zapSetupNote())
   return main
 }
 
@@ -418,7 +474,7 @@ function invitationPage(encoded: string): HTMLElement {
     return main
   }
   ensureProfile(invitation.event.pubkey)
-  const inviter = state.profiles.get(invitation.event.pubkey)?.name ?? shortenNpub(invitation.event.pubkey)
+  const inviter = playerIdentity(invitation.event.pubkey, undefined, state.profiles.get(invitation.event.pubkey)).label
   const card = el('section', 'invitation-card'); card.style.setProperty('--accent', game.accent)
   card.append(el('span', 'invite-proof', '✓ SIGNATURE VERIFIED'), el('p', 'kicker', `${inviter} INVITED YOU`), el('h1', '', game.name), el('p', 'page-lede', game.tagline))
   const facts = el('dl', 'game-facts')
@@ -437,7 +493,7 @@ function challengePage(encoded: string): HTMLElement {
     return main
   }
   ensureProfile(challenge.event.pubkey)
-  const creator = state.profiles.get(challenge.event.pubkey)?.name ?? shortenNpub(challenge.event.pubkey)
+  const creator = playerIdentity(challenge.event.pubkey, undefined, state.profiles.get(challenge.event.pubkey)).label
   const now = Math.floor(Date.now() / 1000)
   const phase = now < challenge.startsAt ? 'UPCOMING' : now <= challenge.endsAt ? 'LIVE NOW' : 'FINAL'
   const hero = el('section', 'challenge-hero'); hero.style.setProperty('--accent', game.accent)
@@ -449,7 +505,7 @@ function challengePage(encoded: string): HTMLElement {
   const eligible = (state.scores.get(game.gameId) ?? []).filter(entry => entry.at >= challenge.startsAt && entry.at <= challenge.endsAt)
   const ranked = boardFor(eligible, 'all', 50, Math.min(now, challenge.endsAt), game.scoreDir ?? 'desc')
   const list = el('ol', 'challenge-board')
-  ranked.forEach((entry, index) => { const row = el('li'); row.append(el('span', 'rank', String(index + 1).padStart(2, '0')), playerLink(entry.pubkey), el('small', '', new Date(entry.at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })), scoreLink(entry)); list.append(row) })
+  ranked.forEach((entry, index) => { const row = el('li'); row.append(el('span', 'rank', String(index + 1).padStart(2, '0')), playerLink(entry), el('small', '', new Date(entry.at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })), scoreLink(entry)); list.append(row) })
   if (!ranked.length) list.append(el('li', 'activity-empty', phase === 'FINAL' ? 'No verified scores landed during this challenge.' : 'Waiting for the first verified score in this challenge window…'))
   standings.append(list); main.append(standings); return main
 }
@@ -501,15 +557,17 @@ function createChallengeDialog(game: WebGame): void {
 }
 
 function rewardDialog(pubkey: string, profile: Profile): void {
-  if (!profile.lud16) return
+  const lightning = lightningDestination(profile)
+  if (!lightning) return
   const modal = el('div', 'challenge-modal'); modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true'); modal.setAttribute('aria-labelledby', 'reward-title')
   const form = el('form', 'challenge-form reward-form')
-  const heading = el('h2', '', `Reward ${profile.name ?? shortenNpub(pubkey)}`); heading.id = 'reward-title'
-  const lede = el('p', '', 'Pay directly from your own WebLN wallet to the player’s Lightning address. Gamestr never sees wallet credentials or routes this through the cabinet wallet.')
+  const identity = playerIdentity(pubkey, latestPlayerEntry(pubkey), profile)
+  const heading = el('h2', '', `Zap ${identity.label}`); heading.id = 'reward-title'
+  const lede = el('p', '', 'Zap directly from your own WebLN wallet to the player’s lud16 Lightning address or lud06 LNURL. This arcade never sees wallet credentials or routes this through the cabinet wallet.')
   const amountLabel = el('label', '', 'Amount in sats'); const amount = el('input'); amount.type = 'number'; amount.min = '1'; amount.max = '100000'; amount.step = '1'; amount.required = true; amount.value = '21'; amountLabel.append(amount)
   const presets = el('div', 'reward-presets'); for (const value of [21, 100, 500, 1000]) presets.append(button(`${value} SATS`, 'secondary', () => { amount.value = String(value) }))
   const zapLabel = el('label', 'zap-option'); const publicZap = el('input'); publicZap.type = 'checkbox'; zapLabel.append(publicZap, el('span', '', 'Create a public Nostr zap receipt (reveals your signing identity)'))
-  const destination = el('p', 'reward-destination', `TO ${profile.lud16}`)
+  const destination = el('p', 'reward-destination', `TO ${lightning}`)
   const privacy = el('p', 'reward-privacy', 'Your browser contacts the recipient’s Lightning service only after you approve. The wallet still shows the final invoice for authorization.')
   const status = el('output', 'studio-status'); status.setAttribute('aria-live', 'polite')
   const actions = el('div', 'hero-actions'); const pay = button('OPEN MY WALLET', 'primary', () => undefined); pay.type = 'submit'; const cancel = button('CANCEL', 'secondary', () => modal.remove()); actions.append(pay, cancel)
@@ -522,8 +580,8 @@ function rewardDialog(pubkey: string, profile: Profile): void {
     try {
       const signer = (window as NostrWindow).nostr
       if (publicZap.checked && !signer) throw new Error('A NIP-07 signer is required for a public zap receipt.')
-      await rewardLightningAddress(profile.lud16!, Number(amount.value), provider, fetch, publicZap.checked ? { zap: { recipientPubkey: pubkey, signer: signer!, relays: RELAYS } } : {})
-      status.className = 'studio-status success'; status.textContent = `${Number(amount.value).toLocaleString()} sats sent directly to ${profile.name ?? shortenNpub(pubkey)}.`
+      await rewardLightningAddress(lightning, Number(amount.value), provider, fetch, publicZap.checked ? { zap: { recipientPubkey: pubkey, signer: signer!, relays: RELAYS } } : {})
+      status.className = 'studio-status success'; status.textContent = `${Number(amount.value).toLocaleString()} sats sent directly to ${identity.label}.`
       setTimeout(() => modal.remove(), 1800)
     } catch (error) {
       status.className = 'studio-status error'; status.textContent = error instanceof Error ? error.message : 'Lightning reward failed or was cancelled.'; pay.disabled = false
@@ -534,6 +592,7 @@ function rewardDialog(pubkey: string, profile: Profile): void {
 function footer(): HTMLElement {
   const foot = el('footer'); const brand = el('div'); brand.append(el('strong', '', WEB_EDITION.footerName), el('p', '', WEB_EDITION.footerDescription))
   const links = el('div'); links.append(linkButton('ARCADE', '/'), linkButton('SCORES', '/scores'), linkButton('BUILD', '/developers'))
+  links.append(externalLink('GAMESTR.IO ↗', GAMESTR_ORIGIN))
   if (WEB_EDITION.footerLink) {
     const external = el('a', 'text-link', WEB_EDITION.footerLink.label)
     external.href = WEB_EDITION.footerLink.url

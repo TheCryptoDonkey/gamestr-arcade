@@ -21,7 +21,7 @@ import type { ArcadeConfig, LeaderboardEntry, LeaderboardProvider, ScoreScoring 
 import { createGamestrCatalogue, type GamestrCatalogue } from '../leaderboard/gamestr'
 import { boardFor, type Period } from '../leaderboard/gamestr-reduce'
 import { readCachedBoard, writeCachedBoard } from '../leaderboard/cache'
-import { avatarCss, resolveProfiles, shortenNpub, type Profile } from '../leaderboard/profiles'
+import { avatarCss, playerIdentity, resolveProfiles, type Profile } from '../leaderboard/profiles'
 import { ProfileCache } from '../leaderboard/profile-cache'
 
 export interface LeaderboardPanelOptions {
@@ -103,8 +103,8 @@ export class LeaderboardPanel {
 
   constructor(host: HTMLElement, opts: LeaderboardPanelOptions) {
     this.opts = {
-      title: 'GLOBAL TOP SCORES',
-      subtitle: 'PLAY TO WIN SATS',
+      title: 'GAMESTR.IO TOP SCORES',
+      subtitle: 'SIGNED NOSTR LEADERBOARD',
       ...opts,
     }
     this.currentRelays = [...opts.relays]
@@ -361,10 +361,22 @@ export class LeaderboardPanel {
   private patchRow(pubkey: string, profile: Profile): void {
     const row = this.listEl.querySelector(`[data-pubkey="${pubkey}"]`)
     if (!row) return
+    const entry = this.entries.find(candidate => candidate.pubkey === pubkey)
+    const identity = playerIdentity(pubkey, entry, profile)
     const nameEl = row.querySelector('.lb-name') as HTMLElement | null
-    if (nameEl && profile.name) {
-      nameEl.textContent = profile.name
-      nameEl.classList.remove('lb-name-npub')
+    if (nameEl) {
+      nameEl.textContent = identity.label
+      nameEl.classList.toggle('lb-name-npub', identity.isNpub)
+    }
+    const ident = row.querySelector('.lb-ident') as HTMLElement | null
+    const existingNip05 = row.querySelector('.lb-nip05') as HTMLElement | null
+    if (identity.nip05 && ident) {
+      const nip05 = existingNip05 ?? document.createElement('span')
+      nip05.className = 'lb-nip05'
+      nip05.textContent = identity.nip05
+      if (!existingNip05) ident.append(nip05)
+    } else {
+      existingNip05?.remove()
     }
     if (profile.picture) {
       const av = row.querySelector('.lb-avatar') as HTMLElement | null
@@ -403,9 +415,7 @@ export class LeaderboardPanel {
     li.dataset.pubkey = e.pubkey
 
     const resolved = this.profiles.get(e.pubkey)
-    const displayName = resolved?.name ?? e.name
-    const label = displayName ?? shortenNpub(e.pubkey)
-    const isNpub = !displayName
+    const identity = playerIdentity(e.pubkey, e, resolved)
 
     const sats = e.sats && e.sats > 0 ? `<span class="lb-sats"><span class="lb-sats-bolt">⚡</span>${formatSats(e.sats)}</span>` : ''
 
@@ -413,7 +423,8 @@ export class LeaderboardPanel {
       <span class="lb-rank">${String(rank).padStart(2, '0')}</span>
       <span class="lb-avatar" style="background:${avatarCss(e.pubkey)}"></span>
       <span class="lb-ident">
-        <span class="lb-name${isNpub ? ' lb-name-npub' : ''}">${escapeHtml(label)}</span>
+        <span class="lb-name${identity.isNpub ? ' lb-name-npub' : ''}">${escapeHtml(identity.label)}</span>
+        ${identity.nip05 ? `<span class="lb-nip05">${escapeHtml(identity.nip05)}</span>` : ''}
         ${sats}
       </span>
       <span class="lb-score">${formatScore(e.score)}</span>

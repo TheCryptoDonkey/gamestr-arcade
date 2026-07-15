@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { finalizeEvent, getPublicKey } from 'nostr-tools/pure'
-import { hexToNpub, shortenNpub, avatarSeed, avatarGradient, avatarCss, resolveProfiles, sanitiseLightningAddress } from '../src/renderer/src/leaderboard/profiles'
+import { bech32 } from '@scure/base'
+import { hexToNpub, shortenNpub, avatarSeed, avatarGradient, avatarCss, playerIdentity, resolveProfiles, sanitiseLightningAddress, sanitiseLnurl, sanitiseNip05 } from '../src/renderer/src/leaderboard/profiles'
 
 // A known Nostr pubkey ↔ npub pair (fiatjaf) pins the bech32 encoder.
 const FIATJAF_HEX = '3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d'
@@ -11,6 +12,26 @@ describe('sanitiseLightningAddress', () => {
     expect(sanitiseLightningAddress(' Player@Example.COM ')).toBe('player@example.com')
     expect(sanitiseLightningAddress('player@example..com')).toBeUndefined()
     expect(sanitiseLightningAddress('https://example.com')).toBeUndefined()
+  })
+})
+
+const LNURL_ENDPOINT = 'https://pay.example.com/lnurl'
+const LUD06 = bech32.encode('lnurl', bech32.toWords(new TextEncoder().encode(LNURL_ENDPOINT)), 2_000)
+
+describe('kind-0 identity metadata', () => {
+  it('normalises NIP-05 and validates HTTPS lud06 LNURLs', () => {
+    expect(sanitiseNip05(' Player@Example.COM ')).toBe('player@example.com')
+    expect(sanitiseNip05('not-an-id')).toBeUndefined()
+    expect(sanitiseLnurl(LUD06)).toBe(LUD06)
+    const insecure = bech32.encode('lnurl', bech32.toWords(new TextEncoder().encode('http://pay.example.com/lnurl')), 2_000)
+    expect(sanitiseLnurl(insecure)).toBeUndefined()
+  })
+
+  it('prefers kind-0, then the game-signed name, then NIP-05', () => {
+    const entry = { pubkey: FIATJAF_HEX, score: 1, at: 1, signedName: 'GAME NAME', signedNip05: 'signed@example.com' }
+    expect(playerIdentity(FIATJAF_HEX, entry, { name: 'KIND ZERO', nip05: 'profile@example.com' })).toEqual({ label: 'KIND ZERO', nip05: 'profile@example.com', isNpub: false })
+    expect(playerIdentity(FIATJAF_HEX, entry)).toEqual({ label: 'GAME NAME', nip05: 'signed@example.com', isNpub: false })
+    expect(playerIdentity(FIATJAF_HEX, { ...entry, signedName: undefined })).toEqual({ label: 'signed@example.com', nip05: undefined, isNpub: false })
   })
 })
 
@@ -158,8 +179,8 @@ describe('resolveProfiles trust boundary', () => {
     ws.triggerMessage(JSON.stringify(badSignature))
     expect(resolved).toEqual([])
 
-    ws.triggerMessage(profileMessage(subId, AUTHOR_KEY, { display_name: 'Alice' }))
-    expect(resolved).toEqual([[AUTHOR, { name: 'Alice', picture: undefined }]])
+    ws.triggerMessage(profileMessage(subId, AUTHOR_KEY, { display_name: 'Alice', nip05: 'alice@example.com', lud06: LUD06 }))
+    expect(resolved).toEqual([[AUTHOR, expect.objectContaining({ name: 'Alice', nip05: 'alice@example.com', lud06: LUD06 })]])
     dispose()
   })
 

@@ -57,10 +57,13 @@ describe('public web platform boundaries', () => {
     expect(source).toContain('provider.sendPayment')
     expect(source).toContain("invoiceAmountMsats(invoicePayload.pr) !== BigInt(amount)")
     expect(source).toContain("kind: 9734")
+    expect(source).toContain('lud06Endpoint')
     expect(source).toContain("callback.searchParams.set('nostr'")
     expect(page).toContain('(window as NostrWindow).webln')
     expect(page).not.toContain('NWC_URI')
     expect(page).not.toContain('phoenixd')
+    expect(page).toContain('To receive zaps, players need to add a lightning address (lud16) or LNURL (lud06)')
+    expect(page).toContain('VIEW ORIGINAL ON GAMESTR.IO')
   })
 
   it('ships canonical clone metadata without claiming the upstream domain', async () => {

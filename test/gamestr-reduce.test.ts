@@ -14,6 +14,19 @@ describe('parseScoreEvent', () => {
     const e = parseScoreEvent(ev({}), 'pallasite')!
     expect(e.pubkey).toBe(P1); expect(e.score).toBe(500)
   })
+  it('retains the player name and NIP-05 protected by the game-signed score', () => {
+    const entry = parseScoreEvent(ev({ tags: [
+      ['game', 'pallasite'], ['p', P1], ['score', '500'],
+      ['playerName', ' ArcadePlayer '], ['nip05', 'Player@example.com'],
+    ] }), 'pallasite')!
+    expect(entry).toMatchObject({ signedName: 'ArcadePlayer', signedNip05: 'player@example.com' })
+  })
+  it('falls back to the signed player tag and ignores malformed optional identity', () => {
+    const named = parseScoreEvent(ev({ tags: [['game', 'pallasite'], ['p', P1], ['score', '500'], ['player', 'DAZ']] }), 'pallasite')!
+    expect(named.signedName).toBe('DAZ')
+    const malformed = parseScoreEvent(ev({ tags: [['game', 'pallasite'], ['p', P1], ['score', '500'], ['playerName', '\n'], ['nip05', 'not-an-id']] }), 'pallasite')!
+    expect(malformed).toMatchObject({ signedName: undefined, signedNip05: undefined })
+  })
   it('rejects wrong game, cheated, and non-positive scores', () => {
     expect(parseScoreEvent(ev({ tags: [['game', 'other'], ['p', P1], ['score', '500']] }), 'pallasite')).toBeNull()
     expect(parseScoreEvent(ev({ tags: [['game', 'pallasite'], ['cheated', 'true'], ['p', P1], ['score', '9']] }), 'pallasite')).toBeNull()

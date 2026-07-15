@@ -8,16 +8,19 @@
  *     helpers used for the instant placeholder (a shortened npub + a generated
  *     gradient identicon). These are unit-tested.
  *   - `resolveProfiles` opens a short-lived raw-WS `REQ {kinds:[0]}` across the
- *     configured relays and resolves display-name / picture as they arrive,
- *     de-duplicating to the newest kind-0 per author. It is fire-and-forget:
- *     the panel renders placeholders immediately and live-patches names in.
+ *     configured relays and resolves display name, picture, NIP-05 and
+ *     Lightning receive metadata as they arrive, de-duplicating to the newest
+ *     kind-0 per author. It is fire-and-forget: the panel renders placeholders
+ *     immediately and live-patches identities in.
  *
  * No DOM is touched at module load (WebSocket is referenced lazily inside the
  * resolver) so the pure helpers import cleanly in a Node test environment.
  */
 
 import { verifyEvent } from 'nostr-tools/pure'
+import { bech32 } from '@scure/base'
 import { isReasonableEventTimestamp } from './gamestr-reduce'
+import type { LeaderboardEntry } from '../../../shared/types'
 
 // ── bech32 (npub) encoding — minimal, npub-only ───────────────────────────────
 // BIP-173 / NIP-19. Just enough to render `npub1…` from a 32-byte hex pubkey.
@@ -144,7 +147,30 @@ export function avatarCss(pubkey: string): string {
 export interface Profile {
   name?: string
   picture?: string
+  nip05?: string
   lud16?: string
+  lud06?: string
+}
+
+export interface PlayerIdentity {
+  label: string
+  nip05?: string
+  isNpub: boolean
+}
+
+/** Kind-0 wins, then legacy pre-filled data, then identity signed by the game. */
+export function playerIdentity(pubkey: string, entry?: LeaderboardEntry, profile?: Profile): PlayerIdentity {
+  const nip05 = profile?.nip05 ?? entry?.signedNip05
+  const friendly = profile?.name ?? entry?.name ?? entry?.signedName ?? nip05
+  return {
+    label: friendly ?? shortenNpub(pubkey),
+    nip05: nip05 && nip05 !== friendly ? nip05 : undefined,
+    isNpub: !friendly,
+  }
+}
+
+export function lightningDestination(profile?: Profile): string | undefined {
+  return profile?.lud16 ?? profile?.lud06
 }
 
 /** A resolved-profiles map keyed by hex pubkey. */
@@ -176,7 +202,7 @@ function isKind0(v: unknown): v is Kind0Event {
 }
 
 /** Sanitise a raw picture string: must be an http(s) URL. Absent if not. */
-function sanitisePicture(raw: unknown): string | undefined {
+export function sanitisePicture(raw: unknown): string | undefined {
   if (typeof raw !== 'string') return undefined
   const trimmed = raw.trim()
   if (!trimmed || trimmed.length > 2_048) return undefined
@@ -202,6 +228,34 @@ export function sanitiseLightningAddress(raw: unknown): string | undefined {
   return value
 }
 
+export function sanitiseNip05(raw: unknown): string | undefined {
+  if (typeof raw !== 'string') return
+  const value = raw.trim().toLowerCase()
+  if (value.length > 254 || !/^[a-z0-9._-]{1,64}@[a-z0-9.-]+$/.test(value)) return
+  const [, domain] = value.split('@')
+  if (!domain || domain.startsWith('.') || domain.endsWith('.') || domain.includes('..')) return
+  try {
+    const url = new URL(`https://${domain}/`)
+    if (url.hostname !== domain || url.username || url.password) return
+  } catch { return }
+  return value
+}
+
+/** Validate that a lud06 value is a bech32 LNURL which decodes to an HTTPS endpoint. */
+export function sanitiseLnurl(raw: unknown): string | undefined {
+  if (typeof raw !== 'string') return
+  const value = raw.trim().toLowerCase()
+  if (!value.startsWith('lnurl1') || value.length > 2_000) return
+  try {
+    const decoded = bech32.decode(value as `${string}1${string}`, 2_000)
+    if (decoded.prefix !== 'lnurl') return
+    const endpoint = new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(bech32.fromWords(decoded.words)))
+    const url = new URL(endpoint)
+    if (url.protocol !== 'https:' || url.username || url.password) return
+    return value
+  } catch { return }
+}
+
 function parseProfileContent(content: string): Profile | null {
   try {
     const o = JSON.parse(content) as Record<string, unknown>
@@ -211,9 +265,11 @@ function parseProfileContent(content: string): Profile | null {
       : typeof o.name === 'string' ? o.name : undefined
     const name = rawName?.trim().slice(0, 80) || undefined
     const picture = sanitisePicture(o.picture)
+    const nip05 = sanitiseNip05(o.nip05)
     const lud16 = sanitiseLightningAddress(o.lud16)
-    if (!name && !picture && !lud16) return null
-    return { name, picture, lud16 }
+    const lud06 = sanitiseLnurl(o.lud06)
+    if (!name && !picture && !nip05 && !lud16 && !lud06) return null
+    return { name, picture, nip05, lud16, lud06 }
   } catch {
     return null
   }
@@ -228,7 +284,7 @@ function parseProfileContent(content: string): Profile | null {
 const MAX_PROFILE_RELAY_CONNECTIONS = 4
 
 /**
- * Resolve display names / pictures for a set of hex pubkeys across the relays.
+ * Resolve identity and Lightning receive metadata for hex pubkeys across relays.
  *
  * Calls `onResolve(pubkey, profile)` each time a newer kind-0 is seen for a
  * requested author. Returns an unsubscribe that closes the sockets. Designed to

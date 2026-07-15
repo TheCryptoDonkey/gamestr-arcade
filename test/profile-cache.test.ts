@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { bech32 } from '@scure/base'
 import { ProfileCache, PROFILE_TTL_MS } from '../src/renderer/src/leaderboard/profile-cache'
 import type { KeyValueStore } from '../src/renderer/src/leaderboard/cache'
 
@@ -30,6 +31,15 @@ describe('ProfileCache', () => {
     cache.set(PK, { name: 'alice', picture: 'https://example.com/alice.png' })
     const hit = cache.get(PK)
     expect(hit).toEqual({ name: 'alice', picture: 'https://example.com/alice.png' })
+  })
+
+  it('persists NIP-05 and both Lightning receive fields for later zap discovery', () => {
+    const store = makeStore()
+    const now = 1_000_000
+    const lud06 = bech32.encode('lnurl', bech32.toWords(new TextEncoder().encode('https://pay.example.com/lnurl')), 2_000)
+    new ProfileCache(store, () => now).set(PK, { nip05: 'alice@example.com', lud16: 'alice@example.com', lud06 })
+    const hit = new ProfileCache(store, () => now).get(PK)
+    expect(hit).toMatchObject({ nip05: 'alice@example.com', lud16: 'alice@example.com', lud06 })
   })
 
   it('is a memo hit on the second get (no localStorage re-read)', () => {
