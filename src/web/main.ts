@@ -331,7 +331,7 @@ function scoresPage(): HTMLElement {
 
 function developersPage(): HTMLElement {
   const main = el('main', 'page prose'); main.id = 'main'
-  main.append(el('p', 'kicker', 'DEVELOPER GUIDE'), el('h1', '', 'Bring your game. Keep your sovereignty.'), el('p', 'page-lede', 'Gamestr is discovery and interoperability-not a hosting lock-in. Your URL, your code, your revenue, your player relationship.'))
+  main.append(el('p', 'kicker', 'DEVELOPER GUIDE'), el('h1', '', 'Bring your game. Keep your sovereignty.'), el('p', 'page-lede', 'Gamestr is discovery and interoperability, not a hosting lock-in. Your URL, your code, your revenue, your player relationship.'))
   const steps = [
     ['1', 'Declare the game', 'Add a Manifest v2 file with a stable gameId, HTTPS URL, genres, art, controls, and only the capabilities you actually need.'],
     ['2', 'Publish signed scores', 'Emit kind 30762 with game and score tags, or kind 5555 with a declared score field. Sign as the player or use a clearly documented game authority.'],
