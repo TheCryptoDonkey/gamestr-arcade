@@ -8,6 +8,7 @@ import { challengeTemplate, decodeChallenge, encodeChallenge, parseChallenge } f
 import { readSocialState, toggleSocialItem, writeSocialState } from './social-state'
 import { rewardLightningAddress, type WebLNProvider } from './lightning-reward'
 import { decode as decodeNip19 } from 'nostr-tools/nip19'
+import { WEB_EDITION } from './web-edition'
 
 interface WebGame {
   slug: string; gameId: string; name: string; tagline: string; description?: string; developer?: string
@@ -94,9 +95,15 @@ function header(): HTMLElement {
   const head = el('header', 'site-header')
   const brand = el('a', 'brand')
   brand.href = '/'
-  brand.setAttribute('aria-label', 'Gamestr home')
+  brand.setAttribute('aria-label', WEB_EDITION.brandAriaLabel)
   brand.addEventListener('click', event => { event.preventDefault(); navigate('/') })
-  brand.append(el('span', 'brand-mark', 'G'), el('span', 'brand-name', 'GAMESTR'), el('span', 'brand-beta', 'WEB'))
+  if (WEB_EDITION.brandGraphic) {
+    const graphic = el('img', 'brand-graphic')
+    graphic.src = WEB_EDITION.brandGraphic
+    graphic.alt = ''
+    brand.append(graphic)
+  } else brand.append(el('span', 'brand-mark', WEB_EDITION.brandMark))
+  brand.append(el('span', 'brand-name', WEB_EDITION.brandName), el('span', 'brand-beta', WEB_EDITION.brandBadge))
   const nav = el('nav', 'site-nav')
   nav.setAttribute('aria-label', 'Primary')
   for (const [label, path] of [['Arcade', '/'], ['Scores', '/scores'], ['Build', '/developers']]) {
@@ -135,8 +142,8 @@ function hero(games: WebGame[]): HTMLElement {
   const section = el('section', 'hero')
   if (featured?.hero) section.style.setProperty('--hero-image', `url("${featured.hero}")`)
   const copy = el('div', 'hero-copy')
-  copy.append(el('p', 'kicker', 'THE NOSTR-NATIVE ARCADE'), el('h1', '', 'Play free. Own your score.'))
-  copy.append(el('p', 'hero-lede', 'Discover independent games, compete on cryptographically verified leaderboards, and carry one identity across the arcade. No platform account required.'))
+  copy.append(el('p', 'kicker', WEB_EDITION.heroKicker), el('h1', '', WEB_EDITION.heroTitle))
+  copy.append(el('p', 'hero-lede', WEB_EDITION.heroDescription))
   const actions = el('div', 'hero-actions')
   actions.append(button('EXPLORE GAMES', 'primary', () => document.querySelector('#games')?.scrollIntoView({ behavior: 'smooth' })))
   if (featured) actions.append(playLink(featured, `PLAY ${featured.name.toUpperCase()} ↗`, 'secondary'))
@@ -147,6 +154,12 @@ function hero(games: WebGame[]): HTMLElement {
   }
   copy.append(proof)
   section.append(copy)
+  if (WEB_EDITION.heroGraphic) {
+    const graphic = el('img', 'edition-hero-graphic')
+    graphic.src = WEB_EDITION.heroGraphic
+    graphic.alt = WEB_EDITION.heroGraphicAlt
+    section.append(graphic)
+  }
   return section
 }
 
@@ -519,8 +532,15 @@ function rewardDialog(pubkey: string, profile: Profile): void {
 }
 
 function footer(): HTMLElement {
-  const foot = el('footer'); const brand = el('div'); brand.append(el('strong', '', 'GAMESTR'), el('p', '', 'An open arcade protocol surface. Scores live on Nostr. Games live wherever their creators choose.'))
+  const foot = el('footer'); const brand = el('div'); brand.append(el('strong', '', WEB_EDITION.footerName), el('p', '', WEB_EDITION.footerDescription))
   const links = el('div'); links.append(linkButton('ARCADE', '/'), linkButton('SCORES', '/scores'), linkButton('BUILD', '/developers'))
+  if (WEB_EDITION.footerLink) {
+    const external = el('a', 'text-link', WEB_EDITION.footerLink.label)
+    external.href = WEB_EDITION.footerLink.url
+    external.target = '_blank'
+    external.rel = 'noopener noreferrer'
+    links.append(external)
+  }
   foot.append(brand, links, el('small', '', 'No custodial account · No nsec collection · No score database'))
   return foot
 }
@@ -532,8 +552,8 @@ function toast(message: string, tone: 'good' | 'warn'): void {
 function updateMetadata(): void {
   const current = route()
   const game = current.name === 'game' ? state.games.find(item => item.slug === current.slug) : undefined
-  const title = game ? `${game.name} — Gamestr` : current.name === 'scores' ? 'Verified scores — Gamestr' : current.name === 'developers' ? 'Build for Gamestr' : current.name === 'challenge' ? 'Signed challenge — Gamestr' : current.name === 'invite' ? 'Game invitation — Gamestr' : current.name === 'player' ? 'Nostr player — Gamestr' : 'Gamestr — play free, own your score'
-  const description = game?.description ?? game?.tagline ?? 'The Nostr-native arcade for independent games, verified scores, signed challenges, and direct Lightning rewards.'
+  const title = game ? `${game.name} — ${WEB_EDITION.titleSuffix}` : current.name === 'scores' ? `Verified scores — ${WEB_EDITION.titleSuffix}` : current.name === 'developers' ? 'Build for Gamestr' : current.name === 'challenge' ? `Signed challenge — ${WEB_EDITION.titleSuffix}` : current.name === 'invite' ? `Game invitation — ${WEB_EDITION.titleSuffix}` : current.name === 'player' ? `Nostr player — ${WEB_EDITION.titleSuffix}` : WEB_EDITION.siteTitle
+  const description = game?.description ?? game?.tagline ?? WEB_EDITION.siteDescription
   document.title = title
   const canonical = `${location.origin}${location.pathname === '/' ? '/' : location.pathname}`
   document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', canonical)

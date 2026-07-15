@@ -13,8 +13,11 @@
     "preview": "electron-vite preview",
     "preview:web": "vite --config vite.preview.config.ts",
     "dev:web": "vite --config vite.web.config.ts",
+    "dev:web:600": "GAMESTR_WEB_EDITION=600 GAMESTR_WEB_ORIGIN=https://arcade.600.wtf vite --config vite.web.config.ts",
     "build:web": "vite build --config vite.web.config.ts",
+    "build:web:600": "GAMESTR_WEB_EDITION=600 GAMESTR_WEB_ORIGIN=https://arcade.600.wtf vite build --config vite.web.config.ts",
     "validate:web": "node scripts/validate-web-build.mjs",
+    "validate:web:600": "GAMESTR_WEB_EDITION=600 GAMESTR_WEB_ORIGIN=https://arcade.600.wtf node scripts/validate-web-build.mjs",
     "preview:web:prod": "vite preview --config vite.web.config.ts",
     "capture:web": "electron scripts/capture-web.cjs",
     "pretest": "install-electron --no",
@@ -25,8 +28,9 @@
     "validate:config": "node scripts/validate-config.mjs",
     "validate:manifests": "node scripts/validate-manifests.mjs",
     "validate": "npm run validate:config && npm run validate:manifests",
-    "typecheck": "tsc --build --noEmit --pretty false",
-    "deploy": "bash scripts/deploy.sh"
+    "typecheck": "tsc -p tsconfig.node.json --noEmit --pretty false && tsc -p tsconfig.web.json --noEmit --pretty false",
+    "deploy": "bash scripts/deploy.sh",
+    "deploy:web:600": "GAMESTR_WEB_EDITION=600 GAMESTR_WEB_ORIGIN=https://arcade.600.wtf bash scripts/deploy-web.sh"
   },
   "dependencies": {
     "@getalby/sdk": "^8.0.3",

@@ -1,9 +1,16 @@
 #!/usr/bin/env node
 import { readFile, readdir, stat } from 'node:fs/promises'
-import { join } from 'node:path'
+import { resolve } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
-const root = new URL('../dist-web/', import.meta.url)
-const webOrigin = (process.env.GAMESTR_WEB_ORIGIN ?? 'https://gamestr.95-217-39-110.sslip.io').replace(/\/$/, '')
+const projectRoot = fileURLToPath(new URL('..', import.meta.url))
+const editions = JSON.parse(await readFile(resolve(projectRoot, 'web.editions.json'), 'utf8'))
+const editionKey = process.env.GAMESTR_WEB_EDITION ?? 'gamestr'
+const edition = editions[editionKey]
+if (!edition) throw new Error(`unknown GAMESTR_WEB_EDITION: ${editionKey}`)
+const outputDirectory = process.env.GAMESTR_WEB_OUT_DIR ?? edition.outDir
+const root = pathToFileURL(`${resolve(projectRoot, outputDirectory)}/`)
+const webOrigin = (process.env.GAMESTR_WEB_ORIGIN ?? edition.defaultOrigin).replace(/\/$/, '')
 const fail = message => { throw new Error(`web build validation failed: ${message}`) }
 const read = path => readFile(new URL(path, root), 'utf8')
 
@@ -13,7 +20,10 @@ const [html, manifest, catalogue] = await Promise.all([
   read('catalogue.json').then(JSON.parse),
 ])
 
-if (!Array.isArray(catalogue) || catalogue.length < 10) fail('catalogue must contain at least ten games')
+if (!Array.isArray(catalogue)) fail('catalogue must be an array')
+if (edition.gameSlugs) {
+  if (JSON.stringify(catalogue.map(game => game.slug)) !== JSON.stringify(edition.gameSlugs)) fail(`catalogue must exactly match the ${editionKey} edition allow-list`)
+} else if (catalogue.length < 10) fail('catalogue must contain at least ten games')
 const slugs = new Set()
 for (const game of catalogue) {
   if (!game || typeof game !== 'object') fail('catalogue entries must be objects')
@@ -27,7 +37,7 @@ for (const game of catalogue) {
   }
   if (!Array.isArray(game.genres) || game.genres.length === 0) fail(`${game.slug} needs genres`)
   const routeHtml = await read(`game/${game.slug}/index.html`).catch(() => fail(`prerendered game route is missing: ${game.slug}`))
-  if (!routeHtml.includes(`${webOrigin}/game/${game.slug}/`) || !routeHtml.includes(`<title>${game.name} — Gamestr</title>`)) fail(`game route metadata is invalid: ${game.slug}`)
+  if (!routeHtml.includes(`${webOrigin}/game/${game.slug}/`) || !routeHtml.includes(`<title>${game.name} — ${edition.titleSuffix}</title>`)) fail(`game route metadata is invalid: ${game.slug}`)
 }
 if (!catalogue.some(game => game.featured) || !catalogue.some(game => game.trending) || !catalogue.some(game => game.newRelease)) {
   fail('editorial featured, trending, and new collections must all be populated')
@@ -35,7 +45,9 @@ if (!catalogue.some(game => game.featured) || !catalogue.some(game => game.trend
 
 if (!html.includes('Content-Security-Policy') || !html.includes("script-src 'self'")) fail('strict script CSP is missing')
 if (!html.includes('manifest.webmanifest')) fail('PWA manifest link is missing')
+if (!html.includes(`data-web-edition="${editionKey}"`) || !html.includes(`<title>${edition.siteTitle}</title>`)) fail('edition metadata is missing')
 if (manifest.display !== 'standalone' || manifest.start_url !== '/') fail('PWA manifest is not installable')
+if (manifest.name !== edition.pwaName || manifest.theme_color !== edition.themeColor) fail('PWA edition branding is invalid')
 for (const icon of manifest.icons ?? []) {
   await stat(new URL(icon.src.replace(/^\//, ''), root)).catch(() => fail(`manifest icon is missing: ${icon.src}`))
 }
@@ -52,4 +64,4 @@ for (const name of assetFiles.filter(name => name.endsWith('.js') && !name.endsW
   if (source.includes('require(')) fail(`browser script contains a CommonJS runtime dependency: ${name}`)
 }
 
-console.log(`Validated web build: ${catalogue.length} games, canonical submission schema, installable PWA, bounded scripts, strict script CSP.`)
+console.log(`Validated ${editionKey} web build: ${catalogue.length} games, canonical submission schema, installable PWA, bounded scripts, strict script CSP.`)

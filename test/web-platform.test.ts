@@ -119,4 +119,17 @@ describe('public web platform boundaries', () => {
     expect((editorial.hero as Record<string, string>)['nogames-miner-v1']).toMatch(/^\/editorial\//)
     expect((editorial.hero as Record<string, string>)['nogames-snake-v1']).toMatch(/^\/editorial\//)
   })
+
+  it('defines the 600 Billion site as a strict web edition instead of a fork', async () => {
+    const editions = JSON.parse(await read('web.editions.json')) as Record<string, Record<string, unknown>>
+    const config = await read('vite.web.config.ts')
+    const edition = editions['600']
+    expect(edition.defaultOrigin).toBe('https://arcade.600.wtf')
+    expect(edition.outDir).toBe('dist-web-600')
+    expect(edition.gameSlugs).toEqual(['pallasite', 'neon-sentinel', 'hang-on-fren'])
+    expect(edition.themeColor).toBe('#f7931a')
+    expect(config).toContain('allowedGames')
+    expect(config).toContain('!allowedGames.has(entry.name)')
+    expect(config).toContain('__GAMESTR_WEB_EDITION__')
+  })
 })

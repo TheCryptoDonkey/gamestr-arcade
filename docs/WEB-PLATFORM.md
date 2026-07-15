@@ -103,6 +103,27 @@ headers. The clone is currently hosted at
 `GAMESTR_WEB_ORIGIN` may set a future project-owned domain at build time; no
 deployment code modifies or depends on the upstream `gamestr.io` DNS zone.
 
+### 600 Billion edition
+
+The 600 Billion arcade is a build-time edition of this web app, not a fork. It
+uses the same manifest, score verification, invitation, challenge and security
+code while emitting a separate static release in `dist-web-600/`. Its catalogue
+is a strict allow-list, so only Pallasite, Neon Sentinel and Hang On, Fren are
+published in `catalogue.json` or prerendered as game routes.
+
+```sh
+npm run dev:web:600
+npm run build:web:600
+npm run validate:web:600
+```
+
+`npm run deploy:web:600` deploys that build to
+`/opt/gamestr-web-600/current`; the tracked Caddy configuration serves it as
+`arcade.600.wtf`. The required DNS record is an `A` record for
+`arcade.600.wtf` pointing to `95.217.39.110`. The edition definition lives in
+`web.editions.json`, where its allow-list can be expanded without splitting the
+codebase.
+
 Legacy route compatibility is handled in the clone client: existing
 `/player/<pubkey>` and `/score/<event>` links remain canonical, the older
 four-segment score route resolves its final event ID, and `/game/naddr…` links

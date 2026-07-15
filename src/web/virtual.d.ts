@@ -7,3 +7,5 @@ declare module 'virtual:gamestr-manifest-validator' {
   const validate: ManifestValidator
   export default validate
 }
+
+declare const __GAMESTR_WEB_EDITION__: string

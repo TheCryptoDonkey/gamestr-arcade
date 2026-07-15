@@ -5,15 +5,38 @@ import { existsSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { copyFile, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
+import editions from './web.editions.json'
 
 const projectRoot = import.meta.dirname
 const gamesDir = join(projectRoot, 'games')
 const webRoot = join(projectRoot, 'src/web')
-const outDir = join(projectRoot, 'dist-web')
 const manifestSchema = join(projectRoot, 'schemas/game-manifest-v2.schema.json')
-const webOrigin = (process.env.GAMESTR_WEB_ORIGIN ?? 'https://gamestr.95-217-39-110.sslip.io').replace(/\/$/, '')
 const virtualValidator = 'virtual:gamestr-manifest-validator'
 const resolvedVirtualValidator = `\0${virtualValidator}`
+
+interface WebEdition {
+  key: string
+  defaultOrigin: string
+  outDir: string
+  gameSlugs: string[] | null
+  featured: string[] | null
+  trending: string[] | null
+  newReleases: string[] | null
+  siteTitle: string
+  titleSuffix: string
+  siteDescription: string
+  themeColor: string
+  pwaName: string
+  pwaShortName: string
+}
+
+const editionKey = process.env.GAMESTR_WEB_EDITION ?? 'gamestr'
+const edition = (editions as Record<string, WebEdition>)[editionKey]
+if (!edition) throw new Error(`Unknown GAMESTR_WEB_EDITION: ${editionKey}`)
+const outDirName = process.env.GAMESTR_WEB_OUT_DIR ?? edition.outDir
+const outDir = join(projectRoot, outDirName)
+const webOrigin = (process.env.GAMESTR_WEB_ORIGIN ?? edition.defaultOrigin).replace(/\/$/, '')
+const allowedGames = edition.gameSlugs ? new Set(edition.gameSlugs) : null
 
 interface WebGame {
   slug: string
@@ -50,6 +73,7 @@ async function catalogue(): Promise<WebGame[]> {
   const games: WebGame[] = []
   for (const entry of entries) {
     if (!entry.isDirectory() || entry.name === 'payment-lab') continue
+    if (allowedGames && !allowedGames.has(entry.name)) continue
     let manifest: Record<string, any>
     try { manifest = JSON.parse(await readFile(join(gamesDir, entry.name, 'game.json'), 'utf8')) } catch { continue }
     if (typeof manifest.url !== 'string' || !manifest.url.startsWith('https://')) continue
@@ -67,9 +91,9 @@ async function catalogue(): Promise<WebGame[]> {
       accent: /^#[0-9a-f]{6}$/i.test(manifest.accent) ? manifest.accent : '#7cf3ff',
       hero: editorial.hero?.[entry.name] ?? (localHero ? `/game-art/${entry.name}/${localHero}` : manifest.heroUrl ?? (localLogo ? `/game-art/${entry.name}/${localLogo}` : undefined)),
       logo: editorial.logo?.[entry.name] ?? (localLogo ? `/game-art/${entry.name}/${localLogo}` : manifest.logoUrl),
-      featured: editorial.featured?.includes(entry.name) ?? false,
-      trending: editorial.trending?.includes(entry.name) ?? false,
-      newRelease: editorial.new?.includes(entry.name) ?? false,
+      featured: (edition.featured ?? editorial.featured)?.includes(entry.name) ?? false,
+      trending: (edition.trending ?? editorial.trending)?.includes(entry.name) ?? false,
+      newRelease: (edition.newReleases ?? editorial.new)?.includes(entry.name) ?? false,
       walletPay: manifest.capabilities?.walletPay === true,
       players: manifest.players,
       scoreKind: manifest.scoreKind,
@@ -77,14 +101,18 @@ async function catalogue(): Promise<WebGame[]> {
       scoreDir: manifest.scoreDir,
     })
   }
-  return games.sort((a, b) => Number(b.featured) - Number(a.featured) || a.name.localeCompare(b.name))
+  return games.sort((a, b) => {
+    if (edition.gameSlugs) return edition.gameSlugs.indexOf(a.slug) - edition.gameSlugs.indexOf(b.slug)
+    return Number(b.featured) - Number(a.featured) || a.name.localeCompare(b.name)
+  })
 }
 
-async function copyArt(): Promise<void> {
+async function copyArt(games: WebGame[]): Promise<void> {
   const target = join(outDir, 'game-art')
+  const included = new Set(games.map(game => game.slug))
   await rm(target, { recursive: true, force: true })
   for (const game of await readdir(gamesDir, { withFileTypes: true })) {
-    if (!game.isDirectory()) continue
+    if (!game.isDirectory() || !included.has(game.name)) continue
     for (const name of ['hero.webp', 'hero.jpg', 'hero.png', 'logo.webp', 'logo.svg', 'logo.png']) {
       const source = join(gamesDir, game.name, name)
       if (!existsSync(source) || !isTracked(source)) continue
@@ -117,10 +145,10 @@ function routeShell(shell: string, title: string, description: string, path: str
 
 async function prerenderRoutes(games: WebGame[]): Promise<void> {
   const shell = await readFile(join(outDir, 'index.html'), 'utf8')
-  const routes = [
-    { path: '/scores', title: 'Verified scores — Gamestr', description: 'Live cryptographically verified Nostr leaderboards across the Gamestr arcade.' },
+  const routes: Array<{ path: string; title: string; description: string; image?: string }> = [
+    { path: '/scores', title: `Verified scores — ${edition.titleSuffix}`, description: `Live cryptographically verified Nostr leaderboards across the ${edition.titleSuffix}.` },
     { path: '/developers', title: 'Build for Gamestr', description: 'Validate, sign, and publish a sovereign Nostr game for web players and physical cabinets.' },
-    ...games.map(game => ({ path: `/game/${game.slug}`, title: `${game.name} — Gamestr`, description: game.description ?? game.tagline, image: game.hero })),
+    ...games.map(game => ({ path: `/game/${game.slug}`, title: `${game.name} — ${edition.titleSuffix}`, description: game.description ?? game.tagline, image: game.hero })),
   ]
   for (const route of routes) {
     const directory = join(outDir, route.path.slice(1))
@@ -129,9 +157,36 @@ async function prerenderRoutes(games: WebGame[]): Promise<void> {
   }
 }
 
+function editionHtml(html: string): string {
+  return html
+    .replace('<html lang="en">', `<html lang="en" data-web-edition="${htmlEscape(edition.key)}">`)
+    .replace(/<title>[^<]*<\/title>/, `<title>${htmlEscape(edition.siteTitle)}</title>`)
+    .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${htmlEscape(edition.siteDescription)}">`)
+    .replace(/<meta property="og:title" content="[^"]*">/, `<meta property="og:title" content="${htmlEscape(edition.siteTitle)}">`)
+    .replace(/<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${htmlEscape(edition.siteDescription)}">`)
+    .replace(/<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${webOrigin}/">`)
+    .replace(/<meta name="theme-color" content="[^"]*">/, `<meta name="theme-color" content="${htmlEscape(edition.themeColor)}">`)
+    .replace(/<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${webOrigin}/">`)
+}
+
+async function writeEditionManifest(): Promise<void> {
+  const path = join(outDir, 'manifest.webmanifest')
+  const manifest = JSON.parse(await readFile(path, 'utf8')) as Record<string, unknown>
+  manifest.name = edition.pwaName
+  manifest.short_name = edition.pwaShortName
+  manifest.description = edition.siteDescription
+  manifest.background_color = edition.themeColor
+  manifest.theme_color = edition.themeColor
+  await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`)
+  if (edition.key === '600') {
+    await writeFile(join(outDir, 'icon.svg'), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="600 Billion Arcade"><circle cx="64" cy="64" r="64" fill="#f7931a"/><g fill="#fff" font-family="Impact, sans-serif" font-size="34" font-weight="900" text-anchor="middle"><text x="64" y="37">600</text><text x="64" y="68">000</text><text x="64" y="99">000</text><text x="64" y="124">000</text></g></svg>\n`)
+  }
+}
+
 function webData(): Plugin {
   return {
     name: 'gamestr-web-catalogue',
+    transformIndexHtml: editionHtml,
     configureServer(server) {
       server.middlewares.use('/catalogue.json', async (_req, res) => {
         res.setHeader('content-type', 'application/json; charset=utf-8')
@@ -160,7 +215,8 @@ function webData(): Plugin {
       await writeFile(join(outDir, 'catalogue.json'), `${JSON.stringify(games, null, 2)}\n`)
       await mkdir(join(outDir, 'schemas'), { recursive: true })
       await copyFile(manifestSchema, join(outDir, 'schemas/game-manifest-v2.schema.json'))
-      await copyArt()
+      await copyArt(games)
+      await writeEditionManifest()
       await prerenderRoutes(games)
     },
   }
@@ -169,7 +225,7 @@ function webData(): Plugin {
 function manifestValidator(): Plugin {
   return {
     name: 'gamestr-manifest-validator',
-    resolveId(id) { if (id === virtualValidator) return resolvedVirtualValidator },
+    resolveId(id) { return id === virtualValidator ? resolvedVirtualValidator : null },
     async load(id) {
       if (id !== resolvedVirtualValidator) return
       const schema = JSON.parse(await readFile(manifestSchema, 'utf8'))
@@ -189,6 +245,7 @@ export default defineConfig({
   root: webRoot,
   publicDir: join(webRoot, 'public'),
   plugins: [manifestValidator(), webData()],
+  define: { __GAMESTR_WEB_EDITION__: JSON.stringify(edition.key) },
   build: { outDir, emptyOutDir: true, sourcemap: true },
   server: { host: '127.0.0.1', port: 4174 },
 })

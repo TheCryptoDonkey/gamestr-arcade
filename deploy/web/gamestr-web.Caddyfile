@@ -28,3 +28,34 @@ gamestr.95-217-39-110.sslip.io {
 		-Server
 	}
 }
+
+arcade.600.wtf {
+	root * /opt/gamestr-web-600/current
+	encode zstd gzip
+
+	# The 600 edition is a separately built allow-listed catalogue on the same codebase.
+	try_files {path} {path}/index.html /index.html
+	file_server
+
+	@immutable path /assets/* /game-art/* /editorial/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+
+	@catalogue path /catalogue.json
+	header @catalogue Cache-Control "public, max-age=300, must-revalidate"
+
+	@mutable path / /index.html /sw.js /manifest.webmanifest
+	header @mutable Cache-Control "no-cache, no-store, must-revalidate"
+
+	@route not path /assets/* /game-art/* /editorial/* /catalogue.json /sw.js /manifest.webmanifest
+	header @route Cache-Control "no-cache, no-store, must-revalidate"
+
+	header {
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https: wss:; frame-src https:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(self), fullscreen=(self)"
+		-Server
+	}
+}
