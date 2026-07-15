@@ -4,11 +4,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   login: vi.fn(),
   restoreSession: vi.fn(),
+  logout: vi.fn(),
 }))
 
 vi.mock('signet-login', () => ({
   login: mocks.login,
   restoreSession: mocks.restoreSession,
+  logout: mocks.logout,
 }))
 
 const PUBKEY = 'a'.repeat(64)
@@ -24,13 +26,14 @@ describe('Signet Nostr access', () => {
   beforeEach(() => {
     mocks.login.mockReset()
     mocks.restoreSession.mockReset()
+    mocks.logout.mockReset()
     document.documentElement.dataset.webEdition = '600'
   })
 
   it('opens the Signet picker without offering an nsec input and activates its signer', async () => {
     const session = { pubkey: PUBKEY, method: 'bunker' as const, signer, authEvent: {} }
     mocks.login.mockResolvedValue(session)
-    const { connectNostrAccess, currentNostrSigner, NOSTR_SESSION_EVENT } = await import('../src/web/nostr-access')
+    const { connectNostrAccess, currentNostrSigner, disconnectNostrAccess, NOSTR_SESSION_EVENT } = await import('../src/web/nostr-access')
     const seen: string[] = []
     window.addEventListener(NOSTR_SESSION_EVENT, event => seen.push((event as CustomEvent<{ pubkey: string }>).detail.pubkey), { once: true })
 
@@ -45,5 +48,9 @@ describe('Signet Nostr access', () => {
       theme: 'light',
     }))
     expect(mocks.login.mock.calls[0][0].methods).not.toContain('nsec')
+
+    await disconnectNostrAccess()
+    expect(mocks.logout).toHaveBeenCalledWith(session)
+    expect(currentNostrSigner()).toBeUndefined()
   })
 })

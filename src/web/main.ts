@@ -1,7 +1,7 @@
 import './style.css'
 import { createGamestrCatalogue } from '../renderer/src/leaderboard/gamestr'
 import { boardFor } from '../renderer/src/leaderboard/gamestr-reduce'
-import { avatarCss, hexToNpub, lightningDestination, playerIdentity, resolveProfiles, shortenNpub, type Profile } from '../renderer/src/leaderboard/profiles'
+import { avatarCss, hexToNpub, lightningDestination, playerIdentity, resolveProfiles, type Profile } from '../renderer/src/leaderboard/profiles'
 import type { LeaderboardEntry } from '../shared/types'
 import { decodeInvitation, encodeInvitation, invitationTemplate, parseInvitation } from './game-invitation'
 import { challengeTemplate, decodeChallenge, encodeChallenge, parseChallenge } from './game-challenge'
@@ -9,8 +9,9 @@ import { readSocialState, toggleSocialItem, writeSocialState } from './social-st
 import { rewardLightningAddress, type WebLNProvider } from './lightning-reward'
 import { decode as decodeNip19 } from 'nostr-tools/nip19'
 import { WEB_EDITION } from './web-edition'
-import { connectNostrAccess, currentNostrSigner, NOSTR_SESSION_EVENT, restoreNostrAccess, type ArcadeNostrSigner, type NostrAccess } from './nostr-access'
+import { connectNostrAccess, currentNostrSigner, disconnectNostrAccess, NOSTR_SESSION_EVENT, restoreNostrAccess, type ArcadeNostrSigner, type NostrAccess } from './nostr-access'
 import { loadWellKnownMembers } from './well-known-members'
+import { accountIdentity } from './account-identity'
 
 interface WebGame {
   slug: string; gameId: string; name: string; tagline: string; description?: string; developer?: string
@@ -29,7 +30,7 @@ const app = document.querySelector<HTMLDivElement>('#app')!
 const state = {
   games: [] as WebGame[], query: '', filter: 'all', genre: 'all', selected: null as WebGame | null,
   scores: new Map<string, LeaderboardEntry[]>(), relay: 'connecting' as 'connecting' | 'up' | 'down',
-  pubkey: '', identityConnecting: false,
+  pubkey: '', identityConnecting: false, identityDisconnecting: false, accountMenuOpen: false,
   profiles: new Map<string, Profile>(), profileRequests: new Set<string>(),
   members: new Map<string, string>(),
   social: readSocialState(), activityMode: 'all' as 'all' | 'following',
@@ -39,6 +40,8 @@ window.addEventListener(NOSTR_SESSION_EVENT, event => {
   const access = (event as CustomEvent<NostrAccess>).detail
   if (!access || !/^[0-9a-f]{64}$/.test(access.pubkey)) return
   state.pubkey = access.pubkey
+  state.accountMenuOpen = false
+  ensureProfile(access.pubkey)
   if (app.childElementCount) render()
 })
 
@@ -48,6 +51,19 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, t
   if (text !== undefined) node.textContent = text
   return node
 }
+
+document.addEventListener('click', event => {
+  if (!state.accountMenuOpen) return
+  if (event.target instanceof Element && event.target.closest('.identity-menu')) return
+  state.accountMenuOpen = false
+  render()
+})
+
+document.addEventListener('keydown', event => {
+  if (event.key !== 'Escape' || !state.accountMenuOpen) return
+  state.accountMenuOpen = false
+  render()
+})
 
 function route(): { name: 'home' | 'scores' | 'developers' | 'game' | 'player' | 'score' | 'invite' | 'challenge'; slug?: string; id?: string } {
   const path = location.pathname.replace(/\/+$/, '') || '/'
@@ -100,6 +116,7 @@ function playLink(game: WebGame, label = 'PLAY', className = 'play-small'): HTML
 
 function header(): HTMLElement {
   const head = el('header', 'site-header')
+  if (state.pubkey) head.classList.add('has-identity')
   const brand = el('a', 'brand')
   brand.href = '/'
   brand.setAttribute('aria-label', WEB_EDITION.brandAriaLabel)
@@ -123,8 +140,23 @@ function header(): HTMLElement {
   }
   const relay = el('span', `relay-pill ${state.relay}`, state.relay === 'up' ? 'NOSTR LIVE' : state.relay === 'down' ? 'RELAYS OFFLINE' : 'CONNECTING')
   relay.title = 'Score events are verified locally before display'
-  const identity = button(state.pubkey ? shortenNpub(state.pubkey) : state.identityConnecting ? 'OPENING SIGNET…' : 'CONNECT NOSTR', 'identity-button', state.pubkey ? () => navigate(`/player/${state.pubkey}`) : () => void connectIdentity())
-  identity.disabled = state.identityConnecting
+  let identity: HTMLElement
+  if (state.pubkey) {
+    ensureProfile(state.pubkey)
+    identity = accountIdentity({
+      pubkey: state.pubkey,
+      profile: state.profiles.get(state.pubkey),
+      open: state.accountMenuOpen,
+      busy: state.identityDisconnecting,
+      onToggle: () => { state.accountMenuOpen = !state.accountMenuOpen; render() },
+      onProfile: () => { state.accountMenuOpen = false; navigate(`/player/${state.pubkey}`) },
+      onLogout: () => void logoutIdentity(),
+    })
+  } else {
+    const connect = button(state.identityConnecting ? 'OPENING SIGNET…' : 'CONNECT NOSTR', 'identity-button', () => void connectIdentity())
+    connect.disabled = state.identityConnecting
+    identity = connect
+  }
   head.append(brand, nav, relay, identity)
   return head
 }
@@ -143,6 +175,23 @@ async function connectIdentity(signingRequired = false): Promise<ArcadeNostrSign
     return undefined
   } finally {
     state.identityConnecting = false
+    render()
+  }
+}
+
+async function logoutIdentity(): Promise<void> {
+  if (state.identityDisconnecting) return
+  state.identityDisconnecting = true
+  render()
+  try {
+    await disconnectNostrAccess()
+    state.pubkey = ''
+    state.accountMenuOpen = false
+    toast('Logged out of Nostr.', 'good')
+  } catch {
+    toast('Nostr logout failed. Please retry.', 'warn')
+  } finally {
+    state.identityDisconnecting = false
     render()
   }
 }

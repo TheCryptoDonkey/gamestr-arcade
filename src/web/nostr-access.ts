@@ -80,3 +80,10 @@ export async function restoreNostrAccess(relays: string[]): Promise<NostrAccess 
     return null
   }
 }
+
+export async function disconnectNostrAccess(): Promise<void> {
+  const { logout } = await import('signet-login')
+  const session = activeSession
+  await logout(session ?? undefined)
+  activeSession = null
+}
