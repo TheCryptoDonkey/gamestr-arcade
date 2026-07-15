@@ -68,7 +68,7 @@ describe('CarouselModel', () => {
     m.onChange((g, i) => seen.push(`${g.id}:${i}`))
 
     m.next() // a → b
-    m.select(1) // no-op (already b) — must NOT fire
+    m.select(1) // no-op (already b) - must NOT fire
     m.prev() // b → a
 
     expect(seen).toEqual(['b:1', 'a:0'])

@@ -2,11 +2,11 @@
  * Unit tests for the gamepad→keyboard translation layer (src/preload/webgame.ts).
  *
  * Tests the pure, side-effect-free classes and helpers:
- *   - GamepadKeyTranslator.diff()  — edge detection, hold suppression, multiple channels
- *   - snapshotFromGamepad()        — d-pad buttons only (left stick is cursor, not keys)
- *   - unionSnapshots()             — multi-gamepad merging
- *   - keyInfo()                    — legacy keyCode lookup table
- *   - resolveControls()            — per-game override merging
+ *   - GamepadKeyTranslator.diff()  - edge detection, hold suppression, multiple channels
+ *   - snapshotFromGamepad()        - d-pad buttons only (left stick is cursor, not keys)
+ *   - unionSnapshots()             - multi-gamepad merging
+ *   - keyInfo()                    - legacy keyCode lookup table
+ *   - resolveControls()            - per-game override merging
  *
  * Control split:
  *   Left stick                → movement keys + virtual cursor (firm push = keys)
@@ -78,7 +78,7 @@ function fakeGamepad(options: {
 
 /**
  * Build a non-standard (`mapping: ""`) pad whose d-pad is a HAT carried on
- * axes[6] (X) / axes[7] (Y) — the layout an official Xbox pad presents when its
+ * axes[6] (X) / axes[7] (Y) - the layout an official Xbox pad presents when its
  * connection lands outside Chromium's Standard-Mapping table (e.g. Bluetooth).
  */
 function fakeHatGamepad(hat: { x?: number; y?: number; pressed?: number[] }): Gamepad {
@@ -88,7 +88,7 @@ function fakeHatGamepad(hat: { x?: number; y?: number; pressed?: number[] }): Ga
     touched: pressed.has(i),
     value:   pressed.has(i) ? 1 : 0,
   }))
-  // LX, LY, LT, RX, RY, RT, HAT0X, HAT0Y — the d-pad sits on the last two.
+  // LX, LY, LT, RX, RY, RT, HAT0X, HAT0Y - the d-pad sits on the last two.
   const axes = [0, 0, 0, 0, 0, 0, hat.x ?? 0, hat.y ?? 0]
   return {
     id:        'Fake Non-Standard Pad',
@@ -105,7 +105,7 @@ function fakeHatGamepad(hat: { x?: number; y?: number; pressed?: number[] }): Ga
 
 // ── GamepadKeyTranslator ───────────────────────────────────────────────────────
 
-describe('GamepadKeyTranslator — basic edge detection', () => {
+describe('GamepadKeyTranslator - basic edge detection', () => {
   it('pressing left emits keydown ArrowLeft', () => {
     const t = new GamepadKeyTranslator()
     const actions = t.diff(makeSnapshot({ left: true }), DEFAULT_CONTROLS)
@@ -134,7 +134,7 @@ describe('GamepadKeyTranslator — basic edge detection', () => {
   })
 })
 
-describe('GamepadKeyTranslator — fire button', () => {
+describe('GamepadKeyTranslator - fire button', () => {
   it('fire active → keydown Space', () => {
     const t = new GamepadKeyTranslator()
     const actions = t.diff(makeSnapshot({ fire: true }), DEFAULT_CONTROLS)
@@ -149,7 +149,7 @@ describe('GamepadKeyTranslator — fire button', () => {
   })
 })
 
-describe('GamepadKeyTranslator — diagonal (two channels at once)', () => {
+describe('GamepadKeyTranslator - diagonal (two channels at once)', () => {
   it('left + up simultaneously → two keydowns', () => {
     const t = new GamepadKeyTranslator()
     const actions = t.diff(makeSnapshot({ left: true, up: true }), DEFAULT_CONTROLS)
@@ -166,7 +166,7 @@ describe('GamepadKeyTranslator — diagonal (two channels at once)', () => {
   })
 })
 
-describe('GamepadKeyTranslator — all directional defaults', () => {
+describe('GamepadKeyTranslator - all directional defaults', () => {
   it.each([
     ['up',    'ArrowUp'],
     ['down',  'ArrowDown'],
@@ -179,7 +179,7 @@ describe('GamepadKeyTranslator — all directional defaults', () => {
   })
 })
 
-describe('GamepadKeyTranslator — remapped controls', () => {
+describe('GamepadKeyTranslator - remapped controls', () => {
   it('remapped fire to "a" emits keydown a', () => {
     const t = new GamepadKeyTranslator()
     const controls: ResolvedControls = { ...DEFAULT_CONTROLS, fire: 'a' }
@@ -195,7 +195,7 @@ describe('GamepadKeyTranslator — remapped controls', () => {
   })
 })
 
-describe('GamepadKeyTranslator — full press/hold/release cycle', () => {
+describe('GamepadKeyTranslator - full press/hold/release cycle', () => {
   it('press → hold × 3 → release produces exactly one keydown and one keyup', () => {
     const t = new GamepadKeyTranslator()
     const snap = makeSnapshot({ right: true })
@@ -209,7 +209,7 @@ describe('GamepadKeyTranslator — full press/hold/release cycle', () => {
   })
 })
 
-describe('GamepadKeyTranslator — auto-repeat (held key repeats like the keyboard)', () => {
+describe('GamepadKeyTranslator - auto-repeat (held key repeats like the keyboard)', () => {
   it('no repeat before the initial delay elapses', () => {
     const t = new GamepadKeyTranslator()
     const snap = makeSnapshot({ left: true })
@@ -271,7 +271,7 @@ describe('resolveControls', () => {
 
 // ── snapshotFromGamepad ────────────────────────────────────────────────────────
 
-describe('snapshotFromGamepad — d-pad buttons', () => {
+describe('snapshotFromGamepad - d-pad buttons', () => {
   it('d-pad up (button 12) → up=true', () => {
     const snap = snapshotFromGamepad(fakeGamepad({ pressed: [DPAD.UP] }))
     expect(snap).toMatchObject({ up: true, down: false, left: false, right: false, fire: false })
@@ -290,7 +290,7 @@ describe('snapshotFromGamepad — d-pad buttons', () => {
   })
 })
 
-describe('snapshotFromGamepad — fire buttons', () => {
+describe('snapshotFromGamepad - fire buttons', () => {
   it('FIRE_BUTTONS covers A (0) and X (2)', () => {
     expect(FIRE_BUTTONS).toEqual([0, 2])
   })
@@ -304,7 +304,7 @@ describe('snapshotFromGamepad — fire buttons', () => {
   })
 })
 
-describe('snapshotFromGamepad — left stick drives movement keys', () => {
+describe('snapshotFromGamepad - left stick drives movement keys', () => {
   // Players reach for the stick to move, so a firm push (≥ STICK_DEAD) maps to the
   // same movement keys as the d-pad. Gentle nudges (< STICK_DEAD) stay cursor-only.
 
@@ -339,7 +339,7 @@ describe('snapshotFromGamepad — left stick drives movement keys', () => {
   })
 })
 
-describe('snapshotFromGamepad — d-pad and stick combine (union)', () => {
+describe('snapshotFromGamepad - d-pad and stick combine (union)', () => {
   it('d-pad left + stick right → both left and right (union of d-pad and stick)', () => {
     const snap = snapshotFromGamepad(fakeGamepad({ pressed: [DPAD.LEFT], axes: [STICK_DEAD + 0.1, 0] }))
     expect(snap.left).toBe(true)
@@ -347,7 +347,7 @@ describe('snapshotFromGamepad — d-pad and stick combine (union)', () => {
   })
 })
 
-describe('snapshotFromGamepad — all idle', () => {
+describe('snapshotFromGamepad - all idle', () => {
   it('no buttons, stick centred → all false', () => {
     const snap = snapshotFromGamepad(fakeGamepad({}))
     expect(snap).toEqual(IDLE)
@@ -357,9 +357,9 @@ describe('snapshotFromGamepad — all idle', () => {
 // ── snapshotFromGamepad: non-standard pad (d-pad on a HAT axis) ─────────────────
 // Regression for the booth bug where an official Xbox pad on a different
 // connection exposed mapping "" and put the d-pad on axes[6]/[7] instead of
-// buttons 12–15 — so keyboard web games (Space Zappers) got fire but no left/right.
+// buttons 12–15 - so keyboard web games (Space Zappers) got fire but no left/right.
 
-describe('snapshotFromGamepad — non-standard pad, d-pad on HAT axes', () => {
+describe('snapshotFromGamepad - non-standard pad, d-pad on HAT axes', () => {
   it('HAT x = -1 → left=true (d-pad left via axes[6])', () => {
     expect(snapshotFromGamepad(fakeHatGamepad({ x: -1 }))).toMatchObject({ left: true, right: false })
   })
@@ -393,7 +393,7 @@ describe('snapshotFromGamepad — non-standard pad, d-pad on HAT axes', () => {
   })
 })
 
-describe('dpadFromHatAxes — Standard-Mapping pads are left untouched', () => {
+describe('dpadFromHatAxes - Standard-Mapping pads are left untouched', () => {
   it('a standard pad never yields HAT directions (its d-pad is buttons 12–15)', () => {
     // fakeGamepad is mapping:'standard'; even with axes deflected the HAT path is skipped.
     expect(dpadFromHatAxes(fakeGamepad({ axes: [1, 1] }))).toEqual(IDLE)
@@ -422,7 +422,7 @@ describe('unionSnapshots', () => {
 // ── eventKeyValue ────────────────────────────────────────────────────────────────
 
 describe('eventKeyValue', () => {
-  it('maps the Space token to a literal space — the real spacebar key value', () => {
+  it('maps the Space token to a literal space - the real spacebar key value', () => {
     // Space Zappers (and many games) gate fire on `e.key === " "`, not "Space".
     expect(eventKeyValue('Space')).toBe(' ')
   })

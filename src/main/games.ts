@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — games list builder.
+ * gamestr-arcade - games list builder.
  *
  * Assembles the full games list by combining the folder scanner with the icon
  * resolver, then rewrites every local file path to a servable `media://` URL
@@ -23,7 +23,7 @@ export const MEDIA_SCHEME = 'media'
  * A path is permitted only if it equals, or is nested under, one of the allowed
  * roots. The separator is appended before the prefix test so a sibling root that
  * merely shares a string prefix (e.g. "/games-old" vs "/games") cannot slip
- * through — guarding against both path traversal and prefix-confusion.
+ * through - guarding against both path traversal and prefix-confusion.
  *
  * Pure and dependency-free so the security decision is unit-testable.
  */
@@ -78,7 +78,7 @@ function rewriteGame(game: Game): Game {
  *    them via the registered protocol handler regardless of origin.
  * 4. If `localPort` is provided, any web game that has a `site/index.html` mirror
  *    under `gamesDir/<slug>/site/` has its url rewritten to the local server and
- *    `localSite: true` is set on the game — so the carousel can badge it "LOCAL".
+ *    `localSite: true` is set on the game - so the carousel can badge it "LOCAL".
  *
  * Unit-testable: pass `FAKE_CACHE` for `cacheDir`; the icon resolver will fall
  * back to placeholder for any game without a `logo.png` sibling.
@@ -122,7 +122,7 @@ export async function buildGamesList(
  */
 function resourcePlaceholder(): string {
   try {
-    // app may not be ready in tests — fall back gracefully.
+    // app may not be ready in tests - fall back gracefully.
     return join(app.getAppPath(), 'resources', 'icon.png')
   } catch {
     return join(process.cwd(), 'resources', 'icon.png')

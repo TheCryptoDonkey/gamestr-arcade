@@ -331,7 +331,7 @@ function scoresPage(): HTMLElement {
 
 function developersPage(): HTMLElement {
   const main = el('main', 'page prose'); main.id = 'main'
-  main.append(el('p', 'kicker', 'DEVELOPER GUIDE'), el('h1', '', 'Bring your game. Keep your sovereignty.'), el('p', 'page-lede', 'Gamestr is discovery and interoperability—not a hosting lock-in. Your URL, your code, your revenue, your player relationship.'))
+  main.append(el('p', 'kicker', 'DEVELOPER GUIDE'), el('h1', '', 'Bring your game. Keep your sovereignty.'), el('p', 'page-lede', 'Gamestr is discovery and interoperability-not a hosting lock-in. Your URL, your code, your revenue, your player relationship.'))
   const steps = [
     ['1', 'Declare the game', 'Add a Manifest v2 file with a stable gameId, HTTPS URL, genres, art, controls, and only the capabilities you actually need.'],
     ['2', 'Publish signed scores', 'Emit kind 30762 with game and score tags, or kind 5555 with a declared score field. Sign as the player or use a clearly documented game authority.'],
@@ -508,7 +508,7 @@ function challengePage(encoded: string): HTMLElement {
   const facts = el('dl', 'game-facts')
   for (const [label, value] of [['STATUS', phase], ['START', new Date(challenge.startsAt * 1000).toLocaleString()], ['END', new Date(challenge.endsAt * 1000).toLocaleString()], ['ORIGIN', new URL(game.url).host]]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) }
   const actions = el('div', 'hero-actions'); actions.append(playLink(game, phase === 'FINAL' ? 'PLAY THIS GAME ↗' : 'ENTER & PLAY ↗', 'primary'), playerLink(challenge.event.pubkey, 'button-link')); hero.append(facts, actions); main.append(hero)
-  const standings = el('section', 'challenge-standings'); const heading = el('div', 'section-heading'); heading.append(el('h2', '', phase === 'FINAL' ? 'FINAL STANDINGS' : 'LIVE STANDINGS'), el('span', '', `${new Date(challenge.startsAt * 1000).toLocaleDateString()} — ${new Date(challenge.endsAt * 1000).toLocaleDateString()}`)); standings.append(heading)
+  const standings = el('section', 'challenge-standings'); const heading = el('div', 'section-heading'); heading.append(el('h2', '', phase === 'FINAL' ? 'FINAL STANDINGS' : 'LIVE STANDINGS'), el('span', '', `${new Date(challenge.startsAt * 1000).toLocaleDateString()} - ${new Date(challenge.endsAt * 1000).toLocaleDateString()}`)); standings.append(heading)
   const eligible = (state.scores.get(game.gameId) ?? []).filter(entry => entry.at >= challenge.startsAt && entry.at <= challenge.endsAt)
   const ranked = boardFor(eligible, 'all', 50, Math.min(now, challenge.endsAt), game.scoreDir ?? 'desc')
   const list = el('ol', 'challenge-board')
@@ -619,7 +619,7 @@ function toast(message: string, tone: 'good' | 'warn'): void {
 function updateMetadata(): void {
   const current = route()
   const game = current.name === 'game' ? state.games.find(item => item.slug === current.slug) : undefined
-  const title = game ? `${game.name} — ${WEB_EDITION.titleSuffix}` : current.name === 'scores' ? `Verified scores — ${WEB_EDITION.titleSuffix}` : current.name === 'developers' ? 'Build for Gamestr' : current.name === 'challenge' ? `Signed challenge — ${WEB_EDITION.titleSuffix}` : current.name === 'invite' ? `Game invitation — ${WEB_EDITION.titleSuffix}` : current.name === 'player' ? `Nostr player — ${WEB_EDITION.titleSuffix}` : WEB_EDITION.siteTitle
+  const title = game ? `${game.name} - ${WEB_EDITION.titleSuffix}` : current.name === 'scores' ? `Verified scores - ${WEB_EDITION.titleSuffix}` : current.name === 'developers' ? 'Build for Gamestr' : current.name === 'challenge' ? `Signed challenge - ${WEB_EDITION.titleSuffix}` : current.name === 'invite' ? `Game invitation - ${WEB_EDITION.titleSuffix}` : current.name === 'player' ? `Nostr player - ${WEB_EDITION.titleSuffix}` : WEB_EDITION.siteTitle
   const description = game?.description ?? game?.tagline ?? WEB_EDITION.siteDescription
   document.title = title
   const canonical = `${location.origin}${location.pathname === '/' ? '/' : location.pathname}`

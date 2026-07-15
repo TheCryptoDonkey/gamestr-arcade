@@ -40,7 +40,7 @@ const NOW = Math.floor(Date.now() / 1000)
 const ENTRY_A: LeaderboardEntry = { pubkey: PUBKEY_A, score: 1000, sats: 0, at: NOW }
 const ENTRY_B: LeaderboardEntry = { pubkey: PUBKEY_B, score: 900, sats: 0, at: NOW - 1 }
 
-describe('LeaderboardPanel — stale profile callback guard', () => {
+describe('LeaderboardPanel - stale profile callback guard', () => {
   beforeEach(() => {
     localStorage.clear()
     document.body.replaceChildren()
@@ -75,7 +75,7 @@ describe('LeaderboardPanel — stale profile callback guard', () => {
     // A provider that delivers entries IMMEDIATELY (synchronously on subscribe).
     const syncProvider = (entries: LeaderboardEntry[]): LeaderboardProvider => ({
       subscribe(_gameId, onUpdate) {
-        onUpdate(entries) // synchronous — entries arrive before show() returns
+        onUpdate(entries) // synchronous - entries arrive before show() returns
         return () => {}
       },
     })
@@ -93,7 +93,7 @@ describe('LeaderboardPanel — stale profile callback guard', () => {
       resolve,
     })
 
-    // Show game "alpha" — entries arrive synchronously → resolve is called.
+    // Show game "alpha" - entries arrive synchronously → resolve is called.
     panel.show('alpha')
 
     // resolve should have been called for PUBKEY_A.
@@ -107,7 +107,7 @@ describe('LeaderboardPanel — stale profile callback guard', () => {
     // Now the stale alpha callback fires (simulates late async profile arrival).
     alphaCallback(PUBKEY_A, { name: 'Alice', picture: undefined })
 
-    // The current game is "beta" — the stale alpha callback must not render Alice.
+    // The current game is "beta" - the stale alpha callback must not render Alice.
     // The beta board shows PUBKEY_A (same entries in this test) but the NAME should
     // not have been set to 'Alice' by the stale alpha callback.
     // The simplest verification: the DOM must not show 'Alice' since no beta resolve fired.
@@ -142,7 +142,7 @@ describe('LeaderboardPanel — stale profile callback guard', () => {
     panel.show('beta')
     expect(scoreCallbacks).toHaveLength(2)
 
-    // Fire the stale alpha score callback — should be a no-op for the beta board.
+    // Fire the stale alpha score callback - should be a no-op for the beta board.
     const betaEntries: LeaderboardEntry[] = [ENTRY_B]
     const alphaStaleBoardEntries: LeaderboardEntry[] = [ENTRY_A]
     scoreCallbacks[1](betaEntries) // legitimate beta update

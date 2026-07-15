@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { RelayStore, type RelayEntry } from '../src/renderer/src/leaderboard/relay-store'
 import type { KeyValueStore } from '../src/renderer/src/leaderboard/cache'
 
-/** Tiny in-memory localStorage stub — same pattern as leaderboard-cache tests. */
+/** Tiny in-memory localStorage stub - same pattern as leaderboard-cache tests. */
 function makeStore(): KeyValueStore & { map: Map<string, string> } {
   const map = new Map<string, string>()
   return {
@@ -109,7 +109,7 @@ describe('RelayStore', () => {
     rs.toggle('wss://nos.lol')
     rs.add('wss://relay.damus.io')
 
-    // Re-load from the same store — should restore mutated state.
+    // Re-load from the same store - should restore mutated state.
     const rs2 = new RelayStore(BASE, store)
     const all: RelayEntry[] = rs2.getAll()
     expect(all.find(e => e.url === 'wss://nos.lol')?.enabled).toBe(false)

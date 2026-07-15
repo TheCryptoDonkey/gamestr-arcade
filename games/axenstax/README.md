@@ -17,7 +17,7 @@ The booth loads `http://localhost:8094` in a kiosk-mode browser frame.
 ## Leaderboard
 
 AxeNStax does not yet publish kind-30762 Nostr events, so the leaderboard panel
-shows an empty state until it does. No action required — the empty state is handled
+shows an empty state until it does. No action required - the empty state is handled
 gracefully by the arcade UI.
 
 ## Mode tiles (future)

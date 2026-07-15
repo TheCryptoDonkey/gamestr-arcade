@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — mock games for browser-only design verification.
+ * gamestr-arcade - mock games for browser-only design verification.
  *
  * Used ONLY when `window.arcade` is undefined (i.e. the renderer is served in a
  * plain browser via Vite, not inside Electron). Lets us screenshot the carousel
@@ -11,7 +11,7 @@ import type { Game } from '../../shared/types'
 
 // Real shipped art, imported as Vite asset URLs so the browser design-preview is
 // representative of the Electron build (which loads these same files over
-// `media://`). Dev-only — this module is never imported on the Electron path.
+// `media://`). Dev-only - this module is never imported on the Electron path.
 import pallasiteLogo from '../../../games/pallasite/logo.png?url'
 import spaceZappersLogo from '../../../games/space-zappers/logo.png?url'
 import spaceZappersHero from '../../../games/space-zappers/hero.png?url'
@@ -76,7 +76,7 @@ function renderMotif(motif: string, accent: string): string {
         .join('')
     case 'grid': {
       const lines: string[] = []
-      // Perspective floor grid receding to a horizon — strong arcade signature.
+      // Perspective floor grid receding to a horizon - strong arcade signature.
       for (let y = 560; y <= 1080; y += 30)
         lines.push(
           `<line x1='0' y1='${y}' x2='1920' y2='${y}' stroke='${accent}' stroke-opacity='${0.06 + (y - 560) / 2600}' stroke-width='2'/>`,
@@ -123,7 +123,7 @@ export const MOCK_GAMES: Game[] = [
   {
     id: 'pallasite',
     name: 'Pallasite',
-    tagline: 'Cosmic arcade Asteroids — mine the belt, top the chain.',
+    tagline: 'Cosmic arcade Asteroids - mine the belt, top the chain.',
     kind: 'web',
     url: 'https://pallasite.app/',
     gameId: 'pallasite',
@@ -136,7 +136,7 @@ export const MOCK_GAMES: Game[] = [
   {
     id: 'space-zappers',
     name: 'Space Zappers',
-    tagline: 'Zap the alien invaders — Space Invaders on Nostr.',
+    tagline: 'Zap the alien invaders - Space Invaders on Nostr.',
     kind: 'web',
     url: 'https://www.spacezappers.com/',
     gameId: 'space-zappers',
@@ -158,7 +158,7 @@ export const MOCK_GAMES: Game[] = [
     accent: '#eab308',
     logo: satsManLogo,
   },
-  // ── Synthetic entries — exercise the remaining paths ────────────────────────
+  // ── Synthetic entries - exercise the remaining paths ────────────────────────
   // A synthetic photographic-style hero (SVG) + logo-less → name-wordmark fallback
   // rendered ON a hero. Confirms the fallback wordmark reads on busy art.
   {
@@ -190,7 +190,7 @@ export const MOCK_GAMES: Game[] = [
   {
     id: 'cosmic-forge',
     name: 'Cosmic Forge',
-    tagline: 'A native desktop epic — grab the build, play it at home.',
+    tagline: 'A native desktop epic - grab the build, play it at home.',
     kind: 'web',
     url: 'https://example.test/cosmic-forge',
     downloadOnly: true,

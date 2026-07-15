@@ -156,7 +156,7 @@ export function createGamestrCatalogue(
   function consider(e: ScoreEvent): void {
     const gameId = scoreGameId(e)
     if (!gameId) return
-    // Store every event (keyed by id) — do NOT collapse to best-per-pubkey here,
+    // Store every event (keyed by id) - do NOT collapse to best-per-pubkey here,
     // or the Today board (period-filtered downstream) would only ever show players
     // whose all-time best happens to be today. boardFor() does period reduction.
     let bucket = index.get(gameId)
@@ -275,7 +275,7 @@ export function createGamestrCatalogue(
 }
 
 /**
- * Per-game provider — used by the panel's `makeProvider` factory API.
+ * Per-game provider - used by the panel's `makeProvider` factory API.
  * Uses a broad REQ (no `#t`) since gamestr.io games tag genres, not game IDs.
  */
 export function createGamestrProvider(
@@ -303,7 +303,7 @@ export function createGamestrProvider(
       // Store EVERY score event for this game, keyed by event id. We deliberately
       // do NOT collapse to best-per-pubkey here: the panel's boardFor() needs each
       // player's best score *within the selected period*. An all-time-best guard
-      // would discard today's lower scores in favour of an older record — so on a
+      // would discard today's lower scores in favour of an older record - so on a
       // global feed the Today board would show only players whose all-time best is
       // today (≈ nobody). boardFor() does period + best-per-pubkey + topN at render.
       const events = new Map<string, LeaderboardEntry>()
@@ -348,7 +348,7 @@ export function createGamestrProvider(
         ws.onopen = () => {
           connected.add(url)
           if (connected.size === 1) opts.onStatus?.('up')
-          // Broad filter — no #t — because gamestr.io games tag genres, not game IDs.
+          // Broad filter - no #t - because gamestr.io games tag genres, not game IDs.
           ws.send(JSON.stringify(['REQ', subId, { kinds: [expectedKind], limit: 500 }]))
         }
 

@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — web-game view preload.
+ * gamestr-arcade - web-game view preload.
  *
  * Injected into the `WebContentsView` that hosts a launched web game. The game
  * view has focus while it runs, so the launcher's renderer can no longer poll
@@ -25,8 +25,8 @@
  *   MENU / 8,9,16   → game:back
  *
  * Security:
- *   - contextIsolation: true — the page cannot reach this code.
- *   - sandbox: true — only Electron's restricted preload APIs are available.
+ *   - contextIsolation: true - the page cannot reach this code.
+ *   - sandbox: true - only Electron's restricted preload APIs are available.
  *   - The NWC URL and ephemeral guest nsec live only in Electron's main process.
  */
 
@@ -36,18 +36,18 @@ import type { GameControls } from '../shared/types'
 // ── Menu-button detector (pure, exported for unit tests) ──────────────────────
 
 /**
- * Gamepad button indices that act as "menu / back" in the Standard Mapping —
+ * Gamepad button indices that act as "menu / back" in the Standard Mapping -
  * a single press of any of these returns to the main menu. We accept several
  * so that whatever a given cabinet/controller labels "menu" just works:
- *   8  — Select / View / Back / Share
- *   9  — Start / Menu / Options
- *   16 — Guide / Home (when the controller exposes it)
+ *   8  - Select / View / Back / Share
+ *   9  - Start / Menu / Options
+ *   16 - Guide / Home (when the controller exposes it)
  */
 export const MENU_BUTTON_INDICES = [8, 9, 16]
 
 /**
  * Rising-edge detector. Fires `true` exactly once when the menu button goes
- * from not-pressed to pressed, then stays silent until released — so a single
+ * from not-pressed to pressed, then stays silent until released - so a single
  * press triggers one exit and holding it doesn't repeat. Pure; no time needed.
  */
 export class MenuPressDetector {
@@ -152,7 +152,7 @@ export function keyInfo(key: string): { code: string; keyCode: number } {
  *
  * Most tokens already equal their key value ('ArrowLeft', 'a'), but the
  * spacebar is the trap: a real spacebar press has `key === ' '` (a single
- * space), NOT 'Space' — that string is the `code`. Games that gate fire on
+ * space), NOT 'Space' - that string is the `code`. Games that gate fire on
  * `e.key === ' '` (Space Zappers does exactly this) never see a synthetic
  * event whose key is 'Space', so the shot never fires. Translate it here while
  * `keyInfo()` still supplies code 'Space' + keyCode 32 for engines that read those.
@@ -164,7 +164,7 @@ export function eventKeyValue(token: string): string {
 /**
  * Synthetic key auto-repeat cadence, matched to the booth's X11 keyboard
  * (`xset q`: auto-repeat delay 500 ms, rate 33/s ≈ 30 ms). A held pad direction
- * therefore repeats exactly like a held keyboard key — essential for step/grid
+ * therefore repeats exactly like a held keyboard key - essential for step/grid
  * games (Snake, blockstr, Word5) that move per keydown and lean on OS key-repeat
  * for continuous motion. Keyboard players already got this; the pad now matches.
  */
@@ -176,8 +176,8 @@ export const KEY_REPEAT_INTERVAL_MS = 30
  *
  * Call `diff(snapshot, controls, now)` once per RAF frame with the current input
  * state + timestamp. Returns the `KeyAction`s to dispatch: a keydown on the
- * rising edge, auto-repeat keydowns (`repeat: true`) while a button is held — at
- * the booth keyboard's cadence — and a keyup on the falling edge.
+ * rising edge, auto-repeat keydowns (`repeat: true`) while a button is held - at
+ * the booth keyboard's cadence - and a keyup on the falling edge.
  */
 export class GamepadKeyTranslator {
   private prev: InputSnapshot = { up: false, down: false, left: false, right: false, fire: false }
@@ -204,17 +204,17 @@ export class GamepadKeyTranslator {
       const wasActive = this.prev[input]
       const isActive  = next[input]
       if (!wasActive && isActive) {
-        // Rising edge — initial keydown, then arm the first repeat after the delay.
+        // Rising edge - initial keydown, then arm the first repeat after the delay.
         actions.push({ type: 'keydown', key: controls[ctrl] })
         this.repeatAt[input] = now + KEY_REPEAT_DELAY_MS
       } else if (wasActive && isActive) {
-        // Held — emit auto-repeat keydowns at the keyboard cadence.
+        // Held - emit auto-repeat keydowns at the keyboard cadence.
         if (now >= this.repeatAt[input]) {
           actions.push({ type: 'keydown', key: controls[ctrl], repeat: true })
           this.repeatAt[input] = now + KEY_REPEAT_INTERVAL_MS
         }
       } else if (wasActive && !isActive) {
-        // Falling edge — keyup.
+        // Falling edge - keyup.
         actions.push({ type: 'keyup', key: controls[ctrl] })
       }
     }
@@ -231,14 +231,14 @@ export const DPAD = { UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 } as const
  * Non-standard-mapping d-pad (HAT) axis indices.
  *
  * When Chromium recognises a controller it exposes the W3C "Standard Mapping"
- * and the d-pad arrives as buttons 12–15. When it does NOT — many third-party
- * (non-Microsoft) "Xbox" pads, or the same pad switched to DirectInput mode —
+ * and the d-pad arrives as buttons 12–15. When it does NOT - many third-party
+ * (non-Microsoft) "Xbox" pads, or the same pad switched to DirectInput mode -
  * `pad.mapping` is "" and the d-pad instead arrives as a HAT carried on two
  * axes: conventionally axes[6] (X: −1 left, +1 right) and axes[7] (Y: −1 up,
  * +1 down), resting at 0 and snapping to ±1.
  *
- * Native (AppImage) games read the HAT themselves via SDL — which is why a
- * non-standard pad still drives "games built for gamepad" — but our keyboard
+ * Native (AppImage) games read the HAT themselves via SDL - which is why a
+ * non-standard pad still drives "games built for gamepad" - but our keyboard
  * translation only watched buttons 12–15, so the d-pad did nothing in keyboard
  * web games (Space Zappers, Sats-Man). `dpadFromHatAxes` closes that gap.
  */
@@ -256,19 +256,19 @@ export const HAT_THRESHOLD = 0.5
  * A *also* drives the virtual-cursor click (see the RAF loop), so pressing A
  * both fires Space and clicks at the cursor. That dual role is intentional and
  * harmless: in-game the click lands on the game canvas, and on the (click-based)
- * menus the Space keypress is a no-op — so binding A to fire gives players the
+ * menus the Space keypress is a no-op - so binding A to fire gives players the
  * natural "bottom button shoots" instinct without breaking mouse-driven menus.
  */
 export const FIRE_BUTTONS = [0, 2] as const
 
-/** Deadzone for the left analogue stick — keyboard snapshot ignores the stick entirely. */
+/** Deadzone for the left analogue stick - keyboard snapshot ignores the stick entirely. */
 export const STICK_DEAD = 0.5
 
 /**
  * Read d-pad directions from a non-standard controller's HAT axes (see HAT_AXIS).
  *
- * Returns all-false for Standard-Mapping pads — their d-pad is buttons 12–15,
- * read separately — so this never interferes with controllers that already work.
+ * Returns all-false for Standard-Mapping pads - their d-pad is buttons 12–15,
+ * read separately - so this never interferes with controllers that already work.
  * Pure; exported for unit tests.
  */
 export function dpadFromHatAxes(pad: Gamepad): InputSnapshot {
@@ -290,7 +290,7 @@ export function dpadFromHatAxes(pad: Gamepad): InputSnapshot {
  * Read movement directions from the LEFT ANALOGUE STICK (axes 0 = X, 1 = Y),
  * past STICK_DEAD. Players reach for the stick to move, so it now drives the same
  * movement keys as the d-pad. It ALSO drives the virtual cursor in the RAF loop
- * (with a smaller deadzone) — the two coexist harmlessly: a movement game ignores
+ * (with a smaller deadzone) - the two coexist harmlessly: a movement game ignores
  * the hidden cursor, a click game ignores the arrows it never binds. A firm push
  * (≥ STICK_DEAD) moves; a gentle nudge (< STICK_DEAD) only aims the cursor.
  * Pure; exported for tests.
@@ -311,7 +311,7 @@ export function stickDirections(pad: Gamepad): InputSnapshot {
  * Build an `InputSnapshot` from a `Gamepad` object.
  *
  * Directions come from the d-pad (Standard-Mapping buttons 12–15 OR the HAT axes
- * of a non-standard pad — see `dpadFromHatAxes`) UNIONED with the left analogue
+ * of a non-standard pad - see `dpadFromHatAxes`) UNIONED with the left analogue
  * stick (see `stickDirections`), so both the d-pad and the stick move the player.
  * Fire = A (index 0) or X (index 2); A additionally drives the cursor click.
  */
@@ -328,7 +328,7 @@ export function snapshotFromGamepad(pad: Gamepad): InputSnapshot {
 }
 
 /**
- * Union two snapshots (used when multiple gamepads are connected — any pad
+ * Union two snapshots (used when multiple gamepads are connected - any pad
  * activating a direction counts).
  */
 export function unionSnapshots(a: InputSnapshot, b: InputSnapshot): InputSnapshot {
@@ -389,15 +389,15 @@ export const SCROLL_SPEED = 1200
 
 /**
  * How long (ms) the virtual pointer stays visible after the left stick was last
- * used. Visibility only — A always clicks at the cursor's spot (and also fires),
+ * used. Visibility only - A always clicks at the cursor's spot (and also fires),
  * so timing never blocks "A to play".
  */
 const CURSOR_ACTIVE_MS = 2000
 
 /**
  * Vertical page-scroll delta when the cursor is pinned at the top/bottom edge
- * and the stick keeps pushing further — so pushing the cursor down scrolls long
- * pages (e.g. Sats-Man). Returns 0 when not at an edge. Pure — exported for tests.
+ * and the stick keeps pushing further - so pushing the cursor down scrolls long
+ * pages (e.g. Sats-Man). Returns 0 when not at an edge. Pure - exported for tests.
  */
 export function edgeScrollDelta(
   cursorY: number,
@@ -414,7 +414,7 @@ export function edgeScrollDelta(
 
 /**
  * Returns true on the first frame that `pressed` is true after being false.
- * Stateless helper — the caller owns the `prev` boolean.
+ * Stateless helper - the caller owns the `prev` boolean.
  *
  * Exported for unit testing.
  */
@@ -439,7 +439,7 @@ function initWebLN(): void {
   }
 
   // contextBridge.exposeInMainWorld is safe to call multiple times with the
-  // same key — Electron throws on duplicate registrations. Guard with a flag
+  // same key - Electron throws on duplicate registrations. Guard with a flag
   // stored on the global object so reloads are handled cleanly.
   if (!(globalThis as Record<string, unknown>).__arcadeWebLNExposed) {
     contextBridge.exposeInMainWorld('webln', weblnApi)
@@ -455,7 +455,7 @@ function initWebLN(): void {
  * and strictly bounds event templates before signing.
  *
  * A fresh key each session keeps booth players distinct on the board. nip04/nip44
- * are intentionally omitted — a kiosk guest never needs to decrypt DMs.
+ * are intentionally omitted - a kiosk guest never needs to decrypt DMs.
  */
 function initGuestNostr(): void {
   if ((globalThis as Record<string, unknown>).__arcadeNostrExposed) return
@@ -471,7 +471,7 @@ function initGuestNostr(): void {
     contextBridge.exposeInMainWorld('nostr', nostrApi)
     ;(globalThis as Record<string, unknown>).__arcadeNostrExposed = true
   } catch (err) {
-    // A real extension / prior expose already owns window.nostr — leave it be.
+    // A real extension / prior expose already owns window.nostr - leave it be.
     console.error(`[arcade] guest nostr: expose skipped (${String(err)})`)
   }
 }
@@ -524,14 +524,14 @@ export function dispatchKey(action: KeyAction): void {
     targets.push(canvas)
   }
 
-  // Embedded games inside an <iframe> — dispatch into its document/window too.
+  // Embedded games inside an <iframe> - dispatch into its document/window too.
   const iframe = document.querySelector('iframe')
   if (iframe) {
     try {
       if (iframe.contentWindow) targets.push(iframe.contentWindow)
       if (iframe.contentDocument) targets.push(iframe.contentDocument)
     } catch {
-      // cross-origin iframe — skip silently
+      // cross-origin iframe - skip silently
     }
   }
 
@@ -553,7 +553,7 @@ export function dispatchKey(action: KeyAction): void {
 /**
  * Inject the virtual cursor element into the page.
  * Returns the element so the RAF loop can update its position.
- * Safe to call multiple times — returns the existing element if already present.
+ * Safe to call multiple times - returns the existing element if already present.
  */
 function injectCursorElement(): HTMLElement {
   const existing = document.getElementById('__arcade_cursor')
@@ -750,7 +750,7 @@ function initGamepadLoop(): void {
       if (el) el.focus()
       window.focus()
     } catch {
-      // Silently ignore — focus is best-effort.
+      // Silently ignore - focus is best-effort.
     }
     console.log(`[gp:web] controls applied; doc-focused=${document.hasFocus()}`)
   })
@@ -808,7 +808,7 @@ function initGamepadLoop(): void {
     // ── Virtual cursor (left stick) ───────────────────────────────────────
     // A plain pointer: the left stick moves it, A clicks exactly where it points.
     // No magnet (so wide buttons can't trap the cursor) and A is never hijacked
-    // from play — A ALSO fires via the keyboard channel (FIRE_BUTTONS), so one A
+    // from play - A ALSO fires via the keyboard channel (FIRE_BUTTONS), so one A
     // press both clicks the cursor's spot AND fires in-game. The pointer shows
     // only for a short window after the stick is used, so d-pad-only play stays
     // clutter-free.
@@ -863,7 +863,7 @@ function initGamepadLoop(): void {
       prevClickPressed = clickPressed
 
     } else {
-      // No gamepad — hide the cursor.
+      // No gamepad - hide the cursor.
       if (cursorEl) {
         moveCursorElement(cursorEl, cursorPos, false)
       }

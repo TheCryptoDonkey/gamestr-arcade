@@ -143,7 +143,7 @@ function makeScoreEvent(
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-describe('createGamestrProvider — reconnect', () => {
+describe('createGamestrProvider - reconnect', () => {
   let clock: ReturnType<typeof makeVirtualTimers>
   let wsFactory: ReturnType<typeof makeMockWsFactory>
 
@@ -247,7 +247,7 @@ describe('createGamestrProvider — reconnect', () => {
 
   it('keeps every score per player (no best-collapse) so Today can reduce', () => {
     // Regression: the provider used to keep only each pubkey's all-time best,
-    // which broke the Today board — a player's older higher score hid today's
+    // which broke the Today board - a player's older higher score hid today's
     // lower one. It must now emit every event; boardFor() does period reduction.
     const provider = createGamestrProvider(['wss://relay.test'], 10)
     const updates: LeaderboardEntry[][] = []
@@ -277,7 +277,7 @@ describe('createGamestrProvider — reconnect', () => {
     // Simulate relay disconnect.
     ws1.triggerClose()
 
-    // A reconnect should be scheduled — not immediate.
+    // A reconnect should be scheduled - not immediate.
     const countBefore = wsFactory.instances.length
     expect(countBefore).toBe(1) // not yet reconnected
 
@@ -308,7 +308,7 @@ describe('createGamestrProvider — reconnect', () => {
     // Pending timers should be cleared.
     expect(clock.pendingCount()).toBeLessThan(timersBefore)
 
-    // Advance well past the reconnect delay — no new socket created.
+    // Advance well past the reconnect delay - no new socket created.
     clock.advance(60_000)
     expect(wsFactory.instances.length).toBe(1)
   })
@@ -342,7 +342,7 @@ describe('createGamestrProvider — reconnect', () => {
     const ws2 = wsFactory.instances[1]
     ws2.triggerOpen()
 
-    // Deliver a score from BOB — ALICE's score must still be in the map.
+    // Deliver a score from BOB - ALICE's score must still be in the map.
     const req2 = JSON.parse(ws2.sentMessages[0]) as [string, string, unknown]
     const subId2 = req2[1]
     ws2.triggerMessage(makeScoreEvent(subId2, GAME_SERVER, BOB, 300, 'game1'))
@@ -363,7 +363,7 @@ describe('createGamestrProvider — reconnect', () => {
     const ws1 = wsFactory.instances[0]
     ws1.triggerOpen()
 
-    // No status yet — connected.
+    // No status yet - connected.
     ws1.triggerClose()
     expect(statusLog).toContain('down')
 
@@ -389,7 +389,7 @@ describe('createGamestrProvider — reconnect', () => {
 
     unsub()
 
-    // Every open socket must be closed — otherwise navigating tiles and
+    // Every open socket must be closed - otherwise navigating tiles and
     // attract-mode auto-advance leak a WebSocket per relay on each change.
     expect(ws1.readyState).toBe(3)
     expect(ws2.readyState).toBe(3)

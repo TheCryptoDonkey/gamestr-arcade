@@ -1,7 +1,7 @@
 {
   "manifestVersion": 2,
   "name": "Space Zappers",
-  "tagline": "Zap the alien invaders — Space Invaders on Nostr",
+  "tagline": "Zap the alien invaders - Space Invaders on Nostr",
   "description": "A fast, Nostr-native alien-blasting arcade challenge.",
   "genres": ["arcade", "shooter"],
   "url": "https://www.spacezappers.com/",

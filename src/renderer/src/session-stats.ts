@@ -1,11 +1,11 @@
 /**
- * gamestr-arcade — local session stats.
+ * gamestr-arcade - local session stats.
  *
  * Records how long and how often each game is actually played at this cabinet
  * (fed from the shell's session timer on return-to-grid). Powers the
  * HOT TONIGHT badge: the game with the most plays inside the recent window.
  *
- * Deliberately device-local (localStorage) — this is booth telemetry for
+ * Deliberately device-local (localStorage) - this is booth telemetry for
  * curation and social proof, not tracking; nothing leaves the machine.
  * Storage and clock are injectable so tests run on a virtual cabinet.
  */
@@ -92,7 +92,7 @@ export function statsFor(gameId: string, deps?: SessionStatsDeps): GameSessionSt
 
 /**
  * The most-played game inside the hot window (ties broken by most recent play),
- * or null when nothing has reached HOT_MIN_PLAYS — a quiet cabinet stays quiet.
+ * or null when nothing has reached HOT_MIN_PLAYS - a quiet cabinet stays quiet.
  */
 export function hottestTonight(deps?: SessionStatsDeps): { gameId: string; plays: number } | null {
   const { storage, now } = resolve(deps)

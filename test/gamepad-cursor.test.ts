@@ -2,8 +2,8 @@
  * Unit tests for the gamepad virtual cursor helpers (src/preload/webgame.ts).
  *
  * Tests the pure, side-effect-free functions:
- *   - nextCursorPos()  — stick-to-pixel movement, clamp, deadzone, speed scaling
- *   - risingEdge()     — edge detector used for A-button click
+ *   - nextCursorPos()  - stick-to-pixel movement, clamp, deadzone, speed scaling
+ *   - risingEdge()     - edge detector used for A-button click
  *
  * What still requires a real gamepad + browser page at the booth (NOT covered):
  *   - dispatchClick() DOM event delivery to a canvas / DOM-button game
@@ -33,9 +33,9 @@ function step(prev: Vec2, stick: [number, number], bounds = BOUNDS): Vec2 {
   return nextCursorPos(prev, stick, 1 / 60, bounds)
 }
 
-// ── nextCursorPos — deadzone ───────────────────────────────────────────────────
+// ── nextCursorPos - deadzone ───────────────────────────────────────────────────
 
-describe('nextCursorPos — deadzone', () => {
+describe('nextCursorPos - deadzone', () => {
   it('stick exactly at zero → no movement', () => {
     const next = step(CENTRE, [0, 0])
     expect(next).toEqual(CENTRE)
@@ -63,9 +63,9 @@ describe('nextCursorPos — deadzone', () => {
   })
 })
 
-// ── nextCursorPos — direction ─────────────────────────────────────────────────
+// ── nextCursorPos - direction ─────────────────────────────────────────────────
 
-describe('nextCursorPos — direction', () => {
+describe('nextCursorPos - direction', () => {
   it('full right stick → cursor moves right', () => {
     const next = step(CENTRE, [1, 0])
     expect(next.x).toBeGreaterThan(CENTRE.x)
@@ -97,9 +97,9 @@ describe('nextCursorPos — direction', () => {
   })
 })
 
-// ── nextCursorPos — speed scaling ─────────────────────────────────────────────
+// ── nextCursorPos - speed scaling ─────────────────────────────────────────────
 
-describe('nextCursorPos — speed scaling', () => {
+describe('nextCursorPos - speed scaling', () => {
   it('full stick for 1 second moves exactly CURSOR_SPEED pixels', () => {
     const next = nextCursorPos(CENTRE, [1, 0], 1, BOUNDS)
     expect(next.x).toBeCloseTo(CENTRE.x + CURSOR_SPEED, 5)
@@ -124,9 +124,9 @@ describe('nextCursorPos — speed scaling', () => {
   })
 })
 
-// ── nextCursorPos — clamping ───────────────────────────────────────────────────
+// ── nextCursorPos - clamping ───────────────────────────────────────────────────
 
-describe('nextCursorPos — edge clamping', () => {
+describe('nextCursorPos - edge clamping', () => {
   it('clamps at right edge (x = bounds.width)', () => {
     const nearRight: Vec2 = { x: BOUNDS.width - 1, y: CENTRE.y }
     const next = step(nearRight, [1, 0])
@@ -171,9 +171,9 @@ describe('nextCursorPos — edge clamping', () => {
   })
 })
 
-// ── nextCursorPos — small bounds ──────────────────────────────────────────────
+// ── nextCursorPos - small bounds ──────────────────────────────────────────────
 
-describe('nextCursorPos — small bounds', () => {
+describe('nextCursorPos - small bounds', () => {
   it('clamps correctly within a 100×100 viewport', () => {
     const tiny: CursorBounds = { width: 100, height: 100 }
     const pos: Vec2 = { x: 50, y: 50 }

@@ -1,9 +1,9 @@
 /**
- * gamestr-arcade — remote art fetch + cache helpers.
+ * gamestr-arcade - remote art fetch + cache helpers.
  *
  * Provides:
- *   - `extractArtUrls` — pure HTML parser: picks hero/logo URLs from og:image, favicons, etc.
- *   - `fetchAndCache`  — fetch a remote image, validate it, and persist it under cacheDir.
+ *   - `extractArtUrls` - pure HTML parser: picks hero/logo URLs from og:image, favicons, etc.
+ *   - `fetchAndCache`  - fetch a remote image, validate it, and persist it under cacheDir.
  */
 
 import { createHash } from 'node:crypto'
@@ -134,7 +134,7 @@ function imageExtension(contentType: string, bytes: Buffer): string | null {
  * failure (bad content-type, network error, non-image bytes, etc.).
  *
  * If a cached file exists and is younger than 24 h the injected `fetchFn` is
- * NOT called — the cached path is returned immediately.
+ * NOT called - the cached path is returned immediately.
  */
 export async function fetchAndCache(
   url: string,

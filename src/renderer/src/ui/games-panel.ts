@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — "add games" operator panel.
+ * gamestr-arcade - "add games" operator panel.
  *
  * A hidden service-menu overlay (operator presses 'g', closes with 'g' or Esc)
  * that lists gamestr.io games the kiosk doesn't have yet and adds them with one
@@ -134,7 +134,7 @@ export class GamesPanel {
     this._open ? this.close() : this.open()
   }
 
-  /** Move the highlighted ADD row — driven by the gamepad d-pad/stick or arrows. */
+  /** Move the highlighted ADD row - driven by the gamepad d-pad/stick or arrows. */
   moveSelection(delta: number): void {
     if (!this._open || this.addableSlugs.length === 0) return
     const n = this.addableSlugs.length
@@ -142,7 +142,7 @@ export class GamesPanel {
     this.render()
   }
 
-  /** Add the highlighted game — driven by gamepad Ⓐ or Enter. */
+  /** Add the highlighted game - driven by gamepad Ⓐ or Enter. */
   activateSelected(): void {
     if (!this._open) return
     const slug = this.addableSlugs[this.selectedIndex]
@@ -252,7 +252,7 @@ export class GamesPanel {
     if (this.selectedIndex >= addable.length) this.selectedIndex = Math.max(0, addable.length - 1)
 
     // Games seen live on the network but absent from the catalogue (no metadata,
-    // so no play URL to launch) — surfaced for awareness, not auto-addable.
+    // so no play URL to launch) - surfaced for awareness, not auto-addable.
     const known = new Set(this.catalogue.map(e => e.slug))
     const orphans = Array.from(this.detected.values())
       .filter(d => !installed.has(d.gameId) && !known.has(d.gameId))
@@ -286,7 +286,7 @@ export class GamesPanel {
         <div class="gp-art" aria-hidden="true"${e.image ? ` style="background-image:url('${esc(e.image)}')"` : ''}></div>
         <div class="gp-meta">
           <div class="gp-name">${esc(e.name)}${badges}</div>
-          <div class="gp-sub">${esc(e.genres.join(' · ') || 'game')} — ${esc(hostOf(e.url))}</div>
+          <div class="gp-sub">${esc(e.genres.join(' · ') || 'game')} - ${esc(hostOf(e.url))}</div>
         </div>
         <button class="gp-add" type="button" aria-label="Add ${esc(e.name)}">ADD</button>
       `
@@ -298,7 +298,7 @@ export class GamesPanel {
     if (orphans.length) {
       const hd = document.createElement('li')
       hd.className = 'gp-section'
-      hd.textContent = 'ON THE NETWORK — NO GAMESTR METADATA'
+      hd.textContent = 'ON THE NETWORK - NO GAMESTR METADATA'
       frag.appendChild(hd)
       for (const d of orphans) {
         const li = document.createElement('li')
@@ -307,10 +307,10 @@ export class GamesPanel {
           <div class="gp-art gp-art-empty" aria-hidden="true"></div>
           <div class="gp-meta">
             <div class="gp-name">${esc(d.gameId)}<span class="gp-badge gp-live">● LIVE</span></div>
-            <div class="gp-sub">${esc(d.genres.join(' · ') || 'unknown')} — no play URL on gamestr</div>
+            <div class="gp-sub">${esc(d.genres.join(' · ') || 'unknown')} - no play URL on gamestr</div>
           </div>
           <button class="gp-add" type="button" disabled title="No catalogue metadata / play URL"
-            aria-label="${esc(d.gameId)} cannot be added without catalogue metadata">—</button>
+            aria-label="${esc(d.gameId)} cannot be added without catalogue metadata">-</button>
         `
         frag.appendChild(li)
       }

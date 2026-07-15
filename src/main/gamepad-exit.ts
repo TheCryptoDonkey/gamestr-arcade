@@ -1,20 +1,20 @@
 /**
- * gamestr-arcade — native-game controller exit watcher.
+ * gamestr-arcade - native-game controller exit watcher.
  *
  * Native AppImage games (e.g. Pallasite) take exclusive X focus, so the
  * launcher's renderer is backgrounded and cannot poll navigator.getGamepads();
  * the web-view preload's gamepad→game:back path only exists for WEB games. That
- * left native games exitable only via the global Escape shortcut — useless on a
+ * left native games exitable only via the global Escape shortcut - useless on a
  * gamepad-only cabinet with no keyboard.
  *
  * This watcher reads the Linux evdev input devices directly from the MAIN
  * process (which stays alive while the native game runs). A plain read does NOT
- * grab the device (no EVIOCGRAB), so the game still receives every event — we
+ * grab the device (no EVIOCGRAB), so the game still receives every event - we
  * only observe. On a press of a "menu" button (View / Menu / Guide) it invokes
  * the supplied callback, which the caller wires to `Launcher.forceBack()`.
  *
  * Linux-only by nature. On any failure (no `/proc/bus/input/devices`, no
- * readable device, parse error) it degrades silently — the global Escape
+ * readable device, parse error) it degrades silently - the global Escape
  * force-back remains the backstop, and on macOS dev it simply watches nothing.
  */
 
@@ -28,12 +28,12 @@ export const EV_KEY = 0x01
 /**
  * Linux gamepad "menu" button codes (include/uapi/linux/input-event-codes.h).
  * These are firmware/driver-independent semantic codes, unlike the joystick
- * API's driver-assigned button numbers — so the same three codes identify the
+ * API's driver-assigned button numbers - so the same three codes identify the
  * View/Menu/Guide buttons across controllers.
  *
- *   BTN_SELECT (314) — View / Back / Share   (≙ Standard-Mapping index 8)
- *   BTN_START  (315) — Menu / Start / Options (≙ Standard-Mapping index 9)
- *   BTN_MODE   (316) — Guide / Home / Xbox     (≙ Standard-Mapping index 16)
+ *   BTN_SELECT (314) - View / Back / Share   (≙ Standard-Mapping index 8)
+ *   BTN_START  (315) - Menu / Start / Options (≙ Standard-Mapping index 9)
+ *   BTN_MODE   (316) - Guide / Home / Xbox     (≙ Standard-Mapping index 16)
  */
 export const BTN_SELECT = 314
 export const BTN_START = 315
@@ -61,7 +61,7 @@ export interface InputEventRecord {
 
 /**
  * Decode whole `input_event` records from a buffer. Any trailing partial record
- * (fewer than INPUT_EVENT_SIZE bytes) is ignored — the caller buffers the
+ * (fewer than INPUT_EVENT_SIZE bytes) is ignored - the caller buffers the
  * remainder and prepends it to the next chunk.
  */
 export function parseInputEvents(buf: Buffer): InputEventRecord[] {
@@ -86,7 +86,7 @@ export function isMenuPress(rec: InputEventRecord): boolean {
 /**
  * Parse `/proc/bus/input/devices` and return the evdev device basenames for
  * gamepads. A device block is a gamepad iff its `H: Handlers=` line contains a
- * `jsN` token — only joysticks expose the joystick interface, so this reliably
+ * `jsN` token - only joysticks expose the joystick interface, so this reliably
  * excludes keyboards and mice. We watch the block's `eventN` handler (evdev),
  * not the `jsN` one, because evdev carries the standard BTN_ codes.
  *
@@ -138,7 +138,7 @@ export class GamepadExitWatcher {
   private streams: ReadableLike[] = []
   private leftovers = new WeakMap<ReadableLike, Buffer>()
   private active = false
-  /** Button codes already logged this session — so each is reported once, not per press. */
+  /** Button codes already logged this session - so each is reported once, not per press. */
   private loggedCodes = new Set<number>()
 
   constructor(deps: ExitWatcherDeps) {

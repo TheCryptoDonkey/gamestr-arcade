@@ -1,5 +1,5 @@
 /* ============================================================================
-   gamestr-arcade — attract mode overlay.
+   gamestr-arcade - attract mode overlay.
 
    Raised after idle. The carousel keeps cycling beneath (visible), with a gentle
    darkening veil and a big blinking "● INSERT COIN ● PRESS START" banner low on
@@ -197,7 +197,7 @@
 .arcade.attract-cinema .topbar-index {
   /* The board's lb-enter animation fills forwards; a filled animation's opacity
      beats any declaration, so it must be cleared for the fade to win. Clearing
-     it also replays the entrance when the chrome returns — a free flourish. */
+     it also replays the entrance when the chrome returns - a free flourish. */
   animation: none;
   opacity: 0;
   pointer-events: none;

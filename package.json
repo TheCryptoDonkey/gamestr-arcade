@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "private": true,
   "type": "module",
-  "description": "Gamestr arcade kiosk — Electron front-end for a self-contained arcade machine.",
+  "description": "Gamestr arcade kiosk - Electron front-end for a self-contained arcade machine.",
   "desktopName": "gamestr-arcade",
   "author": "TheCryptoDonkey",
   "main": "./out/main/index.js",

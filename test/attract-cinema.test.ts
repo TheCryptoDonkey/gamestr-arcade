@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 /**
- * Tests for attract mode v2 — the cinema reel.
+ * Tests for attract mode v2 - the cinema reel.
  *
  * Entering attract must fade the operational chrome (via `attract-cinema` on
  * the shell root), fire the onEnter hook so the shell can seed the scores
@@ -23,7 +23,7 @@ function makeShell(): { root: HTMLElement; anchor: HTMLElement } {
 
 const carousel = { next: vi.fn() }
 
-describe('AttractMode — cinema reel', () => {
+describe('AttractMode - cinema reel', () => {
   it('toggles attract-cinema on the shell root across enter/exit', () => {
     const { root, anchor } = makeShell()
     const attract = new AttractMode(anchor, { timeoutMs: 60_000, carousel })

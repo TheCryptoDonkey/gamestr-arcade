@@ -4,7 +4,7 @@
  *
  * The overlay owns the screen while a web game loads detached in the main
  * process. It must render the game's identity (name, logo, accent, hero),
- * escalate its caption when loading drags on, and tear down cleanly on hide —
+ * escalate its caption when loading drags on, and tear down cleanly on hide -
  * including when a new show() interrupts a previous overlay's exit fade.
  */
 
@@ -55,7 +55,7 @@ describe('LaunchOverlay', () => {
   it('uses the accent fallback backdrop for video-only heroes', () => {
     const host = makeHost()
     const overlay = new LaunchOverlay(host)
-    overlay.show(GAME) // hero is an .mp4 — not usable as a still background
+    overlay.show(GAME) // hero is an .mp4 - not usable as a still background
 
     expect(host.querySelector('.lo-backdrop-fancy')).not.toBeNull()
   })

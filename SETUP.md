@@ -1,4 +1,4 @@
-# gamestr-arcade — Booth Setup
+# gamestr-arcade - Booth Setup
 
 Concise runbook for deploying the arcade kiosk to a booth Linux laptop.
 
@@ -20,7 +20,7 @@ The exact name comes from `electron-builder.yml`:
 artifactName: gamestr-arcade-${version}-${arch}.AppImage
 ```
 
-The resulting AppImage is self-contained — copy it anywhere on the booth laptop.
+The resulting AppImage is self-contained - copy it anywhere on the booth laptop.
 
 ---
 
@@ -54,13 +54,13 @@ working. The canonical JSON Schema is
   "name":    "My Game",                    // display name (default: prettified slug)
   "tagline": "A short one-liner",          // shown under the name on the tile
   "gameId":  "my-game",                    // kind-30762 game tag the leaderboard filters on
-                                           // (default: the folder slug — set explicitly if the
+                                           // (default: the folder slug - set explicitly if the
                                            //  game publishes a different tag)
   "accent":  "#ff6a00",                    // tile accent colour (CSS hex)
   "order":   1,                            // sort order in the grid (default: 999)
   "inputModes": ["gamepad", "keyboard"],
   "controlHints": ["D-PAD = MOVE", "Ⓐ = ACTION"],
-  "tips": "you@walletofsatoshi.com",         // author Lightning address — the post-game
+  "tips": "you@walletofsatoshi.com",         // author Lightning address - the post-game
                                            // zap ask tips YOU instead of the booth
   "developer": "Your Studio",              // named on the zap card when tips is set
   "players": { "min": 1, "max": 1 },
@@ -81,7 +81,7 @@ If both `exec` and `url` are declared, an installed AppImage wins; when the bina
 is missing, the scanner falls back to the web build. An exec-only missing binary
 stays visible as **Not Ready** so the operator gets a useful diagnosis.
 
-`gameId` is the value the leaderboard reads from the `game` tag of kind-30762 events. If a game publishes its scores under a specific tag, set `gameId` to match — otherwise boards will be empty for that tile.
+`gameId` is the value the leaderboard reads from the `game` tag of kind-30762 events. If a game publishes its scores under a specific tag, set `gameId` to match - otherwise boards will be empty for that tile.
 
 ### Logo resolution order
 
@@ -99,7 +99,7 @@ WebP/PNG/JPEG sibling art). The static image remains the lightweight fallback.
 
 ## 3. `arcade.config.json`
 
-Shipped alongside the AppImage (in `resources/`) via `extraResources`. Edit the copy next to the AppImage — no rebuild needed.
+Shipped alongside the AppImage (in `resources/`) via `extraResources`. Edit the copy next to the AppImage - no rebuild needed.
 
 ```jsonc
 {
@@ -121,8 +121,8 @@ Shipped alongside the AppImage (in `resources/`) via `extraResources`. Edit the 
     "maxPaymentsPerMinute": 5
   },
   "donation": {                    // optional post-game "zap the arcade" ask
-    "address": "you@coinos.io",    // RECEIVE-side Lightning address (or LNURL) — shown as a QR
-    "message": "ZAP THE ARCADE — IT KEEPS THE GAMES FREE",  // headline under the title (optional)
+    "address": "you@coinos.io",    // RECEIVE-side Lightning address (or LNURL) - shown as a QR
+    "message": "ZAP THE ARCADE - IT KEEPS THE GAMES FREE",  // headline under the title (optional)
     "minSessionSeconds": 45,       // only ask after a session at least this long
     "showSeconds": 30              // auto-dismiss after this long (any button also dismisses)
   }
@@ -130,7 +130,7 @@ Shipped alongside the AppImage (in `resources/`) via `extraResources`. Edit the 
 ```
 
 The donation card appears when a player returns from a game that lasted at
-least `minSessionSeconds` — one big `lightning:` QR any wallet can scan. It is
+least `minSessionSeconds` - one big `lightning:` QR any wallet can scan. It is
 a receive-only address (safe to display), never touches the `webln` spend
 credentials, and is omitted entirely when the block is absent.
 
@@ -182,7 +182,7 @@ ARCADE_KIOSK=1 ARCADE_GAMES_DIR=/path/to/games /path/to/gamestr-arcade-0.1.0-x86
 
 ```bash
 # If you'll ever START/restart the service over SSH (not from the booth's own
-# graphical login), enable lingering first — otherwise systemd-logind reaps the
+# graphical login), enable lingering first - otherwise systemd-logind reaps the
 # user manager the moment your SSH session closes and the app dies with it:
 loginctl enable-linger "$(whoami)"
 
@@ -191,7 +191,7 @@ systemctl --user daemon-reload
 systemctl --user enable --now gamestr-arcade
 ```
 
-The service uses `Restart=always` with `RestartSec=2` — a one-off crash returns to the game grid within 2 seconds — **capped** by a `StartLimitBurst=4` / `StartLimitIntervalSec=120` guard so a persistently-failing launch can't crash-loop forever (it trips to `failed` after 4 starts in 2 min instead of hammering the machine).
+The service uses `Restart=always` with `RestartSec=2` - a one-off crash returns to the game grid within 2 seconds - **capped** by a `StartLimitBurst=4` / `StartLimitIntervalSec=120` guard so a persistently-failing launch can't crash-loop forever (it trips to `failed` after 4 starts in 2 min instead of hammering the machine).
 
 ### Ubuntu 24.04+ Chromium sandbox
 
@@ -207,7 +207,7 @@ Then run the Wayland override without `--no-sandbox` (the tracked
 `systemd/booth-wayland.conf` already does this). The profile grants `userns` only
 to the launcher paths; it does not disable AppArmor system-wide.
 
-**If the unit is stuck `failed`:** check `systemctl --user status gamestr-arcade`. Once the cause is fixed, clear the limit with `systemctl --user reset-failed gamestr-arcade`. If it core-dumps on *every* launch (SIGTRAP/SIGBUS, often after a burst of earlier crashes), the **GPU driver is wedged** — do a **clean reboot** to reset it. Don't paper over it by forcing software rendering globally; that pins the cabinet to a slideshow.
+**If the unit is stuck `failed`:** check `systemctl --user status gamestr-arcade`. Once the cause is fixed, clear the limit with `systemctl --user reset-failed gamestr-arcade`. If it core-dumps on *every* launch (SIGTRAP/SIGBUS, often after a burst of earlier crashes), the **GPU driver is wedged** - do a **clean reboot** to reset it. Don't paper over it by forcing software rendering globally; that pins the cabinet to a slideshow.
 
 See `systemd/gamestr-arcade.service` for the path placeholders you must update, and for the screen-blanking / DPMS commands to run once in the booth session.
 
@@ -231,8 +231,8 @@ gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout 
 
 | Key       | Action |
 |-----------|--------|
-| `Ctrl+Q`  | Quit the arcade (admin exit — kiosk mode hides the window chrome) |
-| `F5`      | Reload the renderer — rescans the active games folder and reloads non-startup config |
+| `Ctrl+Q`  | Quit the arcade (admin exit - kiosk mode hides the window chrome) |
+| `F5`      | Reload the renderer - rescans the active games folder and reloads non-startup config |
 | `c`       | Toggle the CRT scanline overlay on/off |
 | `m`       | Toggle audio mute on/off |
 
@@ -243,7 +243,7 @@ While a **web game** is running, `Escape` (or the gamepad Back button) returns t
 ## 7. Adding a game at the booth
 
 1. Drop a new folder into the `games/` directory (path set in `ARCADE_GAMES_DIR`).
-2. Press **F5** to reload — the new tile appears immediately.
+2. Press **F5** to reload - the new tile appears immediately.
 
 No restart required.
 

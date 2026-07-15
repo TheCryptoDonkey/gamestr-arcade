@@ -66,7 +66,7 @@ describe('scanGames', () => {
     expect(g!.availabilityReason).toBe('Native game file is missing.')
   })
 
-  it('reads a native tile from game.json.exec (relative path — resolved to folder)', async () => {
+  it('reads a native tile from game.json.exec (relative path - resolved to folder)', async () => {
     const games = await scanGames(DIR)
     const g = games.find(g => g.id === 'exec-relative')
     expect(g).toBeTruthy()
@@ -76,7 +76,7 @@ describe('scanGames', () => {
   })
 
   it('a loose *.AppImage in the folder takes precedence over game.json.exec', async () => {
-    // exec-only has no loose AppImage in its folder — verify it used exec
+    // exec-only has no loose AppImage in its folder - verify it used exec
     // (this is the complement: if there were a loose AppImage it would win)
     const games = await scanGames(DIR)
     const g = games.find(g => g.id === 'exec-only')
@@ -158,7 +158,7 @@ describe('the shipped Pallasite tile', () => {
     expect(pallasite!.gameId).toBe('pallasite')
     expect(pallasite!.order).toBe(1)
     expect(pallasite!.accent).toBe('#7cf3ff')
-    // Author-declared tips address — the post-game zap ask goes to the developer.
+    // Author-declared tips address - the post-game zap ask goes to the developer.
     expect(pallasite!.tips).toBe('profusemeat89@walletofsatoshi.com')
     expect(pallasite!.developer).toBe('The Crypto Donkey')
   })

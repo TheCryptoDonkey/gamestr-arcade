@@ -1,7 +1,7 @@
 /**
  * Unit tests for MenuPressDetector (src/preload/webgame.ts).
  *
- * Pure rising-edge detector — no Electron APIs, no DOM, no gamepad hardware.
+ * Pure rising-edge detector - no Electron APIs, no DOM, no gamepad hardware.
  *
  * What still needs a real gamepad at the booth (NOT covered here):
  *   - Which physical button on the cabinet's controller maps to index 8/9/16.

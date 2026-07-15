@@ -1,7 +1,7 @@
 {
   "manifestVersion": 2,
   "name": "Mempool Breaker",
-  "tagline": "Bitcoin brick-breaker — smash live mempool blocks",
+  "tagline": "Bitcoin brick-breaker - smash live mempool blocks",
   "url": "https://games.noderunners.network/mempoolbreaker/",
   "gameId": "mempool-breaker",
   "order": 21,

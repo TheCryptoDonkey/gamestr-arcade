@@ -1,7 +1,7 @@
 import type { ArcadeConfig, DonationConfig, WebLNConfig } from '../shared/types'
 
 /**
- * Default relay set — kept in sync with Pallasite's `DEFAULT_RELAYS` so the
+ * Default relay set - kept in sync with Pallasite's `DEFAULT_RELAYS` so the
  * arcade leaderboard and the in-game leaderboard read from the same pool.
  *
  * Sourced from `pallasite/src/credits.ts` (do not modify that file).

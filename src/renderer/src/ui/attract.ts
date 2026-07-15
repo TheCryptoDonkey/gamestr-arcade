@@ -1,12 +1,12 @@
 /**
- * gamestr-arcade — attract mode (idle demo loop).
+ * gamestr-arcade - attract mode (idle demo loop).
  *
  * After `timeoutMs` of no input the cabinet enters ATTRACT: it auto-advances the
  * carousel on an interval and raises an "INSERT COIN / PRESS START" overlay.
  * ANY activity exits instantly. Attract is intentionally silent (no audio).
  *
  * The idle/active decision is a tiny pure state machine (`AttractTimer`) with
- * injected timer functions so it is unit-testable with a virtual clock — no real
+ * injected timer functions so it is unit-testable with a virtual clock - no real
  * waits, no DOM. `AttractMode` composes it with the overlay + carousel + audio.
  */
 
@@ -130,7 +130,7 @@ export interface AttractModeOptions {
   /** How often to auto-advance the carousel while in attract (ms). */
   advanceMs?: number
   carousel: AttractCarousel
-  /** Fires each time attract engages — the shell seeds the scores strip here. */
+  /** Fires each time attract engages - the shell seeds the scores strip here. */
   onEnter?: () => void
 }
 
@@ -165,7 +165,7 @@ export class AttractMode {
           <span class="attract-text attract-text-alt">PRESS START</span>
           <span class="attract-bullet">●</span>
         </div>
-        <div class="attract-sub">DEMO MODE — TOUCH ANY CONTROL TO PLAY</div>
+        <div class="attract-sub">DEMO MODE - TOUCH ANY CONTROL TO PLAY</div>
       </div>
     `
     host.appendChild(this.overlay)
@@ -188,7 +188,7 @@ export class AttractMode {
     this.timer.stop()
   }
 
-  /** Wire this to `input.onActivity` — any input resets / exits attract. */
+  /** Wire this to `input.onActivity` - any input resets / exits attract. */
   onActivity = (): void => {
     this.timer.poke()
   }
@@ -206,7 +206,7 @@ export class AttractMode {
   /**
    * Replace the top-scores strip for the game currently on the reel.
    * Rows arrive pre-formatted; labels may be relay-sourced names, so they are
-   * rendered with textContent — never markup. Empty rows hide the strip.
+   * rendered with textContent - never markup. Empty rows hide the strip.
    */
   setScores(rows: AttractScoreRow[]): void {
     this.scoresEl.replaceChildren()
@@ -239,7 +239,7 @@ export class AttractMode {
     // Cinema: fade the operational chrome so the hero reel owns the screen.
     this.cinemaRoot.classList.add('attract-cinema')
     this.enterHook?.()
-    // Attract is silent by design — visuals + marquee only.
+    // Attract is silent by design - visuals + marquee only.
     this.advanceHandle = window.setInterval(() => this.carousel.next(), this.advanceMs)
   }
 

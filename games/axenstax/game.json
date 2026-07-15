@@ -1,7 +1,7 @@
 {
   "manifestVersion": 2,
   "name": "AxeNStax",
-  "tagline": "Mine your Genesis Block — voxel proof-of-work",
+  "tagline": "Mine your Genesis Block - voxel proof-of-work",
   "url": "https://play.axenstax.com/",
   "gameId": "axenstax",
   "order": 2,

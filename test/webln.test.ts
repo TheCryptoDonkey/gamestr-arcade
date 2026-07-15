@@ -1,7 +1,7 @@
 /**
  * Unit tests for the main-process wallet policy and launch-scoped broker.
  *
- * These are pure / side-effect-free — no Electron, no NWC connection, no real
+ * These are pure / side-effect-free - no Electron, no NWC connection, no real
  * Lightning wallet is needed. The test for `bolt11Sats` requires the
  * `light-bolt11-decoder` package, which is a production dependency.
  *

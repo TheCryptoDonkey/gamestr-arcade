@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — game launcher.
+ * gamestr-arcade - game launcher.
  *
  * Handles two launch modes:
  *   - native: chmod the AppImage, spawn it, hide the shell while it runs, restore on exit.
@@ -9,7 +9,7 @@
  * via `LaunchDeps`, so tests on macOS can exercise the full lifecycle without
  * spawning anything or requiring a real BrowserWindow.
  *
- * Native AppImage spawning is [Linux]-only — tests and macOS dev verify the
+ * Native AppImage spawning is [Linux]-only - tests and macOS dev verify the
  * logic path only; actual execution is unverified on macOS.
  */
 
@@ -21,7 +21,7 @@ import type { Game } from '../shared/types'
 export interface SpawnHandle {
   /** Register an exit callback (code is null when the process was killed). */
   onExit(cb: (code: number | null) => void): void
-  /** Register an error callback (e.g. ENOENT — executable not found). */
+  /** Register an error callback (e.g. ENOENT - executable not found). */
   onError(cb: (err: Error) => void): void
   /**
    * Force-terminate the child process.
@@ -58,14 +58,14 @@ export interface LaunchDeps {
 }
 
 /**
- * A native game that exits this soon after launch — and not because WE killed
- * it — is treated as a crash rather than a normal quit.
+ * A native game that exits this soon after launch - and not because WE killed
+ * it - is treated as a crash rather than a normal quit.
  */
 export const NATIVE_CRASH_THRESHOLD_MS = 5000
 /**
  * After a native game crashes on launch, block relaunching THAT game for this
  * long. Stops a held A-button (or impatient retries) from crash-looping the
- * booth — the screen flickering launcher↔crash is what strands the operator.
+ * booth - the screen flickering launcher↔crash is what strands the operator.
  */
 export const NATIVE_CRASH_COOLDOWN_MS = 15000
 
@@ -78,7 +78,7 @@ export const NATIVE_CRASH_COOLDOWN_MS = 15000
  * silently dropped.  This prevents double-launch from a held button press.
  *
  * Error recovery: if spawn fails or the AppImage exits with a non-zero code,
- * the shell is always restored and the renderer is notified — we never leave
+ * the shell is always restored and the renderer is notified - we never leave
  * the window hidden.
  */
 export class Launcher {
@@ -118,7 +118,7 @@ export class Launcher {
     }
 
     // Crash cooldown: if this game just crashed on launch, refuse to relaunch it
-    // for a while so a held button can't loop the booth. Drop silently — the
+    // for a while so a held button can't loop the booth. Drop silently - the
     // crash was already reported once; spamming the error on every press is worse.
     if (game.id === this.crashedGameId && this.deps.now() < this.crashCooldownUntil) {
       return false
@@ -168,7 +168,7 @@ export class Launcher {
   /**
    * Force the current game (web or native) to exit and return to the grid.
    *
-   * - Web game: equivalent to `back()` — closes the WebContentsView immediately.
+   * - Web game: equivalent to `back()` - closes the WebContentsView immediately.
    * - Native game: calls `kill()` on the child handle; the existing `onExit`
    *   handler then calls `showShell` + `notifyReturned` + clears `running`.
    * - No game running: silent no-op.
@@ -184,7 +184,7 @@ export class Launcher {
       this.intentionalExit = true
       this.nativeChild.kill()
     } else {
-      // Web game — use the normal back path.
+      // Web game - use the normal back path.
       this.deps.closeWeb()
       this.deps.showShell()
       this.deps.notifyReturned()
@@ -211,7 +211,7 @@ export class Launcher {
           // An abnormal exit (signal → null, or non-zero) very soon after launch,
           // that WE didn't trigger, is a crash on launch. Report it and start a
           // cooldown so the game can't be relaunched into a flickering loop. A
-          // clean (code 0) quit — or a slow exit — is treated as a normal return.
+          // clean (code 0) quit - or a slow exit - is treated as a normal return.
           const crashed =
             !this.intentionalExit &&
             code !== 0 &&
@@ -220,7 +220,7 @@ export class Launcher {
             this.crashedGameId = game.id
             this.crashCooldownUntil = this.deps.now() + NATIVE_CRASH_COOLDOWN_MS
             this.deps.notifyError(
-              `"${game.name}" crashed on launch — skipping it for now. Try another game.`,
+              `"${game.name}" crashed on launch - skipping it for now. Try another game.`,
             )
           } else {
             this.deps.notifyReturned()

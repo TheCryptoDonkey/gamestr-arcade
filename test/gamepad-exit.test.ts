@@ -2,7 +2,7 @@
  * Unit tests for the native-game controller exit watcher (src/main/gamepad-exit.ts).
  *
  * Pure parsers (parseInputEvents, isMenuPress, parseGamepadEventDevices) and the
- * GamepadExitWatcher with a fake stream — no real /dev/input, no Electron.
+ * GamepadExitWatcher with a fake stream - no real /dev/input, no Electron.
  *
  * What still needs the real booth (NOT covered here):
  *   - The session ACL on /dev/input/eventN actually granting the --user service read access.
@@ -53,7 +53,7 @@ class FakeStream implements ReadableLike {
   }
 }
 
-// Captured from the booth (axenstax@192.168.191.32) — two Xbox controllers,
+// Captured from the booth (axenstax@192.168.191.32) - two Xbox controllers,
 // plus a mouse block (no js handler) that must be excluded.
 const PROC_FIXTURE = `
 N: Name="ImPS/2 Logitech Wheel Mouse"
@@ -185,7 +185,7 @@ describe('GamepadExitWatcher', () => {
     await w.start()
     const record = ev(EV_KEY, BTN_MODE, 1)
     stream.feed(record.subarray(0, 10))
-    expect(fired()).toBe(0)          // partial — nothing yet
+    expect(fired()).toBe(0)          // partial - nothing yet
     stream.feed(record.subarray(10)) // completes the record
     expect(fired()).toBe(1)
   })
@@ -204,7 +204,7 @@ describe('GamepadExitWatcher', () => {
     await w.start()
     w.stop()
     expect(stream.destroyed).toBe(true)
-    stream.feed(ev(EV_KEY, BTN_START, 1)) // arrives after stop — handler still bound, but we asserted destroy
+    stream.feed(ev(EV_KEY, BTN_START, 1)) // arrives after stop - handler still bound, but we asserted destroy
     // The real createReadStream stops emitting after destroy(); the fake can't,
     // so we only assert the destroy happened. (No fire-count guarantee here.)
   })

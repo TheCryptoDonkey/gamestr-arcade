@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { LeaderboardPanel } from '../src/renderer/src/ui/leaderboard-panel'
 import type { LeaderboardProvider, LeaderboardEntry } from '../src/shared/types'
 
-// The panel paints cache-first from localStorage — isolate it per test.
+// The panel paints cache-first from localStorage - isolate it per test.
 beforeEach(() => localStorage.clear())
 
 function makeHost(): HTMLElement {
@@ -30,7 +30,7 @@ const TWO_DAYS = 2 * 24 * 60 * 60
 
 /** An all-time-only entry: scored two days ago, outside any Today window. */
 const OLD_ENTRY: LeaderboardEntry = { pubkey: PUBKEY_A, score: 5000, sats: 0, at: NOW - TWO_DAYS }
-/** A fresh entry scored moments ago — lands on Today. */
+/** A fresh entry scored moments ago - lands on Today. */
 const TODAY_ENTRY: LeaderboardEntry = { pubkey: PUBKEY_B, score: 900, sats: 0, at: NOW }
 
 /** A provider whose update callback is captured for manual firing. */
@@ -52,7 +52,7 @@ function activePeriod(host: HTMLElement): string {
   return active?.dataset.period ?? '(none)'
 }
 
-describe('LeaderboardPanel — empty-Today auto-fallback', () => {
+describe('LeaderboardPanel - empty-Today auto-fallback', () => {
   it('falls back to All Time with a nudge when Today is empty and history exists', () => {
     const host = makeHost()
     const { provider, fire } = capturingProvider()

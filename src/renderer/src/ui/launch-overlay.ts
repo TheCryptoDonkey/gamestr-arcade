@@ -1,13 +1,13 @@
 /**
- * gamestr-arcade — launch interstitial.
+ * gamestr-arcade - launch interstitial.
  *
  * A web game's view stays detached in the main process until it finishes
  * loading (see `loadWeb` in src/main/index.ts). While it loads, this overlay
  * owns the screen: full-bleed hero art, the game's accent, a spinner and an
- * honest caption — so a 20-second game load feels intentional rather than
+ * honest caption - so a 20-second game load feels intentional rather than
  * broken. It is dismissed by `game:web-ready`, `game:returned` or `game:error`.
  *
- * If loading drags on, the caption escalates to point at the Back control —
+ * If loading drags on, the caption escalates to point at the Back control -
  * the player is never trapped (Ⓑ / Esc already route through `game:back`).
  */
 
@@ -58,7 +58,7 @@ export class LaunchOverlay {
         <div class="lo-title">${escapeHtml(game.name)}</div>
         <div class="lo-spinner"></div>
         <div class="lo-sub lo-sub-loading">WARMING UP THE CABINET…</div>
-        <div class="lo-sub lo-sub-slow">STILL LOADING — Ⓑ / ESC GOES BACK TO THE GRID</div>
+        <div class="lo-sub lo-sub-slow">STILL LOADING - Ⓑ / ESC GOES BACK TO THE GRID</div>
       </div>
     `
     // A missing/broken logo simply disappears rather than showing a broken image.

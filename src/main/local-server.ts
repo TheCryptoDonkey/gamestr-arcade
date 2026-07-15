@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — local static server for mirrored web games.
+ * gamestr-arcade - local static server for mirrored web games.
  *
  * Binds to 127.0.0.1 on an ephemeral port and serves a single game's
  * `site/` directory at the server ROOT so single-page apps with client-side
@@ -61,7 +61,7 @@ const ASSET_EXTS = new Set(Object.keys(MIME_TYPES).filter(e => e !== '.html'))
 
 /**
  * Return the MIME type for a file extension (lower-cased), or a safe
- * application/octet-stream fallback. Pure helper — unit-testable without I/O.
+ * application/octet-stream fallback. Pure helper - unit-testable without I/O.
  */
 export function mimeFor(filePath: string): string {
   const ext = extname(filePath).toLowerCase()
@@ -75,10 +75,10 @@ export function mimeFor(filePath: string): string {
  * Strategy: strip leading slashes so `path.join` treats the pathname as a
  * relative segment (never as an absolute-path override), then let `resolve`
  * collapse any `..` sequences. Finally verify the result is still inside
- * `root`. Any attempt to escape the root — via `../`, multiple `../../`, or
- * absolute-path injection — results in a null return.
+ * `root`. Any attempt to escape the root - via `../`, multiple `../../`, or
+ * absolute-path injection - results in a null return.
  *
- * Pure helper — unit-testable without I/O.
+ * Pure helper - unit-testable without I/O.
  */
 export function resolveSafePath(root: string, pathname: string): string | null {
   // Strip leading slashes: path.join('root', '/abs') returns '/abs' on Node,
@@ -225,7 +225,7 @@ async function handleRequest(
       return
     }
 
-    // No root set yet — server is idle between games.
+    // No root set yet - server is idle between games.
     if (!currentRoot) {
       sendText(req, res, 404, '404 Not Found')
       return
@@ -386,7 +386,7 @@ export interface LocalServer {
 /**
  * Start an HTTP server bound to 127.0.0.1 with a swappable document root.
  *
- * Pass `port: 0` (the default) to use an OS-assigned ephemeral port — the
+ * Pass `port: 0` (the default) to use an OS-assigned ephemeral port - the
  * resolved port is returned in the `LocalServer` result. Fixed ports may be
  * passed for deterministic dev setups.
  *
@@ -398,7 +398,7 @@ export interface LocalServer {
 export async function startLocalServer(
   port = 0,
 ): Promise<LocalServer> {
-  // Mutable root — updated atomically (string assignment is synchronous).
+  // Mutable root - updated atomically (string assignment is synchronous).
   let currentRoot: string | null = null
 
   const server = http.createServer((req, res) => {

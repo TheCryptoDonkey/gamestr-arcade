@@ -32,7 +32,7 @@ function capturingProvider(): { provider: LeaderboardProvider; fire: (entries: L
   }
 }
 
-describe('LeaderboardPanel — live record detection', () => {
+describe('LeaderboardPanel - live record detection', () => {
   it('does not fire on the first live update (backlog is not news)', () => {
     const host = makeHost()
     const { provider, fire } = capturingProvider()
@@ -69,14 +69,14 @@ describe('LeaderboardPanel — live record detection', () => {
     panel.show('alpha')
     fire([A])
     panel.show('beta')
-    fire([B])          // first live update for beta — seed, not news
+    fire([B])          // first live update for beta - seed, not news
     expect(onNewTopScore).not.toHaveBeenCalled()
     fire([B, { ...B, pubkey: 'c'.repeat(64), score: 9000 }])
     expect(onNewTopScore).toHaveBeenCalledTimes(1)
     expect(onNewTopScore.mock.calls[0][1]).toBe('beta')
   })
 
-  it('never celebrates a stale-timestamped #1 — relay backlog is not news', () => {
+  it('never celebrates a stale-timestamped #1 - relay backlog is not news', () => {
     const host = makeHost()
     const { provider, fire } = capturingProvider()
     const onNewTopScore = vi.fn()
@@ -84,12 +84,12 @@ describe('LeaderboardPanel — live record detection', () => {
 
     panel.show('alpha')
     fire([A]) // seed
-    // A second relay pages in an old, higher score — a #1 change, but history.
+    // A second relay pages in an old, higher score - a #1 change, but history.
     fire([A, { pubkey: 'd'.repeat(64), score: 9999, sats: 0, at: NOW - 3 * 60 * 60 }])
     expect(onNewTopScore).not.toHaveBeenCalled()
   })
 
-  it('respects ranking direction — a lower time wins on asc boards', () => {
+  it('respects ranking direction - a lower time wins on asc boards', () => {
     const host = makeHost()
     const { provider, fire } = capturingProvider()
     const onNewTopScore = vi.fn()

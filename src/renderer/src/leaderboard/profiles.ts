@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — Nostr profile (kind-0) resolution for the leaderboard.
+ * gamestr-arcade - Nostr profile (kind-0) resolution for the leaderboard.
  *
  * Scores arrive as bare hex pubkeys; this module turns them into a friendly
  * identity WITHOUT ever blocking the score render:
@@ -22,7 +22,7 @@ import { bech32 } from '@scure/base'
 import { isReasonableEventTimestamp } from './gamestr-reduce'
 import type { LeaderboardEntry } from '../../../shared/types'
 
-// ── bech32 (npub) encoding — minimal, npub-only ───────────────────────────────
+// ── bech32 (npub) encoding - minimal, npub-only ───────────────────────────────
 // BIP-173 / NIP-19. Just enough to render `npub1…` from a 32-byte hex pubkey.
 
 const BECH32_ALPHABET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l'
@@ -89,7 +89,7 @@ export function hexToNpub(hex: string): string {
 
 /**
  * A compact, recognisable identity label for an unresolved pubkey:
- * `npub1qy2…w3kx` — keeps the human-memorable head and tail, elides the middle.
+ * `npub1qy2…w3kx` - keeps the human-memorable head and tail, elides the middle.
  * Falls back gracefully for anything that is not a clean 64-hex key.
  */
 export function shortenNpub(pubkey: string, head = 8, tail = 4): string {
@@ -208,7 +208,7 @@ export function sanitisePicture(raw: unknown): string | undefined {
   if (!trimmed || trimmed.length > 2_048) return undefined
   try {
     const url = new URL(trimmed)
-    // Only accept http / https — reject ipfs, data, nostr, etc.
+    // Only accept http / https - reject ipfs, data, nostr, etc.
     return (url.protocol === 'http:' || url.protocol === 'https:') ? url.href : undefined
   } catch {
     return undefined
@@ -278,7 +278,7 @@ function parseProfileContent(content: string): Profile | null {
 /**
  * Maximum concurrent kind-0 WebSocket connections (one per relay, up to this
  * cap). In practice we open one socket per relay, so this caps the relay fan-out
- * during profile resolution — distinct from the score subscription which is
+ * during profile resolution - distinct from the score subscription which is
  * always opened against all relays.
  */
 const MAX_PROFILE_RELAY_CONNECTIONS = 4
@@ -288,7 +288,7 @@ const MAX_PROFILE_RELAY_CONNECTIONS = 4
  *
  * Calls `onResolve(pubkey, profile)` each time a newer kind-0 is seen for a
  * requested author. Returns an unsubscribe that closes the sockets. Designed to
- * be cheap and disposable — call it per board, dispose on the next selection.
+ * be cheap and disposable - call it per board, dispose on the next selection.
  *
  * Hardening:
  *   - Caps concurrent relay connections at `MAX_PROFILE_RELAY_CONNECTIONS`.

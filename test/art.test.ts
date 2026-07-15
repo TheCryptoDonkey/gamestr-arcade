@@ -144,7 +144,7 @@ describe('fetchAndCache', () => {
   })
 
   it('accepts an image despite text/html content-type if magic bytes are valid', async () => {
-    // Some servers send wrong content-type — magic bytes should save it.
+    // Some servers send wrong content-type - magic bytes should save it.
     const cacheDir = await makeTempDir()
     const fetchFn = vi.fn(async (): Promise<FetchResult> => ({
       ok: true, contentType: 'text/html', bytes: pngBytes(),
@@ -181,7 +181,7 @@ describe('fetchAndCache', () => {
     expect(first).toMatch(/\.jpg$/)
     expect(fetchFn).toHaveBeenCalledOnce()
 
-    // Second call — cache should be fresh (just written); fetch should NOT be called again.
+    // Second call - cache should be fresh (just written); fetch should NOT be called again.
     const second = await fetchAndCache(url, cacheDir, fetchFn)
     expect(second).toBe(first)
     expect(fetchFn).toHaveBeenCalledOnce() // still only once

@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — preload script.
+ * gamestr-arcade - preload script.
  *
  * Runs in a sandboxed context before the renderer page loads.
  * Exposes a minimal, typed IPC surface via contextBridge.
@@ -16,7 +16,7 @@ contextBridge.exposeInMainWorld('arcade', {
   gamestrCatalogue: () => ipcRenderer.invoke('gamestr:catalogue'),
   gamestrImport: (slug: string) => ipcRenderer.invoke('gamestr:import', slug),
   onReturn: (cb: () => void) => {
-    // F5 (admin rescan) re-runs the preload — removeAllListeners ensures only
+    // F5 (admin rescan) re-runs the preload - removeAllListeners ensures only
     // one handler survives each reload (prevents stacking across hot-reloads).
     ipcRenderer.removeAllListeners('game:returned')
     ipcRenderer.on('game:returned', () => cb())

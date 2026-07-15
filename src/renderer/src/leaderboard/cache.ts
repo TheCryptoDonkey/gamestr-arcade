@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — last-known leaderboard cache (localStorage).
+ * gamestr-arcade - last-known leaderboard cache (localStorage).
  *
  * The booth should never show an empty board on selection just because the
  * relay round-trip hasn't completed. We persist the most recent top-N per
@@ -85,7 +85,7 @@ export function writeCachedBoard(
   try {
     store.setItem(keyFor(gameId), JSON.stringify(rec))
   } catch {
-    /* quota / disabled storage — caching is best-effort, never fatal */
+    /* quota / disabled storage - caching is best-effort, never fatal */
   }
 }
 

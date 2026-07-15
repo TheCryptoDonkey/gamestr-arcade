@@ -52,7 +52,7 @@ function makeFailDeps(failAt: 'spawn' | 'readFile' | 'writeFile'): { deps: Extra
   return { deps, cleaned }
 }
 
-describe('extractDirIconWithDeps — tmp dir cleanup', () => {
+describe('extractDirIconWithDeps - tmp dir cleanup', () => {
   it('removes the work dir on successful extraction', async () => {
     const { deps, cleaned } = makeSuccessDeps()
     const result = await extractDirIconWithDeps('/game.AppImage', '/cache/game.png', deps)
@@ -88,7 +88,7 @@ describe('extractDirIconWithDeps — tmp dir cleanup', () => {
       spawnExtract: async () => {},
       readlink: async () => { throw new Error('not symlink') },
       readFile: async () => {
-        const buf = Buffer.alloc(8) // all zeros — not a PNG
+        const buf = Buffer.alloc(8) // all zeros - not a PNG
         return buf
       },
       writeFile: async () => {},

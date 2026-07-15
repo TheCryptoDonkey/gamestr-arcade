@@ -2,7 +2,7 @@
 /**
  * Tests for the post-game donation ask: config parsing bounds and the
  * DonationPanel's show/dismiss/auto-hide behaviour. The session-length gate
- * lives in the shell (main.ts) — here we prove the pieces it composes.
+ * lives in the shell (main.ts) - here we prove the pieces it composes.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
@@ -23,7 +23,7 @@ const GAME: Game = {
 
 const CFG: DonationConfig = { address: 'booth@coinos.io', showSeconds: 30 }
 
-describe('parseConfig — donation block', () => {
+describe('parseConfig - donation block', () => {
   it('is absent by default and rejected without a usable address', () => {
     expect(parseConfig({}).donation).toBeUndefined()
     expect(parseConfig({ donation: {} }).donation).toBeUndefined()

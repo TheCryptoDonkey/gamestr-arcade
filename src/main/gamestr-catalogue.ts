@@ -1,8 +1,8 @@
 /**
- * gamestr.io catalogue — fetch + parse.
+ * gamestr.io catalogue - fetch + parse.
  *
  * gamestr.io has no game-registry API and publishes nothing about its catalogue
- * to Nostr (scores only — see the detector). The catalogue (name, art, genres,
+ * to Nostr (scores only - see the detector). The catalogue (name, art, genres,
  * and crucially the external PLAY URL for each game) is hardcoded in its
  * frontend JS bundle. This module fetches that bundle and extracts the
  * catalogue so the arcade can offer one-tap "add this gamestr game".
@@ -32,7 +32,7 @@ function absImage(src: string | undefined): string | undefined {
   return GAMESTR_ORIGIN + (src.startsWith('/') ? src : '/' + src)
 }
 
-/** Minimal JS string-literal unescape — the bundle uses \" \\ \/ \n and \uXXXX. */
+/** Minimal JS string-literal unescape - the bundle uses \" \\ \/ \n and \uXXXX. */
 function unescapeJs(s: string): string {
   return s
     .replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)))
@@ -86,7 +86,7 @@ function genresField(body: string): string[] {
 }
 
 /** Build an entry from an object-literal body. Requires name + url (a play
- *  URL is the whole point — entries without one are not addable). */
+ *  URL is the whole point - entries without one are not addable). */
 function entryFrom(slug: string, body: string): GamestrCatalogueEntry | null {
   const name = strField(body, 'name')
   const url = strField(body, 'url')
@@ -114,7 +114,7 @@ function entryFrom(slug: string, body: string): GamestrCatalogueEntry | null {
 export function parseGamestrCatalogue(js: string): GamestrCatalogueEntry[] {
   const out = new Map<string, GamestrCatalogueEntry>()
 
-  // Shape 1 — "<prefix>:<slug>":{ … }. The quoted key has a colon; shape-2 keys
+  // Shape 1 - "<prefix>:<slug>":{ … }. The quoted key has a colon; shape-2 keys
   // are bare identifiers, so the two passes never collide.
   const keyRe = /"[^"]*?:([a-z0-9][a-z0-9-]*)":(?=\{)/g
   let m: RegExpExecArray | null
@@ -126,7 +126,7 @@ export function parseGamestrCatalogue(js: string): GamestrCatalogueEntry[] {
     if (e) out.set(m[1], e)
   }
 
-  // Shape 2 — <slug>:{scoreField:…,scoreDirection:…,metadata:{ … }}. These are
+  // Shape 2 - <slug>:{scoreField:…,scoreDirection:…,metadata:{ … }}. These are
   // Other Stuff (otherstuff.ai) games scored via kind 5555, whose "score" is a
   // game-specific tag (e.g. word5 → streak). The outer object carries that
   // mapping; we capture it so the arcade's board reads the right field.
@@ -166,11 +166,11 @@ export interface CatalogueDeps {
 }
 
 const HOMEPAGE = GAMESTR_ORIGIN + '/'
-// Bundle filename carries a content hash that changes per deploy — discover it
+// Bundle filename carries a content hash that changes per deploy - discover it
 // from the homepage rather than hard-coding it.
 const BUNDLE_RE = /assets\/index-[A-Za-z0-9_-]+\.js/
 
-const DEFAULT_MAX_AGE_MS = 6 * 60 * 60 * 1000 // 6h — booths refresh a few times a day
+const DEFAULT_MAX_AGE_MS = 6 * 60 * 60 * 1000 // 6h - booths refresh a few times a day
 
 /**
  * Return the gamestr catalogue, preferring a fresh-enough cache, then a live

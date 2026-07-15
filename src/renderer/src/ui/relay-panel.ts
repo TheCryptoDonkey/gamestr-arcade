@@ -1,8 +1,8 @@
 /**
- * gamestr-arcade — relay admin panel.
+ * gamestr-arcade - relay admin panel.
  *
  * A hidden service-menu overlay opened by the operator pressing 'r' (and closed
- * by 'r' or Esc). Aesthetically: a CRT diagnostic terminal — phosphor neon on
+ * by 'r' or Esc). Aesthetically: a CRT diagnostic terminal - phosphor neon on
  * deep navy, monospace type, scanline texture, glowing borders. Deliberately
  * compact and functional; not over-built.
  *
@@ -99,7 +99,7 @@ export class RelayPanel {
       if (e.key === 'r' || e.key === 'R') e.stopPropagation()
     })
     this.inputEl.addEventListener('keyup', e => {
-      // Prevent 'r' keyup from toggling the panel — only suppress that key.
+      // Prevent 'r' keyup from toggling the panel - only suppress that key.
       if (e.key === 'r' || e.key === 'R') e.stopPropagation()
     })
 

@@ -49,8 +49,8 @@ export interface Game {
   localSite?: boolean   // true when url points to the local mirror server
   localRoot?: string    // absolute path to the game's site/ dir (set when localSite is true)
   // Download-only games can't be played in the kiosk (no embeddable web build).
-  // They're kept in the carousel for showcase — greyed-out with a DOWNLOAD ONLY
-  // ribbon — and pressing play opens a QR panel pointing at `downloadUrl` (or `url`)
+  // They're kept in the carousel for showcase - greyed-out with a DOWNLOAD ONLY
+  // ribbon - and pressing play opens a QR panel pointing at `downloadUrl` (or `url`)
   // so a visitor can grab the game on their own device.
   downloadOnly?: boolean
   downloadUrl?: string  // QR target for a download-only game; falls back to `url`
@@ -90,7 +90,7 @@ export interface Game {
   scoreKind?: number              // 30762 (default) or 5555
   scoreField?: string             // tag holding the score (5555 only; default 'score')
   scoreDir?: 'asc' | 'desc'       // ranking direction (default 'desc' = higher wins)
-  // gamestr editorial flags (populated at runtime from the catalogue, by slug) —
+  // gamestr editorial flags (populated at runtime from the catalogue, by slug) -
   // surfaced as TRENDING / NEW badges on the carousel.
   trending?: boolean
   newRelease?: boolean
@@ -130,7 +130,7 @@ export interface LeaderboardProvider {
 }
 
 /**
- * A game in gamestr.io's catalogue (extracted from its frontend bundle — there
+ * A game in gamestr.io's catalogue (extracted from its frontend bundle - there
  * is no registry API). `url` is the external play URL; `image` is absolute.
  */
 export interface GamestrCatalogueEntry {
@@ -144,7 +144,7 @@ export interface GamestrCatalogueEntry {
   featured?: boolean
   trending?: boolean
   newRelease?: boolean
-  // Scoring config (kind 5555 games only) — see Game.scoreKind/scoreField/scoreDir.
+  // Scoring config (kind 5555 games only) - see Game.scoreKind/scoreField/scoreDir.
   scoreKind?: number
   scoreField?: string
   scoreDir?: 'asc' | 'desc'
@@ -169,7 +169,7 @@ export interface GamestrImportResult {
 }
 
 export interface WebLNConfig {
-  /** NWC connection string — e.g. `nostr+walletconnect://...` */
+  /** NWC connection string - e.g. `nostr+walletconnect://...` */
   nwc: string
   /**
    * Maximum payment amount in satoshis the kiosk will auto-pay without
@@ -197,13 +197,13 @@ export interface ArcadeConfig {
     | { provider: 'gamestr'; relays: string[]; topN: number }
   /**
    * Optional booth Lightning wallet for auto-paying WebLN-paywalled games.
-   * When absent the kiosk does not inject `window.webln` — games fall back to
+   * When absent the kiosk does not inject `window.webln` - games fall back to
    * their own QR / payment flow.
    */
   webln?: WebLNConfig
   /**
    * Optional post-game donation ask. `address` is a RECEIVE-side Lightning
-   * address (or LNURL) rendered as a QR — safe to expose to the renderer,
+   * address (or LNURL) rendered as a QR - safe to expose to the renderer,
    * unlike the webln spend credentials. When absent, no ask is ever shown.
    */
   donation?: DonationConfig
@@ -212,7 +212,7 @@ export interface ArcadeConfig {
 export interface DonationConfig {
   address: string
   message?: string
-  /** Only ask after a session at least this long (default 45 s) — never beg after a bounce. */
+  /** Only ask after a session at least this long (default 45 s) - never beg after a bounce. */
   minSessionSeconds?: number
   /** Auto-dismiss after this long (default 30 s). */
   showSeconds?: number

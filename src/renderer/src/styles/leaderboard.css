@@ -1,5 +1,5 @@
 /* ============================================================================
-   gamestr-arcade — live leaderboard panel.
+   gamestr-arcade - live leaderboard panel.
 
    The right-hand cabinet board. Deliberately mirrors the carousel's language:
    deep-navy glass, per-game --accent theming, Chakra Petch display + Azeret
@@ -38,7 +38,7 @@
   min-height: 0;
   padding: 1.4rem 1.4rem 1.1rem;
   border: 1px solid color-mix(in srgb, var(--accent) 32%, rgba(126, 138, 166, 0.16));
-  /* Clipped top-right corner — the "machined panel" tell, echoing the brand mark. */
+  /* Clipped top-right corner - the "machined panel" tell, echoing the brand mark. */
   border-radius: 1rem;
   clip-path: polygon(0 0, calc(100% - 1.4rem) 0, 100% 1.4rem, 100% 100%, 0 100%);
   background:
@@ -51,7 +51,7 @@
     0 24px 60px rgba(0, 0, 0, 0.5),
     0 0 40px color-mix(in srgb, var(--accent) 18%, transparent);
 }
-/* A bright accent seam down the leading (left) edge — energy spilling in. */
+/* A bright accent seam down the leading (left) edge - energy spilling in. */
 .lb-frame::before {
   content: '';
   position: absolute;
@@ -86,7 +86,7 @@
   text-shadow: 0 0 22px var(--accent-soft);
 }
 
-/* Animated equaliser bars — a tiny "signal is live" motif beside the title. */
+/* Animated equaliser bars - a tiny "signal is live" motif beside the title. */
 .lb-bars {
   display: inline-flex;
   align-items: flex-end;

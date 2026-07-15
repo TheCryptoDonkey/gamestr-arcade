@@ -39,7 +39,7 @@ function virtualTimers() {
   return { fns, advance, pendingCount: () => pending.size }
 }
 
-describe('AttractTimer — web game pause/resume', () => {
+describe('AttractTimer - web game pause/resume', () => {
   it('stop() while idle prevents attract from entering', () => {
     const clock = virtualTimers()
     const onEnter = vi.fn()
@@ -47,7 +47,7 @@ describe('AttractTimer — web game pause/resume', () => {
     const timer = new AttractTimer({ timeoutMs: 1000, onEnter, onExit, timers: clock.fns })
 
     timer.start()
-    // Simulate web game launching — attract must stop.
+    // Simulate web game launching - attract must stop.
     timer.stop()
 
     // Even well past the timeout, onEnter must not fire.
@@ -82,7 +82,7 @@ describe('AttractTimer — web game pause/resume', () => {
     clock.advance(5000) // time passes while game plays
     expect(onEnter).not.toHaveBeenCalled()
 
-    // Game returns — resume attract watching.
+    // Game returns - resume attract watching.
     timer.start()
     clock.advance(1000) // idle for the full timeout
     expect(onEnter).toHaveBeenCalledTimes(1)

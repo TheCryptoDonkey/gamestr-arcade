@@ -1,7 +1,7 @@
 {
   "manifestVersion": 2,
   "name": "The Rabbit Hole",
-  "tagline": "Arcade shooter — ← → move, SPACE to shoot",
+  "tagline": "Arcade shooter - ← → move, SPACE to shoot",
   "url": "https://games.noderunners.network/spaceinvaders2/",
   "gameId": "the-rabbit-hole",
   "order": 20,

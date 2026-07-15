@@ -3,7 +3,7 @@ import { bech32 } from '@scure/base'
 import { ProfileCache, PROFILE_TTL_MS } from '../src/renderer/src/leaderboard/profile-cache'
 import type { KeyValueStore } from '../src/renderer/src/leaderboard/cache'
 
-/** In-memory localStorage stub — same pattern as other cache tests. */
+/** In-memory localStorage stub - same pattern as other cache tests. */
 function makeStore(): KeyValueStore & { map: Map<string, string> } {
   const map = new Map<string, string>()
   return {
@@ -48,7 +48,7 @@ describe('ProfileCache', () => {
     const cache = new ProfileCache(store, () => now)
 
     cache.set(PK, { name: 'alice' })
-    // Delete the localStorage entry — the memo should still serve it.
+    // Delete the localStorage entry - the memo should still serve it.
     store.map.clear()
     expect(cache.get(PK)).toEqual({ name: 'alice' })
   })
@@ -83,10 +83,10 @@ describe('ProfileCache', () => {
     let now = 1_000_000
     // Write via one cache instance.
     new ProfileCache(store, () => now).set(PK, { name: 'alice' })
-    // Load via a fresh cache instance — first get reads localStorage.
+    // Load via a fresh cache instance - first get reads localStorage.
     const cache2 = new ProfileCache(store, () => now)
     cache2.get(PK) // triggers localStorage read + memo warm
-    // Clear localStorage — the memo should now serve it.
+    // Clear localStorage - the memo should now serve it.
     store.map.clear()
     expect(cache2.get(PK)).toEqual({ name: 'alice' })
   })

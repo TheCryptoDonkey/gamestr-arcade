@@ -1,5 +1,5 @@
 /* ============================================================================
-   gamestr-arcade — hero carousel theme + layout.
+   gamestr-arcade - hero carousel theme + layout.
 
    Aesthetic: a premium arcade cabinet "attract/select" screen. Deep-space navy
    base, electric cyan/magenta neon, condensed display type. Every game themes
@@ -7,7 +7,7 @@
    overlay (the .crt-anchor seam) added by a later task.
    ============================================================================ */
 
-/* ── Self-hosted fonts (offline kiosk — no runtime CDN) ─────────────────────── */
+/* ── Self-hosted fonts (offline kiosk - no runtime CDN) ─────────────────────── */
 @font-face {
   font-family: 'Chakra Petch';
   font-weight: 500;
@@ -67,7 +67,7 @@
   font-family: var(--display);
   -webkit-font-smoothing: antialiased;
   user-select: none;
-  cursor: none; /* arcade cabinet — no pointer */
+  cursor: none; /* arcade cabinet - no pointer */
 }
 
 /* The shell is made focusable (tabindex=-1) so keyboard input works the instant
@@ -121,7 +121,7 @@
 }
 
 /* Orbital-rings motif, right-of-centre (kept clear of the leaderboard panel that
-   occupies the far right) — the abstract "subject" of a hero-less tile. */
+   occupies the far right) - the abstract "subject" of a hero-less tile. */
 .hero-fancy::before {
   content: '';
   position: absolute;
@@ -138,7 +138,7 @@
   transform-origin: 60% 44%;
 }
 
-/* A broad aurora sweep that breathes — gives the flat backdrop living depth. */
+/* A broad aurora sweep that breathes - gives the flat backdrop living depth. */
 .hero-fancy::after {
   content: '';
   position: absolute;
@@ -198,7 +198,7 @@
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
 }
 
-/* A hairline accent sweep along the very top — the "powered cabinet" tell. */
+/* A hairline accent sweep along the very top - the "powered cabinet" tell. */
 .stage::before {
   content: '';
   position: absolute;
@@ -321,13 +321,13 @@
   }
 }
 
-/* ── Logo-on-left — the headline element ──────────────────────────────────────
+/* ── Logo-on-left - the headline element ──────────────────────────────────────
    The per-game logo is the hero of the left column. The slot is tagged at load
    from the analysed *content* aspect + transparency (see renderLogo):
-     .is-square  a medallion/icon — sized by HEIGHT, capped width;
-     .is-wide    a wordmark — sized by WIDTH, capped height;
-     .is-bare    a transparent cut-out — composited with a glow (+ plinth if square);
-     .is-plated  an opaque-background logo — framed as a deliberate cartridge plate.
+     .is-square  a medallion/icon - sized by HEIGHT, capped width;
+     .is-wide    a wordmark - sized by WIDTH, capped height;
+     .is-bare    a transparent cut-out - composited with a glow (+ plinth if square);
+     .is-plated  an opaque-background logo - framed as a deliberate cartridge plate.
    `object-fit: contain` preserves aspect within whichever cap binds, so a logo is
    never stretched. A name-wordmark fallback covers logo-less games. */
 .logo-slot {
@@ -346,7 +346,7 @@
 
 /* Square medallion / icon: size by height, cap width so it can't sprawl. */
 .has-logo.is-square .logo-img,
-/* default before aspect is measured — assume square so there's no resize flash */
+/* default before aspect is measured - assume square so there's no resize flash */
 .has-logo:not(.is-wide):not(.is-square) .logo-img {
   height: clamp(9.5rem, 29vh, 17rem);
   width: auto;
@@ -370,7 +370,7 @@
 /* A bare square icon also gets a soft circular accent plinth so it doesn't float
    in the void and the accent bleeds into the negative space on the left. */
 .has-logo.is-bare.is-square::before,
-/* default (pre-analysis) assumes a bare square — harmless, removed if plated. */
+/* default (pre-analysis) assumes a bare square - harmless, removed if plated. */
 .has-logo:not(.is-plated):not(.is-wide)::before {
   content: '';
   position: absolute;
@@ -396,7 +396,7 @@
    as a deliberate "cartridge plate": rounded, inset, with an accent rim + glow so
    it reads as a designed badge. The image is clipped to the rounded plate. */
 .has-logo.is-plated {
-  /* Hug the artwork — a block-level slot would drag the plate across the column. */
+  /* Hug the artwork - a block-level slot would drag the plate across the column. */
   width: fit-content;
   padding: clamp(0.85rem, 1.5vh, 1.25rem);
   border-radius: 1.25rem;
@@ -416,7 +416,7 @@
   border-radius: 0.78rem;
   object-position: center;
 }
-/* A thin accent hairline along the plate top — the "powered" tell, echoing the
+/* A thin accent hairline along the plate top - the "powered" tell, echoing the
    cabinet's top sweep. */
 .has-logo.is-plated::after {
   content: '';
@@ -431,7 +431,7 @@
   pointer-events: none;
 }
 
-/* Text-wordmark fallback — oversized condensed neon (logo-less games). */
+/* Text-wordmark fallback - oversized condensed neon (logo-less games). */
 .logo-word {
   display: block;
   font-family: var(--display);
@@ -767,7 +767,7 @@
   line-height: 1.2;
 }
 
-/* Shared palette — amber TRENDING, accent-cyan NEW, ember HOT TONIGHT. */
+/* Shared palette - amber TRENDING, accent-cyan NEW, ember HOT TONIGHT. */
 .badge-trend { color: #05070f; background: #ffb347; }
 .badge-new {
   color: #05070f;
@@ -784,7 +784,7 @@
    carousel for showcase, but their artwork is desaturated + dimmed and a
    DOWNLOAD ONLY ribbon is shown. Pressing play opens a QR panel (see main.ts).
    The grey is scoped to the ARTWORK (hero + logo + tile art) so the rest of the
-   frame — kicker, CTA, leaderboard — keeps the game's live accent. */
+   frame - kicker, CTA, leaderboard - keeps the game's live accent. */
 .is-download-only .stage .hero-layer {
   filter: grayscale(0.85) brightness(0.78) contrast(0.96);
 }
@@ -793,7 +793,7 @@
   opacity: 0.9;
 }
 
-/* Showcase ribbon — a bold amber tag with a download glyph, sitting above the
+/* Showcase ribbon - a bold amber tag with a download glyph, sitting above the
    logo. Folded-corner tail (::before) gives it a ribbon read. */
 .download-ribbon {
   display: inline-flex;

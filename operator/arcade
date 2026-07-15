@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Gamestr Arcade — simple control helper for the booth operator.
+# Gamestr Arcade - simple control helper for the booth operator.
 #
 #   arcade start     # start the arcade (if it isn't already running)
 #   arcade stop      # stop it (returns to the desktop)
@@ -7,7 +7,7 @@
 #   arcade status    # is it running? when did it start?
 #   arcade logs      # live log stream (Ctrl+C to stop watching)
 #
-# The arcade also starts on its own every time the machine boots — you only
+# The arcade also starts on its own every time the machine boots - you only
 # need these if you've quit it (Ctrl+Q) or want to restart it.
 
 set -euo pipefail
@@ -15,7 +15,7 @@ unit=gamestr-arcade
 
 case "${1:-}" in
   start)   systemctl --user start   "$unit" && echo "▶ Arcade starting…" ;;
-  stop)    systemctl --user stop    "$unit" && echo "■ Arcade stopped — you're back at the desktop." ;;
+  stop)    systemctl --user stop    "$unit" && echo "■ Arcade stopped - you're back at the desktop." ;;
   restart) systemctl --user restart "$unit" && echo "↻ Arcade restarting…" ;;
   status)  systemctl --user status  "$unit" --no-pager ;;
   logs)    journalctl --user -u "$unit" -f ;;

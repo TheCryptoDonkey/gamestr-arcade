@@ -166,7 +166,7 @@ async function build(
   // game.json optional art URLs.
   const logoUrl: string | undefined = meta?.logoUrl
   const heroUrl: string | undefined = meta?.heroUrl
-  // The game's web URL — used for page-derived art (og:image, favicons).
+  // The game's web URL - used for page-derived art (og:image, favicons).
   const gameUrl: string | undefined = launch.kind === 'web' ? launch.url : meta?.url
 
   const gameId = meta?.gameId ?? slug
@@ -193,7 +193,7 @@ async function build(
     gameId,
     tHints: meta?.tHints,
     // `textLogo: true` opts out of icon art entirely so the shell renders its neon
-    // text wordmark (and the filmstrip a monogram) — used for games whose only art
+    // text wordmark (and the filmstrip a monogram) - used for games whose only art
     // is a backdrop, not a clean cut-out logo.
     logo: meta?.textLogo === true ? '' : await resolveLogo({ slug, appImagePath, siblingLogo, logoUrl, gameUrl }),
     hero,
@@ -207,7 +207,7 @@ async function build(
     controls: meta?.controls ?? undefined,
     manifestVersion: Number.isSafeInteger(manifestVersion) && manifestVersion > 0 ? manifestVersion : undefined,
     developer: typeof meta?.developer === 'string' ? meta.developer.trim() || undefined : undefined,
-    // Author-declared Lightning address — the post-game zap ask tips the game's
+    // Author-declared Lightning address - the post-game zap ask tips the game's
     // developer directly, falling back to the booth's own donation address.
     tips: typeof meta?.tips === 'string' && meta.tips.trim().length >= 6 ? meta.tips.trim() : undefined,
     description: typeof meta?.description === 'string' ? meta.description.trim() || undefined : undefined,

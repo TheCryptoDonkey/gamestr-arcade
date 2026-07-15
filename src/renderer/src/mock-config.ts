@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — mock config for browser-only design verification.
+ * gamestr-arcade - mock config for browser-only design verification.
  *
  * Used ONLY when `window.arcade` is undefined (renderer served in a plain
  * browser via Vite, not inside Electron). Mirrors the shape of the real

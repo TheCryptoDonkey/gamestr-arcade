@@ -1,12 +1,12 @@
 /**
  * Unit tests for the virtual-cursor maths (src/preload/webgame.ts):
- *   - edgeScrollDelta — cursor-driven page scroll at the top/bottom edge
+ *   - edgeScrollDelta - cursor-driven page scroll at the top/bottom edge
  *
  * The magnetic snap-to-button was removed: it repeatedly hijacked the A button
  * (fire vs click) and trapped the cursor on wide buttons. The cursor is now a
- * plain pointer — stick moves it, A clicks where it points and also fires.
+ * plain pointer - stick moves it, A clicks where it points and also fires.
  *
- * Pure function only — no DOM, no gamepad, no Electron.
+ * Pure function only - no DOM, no gamepad, no Electron.
  */
 
 import { describe, it, expect } from 'vitest'

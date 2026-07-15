@@ -150,9 +150,9 @@ function routeShell(shell: string, title: string, description: string, path: str
 async function prerenderRoutes(games: WebGame[]): Promise<void> {
   const shell = await readFile(join(outDir, 'index.html'), 'utf8')
   const routes: Array<{ path: string; title: string; description: string; image?: string }> = [
-    { path: '/scores', title: `Verified scores — ${edition.titleSuffix}`, description: `Live cryptographically verified Nostr leaderboards across the ${edition.titleSuffix}.` },
+    { path: '/scores', title: `Verified scores - ${edition.titleSuffix}`, description: `Live cryptographically verified Nostr leaderboards across the ${edition.titleSuffix}.` },
     { path: '/developers', title: 'Build for Gamestr', description: 'Validate, sign, and publish a sovereign Nostr game for web players and physical cabinets.' },
-    ...games.map(game => ({ path: `/game/${game.slug}`, title: `${game.name} — ${edition.titleSuffix}`, description: game.description ?? game.tagline, image: game.hero })),
+    ...games.map(game => ({ path: `/game/${game.slug}`, title: `${game.name} - ${edition.titleSuffix}`, description: game.description ?? game.tagline, image: game.hero })),
   ]
   for (const route of routes) {
     const directory = join(outDir, route.path.slice(1))

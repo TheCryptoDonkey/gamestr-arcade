@@ -37,7 +37,7 @@ for (const game of catalogue) {
   }
   if (!Array.isArray(game.genres) || game.genres.length === 0) fail(`${game.slug} needs genres`)
   const routeHtml = await read(`game/${game.slug}/index.html`).catch(() => fail(`prerendered game route is missing: ${game.slug}`))
-  if (!routeHtml.includes(`${webOrigin}/game/${game.slug}/`) || !routeHtml.includes(`<title>${game.name} — ${edition.titleSuffix}</title>`)) fail(`game route metadata is invalid: ${game.slug}`)
+  if (!routeHtml.includes(`${webOrigin}/game/${game.slug}/`) || !routeHtml.includes(`<title>${game.name} - ${edition.titleSuffix}</title>`)) fail(`game route metadata is invalid: ${game.slug}`)
 }
 if (!catalogue.some(game => game.featured) || !catalogue.some(game => game.trending) || !catalogue.some(game => game.newRelease)) {
   fail('editorial featured, trending, and new collections must all be populated')

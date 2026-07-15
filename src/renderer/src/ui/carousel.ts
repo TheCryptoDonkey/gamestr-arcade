@@ -1,11 +1,11 @@
 /**
- * gamestr-arcade — hero carousel (DOM + GSAP render layer).
+ * gamestr-arcade - hero carousel (DOM + GSAP render layer).
  *
  * The centrepiece "attract/select" screen: the selected game fills the screen as
  * a full-bleed cinematic hero, with an oversized logo, tagline and a pulsing
  * "press to play" prompt, over a filmstrip of neighbours and page dots.
  *
- * Composition: this class owns the DOM and motion only — the selection cursor
+ * Composition: this class owns the DOM and motion only - the selection cursor
  * lives in the pure `CarouselModel` so the navigation logic stays unit-testable.
  *
  * Motion is GSAP-driven (cross-fade + slide + logo pop + parallax) and honours
@@ -27,7 +27,7 @@ export interface CarouselOptions {
 /**
  * How many neighbours to show either side of the active tile in the filmstrip.
  * Capped at runtime so a small library (e.g. 5 games) never shows duplicate
- * tiles from wrap-around — the strip shows each game at most once.
+ * tiles from wrap-around - the strip shows each game at most once.
  */
 const FILMSTRIP_RADIUS = 3
 
@@ -35,7 +35,7 @@ const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').match
 
 /** Result of analysing a logo bitmap for the logo-on-left treatment. */
 interface LogoInfo {
-  /** URL to render — the trimmed data-URL for a padded cut-out, else the original. */
+  /** URL to render - the trimmed data-URL for a padded cut-out, else the original. */
   url: string
   /** Content aspect ratio (width / height) used for the wide-vs-square decision. */
   ratio: number
@@ -43,7 +43,7 @@ interface LogoInfo {
   transparent: boolean
 }
 
-/** Badges to surface for a game — editorial (TRENDING / NEW) + local heat. */
+/** Badges to surface for a game - editorial (TRENDING / NEW) + local heat. */
 function gameBadges(game: Game): Array<{ label: string; cls: string }> {
   const out: Array<{ label: string; cls: string }> = []
   if (game.hotTonight) out.push({ label: 'HOT TONIGHT', cls: 'badge-hot' })
@@ -63,7 +63,7 @@ function monogram(name: string): string {
  * Build the accent-derived "fancy" backdrop used when a game has no clean hero
  * (or opts out, like Pallasite whose og-image clashes with logo-on-left).
  *
- * This is a *premium* neon backdrop — not a flat fill — so a logo-on-left tile
+ * This is a *premium* neon backdrop - not a flat fill - so a logo-on-left tile
  * looks great with no photographic hero. Layers, back-to-front:
  *   1. deep diagonal space base (navy → near-black)
  *   2. a broad accent aurora bloom on the RIGHT (balances the logo on the left)
@@ -76,7 +76,7 @@ function monogram(name: string): string {
  */
 function gradientHero(accent: string): string {
   return [
-    // Right-weighted aurora bloom — the focal "where a hero render would sit".
+    // Right-weighted aurora bloom - the focal "where a hero render would sit".
     `radial-gradient(72% 96% at 70% 40%, ${accent}55 0%, ${accent}26 24%, transparent 58%)`,
     // Low-right accent wash for floor glow.
     `radial-gradient(95% 85% at 88% 106%, ${accent}3a 0%, transparent 56%)`,
@@ -143,9 +143,9 @@ export class Carousel {
   /**
    * Cache of analysed logos keyed by source URL. Logos are shipped in two awkward
    * shapes we must normalise for a clean logo-on-left:
-   *   - artwork centred in transparent padding (a wide wordmark in a square PNG) —
+   *   - artwork centred in transparent padding (a wide wordmark in a square PNG) -
    *     natural aspect lies about the shape, so we trim to the opaque bounds;
-   *   - an *opaque* (usually dark) background plate rather than a cut-out — which
+   *   - an *opaque* (usually dark) background plate rather than a cut-out - which
    *     would otherwise read as an ugly rectangle floating on the backdrop.
    * We analyse once and reuse. `null` = analysis failed (e.g. tainted canvas) →
    * fall back to the raw image + natural aspect + bare treatment.
@@ -202,7 +202,7 @@ export class Carousel {
 
   /**
    * Re-render the current game in place (no animation).
-   * Called when returning from a web game — the overlay is gone but the carousel
+   * Called when returning from a web game - the overlay is gone but the carousel
    * DOM is intact; this ensures the hero and content are freshly painted.
    */
   refocus(): void {
@@ -307,7 +307,7 @@ export class Carousel {
         void video.play().catch(() => { /* first interaction or next repaint retries */ })
       } else {
         // Clean photographic hero: use it as the full-bleed background. The logo
-        // still renders on the left (handled in renderLogo) — hero + logo coexist.
+        // still renders on the left (handled in renderLogo) - hero + logo coexist.
         layer.style.backgroundImage = `url("${game.hero}")`
       }
     } else {
@@ -326,12 +326,12 @@ export class Carousel {
    * Render the foreground logo/wordmark slot for a game.
    *
    * Logo-on-left is the headline element. We support both shapes of art:
-   *   - a *square* icon/medallion (e.g. Pallasite's crystal) — sized by height and
+   *   - a *square* icon/medallion (e.g. Pallasite's crystal) - sized by height and
    *     given a subtle plinth so it reads as a crisp badge, not a floating sticker;
-   *   - a *wide* wordmark (e.g. Sats-Man) — allowed to run wider, sized by width.
+   *   - a *wide* wordmark (e.g. Sats-Man) - allowed to run wider, sized by width.
    *
    * Shape is decided from the *content* aspect (after trimming transparent padding,
-   * since logos are often a wide wordmark centred on a square canvas — see
+   * since logos are often a wide wordmark centred on a square canvas - see
    * `loadTrimmedLogo`). With a logo image present the redundant H1 name is hidden.
    *
    * Falls back to a styled neon *name wordmark* when a game has no logo.
@@ -368,7 +368,7 @@ export class Carousel {
         if (info && img.getAttribute('src') !== info.url) img.src = info.url
       })
     } else {
-      // Stylised text wordmark fallback — oversized condensed neon.
+      // Stylised text wordmark fallback - oversized condensed neon.
       this.logoEl.classList.add('has-word')
       this.logoEl.classList.remove('has-logo', 'is-wide', 'is-square')
       const span = document.createElement('span')
@@ -399,7 +399,7 @@ export class Carousel {
     this.host.style.setProperty('--accent-glow', accent + '88')
 
     // Download-only games stay on show but greyed-out, with a ribbon + a "get it"
-    // call-to-action (pressing play opens the QR panel — see main.ts). The grey is
+    // call-to-action (pressing play opens the QR panel - see main.ts). The grey is
     // scoped in CSS to the artwork (hero + logo), not the whole frame.
     const downloadOnly = !!game.downloadOnly
     this.host.classList.toggle('is-download-only', downloadOnly)
@@ -437,7 +437,7 @@ export class Carousel {
     this.updateDots(index)
   }
 
-  /** First paint — no animation, everything in place. */
+  /** First paint - no animation, everything in place. */
   private renderImmediate(game: Game, index: number): void {
     this.paintHero(this.activeHero, game)
     this.activeHero.style.opacity = '1'
@@ -546,7 +546,7 @@ export class Carousel {
       cap.textContent = game.name
       tile.appendChild(cap)
 
-      // LOCAL badge — shown when the game is served from the local mirror server.
+      // LOCAL badge - shown when the game is served from the local mirror server.
       if (game.localSite) {
         const badge = document.createElement('span')
         badge.className = 'tile-local-badge'
@@ -555,7 +555,7 @@ export class Carousel {
         tile.appendChild(badge)
       }
 
-      // Download-only badge — a download glyph chip (top-right; a download-only
+      // Download-only badge - a download glyph chip (top-right; a download-only
       // game never has a local mirror, so it can't collide with the LOCAL badge).
       if (game.downloadOnly) {
         const badge = document.createElement('span')
@@ -645,8 +645,8 @@ export class Carousel {
  *
  * Logos arrive in two awkward shapes. (1) A wide wordmark (or compact icon) centred
  * on a square canvas with transparent margins, so the *canvas* aspect lies about the
- * *art* shape — we scan the alpha channel for the opaque bounding box and crop to it.
- * (2) An *opaque* (usually dark) background plate rather than a cut-out — we detect
+ * *art* shape - we scan the alpha channel for the opaque bounding box and crop to it.
+ * (2) An *opaque* (usually dark) background plate rather than a cut-out - we detect
  * this from the transparent-pixel fraction so the caller can frame it as a deliberate
  * "cartridge plate" instead of letting a raw rectangle float on the backdrop.
  *
@@ -697,7 +697,7 @@ async function analyseLogo(src: string): Promise<LogoInfo> {
   const cw = right - left + 1
   const ch = bottom - top + 1
   // Only crop when there's real transparent padding to remove AND the logo is a
-  // cut-out — never crop into an opaque plate (its bbox is the whole canvas anyway).
+  // cut-out - never crop into an opaque plate (its bbox is the whole canvas anyway).
   const padded = cw < w * 0.98 || ch < h * 0.98
   if (!transparent || !padded) {
     return { url: src, ratio: transparent ? cw / ch : w / h, transparent }

@@ -111,7 +111,7 @@ export interface ExtractDirIconDeps {
  * Returns `true` on success, `false` on any failure.
  *
  * The work directory is ALWAYS removed in a `finally` block whether or not
- * extraction succeeds — preventing the ~100 MB squashfs-root leak on every run.
+ * extraction succeeds - preventing the ~100 MB squashfs-root leak on every run.
  */
 export async function extractDirIconWithDeps(
   appImagePath: string,

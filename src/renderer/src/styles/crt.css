@@ -1,9 +1,9 @@
 /* ============================================================================
-   gamestr-arcade — CRT overlay.
+   gamestr-arcade - CRT overlay.
 
    A toggleable arcade-monitor layer over the whole cabinet: scanlines, aperture
    grille, tube vignette and a faint flicker + slow scan-roll. Deliberately
-   restrained — hairline lines and low opacity so neon text stays crisp. Mounted
+   restrained - hairline lines and low opacity so neon text stays crisp. Mounted
    last inside `.crt-anchor`, above the hero, showcase and leaderboard.
    ============================================================================ */
 
@@ -28,7 +28,7 @@
   inset: 0;
 }
 
-/* Horizontal scanlines — a 3px cycle (1px dark gap) kept very subtle. */
+/* Horizontal scanlines - a 3px cycle (1px dark gap) kept very subtle. */
 .crt-scanlines {
   background: repeating-linear-gradient(
     to bottom,
@@ -40,7 +40,7 @@
   opacity: 0.55;
 }
 
-/* Vertical aperture-grille tint — faint RGB stripes for "phosphor" colour. */
+/* Vertical aperture-grille tint - faint RGB stripes for "phosphor" colour. */
 .crt-grille {
   background: repeating-linear-gradient(
     to right,
@@ -53,7 +53,7 @@
   opacity: 0.5;
 }
 
-/* Tube vignette — darkened, slightly bulged corners. */
+/* Tube vignette - darkened, slightly bulged corners. */
 .crt-vignette {
   background: radial-gradient(120% 120% at 50% 50%, rgba(0, 0, 0, 0) 58%, rgba(0, 0, 0, 0.55) 100%);
   box-shadow:
@@ -61,7 +61,7 @@
     inset 0 0 30px rgba(0, 0, 0, 0.4);
 }
 
-/* Faint global flicker — tiny brightness wobble, very low amplitude. */
+/* Faint global flicker - tiny brightness wobble, very low amplitude. */
 .crt-flicker {
   background: rgba(126, 243, 255, 0.015);
   mix-blend-mode: screen;
@@ -79,7 +79,7 @@
   }
 }
 
-/* Slow bright scan-roll sweeping down the screen — the classic CRT refresh band. */
+/* Slow bright scan-roll sweeping down the screen - the classic CRT refresh band. */
 .crt-roll {
   background: linear-gradient(
     to bottom,

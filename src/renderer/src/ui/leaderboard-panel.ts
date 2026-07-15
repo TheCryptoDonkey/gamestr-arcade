@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — live leaderboard panel (right-side cabinet board).
+ * gamestr-arcade - live leaderboard panel (right-side cabinet board).
  *
  * Deliberately mounted on the RIGHT to balance the left-heavy hero showcase and
  * fill the empty right third of the frame. Styled as part of the same cabinet:
@@ -33,7 +33,7 @@ export interface LeaderboardPanelOptions {
    * allowing the provider to drive the LIVE indicator independently of score updates.
    */
   makeProvider: (relays: string[], onStatus?: (s: 'up' | 'down') => void) => LeaderboardProvider
-  /** Profile resolver — swappable so browser mode can no-op or mock it. */
+  /** Profile resolver - swappable so browser mode can no-op or mock it. */
   resolve?: typeof resolveProfiles
   /** Pre-seeded profile cache (24h TTL). Defaults to a fresh instance. */
   profileCache?: ProfileCache
@@ -44,7 +44,7 @@ export interface LeaderboardPanelOptions {
   topN?: number
   /**
    * Fires when a LIVE update dethrones the all-time #1 the panel had already
-   * seen live for the current game — i.e. a record witnessed as it happens,
+   * seen live for the current game - i.e. a record witnessed as it happens,
    * never the initial page-in of history after a game switch.
    */
   onNewTopScore?: (entry: LeaderboardEntry, gameId: string) => void
@@ -55,7 +55,7 @@ type ConnState = 'live' | 'reconnecting'
 /** A "new record" must have been scored this recently to be celebrated. */
 export const RECORD_FRESHNESS_SEC = 10 * 60
 
-/** Format a score with thin-space grouping (e.g. 184 320) — condensed, arcade. */
+/** Format a score with thin-space grouping (e.g. 184 320) - condensed, arcade. */
 export function formatScore(n: number): string {
   return Math.trunc(n)
     .toString()
@@ -85,11 +85,11 @@ export class LeaderboardPanel {
   private unsubscribeProfiles: (() => void) | null = null
   private entries: LeaderboardEntry[] = []
   private readonly profiles = new Map<string, Profile>()
-  /** 24h persistent cache — shared across all game selections in the session. */
+  /** 24h persistent cache - shared across all game selections in the session. */
   private readonly profileCache: ProfileCache
   private gotLive = false
   private period: Period = 'today'
-  /** True once the player explicitly picks a period — auto-fallback then stands down. */
+  /** True once the player explicitly picks a period - auto-fallback then stands down. */
   private periodPinned = false
   /** True while the panel is showing All Time only because Today was empty. */
   private autoFellBack = false
@@ -302,7 +302,7 @@ export class LeaderboardPanel {
   /**
    * Fire `onNewTopScore` when the all-time #1 changes across live updates.
    * The first live update after a game switch only SEEDS the baseline, and the
-   * new #1 must carry a fresh timestamp — relays racing to page in backlog on a
+   * new #1 must carry a fresh timestamp - relays racing to page in backlog on a
    * cold boot deliver multiple "live" updates, and old history must never read
    * as fireworks no matter how it arrives.
    */
@@ -328,14 +328,14 @@ export class LeaderboardPanel {
 
   /**
    * Keep the board alive at a fresh booth: with no scores today and no explicit
-   * player choice, show All Time rather than an empty panel — and snap back to
+   * player choice, show All Time rather than an empty panel - and snap back to
    * Today the moment a today score lands.
    */
   private applyAutoPeriod(): void {
     if (this.periodPinned) return
     const now = Math.floor(Date.now() / 1000)
     if (this.autoFellBack && this.period === 'all') {
-      // Snap back when a today score lands — or when live data withdraws the
+      // Snap back when a today score lands - or when live data withdraws the
       // all-time history that justified the fallback in the first place.
       const today = boardFor(this.rawEntries, 'today', this.topN, now, this.boardDir())
       if (today.length > 0 || this.entries.length === 0) {
@@ -402,7 +402,7 @@ export class LeaderboardPanel {
     if (this.autoFellBack) {
       const nudge = document.createElement('li')
       nudge.className = 'lb-nudge'
-      nudge.innerHTML = `<span class="lb-nudge-star">★</span> TODAY IS WIDE OPEN — BE THE FIRST`
+      nudge.innerHTML = `<span class="lb-nudge-star">★</span> TODAY IS WIDE OPEN - BE THE FIRST`
       frag.appendChild(nudge)
     }
     this.listEl.replaceChildren(frag)

@@ -109,7 +109,7 @@ describe('buildGamesList', () => {
   it('rewrites hero path to media:// URL when present', async () => {
     const games = await buildGamesList(FIXTURES_DIR, FAKE_CACHE)
     const neon = games.find(g => g.id === 'neon')
-    // neon fixture has no hero.png — hero should be undefined or media:// if present
+    // neon fixture has no hero.png - hero should be undefined or media:// if present
     if (neon!.hero !== undefined) {
       expect(neon!.hero).toMatch(/^media:\/\/local\//)
     }

@@ -6,13 +6,13 @@
  * in-game keyboard translation in src/preload/webgame.ts). Both booths use an
  * official Xbox pad, but they enumerate differently:
  *
- *   • .32 booth      — Chromium gives it the W3C Standard Mapping; the d-pad is
+ *   • .32 booth      - Chromium gives it the W3C Standard Mapping; the d-pad is
  *                      buttons 12–15 and `pad.mapping === 'standard'`.
- *   • bitfest-1      — its pad's connection lands OUTSIDE the mapping table, so
+ *   • bitfest-1      - its pad's connection lands OUTSIDE the mapping table, so
  *                      `pad.mapping === ''` and the d-pad is a HAT on axes 6/7.
  *
  * The menu must navigate on BOTH pads, horizontally AND vertically, from the
- * d-pad OR the analogue stick — and the HAT path must stay gated behind the
+ * d-pad OR the analogue stick - and the HAT path must stay gated behind the
  * non-standard mapping so it can never disturb a pad that already works. These
  * tests lock all of that in so it can't silently regress.
  *
@@ -38,7 +38,7 @@ import {
  * Build a fake Gamepad. Defaults to the Standard Mapping; pass `mapping: ''` for
  * a non-standard pad. The d-pad HAT always lives on axes[6] (X) / axes[7] (Y)
  * and the left stick on axes[0] (X) / axes[1] (Y), so the same builder exercises
- * both code paths — the resolver decides which axes to honour from `mapping`.
+ * both code paths - the resolver decides which axes to honour from `mapping`.
  */
 function fakePad(opts: {
   mapping?: GamepadMappingType
@@ -54,7 +54,7 @@ function fakePad(opts: {
     touched: pressed.has(i),
     value:   pressed.has(i) ? 1 : 0,
   }))
-  // LX, LY, LT, RX, RY, RT, HAT0X, HAT0Y — stick on 0/1, d-pad HAT on 6/7.
+  // LX, LY, LT, RX, RY, RT, HAT0X, HAT0Y - stick on 0/1, d-pad HAT on 6/7.
   const axes = [sx, sy, 0, 0, 0, 0, hx, hy]
   return {
     id:        opts.mapping === '' ? 'Fake Non-Standard Pad' : 'Fake Standard Pad',
@@ -107,7 +107,7 @@ describe('isEditableTarget', () => {
 // ── Standard-Mapping pad: d-pad buttons ──────────────────────────────────────
 // The .32 booth. D-pad is buttons 12–15; the stick is axes 0/1.
 
-describe('directionFromGamepad — standard pad, d-pad buttons', () => {
+describe('directionFromGamepad - standard pad, d-pad buttons', () => {
   it('d-pad left (button 14) → prev', () => {
     expect(directionFromGamepad(fakePad({ pressed: [DPAD.LEFT] }))).toBe(PREV)
   })
@@ -131,7 +131,7 @@ describe('directionFromGamepad — standard pad, d-pad buttons', () => {
 
 // ── Standard-Mapping pad: analogue stick (both axes) ─────────────────────────
 
-describe('directionFromGamepad — standard pad, analogue stick', () => {
+describe('directionFromGamepad - standard pad, analogue stick', () => {
   it('stick left (axes[0] = −1) → prev', () => {
     expect(directionFromGamepad(fakePad({ stick: [-1, 0] }))).toBe(PREV)
   })
@@ -159,8 +159,8 @@ describe('directionFromGamepad — standard pad, analogue stick', () => {
 // ── Non-standard pad: d-pad on the HAT axes ──────────────────────────────────
 // bitfest-1's pad. D-pad is a HAT on axes 6/7; mapping is "".
 
-describe('directionFromGamepad — non-standard pad, d-pad HAT axes', () => {
-  it('HAT x = −1 (axes[6]) → prev — the bitfest-1 menu regression', () => {
+describe('directionFromGamepad - non-standard pad, d-pad HAT axes', () => {
+  it('HAT x = −1 (axes[6]) → prev - the bitfest-1 menu regression', () => {
     expect(directionFromGamepad(fakePad({ mapping: '', hat: [-1, 0] }))).toBe(PREV)
   })
 
@@ -196,7 +196,7 @@ describe('directionFromGamepad — non-standard pad, d-pad HAT axes', () => {
 // and those same axis indices may carry a trigger/stick), while a non-standard
 // pad must.
 
-describe('directionFromGamepad — mapping gates the HAT (detect between pads)', () => {
+describe('directionFromGamepad - mapping gates the HAT (detect between pads)', () => {
   it('standard pad with HAT axes deflected → ignored (none)', () => {
     expect(directionFromGamepad(fakePad({ mapping: 'standard', hat: [-1, 0] }))).toBe(NONE)
     expect(directionFromGamepad(fakePad({ mapping: 'standard', hat: [0, 1] }))).toBe(NONE)
@@ -215,9 +215,9 @@ describe('directionFromGamepad — mapping gates the HAT (detect between pads)',
 
 // ── Precedence ───────────────────────────────────────────────────────────────
 
-describe('directionFromGamepad — precedence & merging', () => {
+describe('directionFromGamepad - precedence & merging', () => {
   it('prev wins when prev and next are both asserted', () => {
-    // Left (prev) and right (next) at once — prev takes precedence, matching the
+    // Left (prev) and right (next) at once - prev takes precedence, matching the
     // original left-before-right ordering.
     expect(directionFromGamepad(fakePad({ pressed: [DPAD.LEFT, DPAD.RIGHT] }))).toBe(PREV)
   })
@@ -234,10 +234,10 @@ describe('directionFromGamepad — precedence & merging', () => {
 // ── Multiple pads ──────────────────────────────────────────────────────────────
 // The bitfest-1 regression: the booth enumerates TWO identical Xbox pads and the
 // menu read only the FIRST, so when Chromium indexed the idle pad first the
-// player's controller did nothing — while the in-game loop (which reads every
+// player's controller did nothing - while the in-game loop (which reads every
 // pad) worked fine. directionFromGamepads must respond to whichever pad is live.
 
-describe('directionFromGamepads — reads every connected pad', () => {
+describe('directionFromGamepads - reads every connected pad', () => {
   // A realistically idle pad: small resting drift (like js1's −0.07 / −0.02),
   // well within the deadzone, so it contributes no direction.
   const idle = (): Gamepad => fakePad({ mapping: '', stick: [-0.07, -0.02], hat: [0, 0] })

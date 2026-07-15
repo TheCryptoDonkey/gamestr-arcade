@@ -1,4 +1,4 @@
-# gamestr-arcade.service — user systemd unit for the booth kiosk.
+# gamestr-arcade.service - user systemd unit for the booth kiosk.
 #
 # Install:
 #   cp systemd/gamestr-arcade.service ~/.config/systemd/user/gamestr-arcade.service
@@ -29,7 +29,7 @@
 # A WEDGED GPU is not a software bug: a burst of crashes can leave the GPU
 # driver in a state where the app core-dumps on every launch (SIGTRAP/SIGBUS),
 # and it survives an unclean reboot. If the unit hits its StartLimit (below) and
-# stays failed, do a CLEAN reboot — that resets the GPU context. Do NOT "fix" it
+# stays failed, do a CLEAN reboot - that resets the GPU context. Do NOT "fix" it
 # by forcing software rendering globally (it pins the cabinet to a slideshow).
 
 [Unit]
@@ -39,15 +39,15 @@ PartOf=graphical-session.target
 
 # Crash-loop guard. Restart=always (below) self-heals a one-off crash, but
 # without a cap a persistently-failing launch (e.g. a wedged GPU) would restart
-# forever every RestartSec — hammering the GPU and masking the real fault. With
+# forever every RestartSec - hammering the GPU and masking the real fault. With
 # this cap, >4 starts in 120 s trips the unit into a `failed` state so it STOPS
 # and surfaces the problem (check `systemctl --user status gamestr-arcade`).
-# NOTE: StartLimit* are [Unit] directives, not [Service] — a common gotcha.
+# NOTE: StartLimit* are [Unit] directives, not [Service] - a common gotcha.
 StartLimitIntervalSec=120
 StartLimitBurst=4
 
 [Service]
-# ── PATH — stable filename; deploy.sh always ships to this exact path ────────
+# ── PATH - stable filename; deploy.sh always ships to this exact path ────────
 ExecStart=%h/gamestr-arcade.AppImage
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -55,7 +55,7 @@ Environment=ARCADE_GAMES_DIR=%h/gamestr-games
 
 Environment=ARCADE_KIOSK=1
 
-# Crash recovery: restart within 2 s — booth never shows a black screen on a
+# Crash recovery: restart within 2 s - booth never shows a black screen on a
 # one-off crash. The StartLimit cap in [Unit] stops a runaway crash-loop after
 # 4 attempts in 120 s (recover with: `systemctl --user reset-failed
 # gamestr-arcade` once the cause is fixed, or a clean reboot for a wedged GPU).
@@ -67,7 +67,7 @@ TimeoutStopSec=10
 
 # Booth display: the kiosk must target the booth's X session. Started from the
 # booth's own graphical login DISPLAY is inherited; (re)started over SSH it is
-# NOT — so pin it. The booth runs X on :0 (same as Pallasite's deploy uses).
+# NOT - so pin it. The booth runs X on :0 (same as Pallasite's deploy uses).
 Environment=DISPLAY=:0
 Environment=XAUTHORITY=%h/.Xauthority
 

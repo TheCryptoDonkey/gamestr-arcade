@@ -51,7 +51,7 @@ interface FakeDepsState {
   chmodPaths: string[]
   spawnedExecs: string[]
   killCount: number
-  /** Mutable fake clock (ms) backing deps.now() — advance it to test cooldowns. */
+  /** Mutable fake clock (ms) backing deps.now() - advance it to test cooldowns. */
   clock: number
   // Control: call these from outside to simulate child events.
   simulateExit: (code: number | null) => void
@@ -103,13 +103,13 @@ function makeFakeDeps(): { deps: LaunchDeps; state: FakeDepsState } {
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-describe('Launcher — native AppImage', () => {
+describe('Launcher - native AppImage', () => {
   it('chmodExec then spawns and hides the shell', async () => {
     const { deps, state } = makeFakeDeps()
     const launcher = new Launcher(deps)
 
     launcher.launch(makeNativeGame())
-    // chmodExec is async — wait a microtask tick for the promise chain to run.
+    // chmodExec is async - wait a microtask tick for the promise chain to run.
     await Promise.resolve()
 
     expect(state.chmodPaths).toContain('/games/test.AppImage')
@@ -201,7 +201,7 @@ describe('Launcher — native AppImage', () => {
   })
 })
 
-describe('Launcher — web game', () => {
+describe('Launcher - web game', () => {
   it('refuses scanner-marked unavailable games even through the launch API', () => {
     const { deps, state } = makeFakeDeps()
     const launcher = new Launcher(deps)
@@ -287,7 +287,7 @@ describe('Launcher — web game', () => {
     expect(launcher.launch(makeWebGame({ url: 'https://example.test/recovered' }))).toBe(true)
   })
 
-  // Fix #1 — did-fail-load must route through back() so running resets.
+  // Fix #1 - did-fail-load must route through back() so running resets.
   // Simulate: main process `did-fail-load` calls back() (the corrected path).
   // Previously the handler bypassed back() and left running=true.
   it('back() after a did-fail-load resets running so a subsequent launch proceeds', () => {
@@ -295,7 +295,7 @@ describe('Launcher — web game', () => {
     const launcher = new Launcher(deps)
 
     // Web game launches and load subsequently fails (simulated as did-fail-load
-    // calling back() — the corrected index.ts handler).
+    // calling back() - the corrected index.ts handler).
     launcher.launch(makeWebGame())
     launcher.back() // simulates did-fail-load → launcher.back() path
 
@@ -308,7 +308,7 @@ describe('Launcher — web game', () => {
 
 // ── forceBack() ───────────────────────────────────────────────────────────────
 
-describe('Launcher — forceBack()', () => {
+describe('Launcher - forceBack()', () => {
   it('is a no-op when nothing is running', () => {
     const { deps, state } = makeFakeDeps()
     const launcher = new Launcher(deps)
@@ -380,7 +380,7 @@ describe('Launcher — forceBack()', () => {
     expect(state.loadedUrls).toHaveLength(2)
   })
 
-  it('forceBack is idempotent — second call when not running is silent', async () => {
+  it('forceBack is idempotent - second call when not running is silent', async () => {
     const { deps, state } = makeFakeDeps()
     const launcher = new Launcher(deps)
 
@@ -390,7 +390,7 @@ describe('Launcher — forceBack()', () => {
     launcher.forceBack()
     state.simulateExit(null)
 
-    // Already back at grid — second forceBack must not throw or double-fire.
+    // Already back at grid - second forceBack must not throw or double-fire.
     launcher.forceBack()
     expect(state.killCount).toBe(1)
     expect(state.loadedUrls).toHaveLength(0)
@@ -399,10 +399,10 @@ describe('Launcher — forceBack()', () => {
 
 // ── Native crash-on-launch cooldown ─────────────────────────────────────────────
 // A native game (e.g. Pallasite SIGTRAP) that exits abnormally within seconds of
-// launch must NOT be relaunchable on the next button press — otherwise a held A
+// launch must NOT be relaunchable on the next button press - otherwise a held A
 // loops launcher↔crash and strands the operator at a flickering white screen.
 
-describe('Launcher — native crash cooldown', () => {
+describe('Launcher - native crash cooldown', () => {
   it('a fast abnormal exit is reported as a crash, not a normal return', async () => {
     const { deps, state } = makeFakeDeps()
     const launcher = new Launcher(deps)
@@ -478,7 +478,7 @@ describe('Launcher — native crash cooldown', () => {
     expect(state.returned).toBe(true)
     expect(state.errors).toHaveLength(0)
 
-    // Not on cooldown — immediate relaunch proceeds.
+    // Not on cooldown - immediate relaunch proceeds.
     launcher.launch(makeNativeGame())
     await Promise.resolve()
     expect(state.spawnedExecs).toHaveLength(2)

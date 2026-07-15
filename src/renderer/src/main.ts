@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — renderer entry point.
+ * gamestr-arcade - renderer entry point.
  *
  * Boots the hero carousel and wires keyboard + gamepad input to it.
  *
@@ -7,7 +7,7 @@
  *   - Electron: real games via `window.arcade.listGames()` (IPC → folder scan).
  *   - Plain browser (Vite preview, no `window.arcade`): a mock list, so the
  *     carousel can be screenshotted at 1920×1080 during design work. The guard
- *     ensures the mock is never reached — nor even imported — on the Electron path.
+ *     ensures the mock is never reached - nor even imported - on the Electron path.
  */
 
 import './styles/carousel.css'
@@ -138,7 +138,7 @@ async function boot(): Promise<void> {
     const el = document.createElement('div')
     el.className = 'record-toast'
     el.setAttribute('role', 'status')
-    el.innerHTML = `<span class="record-star">★</span> NEW RECORD — <b></b> TAKES #1${recordGame ? ' ON ' + '<i></i>' : ''} · <span class="record-score"></span>`
+    el.innerHTML = `<span class="record-star">★</span> NEW RECORD - <b></b> TAKES #1${recordGame ? ' ON ' + '<i></i>' : ''} · <span class="record-score"></span>`
     ;(el.querySelector('b') as HTMLElement).textContent = label
     if (recordGame) (el.querySelector('i') as HTMLElement).textContent = recordGame.name.toUpperCase()
     ;(el.querySelector('.record-score') as HTMLElement).textContent = formatScore(entry.score)
@@ -180,7 +180,7 @@ async function boot(): Promise<void> {
   }
   applyHotBadge()
 
-  // Feed the attract reel's top-scores strip from the cached all-time board —
+  // Feed the attract reel's top-scores strip from the cached all-time board -
   // no extra relay traffic, and cache freshness is maintained by the live panel.
   function attractScoresFor(game: Game): void {
     const raw = readCachedBoard(game.gameId)
@@ -247,7 +247,7 @@ async function boot(): Promise<void> {
     },
   })
 
-  // Download-only games can't run in the kiosk — pressing play opens this panel
+  // Download-only games can't run in the kiosk - pressing play opens this panel
   // with a QR of the game's download URL so a visitor can grab it on their phone.
   const downloadPanel = new DownloadPanel(host, {
     onClose: () => {
@@ -342,7 +342,7 @@ async function boot(): Promise<void> {
   }
 
   // When the add-games panel is open it captures navigation so the operator can
-  // pick + add a game with the gamepad (or keyboard) — a kiosk has no usable mouse
+  // pick + add a game with the gamepad (or keyboard) - a kiosk has no usable mouse
   // cursor. up/left → previous row, down/right → next, Ⓐ/Enter → ADD, Ⓑ/Start/Esc → close.
   const input = new InputController({
     onPrev: () => {
@@ -380,7 +380,7 @@ async function boot(): Promise<void> {
 
   // Grab keyboard focus so ← → / Enter work the moment the cabinet loads. In a
   // plain browser a freshly-opened tab leaves focus on the address bar, so the
-  // window-level key handling sees nothing until the page is clicked — make the
+  // window-level key handling sees nothing until the page is clicked - make the
   // shell focusable, focus it now, and re-grab on any click. Harmless under
   // Electron (the kiosk already owns focus; this just makes host.focus() effective).
   host.tabIndex = -1
@@ -390,7 +390,7 @@ async function boot(): Promise<void> {
   // Admin / demo keys. Intentionally outside InputController (not game-navigation intents).
   window.addEventListener('keydown', e => {
     // Ignore single-key shortcuts while typing in a field (e.g. the relay panel's
-    // URL input — "wss://relay.gamestr.io" contains 'g', 'c', 'm', 'r'). Escape is
+    // URL input - "wss://relay.gamestr.io" contains 'g', 'c', 'm', 'r'). Escape is
     // handled by the focused input's own handler.
     const t = e.target as HTMLElement | null
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
@@ -424,7 +424,7 @@ async function boot(): Promise<void> {
     window.arcade.onReturn(() => {
       inWebGame = false
       launchOverlay.hide()
-      // Resume attract watching — the timeout restarts from now so the player
+      // Resume attract watching - the timeout restarts from now so the player
       // gets the full idle period before demo mode kicks in again.
       attract.start()
       carousel.refocus()
@@ -449,7 +449,7 @@ async function boot(): Promise<void> {
         donationPanel.show(playedGame, {
           address: tipAddress ?? donation!.address,
           message: tipAddress
-            ? `ZAP ${(playedGame.developer ?? 'THE DEVELOPER').toUpperCase()} — VALUE FOR VALUE`
+            ? `ZAP ${(playedGame.developer ?? 'THE DEVELOPER').toUpperCase()} - VALUE FOR VALUE`
             : donation!.message,
           showSeconds: donation?.showSeconds,
         })

@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — carousel selection model (pure, no DOM).
+ * gamestr-arcade - carousel selection model (pure, no DOM).
  *
  * Owns *which* game is selected and notifies subscribers on change. Kept free of
  * any DOM/GSAP so the navigation logic (next/prev/wrap/select) is unit-testable
@@ -47,7 +47,7 @@ export class CarouselModel {
     return this.games[this.index]
   }
 
-  /** The game at an absolute (wrapped) index — handy for filmstrip neighbours. */
+  /** The game at an absolute (wrapped) index - handy for filmstrip neighbours. */
   at(i: number): Game {
     return this.games[this.wrap(i)]
   }

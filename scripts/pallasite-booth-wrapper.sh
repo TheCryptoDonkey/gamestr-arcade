@@ -1,5 +1,5 @@
 #!/bin/sh
-# Pallasite launch wrapper — bitfest-1 booth (Ubuntu 25.10 / GNOME-Wayland).
+# Pallasite launch wrapper - bitfest-1 booth (Ubuntu 25.10 / GNOME-Wayland).
 #
 # The arcade now launches native games via systemd-run (a clean session/cgroup),
 # so this wrapper only handles the bitfest-specific bits:
@@ -9,7 +9,7 @@
 #     game.json `args` also carries it, which is what reaches .32's raw AppImage.
 #
 # It runs AS the systemd unit the arcade creates, so Pallasite ends up as that
-# unit's main process — manager-spawned and clean. The real binary lives OUTSIDE
+# unit's main process - manager-spawned and clean. The real binary lives OUTSIDE
 # the games folder (~/pallasite-bin.AppImage) so the scanner sees only THIS wrapper
 # as the game's single *.AppImage.
 set -e

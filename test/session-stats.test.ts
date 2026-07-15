@@ -1,5 +1,5 @@
 /**
- * Tests for local session stats — the HOT TONIGHT engine.
+ * Tests for local session stats - the HOT TONIGHT engine.
  *
  * All storage and time are injected: a virtual cabinet, a virtual evening.
  */
@@ -55,7 +55,7 @@ describe('session stats', () => {
     expect(hottestTonight({ storage, now: () => T0 + 6000 })).toEqual({ gameId: 'word5', plays: 3 })
   })
 
-  it('plays age out of the hot window — yesterday is not tonight', () => {
+  it('plays age out of the hot window - yesterday is not tonight', () => {
     const storage = makeStorage()
     recordSession('pallasite', MIN, { storage, now: () => T0 })
     recordSession('pallasite', MIN, { storage, now: () => T0 + 1000 })

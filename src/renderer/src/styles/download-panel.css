@@ -1,5 +1,5 @@
 /* ============================================================================
-   gamestr-arcade — download QR panel.
+   gamestr-arcade - download QR panel.
 
    Shown when a visitor presses play on a download-only game. A centred modal
    over a dimmed cabinet: a bold DOWNLOAD ONLY tag, the game name, a white QR
@@ -89,7 +89,7 @@
   color: var(--ink-dim, #7e8aa6);
 }
 
-/* White QR card — black modules on white scan reliably on phones. */
+/* White QR card - black modules on white scan reliably on phones. */
 .dl-qr {
   width: clamp(13rem, 32vh, 18rem);
   height: clamp(13rem, 32vh, 18rem);

@@ -8,7 +8,7 @@ release/
 *.AppImage
 *.tsbuildinfo
 
-# Track booth tile metadata only — art is fetched from URLs and cached at runtime.
+# Track booth tile metadata only - art is fetched from URLs and cached at runtime.
 # Existing committed sibling art still works (sibling wins in resolution order).
 # New art should come from logoUrl/heroUrl in game.json or og:image/favicon derivation.
 games/**/*.AppImage
@@ -22,7 +22,7 @@ games/**/*.mp4
 # Design verification screenshots (local only)
 .design-shots/
 
-# Local game mirrors — served by the local static server; never committed.
+# Local game mirrors - served by the local static server; never committed.
 games/**/site/
 
 # The operator payment lab is first-party diagnostic code, not a mirrored game.

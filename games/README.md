@@ -1,4 +1,4 @@
-# games/ — booth tile catalogue
+# games/ - booth tile catalogue
 
 Each subfolder is one game tile. The scanner (`src/main/scanner.ts`) discovers
 tiles at startup; no code changes are needed to add or remove a tile.
@@ -16,7 +16,7 @@ games/
 ```
 
 Files tracked by git: `game.json` and `README.md`. Generated/downloaded art and
-AppImages are git-ignored — place them on the booth machine directly
+AppImages are git-ignored - place them on the booth machine directly
 or point at them via the `exec` field in `game.json`.
 
 ## game.json fields
@@ -37,7 +37,7 @@ Important fields include:
 | `allowedOrigins` | Explicit web-session navigation allowlist |
 | `order`, `accent` | Catalogue ordering and cabinet theming |
 
-## Mode tiles (future — AxeNStax example)
+## Mode tiles (future - AxeNStax example)
 
 Once AxeNStax exposes a `?scenario=<name>` deep-link, individual scenarios can be
 added as separate web tiles:
@@ -47,4 +47,4 @@ added as separate web tiles:
 { "name": "AxeNStax: Sprint", "url": "http://localhost:8094?scenario=sprint", ... }
 ```
 
-No code changes required — the scanner picks them up automatically.
+No code changes required - the scanner picks them up automatically.

@@ -1,10 +1,10 @@
 /**
- * gamestr-arcade — one-tap game import.
+ * gamestr-arcade - one-tap game import.
  *
  * Turns a parsed gamestr catalogue entry into a `games/<slug>/game.json` the
  * folder scanner already understands (it reads name / tagline / url / gameId /
  * order / logoUrl / heroUrl). Art is referenced by URL so the existing icon +
- * hero resolvers fetch and cache it — no binary download here.
+ * hero resolvers fetch and cache it - no binary download here.
  *
  * Pure except for the injected `ImportDeps`, so it unit-tests without touching
  * the real filesystem.
@@ -26,7 +26,7 @@ export interface ImportResult {
   created: boolean
 }
 
-/** A slug safe to use as a folder name — no traversal, no separators. */
+/** A slug safe to use as a folder name - no traversal, no separators. */
 export function isSafeSlug(slug: string): boolean {
   return /^[a-z0-9][a-z0-9-]{0,63}$/.test(slug)
 }

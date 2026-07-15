@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — main process entry.
+ * gamestr-arcade - main process entry.
  *
  * Launches a full-screen kiosk window with admin escape hatches.
  * Set ARCADE_KIOSK=0 for a normal windowed build during development.
@@ -66,7 +66,7 @@ protocol.registerSchemesAsPrivileged([
 // ── Config resolution ───────────────────────────────────────────────────────
 // `arcade.config.json` lives at the app root (project root in dev, resources in
 // prod). Missing / malformed files fall back to DEFAULT_CONFIG so the booth
-// always boots — a typo in the config must never leave a blank cabinet.
+// always boots - a typo in the config must never leave a blank cabinet.
 function resolveConfigPath(): string {
   if (process.env.ARCADE_CONFIG) return resolve(process.env.ARCADE_CONFIG)
   const base = is.dev ? app.getAppPath() : process.resourcesPath
@@ -88,7 +88,7 @@ async function loadConfig(): Promise<ArcadeConfig> {
 }
 
 let win: BrowserWindow | null = null
-// Local static server — started once on app ready; serves mirrored game sites.
+// Local static server - started once on app ready; serves mirrored game sites.
 let localServer: LocalServer | null = null
 
 // ── Games cache ───────────────────────────────────────────────────────────────
@@ -131,7 +131,7 @@ function sizeWebView(): void {
 /**
  * Forward gamepad diagnostic console lines (prefixed `[gp`) from a renderer / web
  * view to the main process stdout → journald. Renderer console output otherwise
- * never reaches the booth journal. TEMPORARY (plan Phase 2A — controller
+ * never reaches the booth journal. TEMPORARY (plan Phase 2A - controller
  * intermittency diagnosis); remove with the renderer-side logging in Phase 2D.
  * Filtered to `[gp` so third-party game-page console spam isn't echoed.
  */
@@ -187,7 +187,7 @@ function createWebSession(game: Game): ActiveWebSession {
       allowRunningInsecureContent: false,
       safeDialogs: true,
       spellcheck: false,
-      // The view stays detached (invisible) until the game finishes loading —
+      // The view stays detached (invisible) until the game finishes loading -
       // without this, Chromium throttles the hidden page and slows that load.
       backgroundThrottling: false,
     },
@@ -217,7 +217,7 @@ function createWebSession(game: Game): ActiveWebSession {
         const result = await session.walletProvider.sendPayment(invoice)
         const { reservedSats, distinctPayments } = session.paymentBroker?.snapshot()
           ?? { reservedSats: 0, distinctPayments: 0 }
-        console.error(`[arcade] wallet payment settled — session reserved=${reservedSats} sats, payments=${distinctPayments}`)
+        console.error(`[arcade] wallet payment settled - session reserved=${reservedSats} sats, payments=${distinctPayments}`)
         return result
       },
     })
@@ -264,7 +264,7 @@ function createWebSession(game: Game): ActiveWebSession {
     // already queued when the shell comes back into focus.
     win?.webContents.send('game:error', `Web game failed to load (${desc})`)
     // back() resets running, unregisters Escape, closes the view, shows the
-    // shell and sends game:returned — the one authoritative return path.
+    // shell and sends game:returned - the one authoritative return path.
     launcher.back()
   })
 
@@ -314,7 +314,7 @@ const SYSTEMCTL = findBin('systemctl')
 
 /** Env for systemd-run / systemctl --user. The electron main from a FUSE-mounted
  *  AppImage may have no XDG_RUNTIME_DIR (needed to reach the user bus) and no PATH
- *  — derive sane values so `--user` works regardless of how we were launched. */
+ *  - derive sane values so `--user` works regardless of how we were launched. */
 function systemdEnv(): NodeJS.ProcessEnv {
   const uid = typeof process.getuid === 'function' ? process.getuid() : 1000
   return {
@@ -345,7 +345,7 @@ function buildLaunchDeps(): LaunchDeps {
     spawn(exec, args = []) {
       // Launch native games via the systemd USER MANAGER, not as a child of this
       // Electron process. Spawned as our child, an Electron-based game (e.g.
-      // Pallasite) cannot start its own Chromium subprocesses — controller-ws,
+      // Pallasite) cannot start its own Chromium subprocesses - controller-ws,
       // zygote, GPU and the network service all fail ("GPU process isn't usable",
       // "Failed to send … to zygote"). The manager gives the game its own clean
       // session/cgroup, where it launches normally. A plain (non-detached) spawn is
@@ -357,7 +357,7 @@ function buildLaunchDeps(): LaunchDeps {
       // network-service child re-execs `/proc/self/exe`, faulting the mmap'd
       // squashfs → SIGBUS core dump (confirmed via coredumpctl: the crashed process
       // was `/tmp/.mount_Pallas*/pallasite-desktop`). APPIMAGE_EXTRACT_AND_RUN makes
-      // the AppImage extract to real files and run those — no FUSE mount to lose, and
+      // the AppImage extract to real files and run those - no FUSE mount to lose, and
       // `/proc/self/exe` re-exec works. The unit inherits the systemd *manager* env,
       // not ours, so it must be injected with `--setenv`, not via the `env` below.
       let child: ReturnType<typeof nodeSpawn>
@@ -411,7 +411,7 @@ function buildLaunchDeps(): LaunchDeps {
       // A kiosk/fullscreen window won't yield the display on hide() under a
       // Wayland compositor (GNOME/Mutter): the kiosk surface stays mapped, so the
       // grid covers the native game and the game runs invisibly behind it. Drop
-      // kiosk + fullscreen FIRST, then hide — showShell() restores them on return.
+      // kiosk + fullscreen FIRST, then hide - showShell() restores them on return.
       win.setKiosk(false)
       win.setFullScreen(false)
       win.hide()
@@ -426,7 +426,7 @@ function buildLaunchDeps(): LaunchDeps {
     },
 
     notifyReturned() {
-      // Unregister force-back hotkeys — game has ended, player is back at grid.
+      // Unregister force-back hotkeys - game has ended, player is back at grid.
       unregisterForceBack()
       win?.webContents.send('game:returned')
     },
@@ -454,9 +454,9 @@ function buildLaunchDeps(): LaunchDeps {
         view.webContents.send('arcade:session-grants', session.grants)
         // Kiosk-ify the game page (runs in the page's main world, so it bypasses
         // CSP and overrides the page's own globals):
-        //   - neutralise native alert/confirm/prompt — the gamepad cursor can't
+        //   - neutralise native alert/confirm/prompt - the gamepad cursor can't
         //     close OS-level dialogs (e.g. Nostrich Run's "enter a valid NSEC"),
-        //   - hide scrollbars — long pages (Sats-Man) scroll via the cursor edge.
+        //   - hide scrollbars - long pages (Sats-Man) scroll via the cursor edge.
         view.webContents
           .executeJavaScript(
             `(function(){try{` +
@@ -493,7 +493,7 @@ function buildLaunchDeps(): LaunchDeps {
         console.error(`[arcade] loadURL error: ${err}`)
       })
       // The back-hint bar and gamepad/keyboard exit are handled by the
-      // webgame preload — no executeJavaScript injection needed here.
+      // webgame preload - no executeJavaScript injection needed here.
     },
 
     closeWeb() {
@@ -506,12 +506,12 @@ function buildLaunchDeps(): LaunchDeps {
 
 // ── Force-back hotkeys ────────────────────────────────────────────────────────
 // Registered while any game (web or native) is running so the operator can
-// always reclaim the arcade — even when a native app has OS focus and the
+// always reclaim the arcade - even when a native app has OS focus and the
 // arcade's gamepad listener is backgrounded.
 //
-// Primary:  Escape          — for a physical EXIT button wired to the Esc key.
-// Fallback: Ctrl+Shift+Bksp — deliberate chord for keyboard/debug use.
-// Gamepad:  View/Menu/Guide — read from evdev by `gamepadExit` (below), the
+// Primary:  Escape          - for a physical EXIT button wired to the Esc key.
+// Fallback: Ctrl+Shift+Bksp - deliberate chord for keyboard/debug use.
+// Gamepad:  View/Menu/Guide - read from evdev by `gamepadExit` (below), the
 //                             only exit path for NATIVE games (which take X
 //                             focus, so the renderer can't poll the gamepad and
 //                             the web-view preload doesn't exist).
@@ -593,13 +593,13 @@ app.whenReady().then(async () => {
 
   // ── Local static server ─────────────────────────────────────────────────
   // Serves mirrored game sites from games/<slug>/site/ on localhost.
-  // Failures are non-fatal — games without a local mirror fall back to their
+  // Failures are non-fatal - games without a local mirror fall back to their
   // remote URL as normal.
   try {
     localServer = await startLocalServer()
     console.log(`[arcade] local server: http://127.0.0.1:${localServer.port}/`)
   } catch (err) {
-    console.warn(`[arcade] local server: failed to start (${String(err)}) — offline mirrors unavailable`)
+    console.warn(`[arcade] local server: failed to start (${String(err)}) - offline mirrors unavailable`)
   }
 
   // ── Media protocol handler ──────────────────────────────────────────────
@@ -632,12 +632,12 @@ app.whenReady().then(async () => {
     const games = await buildGamesList(gamesDir, cacheDir, localServer?.port)
     cachedGames = games
     const localCount = games.filter(g => g.localSite).length
-    console.log(`[arcade] games dir: ${gamesDir} — ${games.length} game(s)${localCount ? ` (${localCount} local)` : ''}`)
+    console.log(`[arcade] games dir: ${gamesDir} - ${games.length} game(s)${localCount ? ` (${localCount} local)` : ''}`)
     return games
   })
 
   // ── gamestr catalogue import ──────────────────────────────────────────────
-  // gamestr.io has no registry API — its catalogue (incl. each game's external
+  // gamestr.io has no registry API - its catalogue (incl. each game's external
   // play URL) is hardcoded in its frontend bundle. We fetch + parse it so the
   // operator can one-tap "add" a game the kiosk is missing. A last-good cache
   // under userData keeps this working when the booth is offline.
@@ -700,7 +700,7 @@ app.whenReady().then(async () => {
       cachedGames = null
       const games = await buildGamesList(gamesDir, cacheDir, localServer?.port)
       cachedGames = games
-      console.log(`[arcade] imported gamestr game "${entry.name}" (${slug})${res.created ? '' : ' — already present'}`)
+      console.log(`[arcade] imported gamestr game "${entry.name}" (${slug})${res.created ? '' : ' - already present'}`)
       return { ok: true, slug: res.slug, created: res.created, games }
     } catch (err) {
       console.error(`[arcade] gamestr import failed for "${slug}": ${String(err)}`)
@@ -721,7 +721,7 @@ app.whenReady().then(async () => {
     }
     const game = cachedGames.find(g => g.id === id)
     if (!game) {
-      console.error(`[arcade] game:launch — unknown id "${id}"`)
+      console.error(`[arcade] game:launch - unknown id "${id}"`)
       win?.webContents.send('game:error', `Unknown game id: ${id}`)
       return
     }
@@ -733,7 +733,7 @@ app.whenReady().then(async () => {
     }
     const started = launcher.launch(game)
     // Register force-back hotkeys for the duration of this game session.
-    // Covers both web and native — native apps steal OS focus so the arcade
+    // Covers both web and native - native apps steal OS focus so the arcade
     // renderer's key listeners are inactive; only global shortcuts fire.
     if (started) registerForceBack()
   })
@@ -802,7 +802,7 @@ app.whenReady().then(async () => {
     ),
   )
 
-  // Admin escape hatches — kiosk hides all browser chrome so these are
+  // Admin escape hatches - kiosk hides all browser chrome so these are
   // the only way out during a booth deployment.
   globalShortcut.register('CommandOrControl+Q', () => app.quit())
   globalShortcut.register('F5', () => win?.webContents.reload())

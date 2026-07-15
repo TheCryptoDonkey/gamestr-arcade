@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — live-game detector (decentralised discovery).
+ * gamestr-arcade - live-game detector (decentralised discovery).
  *
  * Opens a broad score subscription (kinds 30762 + 5555, no `#t`) across the
  * enabled relays and collects the distinct `game` tag values seen, with a rough
@@ -12,7 +12,7 @@
  * publish kind 30762 (`game` tag). We subscribe to both and key on the `game`
  * tag, which is the canonical identifier in the score schema.
  *
- * Lazy: created when the panel opens, disposed when it closes — no always-on
+ * Lazy: created when the panel opens, disposed when it closes - no always-on
  * sockets beyond the leaderboard's own.
  */
 

@@ -1,9 +1,9 @@
 /**
- * gamestr-arcade — mock leaderboard data for browser-only design verification.
+ * gamestr-arcade - mock leaderboard data for browser-only design verification.
  *
  * Used ONLY when `window.arcade` is undefined. Supplies a handful of fake
  * boards keyed by `gameId` so the leaderboard panel is fully populated in
- * screenshots — including resolved names + a deterministic empty board to show
+ * screenshots - including resolved names + a deterministic empty board to show
  * the "be the first" state. Pubkeys are real-shaped 64-hex so npub encoding and
  * the identicon avatars render exactly as they will against live relays.
  *

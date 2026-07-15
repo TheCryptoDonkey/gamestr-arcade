@@ -1,13 +1,13 @@
 /**
- * gamestr-arcade — kind-0 profile cache with a 24-hour TTL.
+ * gamestr-arcade - kind-0 profile cache with a 24-hour TTL.
  *
  * Two-layer caching strategy:
  *
- *   1. **In-memory memo** (a `Map`) — zero-cost lookup within a session. Entries
+ *   1. **In-memory memo** (a `Map`) - zero-cost lookup within a session. Entries
  *      are only added here once a full resolve+persist cycle completes, so a
  *      concurrent fetch for the same pubkey does not trigger a double request.
  *
- *   2. **localStorage persistence** — survives page reloads / Electron restarts
+ *   2. **localStorage persistence** - survives page reloads / Electron restarts
  *      for one "booth day" (~24h TTL). On load, a hit younger than TTL_MS is
  *      returned directly and the pubkey is also inserted into the in-memory memo
  *      so subsequent lookups within the same session are instant.
@@ -50,10 +50,10 @@ function defaultStore(): KeyValueStore | null {
 }
 
 export class ProfileCache {
-  /** In-memory memo — session-scoped, avoids redundant localStorage reads. */
+  /** In-memory memo - session-scoped, avoids redundant localStorage reads. */
   private readonly memo = new Map<string, Profile>()
   private readonly store: KeyValueStore | null
-  /** Injectable clock — `Date.now` in production, a stub in tests. */
+  /** Injectable clock - `Date.now` in production, a stub in tests. */
   private readonly now: () => number
 
   constructor(store: KeyValueStore | null = defaultStore(), now: () => number = Date.now) {
@@ -71,11 +71,11 @@ export class ProfileCache {
    * Returns `undefined` if absent or expired (caller should re-fetch).
    */
   get(pubkey: string): Profile | undefined {
-    // 1. In-memory hit — no deserialization needed.
+    // 1. In-memory hit - no deserialization needed.
     const memo = this.memo.get(pubkey)
     if (memo) return memo
 
-    // 2. Persistent hit — check TTL.
+    // 2. Persistent hit - check TTL.
     if (!this.store) return undefined
     let raw: string | null
     try {
@@ -119,7 +119,7 @@ export class ProfileCache {
     try {
       this.store.setItem(STORE_PREFIX + pubkey, JSON.stringify(rec))
     } catch {
-      /* quota / disabled — best-effort */
+      /* quota / disabled - best-effort */
     }
   }
 

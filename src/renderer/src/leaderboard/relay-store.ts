@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — relay store (booth-configurable relay list).
+ * gamestr-arcade - relay store (booth-configurable relay list).
  *
  * Wraps the config-supplied relay list with per-relay enable/disable state,
  * persisted to localStorage so a booth operator's changes survive reboots.
@@ -59,7 +59,7 @@ function load(store: KeyValueStore | null, baseRelays: readonly string[]): Relay
         }
       }
     } catch {
-      /* malformed — fall through to base */
+      /* malformed - fall through to base */
     }
   }
   // Seed from base relays, all enabled.
@@ -88,7 +88,7 @@ export class RelayStore {
     return [...this.entries]
   }
 
-  /** Only enabled relay URLs — the live subscription set. */
+  /** Only enabled relay URLs - the live subscription set. */
   getEnabled(): string[] {
     return this.entries.filter(e => e.enabled).map(e => e.url)
   }
@@ -143,7 +143,7 @@ export class RelayStore {
     try {
       this.store.setItem(STORE_KEY, JSON.stringify(this.entries))
     } catch {
-      /* quota / disabled — best-effort */
+      /* quota / disabled - best-effort */
     }
   }
 

@@ -64,10 +64,10 @@ fi
 # Find the newest AppImage in release/.
 APP="$(ls -t "$REPO_DIR"/release/*.AppImage 2>/dev/null | head -1 || true)"
 if [ -z "$APP" ]; then
-  echo "deploy: no AppImage in $REPO_DIR/release/ — run without --ship-only first." >&2
+  echo "deploy: no AppImage in $REPO_DIR/release/ - run without --ship-only first." >&2
   exit 1
 fi
-BASENAME="gamestr-arcade.AppImage"  # stable remote name — ExecStart never changes
+BASENAME="gamestr-arcade.AppImage"  # stable remote name - ExecStart never changes
 LOCAL_SHA="$(shasum -a 256 "$APP" | awk '{print $1}')"
 SIZE="$(du -h "$APP" | awk '{print $1}')"
 step "Artifact: $(basename "$APP") ($SIZE)  sha256=${LOCAL_SHA:0:12}…"
@@ -84,14 +84,14 @@ fi
 
 # Upload to a temp name first: if the old AppImage is still running its file is
 # busy (ETXTBSY) and a direct overwrite fails.  A rename over the target swaps
-# it atomically — the running process keeps its old inode until it exits.
+# it atomically - the running process keeps its old inode until it exits.
 step "Transferring to $BOOTH:$REMOTE_PATH …"
 scp -o BatchMode=yes "$APP" "$BOOTH:$TMP_PATH"
 
 step "Installing + verifying on booth…"
 REMOTE_SHA="$("${SSH[@]}" "$BOOTH" "chmod +x $TMP_PATH && mv -f $TMP_PATH $REMOTE_PATH && sha256sum $REMOTE_PATH" | awk '{print $1}')"
 if [ "$LOCAL_SHA" != "$REMOTE_SHA" ]; then
-  echo "✗ CHECKSUM MISMATCH — transfer corrupt" >&2
+  echo "✗ CHECKSUM MISMATCH - transfer corrupt" >&2
   echo "  local:  $LOCAL_SHA" >&2
   echo "  remote: $REMOTE_SHA" >&2
   exit 1
@@ -118,14 +118,14 @@ else
     systemctl --user daemon-reload
     loginctl enable-linger "$(whoami)"
     systemctl --user disable gamestr-arcade 2>/dev/null || true
-    echo "  ✓ service installed (manual launch — autostart disabled)"
+    echo "  ✓ service installed (manual launch - autostart disabled)"
   '
 fi
 
 if [ "$DO_GAMES" = 1 ]; then
   step "Syncing games → $BOOTH:~/gamestr-games/ …"
   # --exclude '*.AppImage': native game binaries are shipped out-of-band (too big
-  # to commit — they're gitignored) and dropped into ~/gamestr-games/<slug>/ on the
+  # to commit - they're gitignored) and dropped into ~/gamestr-games/<slug>/ on the
   # booth separately. Without this exclude, --delete nukes them on every deploy and
   # the affected tiles silently fall back to their game.json web url (wrong mode +
   # the arcade's gamepad→key translation then exposes in-game cheats). rsync also
@@ -138,13 +138,13 @@ if [ "$RESTART" = 1 ]; then
   "${SSH[@]}" "$BOOTH" 'systemctl --user restart gamestr-arcade' || {
     # Fallback: if the user manager is not reachable (e.g. no DBUS_SESSION_BUS_ADDRESS
     # over bare SSH), try launching directly.  This should be rare once linger is on.
-    echo "  systemctl restart failed — trying DISPLAY=:0 direct launch fallback…"
+    echo "  systemctl restart failed - trying DISPLAY=:0 direct launch fallback…"
     "${SSH[@]}" "$BOOTH" \
       "DISPLAY=:0 XAUTHORITY=\$HOME/.Xauthority setsid $REMOTE_PATH >/tmp/gamestr-arcade.log 2>&1 </dev/null & echo '  launched (log: /tmp/gamestr-arcade.log)'" || true
   }
 
   step "Health check (systemd service active)…"
-  # The launcher has no HTTP health endpoint — poll systemctl is-active instead.
+  # The launcher has no HTTP health endpoint - poll systemctl is-active instead.
   # An Electron kiosk app on a cold 4K display can take ~10-12 s to start.
   "${SSH[@]}" "$BOOTH" '
     for i in $(seq 1 12); do
@@ -152,12 +152,12 @@ if [ "$RESTART" = 1 ]; then
       if [ "$status" = "active" ]; then
         echo "  ✓ gamestr-arcade is active"; exit 0
       fi
-      echo "  ($i/12) $status — waiting 2 s…"
+      echo "  ($i/12) $status - waiting 2 s…"
       sleep 2
     done
-    echo "  ✗ still not active after ~24 s — check: systemctl --user status gamestr-arcade"
+    echo "  ✗ still not active after ~24 s - check: systemctl --user status gamestr-arcade"
     exit 1
-  ' || echo "  (health check reported a problem — inspect the booth)"
+  ' || echo "  (health check reported a problem - inspect the booth)"
 fi
 
 printf '\n✓ Deployed %s → %s:%s\n' "$(basename "$APP")" "$BOOTH" "$REMOTE_PATH"

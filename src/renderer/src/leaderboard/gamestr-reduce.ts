@@ -149,7 +149,7 @@ export function parseScoreEvent(e: ScoreEvent, gameId: string): LeaderboardEntry
 }
 
 /**
- * Parse a score event without a caller-supplied gameId — extracts the gameId
+ * Parse a score event without a caller-supplied gameId - extracts the gameId
  * from the event's own `game` tag. Used by the catalogue's broad subscription.
  * Accepts score >= 0 (gamestr.io shows 0s on live boards; the per-game
  * parseScoreEvent retains score > 0 for backwards compatibility with existing tests).
@@ -203,7 +203,7 @@ export function parse5555Event(e: ScoreEvent, gameId: string, field: string): Le
  * @param entries  All entries for a given game (unfiltered).
  * @param period   'today' = created_at >= start of UTC day; 'all' = no filter.
  * @param topN     Maximum entries to return.
- * @param nowSec   Current unix timestamp in seconds (injected for testability — do NOT call Date.now() here).
+ * @param nowSec   Current unix timestamp in seconds (injected for testability - do NOT call Date.now() here).
  * @param dir      'desc' (default) = higher wins; 'asc' = lower wins (e.g. time/strokes).
  */
 export function boardFor(

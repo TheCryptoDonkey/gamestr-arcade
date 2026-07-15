@@ -1,7 +1,7 @@
 {
   "manifestVersion": 2,
   "name": "Pallasite",
-  "tagline": "Cosmic arcade Asteroids — mine the belt, top the chain",
+  "tagline": "Cosmic arcade Asteroids - mine the belt, top the chain",
   "description": "Mine a neon asteroid belt, survive the swarm, and chase the global high score.",
   "genres": [
     "arcade",

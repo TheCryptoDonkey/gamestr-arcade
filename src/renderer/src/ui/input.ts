@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — input layer (keyboard primary, gamepad additive).
+ * gamestr-arcade - input layer (keyboard primary, gamepad additive).
  *
  * Translates raw keyboard and gamepad events into four high-level intents
  * (prev / next / launch / back) and dispatches them to handlers. Keeps a single
@@ -14,7 +14,7 @@ export interface InputHandlers {
   onNext(): void
   onLaunch(): void
   onBack(): void
-  /** Fired on ANY input (key / gamepad / pointer) — used to wake from attract. */
+  /** Fired on ANY input (key / gamepad / pointer) - used to wake from attract. */
   onActivity?(): void
 }
 
@@ -29,14 +29,14 @@ export const BACK_BUTTON_INDICES = [1, 8, 9, 16] as const // B, View/Select, Sta
 
 /**
  * Standard-mapping d-pad button indices. Non-standard pads carry the d-pad on a
- * HAT instead (see HAT_AXIS) — `directionFromGamepad` reads both.
+ * HAT instead (see HAT_AXIS) - `directionFromGamepad` reads both.
  */
 export const DPAD = { UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 } as const
 
 /**
  * Axis indices. The left analogue stick (0 = X, 1 = Y) is present on both
  * mappings. On non-standard pads the d-pad arrives as a HAT on axes 6 (X) /
- * 7 (Y) — the conventional Linux layout (see src/preload/webgame.ts).
+ * 7 (Y) - the conventional Linux layout (see src/preload/webgame.ts).
  */
 export const STICK_AXIS = { X: 0, Y: 1 } as const
 export const HAT_AXIS = { X: 6, Y: 7 } as const
@@ -53,16 +53,16 @@ export type Direction = -1 | 0 | 1
 
 /**
  * Resolve a menu direction from a gamepad, merging three input sources so any
- * one can drive the menu — and so BOTH controller styles at the booths work:
+ * one can drive the menu - and so BOTH controller styles at the booths work:
  *
- *   • D-pad buttons 12–15     — Standard-Mapping pads (the .32 booth's Xbox pad).
- *   • Left analogue stick 0/1 — exposed on both mappings.
- *   • D-pad HAT axes 6/7      — non-standard pads (bitfest-1's official Xbox pad,
+ *   • D-pad buttons 12–15     - Standard-Mapping pads (the .32 booth's Xbox pad).
+ *   • Left analogue stick 0/1 - exposed on both mappings.
+ *   • D-pad HAT axes 6/7      - non-standard pads (bitfest-1's official Xbox pad,
  *                               whose connection lands outside Chromium's mapping
  *                               table) carry the d-pad here, NOT on buttons 12–15.
  *
  * The HAT read is gated on `pad.mapping !== 'standard'`, so it can never disturb
- * a pad whose d-pad already works as buttons — that gate is how the two styles
+ * a pad whose d-pad already works as buttons - that gate is how the two styles
  * are told apart. BOTH axes navigate (left / up → prev, right / down → next), so
  * the d-pad and the stick move the menu vertically as well as horizontally. Prev
  * wins if both are somehow asserted. Pure and exported for unit testing.
@@ -93,8 +93,8 @@ export function directionFromGamepad(pad: Gamepad): Direction {
 /**
  * Resolve a single menu direction across ALL connected pads.
  *
- * A booth can enumerate more than one controller — bitfest-1 shows two identical
- * "Generic X-Box pad" devices, and Chromium may index the idle one first — so
+ * A booth can enumerate more than one controller - bitfest-1 shows two identical
+ * "Generic X-Box pad" devices, and Chromium may index the idle one first - so
  * reading only the first pad (as the menu used to) silently ignores whichever
  * controller the player is actually holding. Reading every pad, exactly like the
  * in-game loop does, is what makes the menu respond on any of them.
@@ -109,7 +109,7 @@ export function directionFromGamepads(pads: ArrayLike<Gamepad | null>): Directio
     const pad = pads[i]
     if (!pad) continue
     const d = directionFromGamepad(pad)
-    if (d === -1) return -1 // prev wins — no need to look further
+    if (d === -1) return -1 // prev wins - no need to look further
     if (d === 1) dir = 1
   }
   return dir
@@ -197,7 +197,7 @@ export class InputController {
     this.handlers.onActivity?.()
   }
 
-  // Temporary gamepad diagnostics (plan Phase 2A) — forwarded to journald via the
+  // Temporary gamepad diagnostics (plan Phase 2A) - forwarded to journald via the
   // [gp:*] console hook in index.ts. Remove in Phase 2D.
   private logGamepadEvent = (e: Event): void => {
     const g = (e as GamepadEvent).gamepad
@@ -244,7 +244,7 @@ export class InputController {
       activity = true
     }
 
-    // Direction from ANY connected pad — see directionFromGamepads. Pulling the
+    // Direction from ANY connected pad - see directionFromGamepads. Pulling the
     // resolution out keeps it pure and unit-tested, so booth controller quirks
     // (multiple pads, HAT d-pads) can't silently regress it.
     const dir = directionFromGamepads(pads)

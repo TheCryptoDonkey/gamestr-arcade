@@ -1,10 +1,10 @@
-# Leaderboard Catalogue + Today/All-Time View — Implementation Plan
+# Leaderboard Catalogue + Today/All-Time View - Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Fix leaderboard score fetching for all gamestr.io games (not just Pallasite) by using a single broad kind-30762 subscription bucketed by the event's own `game` tag, and add a Today / All-Time toggle.
 
-**Architecture:** A new `createGamestrCatalogue` factory in `gamestr.ts` opens one WebSocket per relay for the entire session and routes every incoming event to an in-memory `Map<gameId, Map<eventId, entry>>` index. The panel subscribes/unsubscribes to a particular gameId's bucket; the underlying sockets stay open until `dispose()` is called. The `boardFor` pure helper in `gamestr-reduce.ts` handles period filtering (today/all-time), best-per-pubkey dedup, sort, and slice — fully unit-tested. `leaderboard-panel.ts` adds a Today | All-Time toggle (keyboard `t` or click) in the board header and a branded empty-today state.
+**Architecture:** A new `createGamestrCatalogue` factory in `gamestr.ts` opens one WebSocket per relay for the entire session and routes every incoming event to an in-memory `Map<gameId, Map<eventId, entry>>` index. The panel subscribes/unsubscribes to a particular gameId's bucket; the underlying sockets stay open until `dispose()` is called. The `boardFor` pure helper in `gamestr-reduce.ts` handles period filtering (today/all-time), best-per-pubkey dedup, sort, and slice - fully unit-tested. `leaderboard-panel.ts` adds a Today | All-Time toggle (keyboard `t` or click) in the board header and a branded empty-today state.
 
 **Tech Stack:** TypeScript ES2022, ESM, Vitest, browser WebSocket API, no external libs.
 
@@ -33,7 +33,7 @@
 
 `parseScoreEvent(e, gameId)` requires a caller-supplied `gameId` and only accepts events matching that game. We need a variant that extracts the game tag from the event itself, plus a pure `boardFor` helper for period windowing.
 
-**Score validity note:** The spec says "use ≥ 0". The existing `parseScoreEvent` uses `score <= 0` to reject. We preserve that for `parseScoreEvent` (existing tests assert 0 is rejected), but `parseAnyScoreEvent` and `boardFor` use `score >= 0` — matching gamestr.io which shows 0s. This is noted in an inline comment.
+**Score validity note:** The spec says "use ≥ 0". The existing `parseScoreEvent` uses `score <= 0` to reject. We preserve that for `parseScoreEvent` (existing tests assert 0 is rejected), but `parseAnyScoreEvent` and `boardFor` use `score >= 0` - matching gamestr.io which shows 0s. This is noted in an inline comment.
 
 - [ ] **Step 1.1: Write failing tests for `parseAnyScoreEvent`**
 
@@ -78,13 +78,13 @@ describe('parseAnyScoreEvent', () => {
 })
 ```
 
-- [ ] **Step 1.2: Run new tests — expect them to fail (missing export)**
+- [ ] **Step 1.2: Run new tests - expect them to fail (missing export)**
 
 ```
 npx vitest run test/gamestr-reduce.test.ts
 ```
 
-Expected: compilation error / test failure — `parseAnyScoreEvent` not exported yet.
+Expected: compilation error / test failure - `parseAnyScoreEvent` not exported yet.
 
 - [ ] **Step 1.3: Write failing tests for `boardFor`**
 
@@ -101,7 +101,7 @@ describe('boardFor', () => {
     { pubkey: P1, score: 900, at: TODAY_START + 100, sats: 0 },   // today, P1 high
     { pubkey: P1, score: 400, at: TODAY_START + 50,  sats: 0 },   // today, P1 low (should lose)
     { pubkey: P2, score: 700, at: TODAY_START + 200, sats: 0 },   // today, P2
-    { pubkey: P3, score: 999, at: TODAY_START - 1,   sats: 0 },   // yesterday — before midnight
+    { pubkey: P3, score: 999, at: TODAY_START - 1,   sats: 0 },   // yesterday - before midnight
   ]
 
   it('period=all returns best-per-pubkey, sorted desc, sliced to topN', () => {
@@ -142,7 +142,7 @@ describe('boardFor', () => {
 })
 ```
 
-- [ ] **Step 1.4: Run new tests — expect failures**
+- [ ] **Step 1.4: Run new tests - expect failures**
 
 ```
 npx vitest run test/gamestr-reduce.test.ts
@@ -196,7 +196,7 @@ export function parseScoreEvent(e: ScoreEvent, gameId: string): LeaderboardEntry
 }
 
 /**
- * Parse a score event without a caller-supplied gameId — extracts the gameId
+ * Parse a score event without a caller-supplied gameId - extracts the gameId
  * from the event's own `game` tag. Used by the catalogue's broad subscription.
  * Accepts score >= 0 (gamestr.io shows 0s on live boards; the per-game
  * parseScoreEvent retains score > 0 for backwards compatibility with existing tests).
@@ -225,7 +225,7 @@ export function parseAnyScoreEvent(e: ScoreEvent): ParsedAnyScore | null {
  * @param entries  All entries for a given game (unfiltered).
  * @param period   'today' = created_at >= start of local day; 'all' = no filter.
  * @param topN     Maximum entries to return.
- * @param nowSec   Current unix timestamp in seconds (injected for testability — do NOT call Date.now() here).
+ * @param nowSec   Current unix timestamp in seconds (injected for testability - do NOT call Date.now() here).
  */
 export function boardFor(
   entries: LeaderboardEntry[],
@@ -262,7 +262,7 @@ export function collapseToBest(events: ScoreEvent[], gameId: string, topN: numbe
 }
 ```
 
-- [ ] **Step 1.6: Run the tests — all should pass**
+- [ ] **Step 1.6: Run the tests - all should pass**
 
 ```
 npx vitest run test/gamestr-reduce.test.ts
@@ -288,8 +288,8 @@ git commit -m "feat: add parseAnyScoreEvent + boardFor period helper to gamestr-
 ### Background
 
 `createGamestrCatalogue` opens one WS per relay (broad, no `#t` filter), routes every event into a `Map<gameId, Map<eventId, {pubkey, score, at}>>` index, and exposes:
-- `subscribe(gameId, onUpdate)` — returns entries for that game from the index, re-emits when that game's bucket changes; returns an unsubscribe fn
-- `dispose()` — closes all sockets; should be called once on app teardown
+- `subscribe(gameId, onUpdate)` - returns entries for that game from the index, re-emits when that game's bucket changes; returns an unsubscribe fn
+- `dispose()` - closes all sockets; should be called once on app teardown
 
 The existing `createGamestrProvider` is still used by the panel (it delegates to the catalogue internally, or can remain independent for compatibility). We keep `createGamestrProvider` but update its `onopen` to send a broad REQ (no `#t`). The panel's `makeProvider` factory is also updated in Task 4.
 
@@ -490,7 +490,7 @@ describe('createGamestrCatalogue', () => {
     ws2.triggerOpen()
     const subId2 = (JSON.parse(ws2.sentMessages[0]) as [string, string])[1]
 
-    // New score from BOB — ALICE's score must still be in index
+    // New score from BOB - ALICE's score must still be in index
     ws2.triggerMessage(scoreMsg(subId2, 'sats-man', BOB, 600))
     clock.advance(250)
 
@@ -563,13 +563,13 @@ describe('createGamestrCatalogue', () => {
 })
 ```
 
-- [ ] **Step 2.2: Run catalogue tests — expect failures (no export yet)**
+- [ ] **Step 2.2: Run catalogue tests - expect failures (no export yet)**
 
 ```
 npx vitest run test/gamestr-catalogue.test.ts
 ```
 
-Expected: compilation error — `createGamestrCatalogue` not exported.
+Expected: compilation error - `createGamestrCatalogue` not exported.
 
 - [ ] **Step 2.3: Implement `createGamestrCatalogue` in `gamestr.ts`**
 
@@ -739,7 +739,7 @@ export function createGamestrCatalogue(
 }
 
 /**
- * Legacy per-game provider — kept for compatibility with the panel's
+ * Legacy per-game provider - kept for compatibility with the panel's
  * `makeProvider` factory API. Now uses a broad REQ (no `#t`) since
  * gamestr.io games do not tag events with the game slug.
  */
@@ -788,7 +788,7 @@ export function createGamestrProvider(
         ws.onopen = () => {
           connected.add(url)
           if (connected.size === 1) opts.onStatus?.('up')
-          // Broad filter — no #t — because gamestr.io games tag genres, not game IDs
+          // Broad filter - no #t - because gamestr.io games tag genres, not game IDs
           ws.send(JSON.stringify(['REQ', subId, { kinds: [30762], limit: 500 }]))
         }
 
@@ -831,7 +831,7 @@ export function createGamestrProvider(
 }
 ```
 
-- [ ] **Step 2.4: Run catalogue tests — all should pass**
+- [ ] **Step 2.4: Run catalogue tests - all should pass**
 
 ```
 npx vitest run test/gamestr-catalogue.test.ts
@@ -852,7 +852,7 @@ expect((req[2] as Record<string, unknown>)['#t']).toBeUndefined()
 expect((req[2] as Record<string, unknown>).kinds).toContain(30762)
 ```
 
-Also update the inline comment on the `ws.send` assertion in the `'onclose schedules a reconnect that re-sends REQ'` test — no assertion change needed there, just confirm the test still passes.
+Also update the inline comment on the `ws.send` assertion in the `'onclose schedules a reconnect that re-sends REQ'` test - no assertion change needed there, just confirm the test still passes.
 
 - [ ] **Step 2.6: Run all tests to confirm green**
 
@@ -880,25 +880,25 @@ git commit -m "fix: pull all games' scores via shared 30762 subscription buckete
 
 The panel currently renders `this.entries` directly (already sorted top-N). With `boardFor`, the panel holds all raw entries per game and calls `boardFor(rawEntries, this.period, topN, nowSec())` to produce the displayed list. A small toggle in the header switches between `today` and `all`.
 
-The panel still uses `LeaderboardProvider` (injected `makeProvider`), so no change to the panel's constructor interface. The provider now delivers raw entries (all, not pre-sliced to topN by the panel side — but it still emits `LeaderboardEntry[]`). Since `createGamestrProvider` already deduplicates best-per-pubkey and sorts, we simply call `boardFor` on the provider's `onUpdate` result to apply period filtering on top.
+The panel still uses `LeaderboardProvider` (injected `makeProvider`), so no change to the panel's constructor interface. The provider now delivers raw entries (all, not pre-sliced to topN by the panel side - but it still emits `LeaderboardEntry[]`). Since `createGamestrProvider` already deduplicates best-per-pubkey and sorts, we simply call `boardFor` on the provider's `onUpdate` result to apply period filtering on top.
 
 **Toggle UI spec:**
 - Added to `.lb-sub-row` after the LIVE indicator: `<span class="lb-period-toggle"><button class="lb-period-btn" data-period="today">TODAY</button><span class="lb-period-sep">|</span><button class="lb-period-btn" data-period="all">ALL TIME</button></span>`
 - Active button has class `lb-period-active`
 - Keyboard: pressing `t` toggles period (handled via a `keydown` listener)
-- Empty today state: show `"NO SCORES YET TODAY — BE THE FIRST"` in the `.lb-empty` slot
+- Empty today state: show `"NO SCORES YET TODAY - BE THE FIRST"` in the `.lb-empty` slot
 
 - [ ] **Step 3.1: Add `period` state and `boardFor` call to the panel**
 
 Read the current `leaderboard-panel.ts` first (already done above), then make targeted edits:
 
-**3.1a** — Add imports at the top of the file:
+**3.1a** - Add imports at the top of the file:
 
 ```typescript
 import { boardFor, type Period } from '../leaderboard/gamestr-reduce'
 ```
 
-**3.1b** — Add private fields after `private gotLive = false`:
+**3.1b** - Add private fields after `private gotLive = false`:
 
 ```typescript
 private period: Period = 'today'
@@ -906,20 +906,20 @@ private rawEntries: LeaderboardEntry[] = []
 private readonly topN: number
 ```
 
-**3.1c** — The `topN` value needs to be passed in. Add it to `LeaderboardPanelOptions`:
+**3.1c** - The `topN` value needs to be passed in. Add it to `LeaderboardPanelOptions`:
 
 ```typescript
 /** Max entries to show on the board (default 10). */
 topN?: number
 ```
 
-**3.1d** — In the constructor, after `this.profileCache = ...`:
+**3.1d** - In the constructor, after `this.profileCache = ...`:
 
 ```typescript
 this.topN = opts.topN ?? 10
 ```
 
-**3.1e** — Update the header HTML in the constructor to include the toggle (replace the `lb-sub-row` div):
+**3.1e** - Update the header HTML in the constructor to include the toggle (replace the `lb-sub-row` div):
 
 ```html
 <div class="lb-sub-row">
@@ -933,7 +933,7 @@ this.topN = opts.topN ?? 10
 </div>
 ```
 
-**3.1f** — After `this.statusEl = ...`, wire up the toggle:
+**3.1f** - After `this.statusEl = ...`, wire up the toggle:
 
 ```typescript
 const toggleBtns = this.root.querySelectorAll('.lb-period-btn')
@@ -957,7 +957,7 @@ Also add the private field declaration:
 private keyHandler: ((e: KeyboardEvent) => void) | null = null
 ```
 
-**3.1g** — Add `setPeriod` method:
+**3.1g** - Add `setPeriod` method:
 
 ```typescript
 private setPeriod(p: Period): void {
@@ -972,7 +972,7 @@ private setPeriod(p: Period): void {
 }
 ```
 
-**3.1h** — Update the `show()` method's provider callback to store raw entries:
+**3.1h** - Update the `show()` method's provider callback to store raw entries:
 
 Replace:
 ```typescript
@@ -1000,7 +1000,7 @@ this.unsubscribeScores = provider.subscribe(gameId, raw => {
 })
 ```
 
-**3.1i** — Update cache-first path in `show()`. Replace:
+**3.1i** - Update cache-first path in `show()`. Replace:
 ```typescript
 this.entries = readCachedBoard(gameId)
 ```
@@ -1010,7 +1010,7 @@ this.rawEntries = readCachedBoard(gameId)
 this.entries = boardFor(this.rawEntries, this.period, this.topN, Math.floor(Date.now() / 1000))
 ```
 
-**3.1j** — Update `destroy()` to remove the key listener:
+**3.1j** - Update `destroy()` to remove the key listener:
 
 ```typescript
 destroy(): void {
@@ -1020,7 +1020,7 @@ destroy(): void {
 }
 ```
 
-**3.1k** — Update `renderEmpty()` to show the today-specific message when period is `today`:
+**3.1k** - Update `renderEmpty()` to show the today-specific message when period is `today`:
 
 ```typescript
 private renderEmpty(): void {
@@ -1107,7 +1107,7 @@ git commit -m "fix: pass topN from config into LeaderboardPanel for period-aware
 
 ## Task 5: Verify live scores via Playwright
 
-**Context:** The spec asks to verify that gamestr.io games like Sats-Man and Space Zappers actually show scores on their live leaderboard pages, confirming the broad query approach is correct. We read the rendered board (not WebSocket directly — CSP blocks that from a test runner).
+**Context:** The spec asks to verify that gamestr.io games like Sats-Man and Space Zappers actually show scores on their live leaderboard pages, confirming the broad query approach is correct. We read the rendered board (not WebSocket directly - CSP blocks that from a test runner).
 
 - [ ] **Step 5.1: Load gamestr.io/sats-man and snapshot the leaderboard**
 
@@ -1121,7 +1121,7 @@ Repeat for `https://gamestr.io/space-zappers`.
 
 If score rows are visible on gamestr.io, note the `gameId` values that events would carry (typically matching the URL slug). Document in the commit message.
 
-Note: This task produces no code change — it's a verification step. If the Playwright tools are unavailable, skip and note it in the report.
+Note: This task produces no code change - it's a verification step. If the Playwright tools are unavailable, skip and note it in the report.
 
 ---
 
@@ -1138,13 +1138,13 @@ Note: This task produces no code change — it's a verification step. If the Pla
 | `createGamestrCatalogue` API with `subscribe`/`dispose` | Task 2 |
 | Remove per-tile re-subscribe churn (single session socket) | `createGamestrCatalogue` persists across calls |
 | `boardFor` pure helper, period windowing, best-per-pubkey, topN | Task 1 |
-| `boardFor` testable — `nowSec` injected, no `Date.now()` inside | Task 1 (confirmed in impl — `nowSec` is parameter; caller passes `Math.floor(Date.now() / 1000)` |
+| `boardFor` testable - `nowSec` injected, no `Date.now()` inside | Task 1 (confirmed in impl - `nowSec` is parameter; caller passes `Math.floor(Date.now() / 1000)` |
 | `boardFor` local-midnight boundary | Task 1 (uses `Date.setHours(0,0,0,0)`) |
 | Today / All-Time toggle in panel header | Task 3 |
 | `t` key toggles period | Task 3 |
 | Clickable toggle buttons | Task 3 |
 | Default period = Today | Task 3 (`private period: Period = 'today'`) |
-| Empty today state: "NO SCORES YET TODAY — BE THE FIRST" | Task 3 (`renderEmpty`) |
+| Empty today state: "NO SCORES YET TODAY - BE THE FIRST" | Task 3 (`renderEmpty`) |
 | LIVE/RECONNECTING indicator preserved | Task 3 (unchanged `setStatus`) |
 | Cache-first paint still works | Task 3 (updated to use `boardFor` over cached raw entries) |
 | All existing tests green | All tasks run `npx vitest run` |
@@ -1154,12 +1154,12 @@ Note: This task produces no code change — it's a verification step. If the Pla
 
 ### Placeholder scan
 
-No TBDs, no "fill in later", no "similar to above" — all code shown in full.
+No TBDs, no "fill in later", no "similar to above" - all code shown in full.
 
 ### Type consistency
 
 - `ParsedAnyScore` defined in Task 1, consumed in Task 2 (`parseAnyScoreEvent` import).
 - `Period` type exported from `gamestr-reduce.ts` in Task 1, imported in `leaderboard-panel.ts` in Task 3.
-- `boardFor` signature: `(entries: LeaderboardEntry[], period: Period, topN: number, nowSec: number) => LeaderboardEntry[]` — consistent across definition (Task 1) and call sites (Task 3).
-- `createGamestrCatalogue` returns `GamestrCatalogue` interface with `subscribe` / `dispose` — consistent across definition (Task 2) and test (Task 2).
+- `boardFor` signature: `(entries: LeaderboardEntry[], period: Period, topN: number, nowSec: number) => LeaderboardEntry[]` - consistent across definition (Task 1) and call sites (Task 3).
+- `createGamestrCatalogue` returns `GamestrCatalogue` interface with `subscribe` / `dispose` - consistent across definition (Task 2) and test (Task 2).
 - `LeaderboardPanel` constructor `topN` option added in Task 3, consumed in Task 4 `mountLeaderboard`.

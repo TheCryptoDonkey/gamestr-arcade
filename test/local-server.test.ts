@@ -108,7 +108,7 @@ describe('resolveSafePath', () => {
   })
 
   it('blocks a path that resolves to a sibling of root (shares string prefix)', () => {
-    // /srv/games/../games-evil/hack → /srv/games-evil/hack — NOT inside /srv/games
+    // /srv/games/../games-evil/hack → /srv/games-evil/hack - NOT inside /srv/games
     expect(resolveSafePath('/srv/games', '/../games-evil/hack')).toBeNull()
   })
 
@@ -120,7 +120,7 @@ describe('resolveSafePath', () => {
     expect(result!.startsWith(root + '/')).toBe(true)
   })
 
-  it('sandboxes an apparent absolute path — resolves inside root, not at filesystem root', () => {
+  it('sandboxes an apparent absolute path - resolves inside root, not at filesystem root', () => {
     // A request for '/etc/passwd' is treated as a relative lookup under root
     // (not as an absolute filesystem path). The resulting path is inside root
     // (it would simply return a 404 because no such file exists in games/).
@@ -418,10 +418,10 @@ describe('startLocalServer', () => {
     // root. The resolveSafePath pure-helper tests cover the real traversal guard.
     // Here we verify that a crafted request with a backslash escape attempt is
     // handled safely (path is sandboxed inside root, not rejected with 403, and
-    // falls through to SPA fallback or 404 — never escaping to the filesystem).
+    // falls through to SPA fallback or 404 - never escaping to the filesystem).
     server = await startLocalServer()
     server.setRoot(FIXTURES_SITE)
-    // /etc/passwd (as normalised by URL parser from /../../etc/passwd) — treated
+    // /etc/passwd (as normalised by URL parser from /../../etc/passwd) - treated
     // as a relative path under root → SPA fallback → 200 (root index.html served)
     const { status } = await get(server.port, '/etc/passwd')
     // The sandboxed path /etc/passwd maps to <root>/etc/passwd (doesn't exist)
@@ -435,7 +435,7 @@ describe('startLocalServer', () => {
     const first = await get(server.port, '/')
     expect(first.body).toContain('LOCAL OK')
 
-    // Swap to a different root (same fixture for simplicity — just verify it still serves).
+    // Swap to a different root (same fixture for simplicity - just verify it still serves).
     server.setRoot(FIXTURES_SITE)
     const second = await get(server.port, '/')
     expect(second.status).toBe(200)

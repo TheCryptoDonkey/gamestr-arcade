@@ -1,16 +1,16 @@
 /**
- * gamestr-arcade — synthesised arcade SFX (Web Audio API, zero asset files).
+ * gamestr-arcade - synthesised arcade SFX (Web Audio API, zero asset files).
  *
  * Everything is generated at runtime from oscillators + envelopes, so the booth
  * is offline-perfect: no sample loading, no CDN, no decode latency. The palette
- * is deliberately "neon cabinet" — clean FM-ish blips and chimes rather than
+ * is deliberately "neon cabinet" - clean FM-ish blips and chimes rather than
  * gritty chiptune.
  *
- *   playMove()   — short rising blip on carousel navigation
- *   playSelect() — bright two-note confirm chime on launch
- *   playBack()   — descending tone on back/cancel
+ *   playMove()   - short rising blip on carousel navigation
+ *   playSelect() - bright two-note confirm chime on launch
+ *   playBack()   - descending tone on back/cancel
  *
- * Attract mode is intentionally SILENT (visuals + marquee only) — a continuous
+ * Attract mode is intentionally SILENT (visuals + marquee only) - a continuous
  * pad grates over an all-day booth, so there is no looping music.
  *
  * A single shared AudioContext is created lazily and resumed on first use
@@ -50,7 +50,7 @@ export class ArcadeAudio {
 
   // ── SFX ──────────────────────────────────────────────────────────────────────
 
-  /** A short, bright blip — carousel move. */
+  /** A short, bright blip - carousel move. */
   playMove(): void {
     const ctx = this.audible()
     if (!ctx) return
@@ -61,7 +61,7 @@ export class ArcadeAudio {
     this.blip(ctx, { type: 'sine', from: 1080, to: 1760, dur: 0.07, peak: 0.05, t })
   }
 
-  /** A rising two-note confirm chime — launch. */
+  /** A rising two-note confirm chime - launch. */
   playSelect(): void {
     const ctx = this.audible()
     if (!ctx) return
@@ -74,7 +74,7 @@ export class ArcadeAudio {
     this.blip(ctx, { type: 'sine', from: 180, to: 120, dur: 0.22, peak: 0.16, t })
   }
 
-  /** A descending tone — back / cancel. */
+  /** A descending tone - back / cancel. */
   playBack(): void {
     const ctx = this.audible()
     if (!ctx) return
@@ -83,12 +83,12 @@ export class ArcadeAudio {
     this.blip(ctx, { type: 'sine', from: 310, to: 180, dur: 0.18, peak: 0.07, t })
   }
 
-  /** A warm ascending sparkle — celebrations and the donation ask. */
+  /** A warm ascending sparkle - celebrations and the donation ask. */
   playChime(): void {
     const ctx = this.audible()
     if (!ctx) return
     const t = ctx.now
-    // Gentle major arpeggio with a shimmer on top — friendly, not demanding.
+    // Gentle major arpeggio with a shimmer on top - friendly, not demanding.
     this.blip(ctx, { type: 'sine', from: 523, to: 523, dur: 0.14, peak: 0.12, t })
     this.blip(ctx, { type: 'sine', from: 659, to: 659, dur: 0.14, peak: 0.12, t: t + 0.09 })
     this.blip(ctx, { type: 'sine', from: 784, to: 784, dur: 0.2, peak: 0.13, t: t + 0.18 })

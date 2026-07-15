@@ -1,15 +1,15 @@
 /**
- * gamestr-arcade — post-game donation ask.
+ * gamestr-arcade - post-game donation ask.
  *
  * Shown when a player returns from a real session (the shell gates on
  * `minSessionSeconds`, so a five-second bounce never triggers it). Goodwill
- * peaks the moment a run ends — this card catches it with the game's accent,
+ * peaks the moment a run ends - this card catches it with the game's accent,
  * a headline, and one big Lightning QR. Scan with any wallet, done.
  *
  * Deliberately not a modal: it demands nothing. Any control press dismisses
  * it (the shell swallows that first press), and it auto-dismisses after
  * `showSeconds` so an abandoned cabinet drifts back to attract on its own.
- * The QR is generated offline (qrcode-generator) — no network at the booth.
+ * The QR is generated offline (qrcode-generator) - no network at the booth.
  */
 
 import qrcode from 'qrcode-generator'
@@ -76,7 +76,7 @@ export class DonationPanel {
 
     const sub = document.createElement('p')
     sub.className = 'donate-sub'
-    sub.textContent = cfg.message ?? 'ZAP THE ARCADE — IT KEEPS THE GAMES FREE'
+    sub.textContent = cfg.message ?? 'ZAP THE ARCADE - IT KEEPS THE GAMES FREE'
 
     const qrEl = document.createElement('div')
     qrEl.className = 'donate-qr'

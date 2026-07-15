@@ -1,7 +1,7 @@
 /* ── Launch interstitial ──────────────────────────────────────────────────────
    Full-screen card shown while a web game loads detached in the main process.
    Sits above the grid and the ready panel's ghost (260 closes on confirm),
-   below nothing that matters during a load — errors dismiss it first. */
+   below nothing that matters during a load - errors dismiss it first. */
 
 .launch-overlay {
   position: absolute;

@@ -1,5 +1,5 @@
 /**
- * gamestr-arcade — browser preview config (DEV ONLY).
+ * gamestr-arcade - browser preview config (DEV ONLY).
  *
  * Serves the renderer as a plain web page (no Electron) but backed by the REAL
  * games, so `localhost:5199` reflects the actual cabinet rather than MOCK_GAMES.

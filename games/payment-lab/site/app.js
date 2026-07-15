@@ -18,7 +18,7 @@ function record(tone, message) {
 
 async function checkWallet() {
   if (!window.webln) {
-    status.value = 'Unavailable — booth wallet is not configured or this capability was denied.'
+    status.value = 'Unavailable - booth wallet is not configured or this capability was denied.'
     status.className = 'status error'
     pay.disabled = true
     repeat.disabled = true
@@ -27,10 +27,10 @@ async function checkWallet() {
   try {
     await window.webln.enable()
     const info = await window.webln.getInfo()
-    status.value = `Ready — ${info.methods.join(', ')}`
+    status.value = `Ready - ${info.methods.join(', ')}`
     status.className = 'status success'
   } catch {
-    status.value = 'Unavailable — WebLN initialization failed.'
+    status.value = 'Unavailable - WebLN initialization failed.'
     status.className = 'status error'
   }
 }

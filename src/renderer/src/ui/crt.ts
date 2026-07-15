@@ -1,10 +1,10 @@
 /**
- * gamestr-arcade — CRT overlay.
+ * gamestr-arcade - CRT overlay.
  *
  * A single non-interactive layer mounted at the `.crt-anchor` seam that sits
  * over everything: fine scanlines, a soft tube vignette, an aperture-grille
  * tint and a faint flicker/roll. Tuned to read as "arcade monitor" while
- * keeping the underlying text crisp (low opacity, hairline lines) — it should
+ * keeping the underlying text crisp (low opacity, hairline lines) - it should
  * flatter the neon, not fog it.
  *
  * Gated by `config.theme.crt`; a key (default `c`) toggles it for the demo.

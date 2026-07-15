@@ -1,6 +1,6 @@
 /**
  * Tests for the extended resolveIcon / resolveHero resolution order.
- * All I/O is injected — no network, no real filesystem.
+ * All I/O is injected - no network, no real filesystem.
  */
 import { describe, it, expect, vi } from 'vitest'
 import { resolveIcon, resolveHero, type IconDeps } from '../src/main/icons'
@@ -18,7 +18,7 @@ function deps(over: Partial<IconDeps>): IconDeps {
   }
 }
 
-// ── resolveIcon — resolution order ───────────────────────────────────────────
+// ── resolveIcon - resolution order ───────────────────────────────────────────
 
 describe('resolveIcon', () => {
   it('sibling logo.png wins over all other sources', async () => {

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a generic, world-class arcade launcher (an Electron→AppImage kiosk "attract/select" front-screen) that launches native AppImage or web games discovered from a folder, with live gamestr (kind-30762) leaderboard tiles — configured for the BTC Prague 2026 booth as its first instance.
+**Goal:** Build a generic, world-class arcade launcher (an Electron→AppImage kiosk "attract/select" front-screen) that launches native AppImage or web games discovered from a folder, with live gamestr (kind-30762) leaderboard tiles - configured for the BTC Prague 2026 booth as its first instance.
 
 **Architecture:** One Electron app. The **main process** owns OS concerns (kiosk window, child-process launching, filesystem scan, icon extraction). The **renderer** owns the UI (hero carousel, input, audio, attract mode) and the Nostr leaderboard subscription (browser WebSocket). Booth specifics are pure data: a `games/` folder + `arcade.config.json` + a theme. The leaderboard lives behind a `LeaderboardProvider` interface; gamestr/kind-30762 is the first implementation.
 
@@ -14,7 +14,7 @@
 
 ## Logistics (resolve before/at execution)
 
-- **Dev on macOS** (`npm run dev` via electron-vite) builds and runs the shell and the UI; **web-game launch is testable on macOS**. **Native AppImage spawning + `.DirIcon` extraction + the AppImage build are Linux-only** — verify on the booth Linux laptop (or an Ubuntu CI runner mirroring `pallasite/.github/workflows/desktop-release.yml`). Tasks tagged **[Linux]** must run there.
+- **Dev on macOS** (`npm run dev` via electron-vite) builds and runs the shell and the UI; **web-game launch is testable on macOS**. **Native AppImage spawning + `.DirIcon` extraction + the AppImage build are Linux-only** - verify on the booth Linux laptop (or an Ubuntu CI runner mirroring `pallasite/.github/workflows/desktop-release.yml`). Tasks tagged **[Linux]** must run there.
 - **Open spec questions (non-blocking for Phases 0–2):** relay choice on the day (`relay.trotters.cc` only vs add a local relay); who wraps AxeNStax as an AppImage + whether it publishes 30762; day-one line-up + `game` tag ids; AI-generated logos vs official art.
 
 ## File Structure
@@ -54,7 +54,7 @@ gamestr-arcade/
           crt.ts                 # CRT overlay toggle
         leaderboard/
           gamestr-reduce.ts      # PURE: parseScoreEvent, collapseToBest (TDD'd)
-          gamestr.ts             # createGamestrProvider() — raw-WS subscription
+          gamestr.ts             # createGamestrProvider() - raw-WS subscription
           profiles.ts            # async kind-0 name/picture resolution
           cache.ts               # localStorage cache of last-known boards
         styles/                  # CSS (theme tokens, carousel, board, crt)
@@ -73,7 +73,7 @@ gamestr-arcade/
 
 ---
 
-## Phase 0 — Scaffold & de-risk packaging (do FIRST)
+## Phase 0 - Scaffold & de-risk packaging (do FIRST)
 
 > The scariest unknown is "does it build to a kiosk AppImage and run full-screen on the laptop." Prove that with a near-empty app before building features.
 
@@ -93,7 +93,7 @@ npm install gsap howler
 npm install -D @types/howler
 ```
 
-- [ ] **Step 2: Enforce house style** — set `"type": "module"`, `"target": "ES2022"` in `tsconfig.json`; British English in all strings/comments; add `.gitignore` entries: `node_modules/`, `out/`, `dist/`, `games/`, `.DS_Store`, `*.AppImage`.
+- [ ] **Step 2: Enforce house style** - set `"type": "module"`, `"target": "ES2022"` in `tsconfig.json`; British English in all strings/comments; add `.gitignore` entries: `node_modules/`, `out/`, `dist/`, `games/`, `.DS_Store`, `*.AppImage`.
 
 - [ ] **Step 3: Add scripts to `package.json`**
 
@@ -170,7 +170,7 @@ app.on('will-quit', () => globalShortcut.unregisterAll())
 Run: `npm run dev`
 Expected: full-screen window, no menu bar; `Ctrl+Q` quits. (Run with `ARCADE_KIOSK=0 npm run dev` for a normal window while developing.)
 
-- [ ] **Step 3: Commit** — `git commit -am "feat: kiosk window + admin hotkeys"`
+- [ ] **Step 3: Commit** - `git commit -am "feat: kiosk window + admin hotkeys"`
 
 ### Task 3: [Linux] Build the AppImage and run it on the laptop
 
@@ -198,18 +198,18 @@ linux:
 Run (on the booth Linux laptop or Ubuntu CI): `npm run dist`
 Expected: `release/gamestr-arcade-0.0.0-x86_64.AppImage` produced.
 
-- [ ] **Step 3: [Linux] Smoke-run** — `chmod +x release/*.AppImage && ./release/gamestr-arcade-*.AppImage`
+- [ ] **Step 3: [Linux] Smoke-run** - `chmod +x release/*.AppImage && ./release/gamestr-arcade-*.AppImage`
 Expected: boots full-screen kiosk; `Ctrl+Q` quits. **Packaging is now de-risked.**
 
-- [ ] **Step 4: Commit** — `git commit -am "build: linux AppImage target"`
+- [ ] **Step 4: Commit** - `git commit -am "build: linux AppImage target"`
 
 ---
 
-## Phase 1 — Core modules (TDD, parallelisable)
+## Phase 1 - Core modules (TDD, parallelisable)
 
 > Tasks 4–8 are independent and can be built by parallel subagents. They share only `src/shared/types.ts` (Task 4), which must land first.
 
-### Task 4: Shared types (land first — everything imports these)
+### Task 4: Shared types (land first - everything imports these)
 
 **Files:** Create `src/shared/types.ts`.
 
@@ -259,8 +259,8 @@ export interface ArcadeConfig {
 }
 ```
 
-- [ ] **Step 2: Typecheck** — `npm run typecheck` → Expected: passes.
-- [ ] **Step 3: Commit** — `git add src/shared/types.ts && git commit -m "feat: shared types"`
+- [ ] **Step 2: Typecheck** - `npm run typecheck` → Expected: passes.
+- [ ] **Step 3: Commit** - `git add src/shared/types.ts && git commit -m "feat: shared types"`
 
 ### Task 5: Config loader
 
@@ -286,7 +286,7 @@ describe('parseConfig', () => {
 })
 ```
 
-- [ ] **Step 2: Run → FAIL** — `npx vitest run test/config.test.ts` → "Cannot find module".
+- [ ] **Step 2: Run → FAIL** - `npx vitest run test/config.test.ts` → "Cannot find module".
 
 - [ ] **Step 3: Implement**
 
@@ -323,14 +323,14 @@ export function parseConfig(raw: unknown): ArcadeConfig {
 }
 ```
 
-- [ ] **Step 4: Run → PASS** — `npx vitest run test/config.test.ts`.
-- [ ] **Step 5: Commit** — `git commit -am "feat: arcade config loader with defaults"`
+- [ ] **Step 4: Run → PASS** - `npx vitest run test/config.test.ts`.
+- [ ] **Step 5: Commit** - `git commit -am "feat: arcade config loader with defaults"`
 
 ### Task 6: Game scanner
 
 **Files:** Create `src/main/scanner.ts`. Test: `test/scanner.test.ts`, `test/fixtures/games/`.
 
-- [ ] **Step 1: Create fixtures** — `test/fixtures/games/neon/game.json` = `{ "name": "Neon Sentinel", "url": "https://example.test/neon", "gameId": "neon-sentinel", "order": 2 }` plus `test/fixtures/games/neon/logo.png` (any small png); and `test/fixtures/games/zzz-empty/` (empty folder, must be skipped).
+- [ ] **Step 1: Create fixtures** - `test/fixtures/games/neon/game.json` = `{ "name": "Neon Sentinel", "url": "https://example.test/neon", "gameId": "neon-sentinel", "order": 2 }` plus `test/fixtures/games/neon/logo.png` (any small png); and `test/fixtures/games/zzz-empty/` (empty folder, must be skipped).
 
 - [ ] **Step 2: Write the failing test**
 
@@ -358,7 +358,7 @@ describe('scanGames', () => {
 })
 ```
 
-- [ ] **Step 3: Run → FAIL** — `npx vitest run test/scanner.test.ts`.
+- [ ] **Step 3: Run → FAIL** - `npx vitest run test/scanner.test.ts`.
 
 - [ ] **Step 4: Implement** (icon resolution is injected so the scanner stays testable; the main process wires the real resolver in Task 7)
 
@@ -441,14 +441,14 @@ async function build(
 }
 ```
 
-- [ ] **Step 5: Run → PASS** — `npx vitest run test/scanner.test.ts`.
-- [ ] **Step 6: Commit** — `git commit -am "feat: game folder scanner (appimage + web, injected logo resolver)"`
+- [ ] **Step 5: Run → PASS** - `npx vitest run test/scanner.test.ts`.
+- [ ] **Step 6: Commit** - `git commit -am "feat: game folder scanner (appimage + web, injected logo resolver)"`
 
 ### Task 7: Icon resolver (injectable deps; real extractor is [Linux])
 
 **Files:** Create `src/main/icons.ts`. Test: `test/icons.test.ts`.
 
-- [ ] **Step 1: Write the failing test** (tests the decision logic with fake deps — no real AppImage needed)
+- [ ] **Step 1: Write the failing test** (tests the decision logic with fake deps - no real AppImage needed)
 
 ```ts
 import { describe, it, expect } from 'vitest'
@@ -488,7 +488,7 @@ describe('resolveIcon', () => {
 })
 ```
 
-- [ ] **Step 2: Run → FAIL** — `npx vitest run test/icons.test.ts`.
+- [ ] **Step 2: Run → FAIL** - `npx vitest run test/icons.test.ts`.
 
 - [ ] **Step 3: Implement decision logic + real deps**
 
@@ -546,11 +546,11 @@ export const realIconDeps = (placeholderPng: string): IconDeps => ({
 function cacheDirOf(file: string): string { return file.slice(0, file.lastIndexOf('/')) }
 ```
 
-- [ ] **Step 4: Run → PASS** — `npx vitest run test/icons.test.ts`.
-- [ ] **Step 5: [Linux] Integration check** — point `realIconDeps` at a real `Pallasite-*.AppImage`; confirm a `<slug>.png` lands in the cache dir and looks correct.
-- [ ] **Step 6: Commit** — `git commit -am "feat: icon resolver (.DirIcon extract + cache + fallbacks)"`
+- [ ] **Step 4: Run → PASS** - `npx vitest run test/icons.test.ts`.
+- [ ] **Step 5: [Linux] Integration check** - point `realIconDeps` at a real `Pallasite-*.AppImage`; confirm a `<slug>.png` lands in the cache dir and looks correct.
+- [ ] **Step 6: Commit** - `git commit -am "feat: icon resolver (.DirIcon extract + cache + fallbacks)"`
 
-### Task 8: gamestr leaderboard — pure reducer (TDD'd) + provider
+### Task 8: gamestr leaderboard - pure reducer (TDD'd) + provider
 
 **Files:** Create `src/renderer/src/leaderboard/gamestr-reduce.ts`, `gamestr.ts`. Test: `test/gamestr-reduce.test.ts`.
 
@@ -595,7 +595,7 @@ describe('collapseToBest', () => {
 })
 ```
 
-- [ ] **Step 2: Run → FAIL** — `npx vitest run test/gamestr-reduce.test.ts`.
+- [ ] **Step 2: Run → FAIL** - `npx vitest run test/gamestr-reduce.test.ts`.
 
 - [ ] **Step 3: Implement the pure reducer**
 
@@ -641,7 +641,7 @@ export function collapseToBest(events: ScoreEvent[], gameId: string, topN: numbe
 }
 ```
 
-- [ ] **Step 4: Run → PASS** — `npx vitest run test/gamestr-reduce.test.ts`.
+- [ ] **Step 4: Run → PASS** - `npx vitest run test/gamestr-reduce.test.ts`.
 
 - [ ] **Step 5: Implement the provider** (raw-WS subscription, debounced; mirrors `subscribeGlobalHighScores`)
 
@@ -686,11 +686,11 @@ export function createGamestrProvider(relays: string[], topN: number): Leaderboa
 }
 ```
 
-- [ ] **Step 6: Commit** — `git commit -am "feat: gamestr (kind-30762) leaderboard reducer + provider"`
+- [ ] **Step 6: Commit** - `git commit -am "feat: gamestr (kind-30762) leaderboard reducer + provider"`
 
 ---
 
-## Phase 2 — Renderer / UI (world-class; frontend-design-driven, visual verification)
+## Phase 2 - Renderer / UI (world-class; frontend-design-driven, visual verification)
 
 > **Build with the `frontend-design` skill** to hit the world-class bar and avoid generic AI aesthetics. UI is animation-heavy: verify **visually** (manual acceptance below) rather than with fabricated unit tests. Run dev windowed: `ARCADE_KIOSK=0 npm run dev`. Each task ends in a commit.
 
@@ -708,10 +708,10 @@ export function createGamestrProvider(relays: string[], topN: number): Leaderboa
 
 - [ ] **Step 1:** Implement a selection model: `class Carousel { constructor(games: Game[], host: HTMLElement); select(index): void; next(): void; prev(): void; current(): Game; onChange(cb: (g: Game) => void): void }`.
 - [ ] **Step 2:** Render full-bleed hero (`hero` image/video or a tinted fallback from `accent`/`logo`), the big `logo`, `name` + `tagline`, and a "PRESS ⏎ / Ⓐ TO PLAY" prompt. Below: a filmstrip of neighbours + page dots.
-- [ ] **Step 3:** Animate transitions with GSAP — hero cross-fade + slide, logo pop, parallax; honour `prefers-reduced-motion`.
+- [ ] **Step 3:** Animate transitions with GSAP - hero cross-fade + slide, logo pop, parallax; honour `prefers-reduced-motion`.
 - [ ] **Acceptance (visual):** moving selection slides smoothly at 60fps; the accent colour themes the active frame; missing hero/logo degrades gracefully. **Commit.**
 
-### Task 11: Input — keyboard (primary) + gamepad (additive)
+### Task 11: Input - keyboard (primary) + gamepad (additive)
 
 **Files:** `src/renderer/src/ui/input.ts`.
 
@@ -719,7 +719,7 @@ export function createGamestrProvider(relays: string[], topN: number): Leaderboa
 - [ ] **Step 2:** Gamepad via `requestAnimationFrame` polling `navigator.getGamepads()`: d-pad/stick → prev/next (with repeat-debounce), button 0 (A) → launch, button 9 (Start) → back. 
 - [ ] **Acceptance (manual):** full navigation by keyboard; if a gamepad is plugged, it drives the same actions. **Commit.**
 
-### Task 12: Audio — move/select/back + attract music
+### Task 12: Audio - move/select/back + attract music
 
 **Files:** `src/renderer/src/ui/audio.ts`, `src/renderer/theme/` (royalty-free `move.ogg`, `select.ogg`, `back.ogg`, `attract.ogg`).
 
@@ -738,15 +738,15 @@ export function createGamestrProvider(relays: string[], topN: number): Leaderboa
 
 **Files:** `src/renderer/src/ui/leaderboard-panel.ts`, `src/renderer/src/ui/crt.ts`, `src/renderer/src/leaderboard/profiles.ts`, `cache.ts`, `styles/board.css`, `styles/crt.css`.
 
-- [ ] **Step 1:** On carousel change, if `config.leaderboard.provider === 'gamestr'`, `subscribe(currentGame.gameId, render)` via `createGamestrProvider(relays, topN)`; unsubscribe on change. Render rank · player · score (sats). Empty → "Be the first — play to claim the top spot."
-- [ ] **Step 2:** `profiles.ts`: async kind-0 resolution — raw-WS `REQ {kinds:[0], authors:[...]}`, fill `name`/`picture`, re-render. Until resolved, show shortened npub + a deterministic avatar.
+- [ ] **Step 1:** On carousel change, if `config.leaderboard.provider === 'gamestr'`, `subscribe(currentGame.gameId, render)` via `createGamestrProvider(relays, topN)`; unsubscribe on change. Render rank · player · score (sats). Empty → "Be the first - play to claim the top spot."
+- [ ] **Step 2:** `profiles.ts`: async kind-0 resolution - raw-WS `REQ {kinds:[0], authors:[...]}`, fill `name`/`picture`, re-render. Until resolved, show shortened npub + a deterministic avatar.
 - [ ] **Step 3:** `cache.ts`: persist the last-known board per gameId to `localStorage`; render cache instantly on select, then live data replaces it. Show a subtle "reconnecting" dot when no socket is open.
 - [ ] **Step 4:** `crt.ts`: a toggleable scanline/vignette overlay (CSS), gated by `config.theme.crt`.
 - [ ] **Acceptance (manual):** with `relay.trotters.cc` reachable, Pallasite's tile shows a live board that updates when a new score lands; offline shows the cache + empty state; CRT toggles. **Commit.**
 
 ---
 
-## Phase 3 — Launch integration
+## Phase 3 - Launch integration
 
 ### Task 15: Native AppImage launch + return-to-grid
 
@@ -766,15 +766,15 @@ export function createGamestrProvider(relays: string[], topN: number): Leaderboa
 
 ---
 
-## Phase 4 — Booth instance & robustness
+## Phase 4 - Booth instance & robustness
 
 ### Task 17: BTC Prague config + games folder
 
 **Files:** `arcade.config.json`, `games/<slug>/…` (booth data; gitignored), bootstrapped art.
 
-- [ ] **Step 1:** Write `arcade.config.json`: `theme.title = "gamestr arcade"`, `leaderboard = { provider: "gamestr", relays: ["wss://relay.trotters.cc", "wss://nos.lol", "wss://relay.damus.io"], topN: 5 }`, `attractTimeoutMs: 20000`, `theme.crt: true`. **(Confirm the relay list per the open question — add a local relay if chosen.)**
+- [ ] **Step 1:** Write `arcade.config.json`: `theme.title = "gamestr arcade"`, `leaderboard = { provider: "gamestr", relays: ["wss://relay.trotters.cc", "wss://nos.lol", "wss://relay.damus.io"], topN: 5 }`, `attractTimeoutMs: 20000`, `theme.crt: true`. **(Confirm the relay list per the open question - add a local relay if chosen.)**
 - [ ] **Step 2:** Populate `games/pallasite/` (the real Pallasite AppImage + `game.json {"gameId":"pallasite","tagline":"Cosmic arcade Asteroids"}` + bootstrapped `logo.png`/`hero.png`), and folders for AxeNStax / Hash Dash / Satori Rush (AppImage when wrapped, else `game.json {url}` to a locally-hosted build). **Confirm gameIds.**
-- [ ] **Step 3:** Bootstrap art: start from `axenstax/screenshot.png`, `pallasite/desktop/build/icon.png`, game screenshots; AI-generate hero backdrops + logos where missing; graceful fallback already handles gaps. **Acceptance:** every tile shows a logo + hero; boards render. **Commit (config only — `games/` is gitignored).**
+- [ ] **Step 3:** Bootstrap art: start from `axenstax/screenshot.png`, `pallasite/desktop/build/icon.png`, game screenshots; AI-generate hero backdrops + logos where missing; graceful fallback already handles gaps. **Acceptance:** every tile shows a logo + hero; boards render. **Commit (config only - `games/` is gitignored).**
 
 ### Task 18: Crash-recovery kiosk service ([Linux])
 
@@ -795,7 +795,7 @@ export function createGamestrProvider(relays: string[], topN: number): Leaderboa
 **1. Spec coverage**
 - §1 generic launcher / booth-as-instance → Tasks 4, 17. §2 generic+world-class goals → injected deps (6,7), `LeaderboardProvider` (4,8), frontend-design (Phase 2). §3 Electron approach → Phase 0. §4 components → Tasks 4–16 (one module each). §5 discovery model → Task 6 (folder + loose AppImage + game.json) & Task 7 (`.DirIcon` + sibling + placeholder). §6 gamestr provider → Task 8 + Task 14. §7 UX/input → Tasks 10–13. §8 lifecycle/robustness → Tasks 15, 16, 18. §9 assets → Task 17. §10 build/dev → Phase 0 + Task 19. §11 testing → Tasks 5–8 (unit) + Linux integration/smoke (7,15,19). §12 milestones → Phases map M1=Phase 0+1+ Tasks 10/11/15, M2=12/13/14(crt), M3=14, M4=16/17. §13 open questions → Logistics + Task 17 notes. **No gaps.**
 
-**2. Placeholder scan:** No "TBD/TODO/handle edge cases" in code steps; the only deferred items are the four **spec open questions**, surfaced explicitly as decisions (relay list, gameIds, AxeNStax wrap, art) — these are inputs to confirm, not unwritten code. UI tasks use visual acceptance criteria by design (animation isn't unit-testable), not vague "add tests".
+**2. Placeholder scan:** No "TBD/TODO/handle edge cases" in code steps; the only deferred items are the four **spec open questions**, surfaced explicitly as decisions (relay list, gameIds, AxeNStax wrap, art) - these are inputs to confirm, not unwritten code. UI tasks use visual acceptance criteria by design (animation isn't unit-testable), not vague "add tests".
 
 **3. Type consistency:** `Game`, `LeaderboardEntry`, `LeaderboardProvider`, `ArcadeConfig` defined once in Task 4 and used unchanged in 5/6/7/8/14. `scanGames(dir, resolveLogo)` signature matches its IPC wiring (Task 9). `resolveIcon(game, cacheDir, deps)` matches its test and the real-deps wiring. `createGamestrProvider(relays, topN).subscribe(gameId, onUpdate)` matches the `LeaderboardProvider` interface and Task 14 usage. `parseScoreEvent`/`collapseToBest` names match between test and impl. Consistent.
 

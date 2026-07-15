@@ -1,7 +1,7 @@
 /**
- * gamestr-arcade — download QR panel.
+ * gamestr-arcade - download QR panel.
  *
- * Shown when a visitor presses play on a *download-only* game — one that can't
+ * Shown when a visitor presses play on a *download-only* game - one that can't
  * run embedded in the kiosk web view (no playable web build). Instead of
  * launching, we surface the game's download URL as a QR code so the visitor can
  * grab it on their own device. Turns "can't play here" into "take it home".
@@ -62,7 +62,7 @@ export class DownloadPanel {
       <div class="dl-panel">
         <div class="dl-kicker"><span class="dl-glyph">⤓</span>DOWNLOAD&nbsp;ONLY</div>
         <h2 id="download-panel-title" class="dl-name"></h2>
-        <p id="download-panel-description" class="dl-sub">Not playable in the cabinet — scan to get it on your device.</p>
+        <p id="download-panel-description" class="dl-sub">Not playable in the cabinet - scan to get it on your device.</p>
         <div class="dl-qr" aria-hidden="true"></div>
         <div id="download-panel-url" class="dl-url"></div>
         <button class="dl-close" type="button"><span aria-hidden="true">Ⓑ&nbsp;/&nbsp;ESC&nbsp;&nbsp;</span>CLOSE DOWNLOAD</button>

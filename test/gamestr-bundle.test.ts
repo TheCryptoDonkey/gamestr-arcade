@@ -13,7 +13,7 @@ import type { GamestrCatalogueResult } from '../src/shared/types'
 // shapes, minified booleans (!0/!1), relative + absolute images, genres, an
 // entry with no play url (must be skipped), and unrelated code around it.
 const FIXTURE = `
-const X={"bb1f62f00f67dec2182ac7c40d046979d7c8ca698951cb9e509bdcb3d0a85f8a:btcrally":{name:"BTC Rally",description:"A Kart-style racing game — pay sats to enter.",image:"https://img.itch.zone/x.png",genres:["racing","multiplayer","action"],url:"https://mandelduckstudio.itch.io/btcrally",developer:"npub1yreyumw",featured:!0,trending:!0,newRelease:!0},"a97c337110c3573dc246e272b8e25e5de9c2c60e2a7dba2a2bc76087e2856c6b:mempool-breaker":{name:"Mempool Breaker",description:"Mine live mempool blocks.",image:"/games/mempool-breaker.png",genres:["arcade","bitcoin","action"],url:"https://games.noderunners.network/mempoolbreaker/",developer:"a97c33",featured:!1,trending:!0,newRelease:!0},"nopubkey:wordswithzaps":{name:"Words With Zaps",description:"A competitive word game.",image:"/games/wordswithzaps.png",genres:["word","multiplayer"],url:"https://wordswithzaps.example/",developer:"nopubkey",featured:!1,trending:!0,newRelease:!0},"deadbeef:nourlgame":{name:"No URL Game",description:"has no play url",genres:["x"],developer:"deadbeef",featured:!1}};
+const X={"bb1f62f00f67dec2182ac7c40d046979d7c8ca698951cb9e509bdcb3d0a85f8a:btcrally":{name:"BTC Rally",description:"A Kart-style racing game - pay sats to enter.",image:"https://img.itch.zone/x.png",genres:["racing","multiplayer","action"],url:"https://mandelduckstudio.itch.io/btcrally",developer:"npub1yreyumw",featured:!0,trending:!0,newRelease:!0},"a97c337110c3573dc246e272b8e25e5de9c2c60e2a7dba2a2bc76087e2856c6b:mempool-breaker":{name:"Mempool Breaker",description:"Mine live mempool blocks.",image:"/games/mempool-breaker.png",genres:["arcade","bitcoin","action"],url:"https://games.noderunners.network/mempoolbreaker/",developer:"a97c33",featured:!1,trending:!0,newRelease:!0},"nopubkey:wordswithzaps":{name:"Words With Zaps",description:"A competitive word game.",image:"/games/wordswithzaps.png",genres:["word","multiplayer"],url:"https://wordswithzaps.example/",developer:"nopubkey",featured:!1,trending:!0,newRelease:!0},"deadbeef:nourlgame":{name:"No URL Game",description:"has no play url",genres:["x"],developer:"deadbeef",featured:!1}};
 const Si={word5:{scoreField:"streak",scoreDirection:"desc",metadata:{name:"Word5",description:"A daily word puzzle game.",image:"https://pexels.example/p.jpeg?w=800",genres:["puzzle","casual"],url:"https://word5.otherstuff.ai",developer:"otherstuff.ai",featured:!1,trending:!1,newRelease:!0}},unicornvssnakes:{scoreField:"score",scoreDirection:"desc",metadata:{name:"Unicorn vs Snakes",description:"Who put all these snakes on the field?",image:"/games/uvs.png",genres:["arcade"],url:"https://uvs.example/",developer:"dev",featured:!1,trending:!1,newRelease:!1}}};
 function consider(e){return e.tags.find(t=>t[0]==="game")}
 `
@@ -38,7 +38,7 @@ describe('parseGamestrCatalogue', () => {
     expect(btc.name).toBe('BTC Rally')
     expect(btc.url).toBe('https://mandelduckstudio.itch.io/btcrally')
     expect(btc.genres).toEqual(['racing', 'multiplayer', 'action'])
-    expect(btc.description).toContain('—')
+    expect(btc.description).toContain('-')
   })
 
   it('resolves relative images against the gamestr origin, keeps absolute ones', () => {
