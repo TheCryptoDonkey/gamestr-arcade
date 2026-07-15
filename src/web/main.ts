@@ -9,9 +9,10 @@ import { readSocialState, toggleSocialItem, writeSocialState } from './social-st
 import { rewardLightningAddress, type WebLNProvider } from './lightning-reward'
 import { decode as decodeNip19 } from 'nostr-tools/nip19'
 import { WEB_EDITION } from './web-edition'
-import { connectNostrAccess, currentNostrSigner, disconnectNostrAccess, NOSTR_SESSION_EVENT, restoreNostrAccess, type ArcadeNostrSigner, type NostrAccess } from './nostr-access'
+import { connectNostrAccess, currentNostrGameSession, currentNostrSigner, disconnectNostrAccess, NOSTR_SESSION_EVENT, restoreNostrAccess, type ArcadeNostrSigner, type NostrAccess } from './nostr-access'
 import { loadWellKnownMembers } from './well-known-members'
 import { accountIdentity } from './account-identity'
+import { createNostrGameLaunch, installNostrGameBridge, openNostrGame } from './game-auth-handoff'
 
 interface WebGame {
   slug: string; gameId: string; name: string; tagline: string; description?: string; developer?: string
@@ -35,6 +36,8 @@ const state = {
   members: new Map<string, string>(),
   social: readSocialState(), activityMode: 'all' as 'all' | 'following',
 }
+
+installNostrGameBridge(() => currentNostrSigner())
 
 window.addEventListener(NOSTR_SESSION_EVENT, event => {
   const access = (event as CustomEvent<NostrAccess>).detail
@@ -111,6 +114,24 @@ function playLink(game: WebGame, label = 'PLAY', className = 'play-small'): HTML
   link.href = game.url
   link.target = '_blank'
   link.rel = 'noopener noreferrer'
+  const session = WEB_EDITION.key === '600' ? currentNostrGameSession() : undefined
+  if (session) {
+    const launch = createNostrGameLaunch({
+      gameId: game.gameId,
+      targetUrl: game.url,
+      sourceOrigin: WEB_EDITION.defaultOrigin,
+      sourceApp: WEB_EDITION.pwaName,
+      session,
+      profile: state.profiles.get(session.pubkey),
+    })
+    if (launch) {
+      link.addEventListener('click', event => {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+        event.preventDefault()
+        openNostrGame(launch)
+      })
+    }
+  }
   return link
 }
 

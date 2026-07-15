@@ -19,6 +19,12 @@ export interface NostrAccess {
   canSignEvents: boolean
 }
 
+export interface NostrGameSessionProof {
+  pubkey: string
+  canSignEvents: boolean
+  authEvent: NostrEvent
+}
+
 export interface ConnectNostrOptions {
   appName: string
   relays: string[]
@@ -50,6 +56,15 @@ function preferredRelay(relays: string[]): string {
 export function currentNostrSigner(): ArcadeNostrSigner | undefined {
   if (activeSession) return activeSession.signer.capabilities.canSignEvents ? activeSession.signer : undefined
   return (window as Nip07Window).nostr
+}
+
+export function currentNostrGameSession(): NostrGameSessionProof | undefined {
+  if (!activeSession) return undefined
+  return {
+    pubkey: activeSession.pubkey,
+    canSignEvents: activeSession.signer.capabilities.canSignEvents,
+    authEvent: activeSession.authEvent,
+  }
 }
 
 export async function connectNostrAccess(options: ConnectNostrOptions): Promise<NostrAccess | null> {
