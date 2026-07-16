@@ -106,15 +106,14 @@ describe('600 Billion web edition contrast', () => {
     expectReadable('#activity-selected', '#activity-selected')
   })
 
-  it('keeps inactive, hover, selected, and selected-hover toggle states distinct', () => {
+  it('keeps selected buttons orange while only inactive buttons change on hover', () => {
     expect(getComputedStyle(document.querySelector('#activity-selected')!).backgroundColor).toBe('#f7931a')
     expect(getComputedStyle(document.querySelector('#activity-inactive')!).backgroundColor).toBe('#fff')
     expect(stylesheet).toContain('.filter-tabs button:not(.selected):hover { background:#ffd7a3;color:var(--edition-muted);box-shadow:inset 0 0 0 2px #f7931a }')
-    expect(stylesheet).toContain('.filter-tabs button.selected:hover { background:var(--surface-accent);color:#fff;box-shadow:none }')
     expect(stylesheet).toContain('.activity-modes button:not(.selected):hover { background:#ffd7a3;color:var(--edition-muted);box-shadow:inset 0 0 0 2px #f7931a }')
-    expect(stylesheet).toContain('.activity-modes button.selected:hover { background:var(--surface-accent);color:#fff;box-shadow:none }')
+    expect(stylesheet).not.toContain('.filter-tabs button.selected:hover')
+    expect(stylesheet).not.toContain('.activity-modes button.selected:hover')
     expect(contrast('#4d2907', '#ffd7a3')).toBeGreaterThanOrEqual(4.5)
-    expect(contrast('#fff', '#9a4d00')).toBeGreaterThanOrEqual(4.5)
     expect(stylesheet).toContain('a.primary.button-link:hover { border-color:#222;background:#fff;color:var(--edition-ink)')
     expect(stylesheet).toContain('a.secondary.button-link:hover { border-color:#222;background:#222;color:#fff')
     expect(stylesheet).toContain('.button-link:not(.primary):not(.secondary):not(.play-small):hover { border-color:#222;background:#222;color:#fff')
