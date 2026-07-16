@@ -10,7 +10,7 @@ describe('parseConfig', () => {
     expect(c.attractTimeoutMs).toBe(20000)
   })
   it('default relay set includes gamestr.io and Pallasite DEFAULT_RELAYS', () => {
-    expect(DEFAULT_LEADERBOARD_RELAYS).toContain('wss://relay.gamestr.io')
+    expect(DEFAULT_LEADERBOARD_RELAYS).toContain('wss://main.relay.gamestr.io')
     expect(DEFAULT_LEADERBOARD_RELAYS).toContain('wss://relay.trotters.cc')
     expect(DEFAULT_LEADERBOARD_RELAYS).toContain('wss://relay.damus.io')
     expect(DEFAULT_LEADERBOARD_RELAYS).toContain('wss://nos.lol')

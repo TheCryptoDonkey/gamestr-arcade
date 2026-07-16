@@ -390,7 +390,7 @@ async function boot(): Promise<void> {
   // Admin / demo keys. Intentionally outside InputController (not game-navigation intents).
   window.addEventListener('keydown', e => {
     // Ignore single-key shortcuts while typing in a field (e.g. the relay panel's
-    // URL input - "wss://relay.gamestr.io" contains 'g', 'c', 'm', 'r'). Escape is
+    // URL input - "wss://main.relay.gamestr.io" contains 'g', 'c', 'm', 'r'). Escape is
     // handled by the focused input's own handler.
     const t = e.target as HTMLElement | null
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return

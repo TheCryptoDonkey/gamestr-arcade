@@ -25,7 +25,7 @@ interface NostrWindow extends Window {
   webln?: WebLNProvider
 }
 
-const RELAYS = ['wss://relay.gamestr.io', 'wss://relay.trotters.cc', 'wss://nos.lol', 'wss://relay.damus.io']
+const RELAYS = ['wss://main.relay.gamestr.io', 'wss://relay.trotters.cc', 'wss://nos.lol', 'wss://relay.damus.io']
 const GAMESTR_ORIGIN = 'https://gamestr.io'
 const app = document.querySelector<HTMLDivElement>('#app')!
 const state = {

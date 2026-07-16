@@ -7,7 +7,7 @@ import type { ArcadeConfig, DonationConfig, WebLNConfig } from '../shared/types'
  * Sourced from `pallasite/src/credits.ts` (do not modify that file).
  */
 export const DEFAULT_LEADERBOARD_RELAYS: readonly string[] = [
-  'wss://relay.gamestr.io',
+  'wss://main.relay.gamestr.io',
   'wss://relay.trotters.cc',
   'wss://nos.lol',
   'wss://relay.damus.io',
