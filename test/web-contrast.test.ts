@@ -72,7 +72,7 @@ describe('600 Billion web edition contrast', () => {
         <div class="game-body"><h3 id="game-title">Pallasite</h3><p id="game-copy">Mine a neon asteroid belt.</p></div>
       </article>
       <section class="activity-list"><li id="activity-row"><span class="mini-avatar" id="mini-avatar" style="background:#4f46e5">AB</span><a class="player" id="activity-player">Alice</a><b id="activity-score">4200</b><small id="activity-time">Now</small></li></section>
-      <div class="activity-modes"><button class="selected" id="activity-selected">All</button><button id="activity-inactive">Following</button></div>
+      <div class="activity-modes"><button class="selected" id="activity-selected" aria-pressed="true">All</button><button id="activity-inactive" aria-pressed="false">Following</button></div>
       <main class="page prose" id="build-page">
         <h1 id="build-title">Bring your game</h1>
         <p class="page-lede" id="build-lede">Your URL, your code, your player relationship.</p>
@@ -109,8 +109,10 @@ describe('600 Billion web edition contrast', () => {
   it('keeps selected buttons orange while only inactive buttons change on hover', () => {
     expect(getComputedStyle(document.querySelector('#activity-selected')!).backgroundColor).toBe('#f7931a')
     expect(getComputedStyle(document.querySelector('#activity-inactive')!).backgroundColor).toBe('#fff')
+    expect(getComputedStyle(document.querySelector('#activity-selected')!).minHeight).toBe('44px')
+    expect(getComputedStyle(document.querySelector('.activity-modes')!).borderRadius).toBe('14.4px')
     expect(stylesheet).toContain('.filter-tabs button:not(.selected):hover { background:#ffd7a3;color:var(--edition-muted);box-shadow:inset 0 0 0 2px #f7931a }')
-    expect(stylesheet).toContain('.activity-modes button:not(.selected):hover { background:#ffd7a3;color:var(--edition-muted);box-shadow:inset 0 0 0 2px #f7931a }')
+    expect(stylesheet).toContain('.activity-modes button:not(.selected):hover { background:#ffd7a3;color:var(--edition-muted);box-shadow:inset 0 0 0 2px #f7931a;transform:translateY(-1px) }')
     expect(stylesheet).not.toContain('.filter-tabs button.selected:hover')
     expect(stylesheet).not.toContain('.activity-modes button.selected:hover')
     expect(contrast('#4d2907', '#ffd7a3')).toBeGreaterThanOrEqual(4.5)

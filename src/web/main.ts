@@ -317,7 +317,9 @@ function activityPanel(): HTMLElement {
   const heading = el('div', 'section-heading'); heading.append(el('div', '', state.activityMode === 'following' ? 'FOLLOWING' : 'GAMESTR.IO LIVE SCORES'), externalLink('GAMESTR.IO ↗', `${GAMESTR_ORIGIN}/scores`))
   const modes = el('div', 'activity-modes'); modes.setAttribute('role', 'group'); modes.setAttribute('aria-label', 'Activity filter')
   for (const [mode, label] of [['all', 'ALL'], ['following', `FOLLOWING ${state.social.follows.length ? `(${state.social.follows.length})` : ''}`]] as const) {
-    modes.append(button(label, state.activityMode === mode ? 'selected' : '', () => { state.activityMode = mode; document.querySelector('.activity-panel')?.replaceWith(activityPanel()) }))
+    const modeButton = button(label, state.activityMode === mode ? 'selected' : '', () => { state.activityMode = mode; document.querySelector('.activity-panel')?.replaceWith(activityPanel()) })
+    modeButton.setAttribute('aria-pressed', String(state.activityMode === mode))
+    modes.append(modeButton)
   }
   const list = el('ol', 'activity-list')
   const latest = state.games.flatMap(game => (state.scores.get(game.gameId) ?? []).map(score => ({ game, score })))

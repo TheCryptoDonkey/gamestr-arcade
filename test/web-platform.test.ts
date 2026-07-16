@@ -50,6 +50,11 @@ describe('public web platform boundaries', () => {
     expect(source).toContain("boardFor(eligible")
   })
 
+  it('exposes activity filters as pressed-state controls', async () => {
+    const source = await read('src/web/main.ts')
+    expect(source).toContain("modeButton.setAttribute('aria-pressed', String(state.activityMode === mode))")
+  })
+
   it('uses only a user-provided WebLN wallet for exact-amount rewards', async () => {
     const source = await read('src/web/lightning-reward.ts')
     const page = await read('src/web/main.ts')
