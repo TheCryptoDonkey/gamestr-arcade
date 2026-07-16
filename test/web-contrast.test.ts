@@ -64,7 +64,7 @@ describe('600 Billion web edition contrast', () => {
         <p class="hero-lede" id="hero-lede">One enormous number.</p>
       </section>
       <section class="discovery-controls">
-        <div class="filter-tabs"><button class="selected" id="selected-filter">All</button></div>
+        <div class="filter-tabs"><button class="selected" id="selected-filter">All</button><button id="inactive-filter">My arcade</button></div>
       </section>
       <div class="section-heading"><h2 id="floor-title">Arcade floor</h2></div>
       <article class="game-card" id="game-card">
@@ -72,7 +72,7 @@ describe('600 Billion web edition contrast', () => {
         <div class="game-body"><h3 id="game-title">Pallasite</h3><p id="game-copy">Mine a neon asteroid belt.</p></div>
       </article>
       <section class="activity-list"><li id="activity-row"><span class="mini-avatar" id="mini-avatar" style="background:#4f46e5">AB</span><a class="player" id="activity-player">Alice</a><b id="activity-score">4200</b><small id="activity-time">Now</small></li></section>
-      <div class="activity-modes"><button class="selected" id="activity-selected">All</button></div>
+      <div class="activity-modes"><button class="selected" id="activity-selected">All</button><button id="activity-inactive">Following</button></div>
       <main class="page prose" id="build-page">
         <h1 id="build-title">Bring your game</h1>
         <p class="page-lede" id="build-lede">Your URL, your code, your player relationship.</p>
@@ -104,6 +104,19 @@ describe('600 Billion web edition contrast', () => {
     expectReadable('#active-nav', '#active-nav')
     expectReadable('#selected-filter', '#selected-filter')
     expectReadable('#activity-selected', '#activity-selected')
+  })
+
+  it('uses orange and white toggle surfaces with explicit hover reversals', () => {
+    expect(getComputedStyle(document.querySelector('#activity-selected')!).backgroundColor).toBe('#f7931a')
+    expect(getComputedStyle(document.querySelector('#activity-inactive')!).backgroundColor).toBe('#fff')
+    expect(stylesheet).toContain('.filter-tabs button:hover { background:#f7931a;color:var(--edition-ink) }')
+    expect(stylesheet).toContain('.filter-tabs button.selected:hover { background:#fff;color:var(--surface-accent);box-shadow:inset 0 0 0 2px #f7931a }')
+    expect(stylesheet).toContain('.activity-modes button:hover { background:#f7931a;color:var(--edition-ink) }')
+    expect(stylesheet).toContain('.activity-modes button.selected:hover { background:#fff;color:var(--surface-accent);box-shadow:inset 0 0 0 2px #f7931a }')
+    expect(stylesheet).toContain('a.primary.button-link:hover { border-color:#222;background:#fff;color:var(--edition-ink)')
+    expect(stylesheet).toContain('a.secondary.button-link:hover { border-color:#222;background:#222;color:#fff')
+    expect(stylesheet).toContain('.button-link:not(.primary):not(.secondary):not(.play-small):hover { border-color:#222;background:#222;color:#fff')
+    expect(stylesheet).toContain('.developer-callout button.primary:hover { border-color:#fff;background:#fff;color:var(--edition-ink) }')
   })
 
   it('keeps text readable inside white cards and tools', () => {

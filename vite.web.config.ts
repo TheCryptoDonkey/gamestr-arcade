@@ -22,6 +22,7 @@ interface WebEdition {
   featured: string[] | null
   trending: string[] | null
   newReleases: string[] | null
+  heroGameSlug: string | null
   siteTitle: string
   titleSuffix: string
   siteDescription: string

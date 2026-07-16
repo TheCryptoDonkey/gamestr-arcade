@@ -135,6 +135,7 @@ describe('public web platform boundaries', () => {
     expect(edition.defaultOrigin).toBe('https://arcade.600.wtf')
     expect(edition.outDir).toBe('dist-web-600')
     expect(edition.gameSlugs).toEqual(['pallasite', 'neon-sentinel', 'hang-on-fren'])
+    expect(edition.heroGameSlug).toBe('hang-on-fren')
     expect(edition.themeColor).toBe('#f7931a')
     expect(config).toContain('allowedGames')
     expect(config).toContain('!allowedGames.has(entry.name)')

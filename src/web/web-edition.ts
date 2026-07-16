@@ -13,6 +13,7 @@ export interface WebEdition {
   brandBadge: string
   brandAriaLabel: string
   brandGraphic: string | null
+  heroGameSlug: string | null
   heroGraphic: string | null
   heroGraphicAlt: string
   heroKicker: string

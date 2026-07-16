@@ -219,8 +219,9 @@ async function logoutIdentity(): Promise<void> {
 
 function hero(games: WebGame[]): HTMLElement {
   const featured = games.find(game => game.featured && game.hero) ?? games.find(game => game.hero) ?? games[0]
+  const heroArtwork = games.find(game => game.slug === WEB_EDITION.heroGameSlug && game.hero) ?? featured
   const section = el('section', 'hero')
-  if (featured?.hero) section.style.setProperty('--hero-image', `url("${featured.hero}")`)
+  if (heroArtwork?.hero) section.style.setProperty('--hero-image', `url("${heroArtwork.hero}")`)
   const copy = el('div', 'hero-copy')
   copy.append(el('p', 'kicker', WEB_EDITION.heroKicker), el('h1', '', WEB_EDITION.heroTitle))
   copy.append(el('p', 'hero-lede', WEB_EDITION.heroDescription))
