@@ -2,7 +2,7 @@
   "manifestVersion": 2,
   "name": "Take Me To Your Ledger",
   "tagline": "No leaders. Only the ledger. Beam up cows and the cult.",
-  "description": "Pilot a Roswell saucer over a moonlit valley. Abduct cows, carry 600B cult leaders to the sacred stone, dodge fiat drones and shotgun normies, and hold the beam over corn to carve five tiers of crop formation ending in a standing Bitcoin mark.",
+  "description": "Pilot a Roswell saucer over a moonlit valley. Abduct cows, carry 600B cult leaders to the sacred stone, dodge fiat drones and shotgun normies, and carve five tiers of crop formation ending in a standing Bitcoin mark. Beam up mothership supply drops for magnet, shield, overclock, double-points and time-warp power-ups, draft perks every wave, and bring down THE TAXMAN. Plays on keyboard, touch or gamepad.",
   "genres": [
     "arcade",
     "action",
@@ -15,7 +15,8 @@
   "heroUrl": "https://ledger.playechoseven.com/img/hero.webp",
   "inputModes": [
     "keyboard",
-    "touch"
+    "touch",
+    "gamepad"
   ],
   "network": "optional",
   "capabilities": {
