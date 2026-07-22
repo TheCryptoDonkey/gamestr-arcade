@@ -1,0 +1,32 @@
+{
+  "manifestVersion": 2,
+  "name": "Take Me To Your Ledger",
+  "tagline": "No leaders. Only the ledger. Beam up cows and the cult.",
+  "description": "Pilot a Roswell saucer over a moonlit valley. Abduct cows, carry 600B cult leaders to the sacred stone, dodge fiat drones and shotgun normies, and hold the beam over corn to carve five tiers of crop formation ending in a standing Bitcoin mark.",
+  "genres": [
+    "arcade",
+    "action",
+    "casual"
+  ],
+  "gameId": "takemetoyourledger",
+  "order": 6,
+  "accent": "#f7931a",
+  "url": "https://ledger.playechoseven.com/",
+  "heroUrl": "https://ledger.playechoseven.com/icons/icon-512.png",
+  "inputModes": [
+    "keyboard",
+    "touch"
+  ],
+  "network": "optional",
+  "capabilities": {
+    "nostrSign": true,
+    "walletPay": false,
+    "persistentStorage": true,
+    "externalNavigation": false
+  },
+  "allowedOrigins": [
+    "https://ledger.playechoseven.com"
+  ],
+  "developer": "The Crypto Donkey",
+  "tips": "profusemeat89@walletofsatoshi.com"
+}
