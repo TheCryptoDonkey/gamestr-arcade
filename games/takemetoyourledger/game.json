@@ -12,7 +12,7 @@
   "order": 6,
   "accent": "#f7931a",
   "url": "https://ledger.playechoseven.com/",
-  "heroUrl": "https://ledger.playechoseven.com/icons/icon-512.png",
+  "heroUrl": "https://ledger.playechoseven.com/img/hero.webp",
   "inputModes": [
     "keyboard",
     "touch"
