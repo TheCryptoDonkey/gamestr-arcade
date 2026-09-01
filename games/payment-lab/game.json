@@ -9,6 +9,7 @@
   "gameId": "gamestr-operator-payment-lab",
   "accent": "#facc15",
   "textLogo": true,
+  "operatorOnly": true,
   "inputModes": ["keyboard", "pointer"],
   "controlHints": ["PASTE = INVOICE", "ENTER = PAY", "ESC = EXIT"],
   "players": { "min": 1, "max": 1 },

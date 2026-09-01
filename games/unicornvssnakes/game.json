@@ -10,6 +10,12 @@
   "scoreField": "score",
   "scoreDir": "desc",
   "inputModes": ["gamepad", "keyboard"],
+  "controller": { "adapter": "hybrid" },
+  "controlHints": [
+    "LEFT STICK = CURSOR · A = SELECT MENUS",
+    "D-PAD / LEFT STICK = MOVE",
+    "A / D-PAD UP = JUMP · A = POWERED FIREBALL"
+  ],
   "network": "required",
   "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
   "allowedOrigins": ["https://unicorn.dergigi.com"]

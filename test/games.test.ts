@@ -6,10 +6,33 @@ import {
   pathToMediaUrl,
   mediaUrlToPath,
   MEDIA_SCHEME,
+  playerVisibleGames,
 } from '../src/main/games'
+import type { Game } from '../src/shared/types'
 
 const FIXTURES_DIR = join(import.meta.dirname, 'fixtures/games')
 const FAKE_CACHE = '/tmp/arcade-test-cache'
+
+describe('playerVisibleGames', () => {
+  const game = (id: string, operatorOnly?: boolean): Game => ({
+    id,
+    name: id,
+    kind: 'web',
+    url: `https://${id}.example.test`,
+    gameId: id,
+    logo: '',
+    order: 1,
+    operatorOnly,
+  })
+
+  it('hides operator tools from the player catalogue by default', () => {
+    expect(playerVisibleGames([game('play'), game('lab', true)]).map(item => item.id)).toEqual(['play'])
+  })
+
+  it('can expose operator tools only through the explicit operator mode', () => {
+    expect(playerVisibleGames([game('play'), game('lab', true)], true).map(item => item.id)).toEqual(['play', 'lab'])
+  })
+})
 
 describe('pathToMediaUrl', () => {
   it('converts an absolute path to a media:// URL', () => {

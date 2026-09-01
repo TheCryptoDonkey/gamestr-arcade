@@ -7,6 +7,16 @@
   "url": "https://example.test/neon",
   "gameId": "neon-sentinel",
   "inputModes": ["gamepad", "keyboard", "invalid"],
+  "controller": {
+    "adapter": "keyboard",
+    "certification": {
+      "level": "hardware",
+      "testedAt": "2026-08-31",
+      "hardware": ["Xbox Wireless Controller / USB"],
+      "profiles": ["standard", "linux-hat"],
+      "gameRevision": "fixture-1"
+    }
+  },
   "controlHints": ["D-PAD = MOVE", "A = FIRE"],
   "sessionMinutes": 5,
   "players": { "min": 1, "max": 2 },

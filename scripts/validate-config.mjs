@@ -2,10 +2,11 @@
 
 import { readFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import Ajv2020 from 'ajv/dist/2020.js'
 import addFormats from 'ajv-formats'
 
-const root = resolve(import.meta.dirname, '..')
+const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const configPath = resolve(process.argv[2] ?? process.env.ARCADE_CONFIG ?? join(root, 'arcade.config.json'))
 const schema = JSON.parse(await readFile(join(root, 'schemas', 'arcade-config.schema.json'), 'utf8'))
 const config = JSON.parse(await readFile(configPath, 'utf8'))

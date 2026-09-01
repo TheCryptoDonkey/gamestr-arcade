@@ -9,6 +9,14 @@
  *   Ctrl+Q (quit) and F5 (reload) are registered as global shortcuts in main.
  */
 
+import {
+  DPAD,
+  STICK_DEADZONE,
+  menuDirectionFromPad,
+  menuDirectionFromPads,
+  type Direction,
+} from '../../../shared/gamepad'
+
 export interface InputHandlers {
   onPrev(): void
   onNext(): void
@@ -17,6 +25,9 @@ export interface InputHandlers {
   /** Fired on ANY input (key / gamepad / pointer) - used to wake from attract. */
   onActivity?(): void
 }
+
+export { DPAD, STICK_DEADZONE }
+export type { Direction }
 
 /** Standard-mapping face-button indices. */
 export const BTN_A = 0 // bottom face button → launch
@@ -27,29 +38,9 @@ export const BTN_A = 0 // bottom face button → launch
  */
 export const BACK_BUTTON_INDICES = [1, 8, 9, 16] as const // B, View/Select, Start/Menu, Guide
 
-/**
- * Standard-mapping d-pad button indices. Non-standard pads carry the d-pad on a
- * HAT instead (see HAT_AXIS) - `directionFromGamepad` reads both.
- */
-export const DPAD = { UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 } as const
-
-/**
- * Axis indices. The left analogue stick (0 = X, 1 = Y) is present on both
- * mappings. On non-standard pads the d-pad arrives as a HAT on axes 6 (X) /
- * 7 (Y) - the conventional Linux layout (see src/preload/webgame.ts).
- */
-export const STICK_AXIS = { X: 0, Y: 1 } as const
-export const HAT_AXIS = { X: 6, Y: 7 } as const
-
-/** Past this magnitude a stick/HAT axis counts as pushed (a HAT snaps to 0 / ±1). */
-export const STICK_DEADZONE = 0.5
-
 /** Repeat cadence (ms) for a held direction. */
 const REPEAT_INITIAL_MS = 420
 const REPEAT_INTERVAL_MS = 140
-
-/** Menu navigation step: −1 = previous, 0 = none, +1 = next. */
-export type Direction = -1 | 0 | 1
 
 /**
  * Resolve a menu direction from a gamepad, merging three input sources so any
@@ -68,26 +59,7 @@ export type Direction = -1 | 0 | 1
  * wins if both are somehow asserted. Pure and exported for unit testing.
  */
 export function directionFromGamepad(pad: Gamepad): Direction {
-  const pressed = (i: number): boolean => !!pad.buttons[i]?.pressed
-  const nonStandard = pad.mapping !== 'standard'
-
-  const stickX = pad.axes[STICK_AXIS.X] ?? 0
-  const stickY = pad.axes[STICK_AXIS.Y] ?? 0
-  const hatX = nonStandard ? (pad.axes[HAT_AXIS.X] ?? 0) : 0
-  const hatY = nonStandard ? (pad.axes[HAT_AXIS.Y] ?? 0) : 0
-
-  const toPrev =
-    pressed(DPAD.LEFT) || pressed(DPAD.UP) ||
-    stickX <= -STICK_DEADZONE || stickY <= -STICK_DEADZONE ||
-    hatX <= -STICK_DEADZONE || hatY <= -STICK_DEADZONE
-  const toNext =
-    pressed(DPAD.RIGHT) || pressed(DPAD.DOWN) ||
-    stickX >= STICK_DEADZONE || stickY >= STICK_DEADZONE ||
-    hatX >= STICK_DEADZONE || hatY >= STICK_DEADZONE
-
-  if (toPrev) return -1
-  if (toNext) return 1
-  return 0
+  return menuDirectionFromPad(pad)
 }
 
 /**
@@ -104,15 +76,7 @@ export function directionFromGamepad(pad: Gamepad): Direction {
  * skipped. Pure and exported for unit testing.
  */
 export function directionFromGamepads(pads: ArrayLike<Gamepad | null>): Direction {
-  let dir: Direction = 0
-  for (let i = 0; i < pads.length; i++) {
-    const pad = pads[i]
-    if (!pad) continue
-    const d = directionFromGamepad(pad)
-    if (d === -1) return -1 // prev wins - no need to look further
-    if (d === 1) dir = 1
-  }
-  return dir
+  return menuDirectionFromPads(pads)
 }
 
 /** True when keyboard input should stay inside the focused editable element. */

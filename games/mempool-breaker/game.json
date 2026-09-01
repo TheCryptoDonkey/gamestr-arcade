@@ -10,6 +10,12 @@
   "textLogo": true,
   "source": "gamestr",
   "inputModes": ["gamepad", "keyboard"],
+  "controller": { "adapter": "native" },
+  "controlHints": [
+    "D-PAD / LEFT STICK = MOVE",
+    "A = FIRE / CONFIRM",
+    "X / B = BOMB / BACK"
+  ],
   "network": "required",
   "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
   "allowedOrigins": ["https://games.noderunners.network"]

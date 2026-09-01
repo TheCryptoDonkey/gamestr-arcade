@@ -114,6 +114,8 @@ describe('public web platform boundaries', () => {
     expect(access).toContain("'local-signet', 'remote-signet', 'nip07'")
     expect(access).not.toContain("'nsec'")
     expect(config).toContain('schemas/game-manifest-v2.schema.json')
+    expect(config).toContain("addFormats(ajv, ['date'])")
+    expect(config).toContain('ajv-formats/dist/formats')
   })
 
   it('has unique editorial collections with no operator game', async () => {

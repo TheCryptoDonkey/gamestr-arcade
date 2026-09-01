@@ -19,6 +19,7 @@
     "keyboard",
     "touch"
   ],
+  "controller": { "adapter": "native" },
   "controlHints": [
     "LEFT STICK / D-PAD = MOVE",
     "A / SPACE = FIRE",

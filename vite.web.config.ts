@@ -1,5 +1,6 @@
 import { defineConfig, type Plugin } from 'vite'
 import Ajv2020 from 'ajv/dist/2020.js'
+import addFormats from 'ajv-formats'
 import standaloneCode from 'ajv/dist/standalone/index.js'
 import { existsSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
@@ -236,10 +237,15 @@ function manifestValidator(): Plugin {
       const schema = JSON.parse(await readFile(manifestSchema, 'utf8'))
       // URL syntax and HTTPS/credential policy are checked with the browser's URL parser after structural validation.
       const ajv = new Ajv2020({ allErrors: true, strict: true, strictRequired: false, formats: { uri: true }, code: { source: true, esm: true } })
+      addFormats(ajv, ['date'])
       let code = standaloneCode(ajv, ajv.compile(schema))
       code = code
         .replace('const func2 = require("ajv/dist/runtime/ucs2length").default;', 'const func2 = str => Array.from(str).length;')
         .replace('const func0 = require("ajv/dist/runtime/equal").default;', 'const func0 = (a,b) => a === b || (a && b && typeof a === "object" && typeof b === "object" && Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(key => func0(a[key], b[key])));')
+        .replace(
+          'const formats0 = require("ajv-formats/dist/formats").fullFormats.date;',
+          'const formats0 = { validate: value => { const match = /^(\\d\\d\\d\\d)-(\\d\\d)-(\\d\\d)$/.exec(value); if (!match) return false; const year = Number(match[1]); const month = Number(match[2]); const day = Number(match[3]); const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0); const days = [0,31,leap ? 29 : 28,31,30,31,30,31,31,30,31,30,31]; return month >= 1 && month <= 12 && day >= 1 && day <= days[month]; } };',
+        )
       if (code.includes('require(')) throw new Error('Manifest validator contains a non-browser runtime dependency')
       return code
     },

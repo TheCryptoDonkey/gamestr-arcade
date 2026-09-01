@@ -7,6 +7,11 @@
   "order": 5,
   "accent": "#eab308",
   "inputModes": ["gamepad", "keyboard"],
+  "controller": { "adapter": "native" },
+  "controlHints": [
+    "D-PAD / LEFT STICK = MOVE",
+    "START OR VIEW = PAUSE"
+  ],
   "network": "required",
   "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
   "allowedOrigins": ["https://sats-man.com"]

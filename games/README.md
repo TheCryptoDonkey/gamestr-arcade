@@ -31,7 +31,7 @@ Important fields include:
 | `name`, `tagline`, `description`, `developer`, `genres` | Player-facing metadata |
 | `gameId` | Leaderboard key (kind-30762 `game` tag value) |
 | `exec`, `url` | Native launch plus optional playable web fallback |
-| `inputModes`, `controlHints`, `players`, `sessionMinutes` | Pre-launch play instructions |
+| `inputModes`, `controller`, `controlHints`, `players`, `sessionMinutes` | Pre-launch play instructions and controller delivery path |
 | `network` | `required`, `optional`, or `offline` readiness status |
 | `capabilities` | Requested Nostr, wallet, storage and navigation access; not a grant |
 | `allowedOrigins` | Explicit web-session navigation allowlist |

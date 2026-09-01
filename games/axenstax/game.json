@@ -7,6 +7,12 @@
   "order": 2,
   "accent": "#f5a623",
   "inputModes": ["gamepad", "keyboard"],
+  "controller": { "adapter": "native" },
+  "controlHints": [
+    "LEFT / RIGHT STICK = MOVE / LOOK",
+    "A = JUMP · RT / LT = BREAK / PLACE",
+    "D-PAD = MENUS · A / B = SELECT / BACK"
+  ],
   "network": "required",
   "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
   "allowedOrigins": ["https://play.axenstax.com"]

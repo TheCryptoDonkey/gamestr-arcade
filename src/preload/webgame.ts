@@ -5,13 +5,13 @@
  * view has focus while it runs, so the launcher's renderer can no longer poll
  * `navigator.getGamepads()`. This preload bridges the gap:
  *   - Polls gamepads via `requestAnimationFrame` (inside the focused view).
- *   - A single press of a MENU button sends `game:back` to the main process,
- *     which returns straight to the main gamestr arcade menu.
+ *   - Guide, or a deliberate View + Menu chord, sends `game:back` to the main
+ *     process and returns straight to the gamestr arcade menu.
  *   - Also catches `Escape` keydown as a keyboard backup.
- *   - Translates d-pad / face-buttons into synthetic `KeyboardEvent` dispatches
+ *   - Translates d-pad / face-buttons into main-process trusted keyboard input
  *     so keyboard-controlled web games respond to a gamepad.
- *   - Left stick drives a virtual mouse cursor; A (button 0) synthesises a click
- *     at the cursor position so mouse-based web-game menus work.
+ *   - Left stick drives a virtual mouse cursor; A (button 0) sends a trusted
+ *     click at the cursor position so mouse-based web-game menus work.
  *   - Injects a small, unobtrusive on-screen hint bar.
  *   - Exposes narrow Nostr/WebLN facades only when the main-process session
  *     grants those declared capabilities. Wallet and signing secrets never
@@ -22,7 +22,7 @@
  *   A               → cursor click + fire (Space)   (select menus AND shoot)
  *   D-pad           → arrow keys                    (keyboard-based games)
  *   X               → fire (Space)                  (alternate shoot button)
- *   MENU / 8,9,16   → game:back
+ *   GUIDE or VIEW+MENU → game:back
  *
  * Security:
  *   - contextIsolation: true - the page cannot reach this code.
@@ -31,29 +31,50 @@
  */
 
 import { ipcRenderer, contextBridge } from 'electron'
-import type { GameControls } from '../shared/types'
+import type { GameControls, GameInputAdapter } from '../shared/types'
+import {
+  DPAD,
+  FIRE_BUTTONS,
+  HAT_AXIS,
+  HAT_THRESHOLD,
+  STICK_DEADZONE,
+  CABINET_EXIT_BUTTONS,
+  cabinetExitPressedFromPads,
+  hatDirections,
+  snapshotFromPad,
+  stickDirectionsFor,
+  unionPadSnapshots,
+  type GamepadInputSnapshot,
+} from '../shared/gamepad'
+
+export { DPAD, FIRE_BUTTONS, HAT_AXIS, HAT_THRESHOLD, CABINET_EXIT_BUTTONS }
 
 // ── Menu-button detector (pure, exported for unit tests) ──────────────────────
 
 /**
- * Gamepad button indices that act as "menu / back" in the Standard Mapping -
- * a single press of any of these returns to the main menu. We accept several
- * so that whatever a given cabinet/controller labels "menu" just works:
+ * Gamepad button indices involved in the deliberate cabinet-exit gesture:
  *   8  - Select / View / Back / Share
  *   9  - Start / Menu / Options
  *   16 - Guide / Home (when the controller exposes it)
+ *
+ * Guide exits directly. View + Menu must be held together so Start remains
+ * available to games for pause, start and other title-owned behaviour.
  */
-export const MENU_BUTTON_INDICES = [8, 9, 16]
+export const CABINET_EXIT_BUTTON_INDICES = [
+  CABINET_EXIT_BUTTONS.VIEW,
+  CABINET_EXIT_BUTTONS.MENU,
+  CABINET_EXIT_BUTTONS.GUIDE,
+] as const
 
 /**
- * Rising-edge detector. Fires `true` exactly once when the menu button goes
+ * Rising-edge detector. Fires `true` exactly once when the exit gesture goes
  * from not-pressed to pressed, then stays silent until released - so a single
  * press triggers one exit and holding it doesn't repeat. Pure; no time needed.
  */
 export class MenuPressDetector {
   private wasPressed = false
 
-  /** Call once per RAF frame with whether any menu button is currently pressed. */
+  /** Call once per RAF frame with whether the exit gesture is currently held. */
   update(pressed: boolean): boolean {
     const fire = pressed && !this.wasPressed
     this.wasPressed = pressed
@@ -75,7 +96,7 @@ export interface ResolvedControls {
   fire: string
 }
 
-/** Fallback mapping used until the main process sends `arcade:controls`. */
+/** Fallback mapping used until the main process sends `arcade:input-config`. */
 export const DEFAULT_CONTROLS: ResolvedControls = {
   up: 'ArrowUp',
   down: 'ArrowDown',
@@ -102,13 +123,7 @@ export function resolveControls(partial?: Partial<GameControls>): ResolvedContro
  * the stick additionally drives the virtual cursor.
  * Fire = A button (index 0) or X button (index 2); A also clicks the cursor.
  */
-export interface InputSnapshot {
-  up: boolean
-  down: boolean
-  left: boolean
-  right: boolean
-  fire: boolean
-}
+export type InputSnapshot = GamepadInputSnapshot
 
 /** An event the translator wants dispatched to the game page this frame. */
 export interface KeyAction {
@@ -224,45 +239,8 @@ export class GamepadKeyTranslator {
   }
 }
 
-/** Standard Gamepad API d-pad button indices. */
-export const DPAD = { UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 } as const
-
-/**
- * Non-standard-mapping d-pad (HAT) axis indices.
- *
- * When Chromium recognises a controller it exposes the W3C "Standard Mapping"
- * and the d-pad arrives as buttons 12–15. When it does NOT - many third-party
- * (non-Microsoft) "Xbox" pads, or the same pad switched to DirectInput mode -
- * `pad.mapping` is "" and the d-pad instead arrives as a HAT carried on two
- * axes: conventionally axes[6] (X: −1 left, +1 right) and axes[7] (Y: −1 up,
- * +1 down), resting at 0 and snapping to ±1.
- *
- * Native (AppImage) games read the HAT themselves via SDL - which is why a
- * non-standard pad still drives "games built for gamepad" - but our keyboard
- * translation only watched buttons 12–15, so the d-pad did nothing in keyboard
- * web games (Space Zappers, Sats-Man). `dpadFromHatAxes` closes that gap.
- */
-export const HAT_AXIS = { X: 6, Y: 7 } as const
-
-/**
- * Magnitude past which a HAT axis counts as pressed. A real HAT snaps to 0 / ±1,
- * so 0.5 cleanly separates "centred" from "pushed" with margin to spare.
- */
-export const HAT_THRESHOLD = 0.5
-
-/**
- * Fire buttons: A (index 0) and X (left face button, index 2).
- *
- * A *also* drives the virtual-cursor click (see the RAF loop), so pressing A
- * both fires Space and clicks at the cursor. That dual role is intentional and
- * harmless: in-game the click lands on the game canvas, and on the (click-based)
- * menus the Space keypress is a no-op - so binding A to fire gives players the
- * natural "bottom button shoots" instinct without breaking mouse-driven menus.
- */
-export const FIRE_BUTTONS = [0, 2] as const
-
-/** Deadzone for the left analogue stick - keyboard snapshot ignores the stick entirely. */
-export const STICK_DEAD = 0.5
+/** Deadzone for the left analogue stick when it is translated to keyboard movement. */
+export const STICK_DEAD = STICK_DEADZONE
 
 /**
  * Read d-pad directions from a non-standard controller's HAT axes (see HAT_AXIS).
@@ -272,18 +250,7 @@ export const STICK_DEAD = 0.5
  * Pure; exported for unit tests.
  */
 export function dpadFromHatAxes(pad: Gamepad): InputSnapshot {
-  if (pad.mapping === 'standard') {
-    return { up: false, down: false, left: false, right: false, fire: false }
-  }
-  const x = pad.axes[HAT_AXIS.X] ?? 0
-  const y = pad.axes[HAT_AXIS.Y] ?? 0
-  return {
-    up:    y <= -HAT_THRESHOLD,
-    down:  y >=  HAT_THRESHOLD,
-    left:  x <= -HAT_THRESHOLD,
-    right: x >=  HAT_THRESHOLD,
-    fire:  false,
-  }
+  return { ...hatDirections(pad), fire: false }
 }
 
 /**
@@ -296,15 +263,7 @@ export function dpadFromHatAxes(pad: Gamepad): InputSnapshot {
  * Pure; exported for tests.
  */
 export function stickDirections(pad: Gamepad): InputSnapshot {
-  const x = pad.axes[0] ?? 0
-  const y = pad.axes[1] ?? 0
-  return {
-    up:    y <= -STICK_DEAD,
-    down:  y >=  STICK_DEAD,
-    left:  x <= -STICK_DEAD,
-    right: x >=  STICK_DEAD,
-    fire:  false,
-  }
+  return { ...stickDirectionsFor(pad), fire: false }
 }
 
 /**
@@ -316,15 +275,7 @@ export function stickDirections(pad: Gamepad): InputSnapshot {
  * Fire = A (index 0) or X (index 2); A additionally drives the cursor click.
  */
 export function snapshotFromGamepad(pad: Gamepad): InputSnapshot {
-  const btn = (i: number) => pad.buttons[i]?.pressed ?? false
-  const buttons: InputSnapshot = {
-    up:    btn(DPAD.UP),
-    down:  btn(DPAD.DOWN),
-    left:  btn(DPAD.LEFT),
-    right: btn(DPAD.RIGHT),
-    fire:  FIRE_BUTTONS.some(i => btn(i)),
-  }
-  return unionSnapshots(unionSnapshots(buttons, dpadFromHatAxes(pad)), stickDirections(pad))
+  return snapshotFromPad(pad)
 }
 
 /**
@@ -332,13 +283,7 @@ export function snapshotFromGamepad(pad: Gamepad): InputSnapshot {
  * activating a direction counts).
  */
 export function unionSnapshots(a: InputSnapshot, b: InputSnapshot): InputSnapshot {
-  return {
-    up:    a.up    || b.up,
-    down:  a.down  || b.down,
-    left:  a.left  || b.left,
-    right: a.right || b.right,
-    fire:  a.fire  || b.fire,
-  }
+  return unionPadSnapshots(a, b)
 }
 
 // ── Virtual cursor ─────────────────────────────────────────────────────────────
@@ -589,7 +534,7 @@ function moveCursorElement(el: HTMLElement, pos: Vec2, visible: boolean): void {
   el.style.top  = `${pos.y}px`
 }
 
-// ── Synthetic click + hover dispatch ─────────────────────────────────────────
+// ── Legacy DOM click dispatch (pure test seam; production uses main IPC) ──────
 
 /**
  * Synthesise a full mouse/pointer click sequence at (x, y).
@@ -633,30 +578,6 @@ export function dispatchClick(x: number, y: number): void {
   target.dispatchEvent(new MouseEvent('click',        { ...base, buttons: 0 }))
 }
 
-/**
- * Dispatch a throttled `pointermove` + `mousemove` at the cursor position so
- * DOM hover states update as the cursor moves across buttons.
- *
- * The element under the cursor receives the events; both `document` and
- * `window` also receive them for games that listen there.
- */
-function dispatchHover(x: number, y: number): void {
-  const target = document.elementFromPoint(x, y) ?? document.body
-  if (!target) return
-
-  const base = {
-    bubbles: true, cancelable: true, composed: true,
-    clientX: x, clientY: y, screenX: x, screenY: y,
-    view: window, button: 0, buttons: 0,
-  }
-  const pointerBase: PointerEventInit = {
-    ...base, pointerId: 1, pointerType: 'mouse', isPrimary: true,
-  }
-
-  target.dispatchEvent(new PointerEvent('pointermove', pointerBase))
-  target.dispatchEvent(new MouseEvent('mousemove', base))
-}
-
 // ── Hint bar ──────────────────────────────────────────────────────────────────
 
 function injectHintBar(): void {
@@ -679,7 +600,7 @@ function injectHintBar(): void {
     pointerEvents: 'none',
     letterSpacing: '0.1em',
   })
-  bar.textContent = 'Left stick = cursor · A = fire/select · D-pad = move · X = fire · MENU = back'
+  bar.textContent = 'Left stick = cursor · A = fire/select · D-pad = move · X = fire · VIEW + MENU = back'
   document.body?.appendChild(bar)
 }
 
@@ -701,8 +622,11 @@ function initKeyboardExit(): void {
 
 function initGamepadLoop(): void {
   const menuDetector  = new MenuPressDetector()
-  const keyTranslator = new GamepadKeyTranslator()
+  let   keyTranslator = new GamepadKeyTranslator()
   let   activeControls: ResolvedControls = DEFAULT_CONTROLS
+  // Fail closed until main binds this preload to the launched manifest. Main
+  // explicitly resolves legacy manifests to hybrid when that is intended.
+  let   activeAdapter: GameInputAdapter = 'native'
 
   // Virtual cursor state.
   let cursorPos: Vec2 = {
@@ -738,21 +662,18 @@ function initGamepadLoop(): void {
     console.log(`[gp:web] disconnected idx=${g.index} id="${g.id}"`)
   })
 
-  // Listen for per-game control overrides sent by the main process after each
-  // web game loads (and on reload). Until one arrives, DEFAULT_CONTROLS applies.
-  ipcRenderer.on('arcade:controls', (_event, map: Partial<GameControls>) => {
-    activeControls = resolveControls(map)
-    // Attempt to focus the game's primary interactive element so synthetic
-    // keyboard events reach it immediately. This helps games whose menus only
-    // respond to events on the focused element rather than document / window.
-    try {
-      const el = document.querySelector<HTMLElement>('canvas, iframe, [tabindex]')
-      if (el) el.focus()
-      window.focus()
-    } catch {
-      // Silently ignore - focus is best-effort.
-    }
-    console.log(`[gp:web] controls applied; doc-focused=${document.hasFocus()}`)
+  // Main binds a manifest adapter to this isolated session. Legacy manifests
+  // resolve to hybrid in main, preserving the previous keyboard + pointer path.
+  ipcRenderer.on('arcade:input-config', (_event, config: {
+    controls?: Partial<GameControls>
+    adapter?: GameInputAdapter
+  }) => {
+    activeControls = resolveControls(config?.controls)
+    activeAdapter = config?.adapter ?? 'native'
+    // Re-evaluate any buttons held during page load under the newly-authorised
+    // adapter instead of inheriting state sampled while synthesis was disabled.
+    keyTranslator = new GamepadKeyTranslator()
+    console.log(`[gp:web] input=${activeAdapter}; doc-focused=${document.hasFocus()}`)
   })
 
   // Main sends only non-sensitive boolean grants after each navigation. No NWC
@@ -774,20 +695,8 @@ function initGamepadLoop(): void {
 
     const pads = navigator.getGamepads()
 
-    // ── Menu / back detection ─────────────────────────────────────────────
-    let menuPressed = false
-    for (const pad of pads) {
-      if (!pad) continue
-      for (const idx of MENU_BUTTON_INDICES) {
-        if (pad.buttons[idx]?.pressed) {
-          menuPressed = true
-          break
-        }
-      }
-      if (menuPressed) break
-    }
-
-    if (menuDetector.update(menuPressed)) {
+    // ── Deliberate cabinet-exit gesture ───────────────────────────────────
+    if (menuDetector.update(cabinetExitPressedFromPads(pads))) {
       ipcRenderer.send('game:back')
     }
 
@@ -801,8 +710,10 @@ function initGamepadLoop(): void {
     }
 
     const actions = keyTranslator.diff(combined, activeControls, now)
-    for (const action of actions) {
-      dispatchKey(action)
+    if (activeAdapter === 'keyboard' || activeAdapter === 'hybrid') {
+      for (const action of actions) {
+        ipcRenderer.send('webgame:input:key', action)
+      }
     }
 
     // ── Virtual cursor (left stick) ───────────────────────────────────────
@@ -812,7 +723,8 @@ function initGamepadLoop(): void {
     // press both clicks the cursor's spot AND fires in-game. The pointer shows
     // only for a short window after the stick is used, so d-pad-only play stays
     // clutter-free.
-    if (gamepadConnected) {
+    const pointerEnabled = activeAdapter === 'pointer' || activeAdapter === 'hybrid'
+    if (gamepadConnected && pointerEnabled) {
       // Aggregate left-stick axes across all connected pads (first non-zero wins).
       let stickX = 0
       let stickY = 0
@@ -843,7 +755,7 @@ function initGamepadLoop(): void {
         }
         if (cursorEl) moveCursorElement(cursorEl, cursorPos, true)
         if (now - lastHoverTime > 33) {
-          dispatchHover(cursorPos.x, cursorPos.y)
+          ipcRenderer.send('webgame:input:pointer', { type: 'move', x: cursorPos.x, y: cursorPos.y })
           lastHoverTime = now
         }
       } else if (cursorEl) {
@@ -858,7 +770,7 @@ function initGamepadLoop(): void {
         if (pad.buttons[0]?.pressed) { clickPressed = true; break }
       }
       if (risingEdge(prevClickPressed, clickPressed)) {
-        dispatchClick(cursorPos.x, cursorPos.y)
+        ipcRenderer.send('webgame:input:pointer', { type: 'click', x: cursorPos.x, y: cursorPos.y })
       }
       prevClickPressed = clickPressed
 

@@ -7,6 +7,12 @@
   "order": 16,
   "accent": "#a855f7",
   "inputModes": ["gamepad", "keyboard"],
+  "controller": { "adapter": "hybrid" },
+  "controlHints": [
+    "LEFT STICK = CURSOR · A = OPEN GAME",
+    "A / D-PAD UP = JUMP",
+    "D-PAD DOWN = DUCK"
+  ],
   "network": "required",
   "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
   "allowedOrigins": ["https://nostrichrun.whitepaperinteractive.com"]

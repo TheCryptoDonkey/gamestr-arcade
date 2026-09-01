@@ -17,6 +17,11 @@ import type { Game } from '../shared/types'
 
 export const MEDIA_SCHEME = 'media'
 
+/** Keep diagnostics/payment tools out of the public kiosk by default. */
+export function playerVisibleGames(games: readonly Game[], includeOperatorTools = false): Game[] {
+  return games.filter(game => includeOperatorTools || game.operatorOnly !== true)
+}
+
 /**
  * Decide whether a resolved absolute path may be served by the media protocol.
  *

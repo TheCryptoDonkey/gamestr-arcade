@@ -28,6 +28,7 @@
     "validate:config": "node scripts/validate-config.mjs",
     "validate:manifests": "node scripts/validate-manifests.mjs",
     "validate": "npm run validate:config && npm run validate:manifests",
+    "conference:status": "npm run validate:manifests && node scripts/conference-status.mjs",
     "typecheck": "tsc -p tsconfig.node.json --noEmit --pretty false && tsc -p tsconfig.web.json --noEmit --pretty false",
     "deploy": "bash scripts/deploy.sh",
     "deploy:web:600": "GAMESTR_WEB_EDITION=600 GAMESTR_WEB_ORIGIN=https://arcade.600.wtf bash scripts/deploy-web.sh"

@@ -10,8 +10,8 @@
  * This watcher reads the Linux evdev input devices directly from the MAIN
  * process (which stays alive while the native game runs). A plain read does NOT
  * grab the device (no EVIOCGRAB), so the game still receives every event - we
- * only observe. On a press of a "menu" button (View / Menu / Guide) it invokes
- * the supplied callback, which the caller wires to `Launcher.forceBack()`.
+ * only observe. Guide, or the deliberate View + Menu chord, invokes the
+ * supplied callback, which the caller wires to `Launcher.forceBack()`.
  *
  * Linux-only by nature. On any failure (no `/proc/bus/input/devices`, no
  * readable device, parse error) it degrades silently - the global Escape
@@ -26,10 +26,11 @@ import { readFile, open as fsOpen } from 'node:fs/promises'
 export const EV_KEY = 0x01
 
 /**
- * Linux gamepad "menu" button codes (include/uapi/linux/input-event-codes.h).
+ * Linux gamepad cabinet-exit button codes (include/uapi/linux/input-event-codes.h).
  * These are firmware/driver-independent semantic codes, unlike the joystick
  * API's driver-assigned button numbers - so the same three codes identify the
- * View/Menu/Guide buttons across controllers.
+ * View/Menu/Guide buttons across controllers. Start/Menu is deliberately not
+ * an exit by itself because shipped games use it for pause and title screens.
  *
  *   BTN_SELECT (314) - View / Back / Share   (≙ Standard-Mapping index 8)
  *   BTN_START  (315) - Menu / Start / Options (≙ Standard-Mapping index 9)
@@ -38,7 +39,7 @@ export const EV_KEY = 0x01
 export const BTN_SELECT = 314
 export const BTN_START = 315
 export const BTN_MODE = 316
-export const MENU_BUTTON_CODES: readonly number[] = [BTN_SELECT, BTN_START, BTN_MODE]
+export const CABINET_EXIT_BUTTON_CODES: readonly number[] = [BTN_SELECT, BTN_START, BTN_MODE]
 
 /**
  * Size of `struct input_event` on a 64-bit kernel:
@@ -78,9 +79,13 @@ export function parseInputEvents(buf: Buffer): InputEventRecord[] {
   return out
 }
 
-/** True for a menu/View/Menu/Guide button *press* (value 1; ignores release 0 and autorepeat 2). */
-export function isMenuPress(rec: InputEventRecord): boolean {
-  return rec.type === EV_KEY && rec.value === 1 && MENU_BUTTON_CODES.includes(rec.code)
+/** True when this press completes Guide or the View + Menu exit chord. */
+export function isCabinetExitPress(rec: InputEventRecord, pressedBefore: ReadonlySet<number> = new Set()): boolean {
+  if (rec.type !== EV_KEY || rec.value !== 1) return false
+  if (rec.code === BTN_MODE) return true
+  if (rec.code === BTN_SELECT) return pressedBefore.has(BTN_START)
+  if (rec.code === BTN_START) return pressedBefore.has(BTN_SELECT)
+  return false
 }
 
 /**
@@ -120,14 +125,14 @@ export interface ExitWatcherDeps {
   listDevices(): Promise<string[]>
   /** Open a device path for streaming reads. */
   openStream(path: string): ReadableLike
-  /** Invoked on each menu-button press observed on any watched device. */
+  /** Invoked when Guide or a same-device View + Menu chord is observed. */
   onMenuPress(): void
   /** Optional diagnostic logger (no-op by default). */
   log?(msg: string): void
 }
 
 /**
- * Watches gamepad evdev devices for menu-button presses while a game runs.
+ * Watches gamepad evdev devices for the cabinet-exit gesture while a game runs.
  *
  * `start()` is idempotent and self-healing: failures to enumerate or open a
  * device are logged and swallowed (other devices still work; the global Escape
@@ -137,6 +142,7 @@ export class GamepadExitWatcher {
   private readonly deps: ExitWatcherDeps
   private streams: ReadableLike[] = []
   private leftovers = new WeakMap<ReadableLike, Buffer>()
+  private pressedCodes = new WeakMap<ReadableLike, Set<number>>()
   private active = false
   /** Button codes already logged this session - so each is reported once, not per press. */
   private loggedCodes = new Set<number>()
@@ -163,6 +169,7 @@ export class GamepadExitWatcher {
       try {
         const stream = this.deps.openStream(path)
         this.leftovers.set(stream, Buffer.alloc(0))
+        this.pressedCodes.set(stream, new Set())
         stream.on('error', err => this.deps.log?.(`device ${path}: ${String(err)}`))
         stream.on('data', chunk => this.handleChunk(stream, chunk))
         this.streams.push(stream)
@@ -187,20 +194,30 @@ export class GamepadExitWatcher {
   }
 
   private handleChunk(stream: ReadableLike, chunk: Buffer): void {
+    if (!this.active) return
     const prev = this.leftovers.get(stream) ?? Buffer.alloc(0)
     const buf = Buffer.concat([prev, chunk])
     const wholeBytes = Math.floor(buf.length / INPUT_EVENT_SIZE) * INPUT_EVENT_SIZE
     this.leftovers.set(stream, buf.subarray(wholeBytes))
     for (const rec of parseInputEvents(buf.subarray(0, wholeBytes))) {
-      if (rec.type !== EV_KEY || rec.value !== 1) continue // button presses only
+      if (rec.type !== EV_KEY) continue
+      const pressed = this.pressedCodes.get(stream) ?? new Set<number>()
+      this.pressedCodes.set(stream, pressed)
+      if (rec.value === 0) {
+        pressed.delete(rec.code)
+        continue
+      }
+      if (rec.value !== 1) continue
+      const exits = isCabinetExitPress(rec, pressed)
+      pressed.add(rec.code)
       // Diagnostic: report each distinct button code once per session, so the
       // booth's controller map is discoverable from the journal (which physical
       // button emits which code) without a separate capture tool.
       if (!this.loggedCodes.has(rec.code)) {
         this.loggedCodes.add(rec.code)
-        this.deps.log?.(`button code=${rec.code}${MENU_BUTTON_CODES.includes(rec.code) ? ' → MENU (exit)' : ''}`)
+        this.deps.log?.(`button code=${rec.code}${CABINET_EXIT_BUTTON_CODES.includes(rec.code) ? ' → cabinet-exit control' : ''}`)
       }
-      if (isMenuPress(rec)) this.deps.onMenuPress()
+      if (exits) this.deps.onMenuPress()
     }
   }
 }

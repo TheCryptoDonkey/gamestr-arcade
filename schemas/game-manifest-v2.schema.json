@@ -35,11 +35,45 @@
     "textLogo": { "type": "boolean" },
     "downloadOnly": { "type": "boolean" },
     "downloadUrl": { "$ref": "#/$defs/secureWebUrl" },
+    "operatorOnly": { "type": "boolean" },
     "inputModes": {
       "type": "array",
       "items": { "enum": ["gamepad", "keyboard", "pointer", "touch"] },
       "uniqueItems": true,
       "minItems": 1
+    },
+    "controller": {
+      "type": "object",
+      "required": ["adapter"],
+      "properties": {
+        "adapter": { "enum": ["native", "keyboard", "pointer", "hybrid"] },
+        "certification": {
+          "type": "object",
+          "required": ["level", "testedAt", "hardware", "profiles", "gameRevision"],
+          "properties": {
+            "level": { "enum": ["desk", "hardware"] },
+            "testedAt": { "type": "string", "format": "date" },
+            "hardware": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1, "maxLength": 160 },
+              "uniqueItems": true,
+              "minItems": 1,
+              "maxItems": 8
+            },
+            "profiles": {
+              "type": "array",
+              "items": { "enum": ["standard", "linux-hat"] },
+              "uniqueItems": true,
+              "minItems": 1,
+              "maxItems": 2
+            },
+            "gameRevision": { "type": "string", "minLength": 1, "maxLength": 160 },
+            "notes": { "type": "string", "maxLength": 500 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     },
     "controlHints": {
       "type": "array",

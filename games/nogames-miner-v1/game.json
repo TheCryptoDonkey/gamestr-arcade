@@ -10,6 +10,11 @@
   "textLogo": true,
   "source": "gamestr",
   "inputModes": ["gamepad", "keyboard"],
+  "controller": { "adapter": "hybrid" },
+  "controlHints": [
+    "LEFT STICK = CURSOR · A = OPEN GAME",
+    "D-PAD DOWN / A = RELEASE HOOK"
+  ],
   "network": "required",
   "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
   "allowedOrigins": ["https://npub1n0games63frevnx3llju3sypf2q4streuwzgr4wwd2y5hlqa5c9s29nfk3.nsite.run"]

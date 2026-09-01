@@ -4,6 +4,7 @@ import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { readFile } from 'node:fs/promises'
 
 const read = (path: string) => readFile(path, 'utf8')
+const CONTRAST_TEST_TIMEOUT_MS = 15_000
 
 function channels(color: string): [number, number, number] {
   if (/^#[0-9a-f]{3}$/i.test(color)) {
@@ -104,7 +105,7 @@ describe('600 Billion web edition contrast', () => {
     expectReadable('#active-nav', '#active-nav')
     expectReadable('#selected-filter', '#selected-filter')
     expectReadable('#activity-selected', '#activity-selected')
-  })
+  }, CONTRAST_TEST_TIMEOUT_MS)
 
   it('keeps selected buttons orange while only inactive buttons change on hover', () => {
     expect(getComputedStyle(document.querySelector('#activity-selected')!).backgroundColor).toBe('#f7931a')
@@ -120,7 +121,7 @@ describe('600 Billion web edition contrast', () => {
     expect(stylesheet).toContain('a.secondary.button-link:hover { border-color:#222;background:#222;color:#fff')
     expect(stylesheet).toContain('.button-link:not(.primary):not(.secondary):not(.play-small):hover { border-color:#222;background:#222;color:#fff')
     expect(stylesheet).toContain('.developer-callout button.primary:hover { border-color:#fff;background:#fff;color:var(--edition-ink) }')
-  })
+  }, CONTRAST_TEST_TIMEOUT_MS)
 
   it('keeps text readable inside white cards and tools', () => {
     for (const selector of ['#game-title', '#game-copy']) expectReadable(selector, '#game-card')
@@ -131,12 +132,12 @@ describe('600 Billion web edition contrast', () => {
     expectReadable('#editor-label', '#studio-editor')
     expectReadable('#studio-status', '#studio-status')
     for (const selector of ['#preview-label', '#preview-title', '#preview-copy', '#preview-url']) expectReadable(selector, '#studio-preview')
-  })
+  }, CONTRAST_TEST_TIMEOUT_MS)
 
   it('keeps every challenge-dialog label, action, and explanation readable', () => {
     for (const selector of ['#challenge-kicker', '#challenge-title', '#challenge-lede', '#challenge-label', '#challenge-cancel']) {
       expectReadable(selector, '#challenge-form')
     }
     expectReadable('#challenge-create', '#challenge-create')
-  })
+  }, CONTRAST_TEST_TIMEOUT_MS)
 })

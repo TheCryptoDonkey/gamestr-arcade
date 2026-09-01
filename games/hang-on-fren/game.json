@@ -17,6 +17,12 @@
     "gamepad",
     "keyboard"
   ],
+  "controller": { "adapter": "native" },
+  "controlHints": [
+    "D-PAD / LEFT STICK = STEER",
+    "A / X / TRIGGERS = BRAKE",
+    "A OR START = BEGIN / CONTINUE"
+  ],
   "network": "required",
   "capabilities": {
     "nostrSign": true,

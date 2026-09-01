@@ -1,7 +1,7 @@
 /**
  * Unit tests for the native-game controller exit watcher (src/main/gamepad-exit.ts).
  *
- * Pure parsers (parseInputEvents, isMenuPress, parseGamepadEventDevices) and the
+ * Pure parsers (parseInputEvents, isCabinetExitPress, parseGamepadEventDevices) and the
  * GamepadExitWatcher with a fake stream - no real /dev/input, no Electron.
  *
  * What still needs the real booth (NOT covered here):
@@ -13,7 +13,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   parseInputEvents,
-  isMenuPress,
+  isCabinetExitPress,
   parseGamepadEventDevices,
   GamepadExitWatcher,
   EV_KEY,
@@ -103,27 +103,39 @@ describe('parseInputEvents', () => {
   })
 })
 
-// ── isMenuPress ─────────────────────────────────────────────────────────────────
+// ── isCabinetExitPress ──────────────────────────────────────────────────────────
 
-describe('isMenuPress', () => {
-  it.each([BTN_SELECT, BTN_START, BTN_MODE])('press of code %d → true', code => {
-    expect(isMenuPress({ type: EV_KEY, code, value: 1 })).toBe(true)
+describe('isCabinetExitPress', () => {
+  it('accepts Guide on its own', () => {
+    expect(isCabinetExitPress({ type: EV_KEY, code: BTN_MODE, value: 1 })).toBe(true)
+  })
+
+  it.each([BTN_SELECT, BTN_START])('does not steal a lone View/Start press (%d)', code => {
+    expect(isCabinetExitPress({ type: EV_KEY, code, value: 1 })).toBe(false)
+  })
+
+  it('accepts Start when View is already held', () => {
+    expect(isCabinetExitPress({ type: EV_KEY, code: BTN_START, value: 1 }, new Set([BTN_SELECT]))).toBe(true)
+  })
+
+  it('accepts View when Start is already held', () => {
+    expect(isCabinetExitPress({ type: EV_KEY, code: BTN_SELECT, value: 1 }, new Set([BTN_START]))).toBe(true)
   })
 
   it('release (value 0) → false', () => {
-    expect(isMenuPress({ type: EV_KEY, code: BTN_START, value: 0 })).toBe(false)
+    expect(isCabinetExitPress({ type: EV_KEY, code: BTN_MODE, value: 0 })).toBe(false)
   })
 
   it('autorepeat (value 2) → false', () => {
-    expect(isMenuPress({ type: EV_KEY, code: BTN_START, value: 2 })).toBe(false)
+    expect(isCabinetExitPress({ type: EV_KEY, code: BTN_MODE, value: 2 })).toBe(false)
   })
 
   it('a non-menu button (BTN_A = 304) press → false', () => {
-    expect(isMenuPress({ type: EV_KEY, code: 304, value: 1 })).toBe(false)
+    expect(isCabinetExitPress({ type: EV_KEY, code: 304, value: 1 })).toBe(false)
   })
 
   it('a non-EV_KEY event (EV_SYN) → false', () => {
-    expect(isMenuPress({ type: 0x00, code: BTN_START, value: 1 })).toBe(false)
+    expect(isCabinetExitPress({ type: 0x00, code: BTN_MODE, value: 1 })).toBe(false)
   })
 })
 
@@ -163,12 +175,38 @@ describe('GamepadExitWatcher', () => {
     return { w, fired: () => fired, logs }
   }
 
-  it('fires onMenuPress on a menu-button press', async () => {
+  it('fires onMenuPress on a Guide press', async () => {
+    const stream = new FakeStream()
+    const { w, fired } = makeWatcher(stream)
+    await w.start()
+    stream.feed(ev(EV_KEY, BTN_MODE, 1))
+    expect(fired()).toBe(1)
+  })
+
+  it('leaves Start and View alone but fires when they form a chord', async () => {
     const stream = new FakeStream()
     const { w, fired } = makeWatcher(stream)
     await w.start()
     stream.feed(ev(EV_KEY, BTN_START, 1))
+    expect(fired()).toBe(0)
+    stream.feed(ev(EV_KEY, BTN_SELECT, 1))
     expect(fired()).toBe(1)
+  })
+
+  it('does not form an exit chord across two controller streams', async () => {
+    let fired = 0
+    const first = new FakeStream()
+    const second = new FakeStream()
+    const streams = [first, second]
+    const w = new GamepadExitWatcher({
+      listDevices: async () => ['/dev/input/event8', '/dev/input/event19'],
+      openStream: () => streams.shift()!,
+      onMenuPress: () => { fired++ },
+    })
+    await w.start()
+    first.feed(ev(EV_KEY, BTN_SELECT, 1))
+    second.feed(ev(EV_KEY, BTN_START, 1))
+    expect(fired).toBe(0)
   })
 
   it('does not fire on a non-menu button', async () => {
@@ -194,7 +232,7 @@ describe('GamepadExitWatcher', () => {
     const stream = new FakeStream()
     const { w, fired } = makeWatcher(stream)
     await w.start()
-    stream.feed(Buffer.concat([ev(EV_KEY, BTN_START, 1), ev(EV_KEY, BTN_START, 0)]))
+    stream.feed(Buffer.concat([ev(EV_KEY, BTN_MODE, 1), ev(EV_KEY, BTN_MODE, 0)]))
     expect(fired()).toBe(1)
   })
 
@@ -204,9 +242,8 @@ describe('GamepadExitWatcher', () => {
     await w.start()
     w.stop()
     expect(stream.destroyed).toBe(true)
-    stream.feed(ev(EV_KEY, BTN_START, 1)) // arrives after stop - handler still bound, but we asserted destroy
-    // The real createReadStream stops emitting after destroy(); the fake can't,
-    // so we only assert the destroy happened. (No fire-count guarantee here.)
+    stream.feed(ev(EV_KEY, BTN_MODE, 1))
+    expect(fired()).toBe(0)
   })
 
   it('start() is idempotent (second call opens nothing new)', async () => {

@@ -7,6 +7,12 @@
   "order": 7,
   "accent": "#8b5cf6",
   "inputModes": ["gamepad", "keyboard"],
+  "controller": { "adapter": "native" },
+  "controlHints": [
+    "D-PAD / LEFT STICK = MOVE",
+    "A / X = ROTATE · B / Y = HARD DROP",
+    "RT / DOWN = SOFT DROP · START = PAUSE"
+  ],
   "network": "required",
   "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
   "allowedOrigins": ["https://blockstr.io"]

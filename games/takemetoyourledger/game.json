@@ -18,6 +18,12 @@
     "touch",
     "gamepad"
   ],
+  "controller": { "adapter": "native" },
+  "controlHints": [
+    "D-PAD / LEFT STICK = FLY",
+    "A / RB / RT = BEAM · X / LB = SPECIAL",
+    "START = PAUSE · D-PAD + A / B = MENUS"
+  ],
   "network": "optional",
   "capabilities": {
     "nostrSign": true,

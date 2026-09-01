@@ -2,10 +2,11 @@
 
 import { readdir, readFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import Ajv2020 from 'ajv/dist/2020.js'
 import addFormats from 'ajv-formats'
 
-const root = resolve(import.meta.dirname, '..')
+const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const schemaPath = join(root, 'schemas', 'game-manifest-v2.schema.json')
 const roots = process.argv.slice(2).map(path => resolve(path))
 if (!roots.length) roots.push(join(root, 'games'), join(root, 'examples', 'games'))

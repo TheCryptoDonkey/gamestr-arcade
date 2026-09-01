@@ -3,7 +3,9 @@ import { join } from 'node:path'
 import type {
   Game,
   GameCapabilities,
+  GameControllerContract,
   GameInputMode,
+  GameInputAdapter,
   GameNetworkMode,
   GameRewardRules,
 } from '../shared/types'
@@ -46,6 +48,35 @@ const INPUT_MODES = new Set<GameInputMode>(['gamepad', 'keyboard', 'pointer', 't
 function inputModes(value: unknown): GameInputMode[] | undefined {
   const values = stringArray(value)?.filter((v): v is GameInputMode => INPUT_MODES.has(v as GameInputMode))
   return values?.length ? values : undefined
+}
+
+const INPUT_ADAPTERS = new Set<GameInputAdapter>(['native', 'keyboard', 'pointer', 'hybrid'])
+function controllerContract(value: unknown): GameControllerContract | undefined {
+  if (typeof value !== 'object' || !value) return undefined
+  const raw = value as Record<string, unknown>
+  if (!INPUT_ADAPTERS.has(raw.adapter as GameInputAdapter)) return undefined
+  const result: GameControllerContract = { adapter: raw.adapter as GameInputAdapter }
+  if (typeof raw.certification !== 'object' || !raw.certification) return result
+  const cert = raw.certification as Record<string, unknown>
+  const hardware = stringArray(cert.hardware)
+  const profiles = stringArray(cert.profiles)?.filter((profile): profile is 'standard' | 'linux-hat' =>
+    profile === 'standard' || profile === 'linux-hat')
+  if ((cert.level === 'desk' || cert.level === 'hardware')
+    && typeof cert.testedAt === 'string'
+    && hardware?.length
+    && profiles?.length
+    && typeof cert.gameRevision === 'string'
+    && cert.gameRevision.trim()) {
+    result.certification = {
+      level: cert.level,
+      testedAt: cert.testedAt,
+      hardware,
+      profiles,
+      gameRevision: cert.gameRevision.trim(),
+      notes: typeof cert.notes === 'string' ? cert.notes.trim() || undefined : undefined,
+    }
+  }
+  return result
 }
 
 function networkMode(value: unknown, kind: Game['kind']): GameNetworkMode {
@@ -202,6 +233,7 @@ async function build(
     // launched in the kiosk; downloadUrl is the QR target (falls back to url).
     downloadOnly: meta?.downloadOnly === true ? true : undefined,
     downloadUrl: typeof meta?.downloadUrl === 'string' ? meta.downloadUrl : undefined,
+    operatorOnly: meta?.operatorOnly === true ? true : undefined,
     sounds: { music: (await exists(join(dir, 'music.ogg'))) ? join(dir, 'music.ogg') : undefined,
               voice: (await exists(join(dir, 'voice.ogg'))) ? join(dir, 'voice.ogg') : undefined },
     controls: meta?.controls ?? undefined,
@@ -213,6 +245,7 @@ async function build(
     description: typeof meta?.description === 'string' ? meta.description.trim() || undefined : undefined,
     genres: stringArray(meta?.genres),
     inputModes: inputModes(meta?.inputModes),
+    controller: controllerContract(meta?.controller),
     controlHints: stringArray(meta?.controlHints),
     sessionMinutes: Number.isSafeInteger(sessionMinutes) && sessionMinutes > 0 && sessionMinutes <= 1440 ? sessionMinutes : undefined,
     players: playerRange(meta?.players),

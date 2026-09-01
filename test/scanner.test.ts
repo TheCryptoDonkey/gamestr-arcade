@@ -26,6 +26,16 @@ describe('scanGames', () => {
       developer: 'Test Studio',
       genres: ['arcade', 'shooter'],
       inputModes: ['gamepad', 'keyboard'],
+      controller: {
+        adapter: 'keyboard',
+        certification: {
+          level: 'hardware',
+          testedAt: '2026-08-31',
+          hardware: ['Xbox Wireless Controller / USB'],
+          profiles: ['standard', 'linux-hat'],
+          gameRevision: 'fixture-1',
+        },
+      },
       controlHints: ['D-PAD = MOVE', 'A = FIRE'],
       sessionMinutes: 5,
       players: { min: 1, max: 2 },
@@ -172,5 +182,50 @@ describe('the shipped Pallasite tile', () => {
     expect(pallasite!.hero).toMatch(/pallasite\/hero\.webp$/)
     // The clean cyan logo is still present for the logo-on-left treatment.
     expect(pallasite!.logo).toMatch(/pallasite\/logo\.png$/)
+  })
+})
+
+describe('shipped conference catalogue policy', () => {
+  it('marks the payment lab operator-only and launches Word5 at its final allowed origin', async () => {
+    const games = await scanGames(REAL_GAMES)
+    const paymentLab = games.find(game => game.id === 'payment-lab')
+    const word5 = games.find(game => game.id === 'word5')
+
+    expect(paymentLab?.operatorOnly).toBe(true)
+    expect(word5).toMatchObject({
+      url: 'https://otherstuff.ai/word5/',
+      allowedOrigins: ['https://otherstuff.ai'],
+      controller: { adapter: 'pointer' },
+    })
+  })
+
+  it('declares the audited controller path and player hints for every player title', async () => {
+    const games = await scanGames(REAL_GAMES)
+    const expectedAdapters = {
+      axenstax: 'native',
+      blockstr: 'native',
+      'forge-realms': 'native',
+      'hang-on-fren': 'native',
+      'mempool-breaker': 'native',
+      'neon-sentinel': 'native',
+      'nogames-miner-v1': 'hybrid',
+      'nogames-snake-v1': 'hybrid',
+      'nostrich-run': 'hybrid',
+      pallasite: 'native',
+      'sats-man': 'native',
+      satsnake: 'keyboard',
+      'space-zappers': 'keyboard',
+      takemetoyourledger: 'native',
+      'the-rabbit-hole': 'native',
+      unicornvssnakes: 'hybrid',
+      word5: 'pointer',
+    } as const
+
+    for (const [id, adapter] of Object.entries(expectedAdapters)) {
+      const game = games.find(candidate => candidate.id === id)
+      expect(game, `${id} should be in the player catalogue`).toBeTruthy()
+      expect(game?.controller?.adapter, `${id} adapter`).toBe(adapter)
+      expect(game?.controlHints?.length, `${id} control hints`).toBeGreaterThan(0)
+    }
   })
 })

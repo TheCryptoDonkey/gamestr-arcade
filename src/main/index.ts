@@ -15,7 +15,7 @@ import { randomUUID } from 'node:crypto'
 import { is } from '@electron-toolkit/utils'
 import { NostrWebLNProvider } from '@getalby/sdk'
 import { finalizeEvent, generateSecretKey, getPublicKey } from 'nostr-tools/pure'
-import { buildGamesList, isPathAllowed, mediaUrlToPath, MEDIA_SCHEME } from './games'
+import { buildGamesList, isPathAllowed, mediaUrlToPath, playerVisibleGames, MEDIA_SCHEME } from './games'
 import { fetchGamestrCatalogue } from './gamestr-catalogue'
 import type { CatalogueDeps } from './gamestr-catalogue'
 import { importGameToFolder } from './gamestr-import'
@@ -26,6 +26,15 @@ import { DEFAULT_CONFIG, parseConfig } from './config'
 import { Launcher } from './launch'
 import type { LaunchDeps } from './launch'
 import { GamepadExitWatcher, realExitWatcherDeps } from './gamepad-exit'
+import {
+  adapterUsesKeyboard,
+  adapterUsesPointer,
+  keyboardInputEvents,
+  mouseInputEvents,
+  parseBridgedKeyAction,
+  parseBridgedPointerAction,
+  resolveGameInputAdapter,
+} from './web-input'
 import { PaymentPolicyError, paymentPolicyFromConfig, SessionPaymentBroker } from './payment-broker'
 import { resolveStartupGamesDir, resolveStartupKiosk } from './startup-policy'
 import {
@@ -37,7 +46,14 @@ import {
   publicArcadeConfig,
   type WebSessionGrants,
 } from './web-session-policy'
-import type { ArcadeConfig, Game, GamestrCatalogueResult, GamestrImportResult, WebLNConfig } from '../shared/types'
+import type {
+  ArcadeConfig,
+  Game,
+  GameInputAdapter,
+  GamestrCatalogueResult,
+  GamestrImportResult,
+  WebLNConfig,
+} from '../shared/types'
 
 // GPU flags: keep the hardware path active on booth hardware.
 app.commandLine.appendSwitch('ignore-gpu-blocklist')
@@ -46,6 +62,10 @@ app.commandLine.appendSwitch('enable-zero-copy')
 
 let kioskMode = DEFAULT_CONFIG.kiosk
 let activeGamesDir: string | null = null
+
+function gamesForThisKiosk(games: readonly Game[]): Game[] {
+  return playerVisibleGames(games, process.env.ARCADE_OPERATOR_TOOLS === '1')
+}
 
 // Web-game/attract audio needs this command-line switch before async config can
 // be read. It is harmless in the windowed development shell.
@@ -109,6 +129,7 @@ type WalletPaymentResult = Awaited<ReturnType<NostrWebLNProvider['sendPayment']>
 interface ActiveWebSession {
   view: WebContentsView
   partition: string
+  inputAdapter: GameInputAdapter
   allowedOrigins: Set<string>
   grants: WebSessionGrants
   nostrSecret: Uint8Array | null
@@ -196,6 +217,7 @@ function createWebSession(game: Game): ActiveWebSession {
   const session: ActiveWebSession = {
     view,
     partition,
+    inputAdapter: resolveGameInputAdapter(game),
     allowedOrigins,
     grants,
     nostrSecret: grants.nostrSign ? generateSecretKey() : null,
@@ -445,12 +467,16 @@ function buildLaunchDeps(): LaunchDeps {
       const url = game.url!
       sizeWebView()
 
-      // Send the resolved controls mapping to the webgame preload once the page
-      // has finished loading (and again on any subsequent reload so remaps take
-      // effect). The preload merges the per-game overrides with DEFAULT_CONTROLS.
+      // Send the resolved controls mapping to the webgame preload at DOM-ready
+      // (and again on any subsequent reload so remaps take effect). The preload
+      // merges per-game overrides with DEFAULT_CONTROLS and fails closed before
+      // this manifest-bound setup arrives.
       // Capability grants contain no secrets or wallet policy values.
       const sendSessionSetup = () => {
-        view.webContents.send('arcade:controls', game.controls ?? {})
+        view.webContents.send('arcade:input-config', {
+          controls: game.controls ?? {},
+          adapter: session.inputAdapter,
+        })
         view.webContents.send('arcade:session-grants', session.grants)
         // Kiosk-ify the game page (runs in the page's main world, so it bypasses
         // CSP and overrides the page's own globals):
@@ -481,12 +507,12 @@ function buildLaunchDeps(): LaunchDeps {
         }
         win.contentView.addChildView(view) // idempotent for existing children
         sizeWebView()
+        win.focus()
+        view.webContents.focus()
         win.webContents.send('game:web-ready')
       }
-      view.webContents.on('did-finish-load', () => {
-        sendSessionSetup()
-        reveal()
-      })
+      view.webContents.on('dom-ready', sendSessionSetup)
+      view.webContents.on('did-finish-load', reveal)
       session.readyTimer = setTimeout(reveal, WEB_REVEAL_SAFETY_MS)
 
       view.webContents.loadURL(url).catch(err => {
@@ -511,10 +537,10 @@ function buildLaunchDeps(): LaunchDeps {
 //
 // Primary:  Escape          - for a physical EXIT button wired to the Esc key.
 // Fallback: Ctrl+Shift+Bksp - deliberate chord for keyboard/debug use.
-// Gamepad:  View/Menu/Guide - read from evdev by `gamepadExit` (below), the
-//                             only exit path for NATIVE games (which take X
-//                             focus, so the renderer can't poll the gamepad and
-//                             the web-view preload doesn't exist).
+// Gamepad:  Guide or View+Menu - read from evdev by `gamepadExit` (below), the
+//                               only exit path for NATIVE games (which take X
+//                               focus, so the renderer can't poll the gamepad and
+//                               the web-view preload doesn't exist).
 //
 // All are registered on game launch and unregistered on return-to-grid.
 
@@ -629,7 +655,7 @@ app.whenReady().then(async () => {
   })
 
   ipcMain.handle('games:list', async () => {
-    const games = await buildGamesList(gamesDir, cacheDir, localServer?.port)
+    const games = gamesForThisKiosk(await buildGamesList(gamesDir, cacheDir, localServer?.port))
     cachedGames = games
     const localCount = games.filter(g => g.localSite).length
     console.log(`[arcade] games dir: ${gamesDir} - ${games.length} game(s)${localCount ? ` (${localCount} local)` : ''}`)
@@ -698,7 +724,7 @@ app.whenReady().then(async () => {
       const res = await importGameToFolder(gamesDir, entry, importDeps)
       // Force a rescan so the new game.json is picked up.
       cachedGames = null
-      const games = await buildGamesList(gamesDir, cacheDir, localServer?.port)
+      const games = gamesForThisKiosk(await buildGamesList(gamesDir, cacheDir, localServer?.port))
       cachedGames = games
       console.log(`[arcade] imported gamestr game "${entry.name}" (${slug})${res.created ? '' : ' - already present'}`)
       return { ok: true, slug: res.slug, created: res.created, games }
@@ -715,7 +741,9 @@ app.whenReady().then(async () => {
     // Guard against re-entrancy: two rapid presses share a single in-flight scan.
     if (!cachedGames) {
       if (!buildingGames) {
-        buildingGames = buildGamesList(gamesDir, cacheDir, localServer?.port).finally(() => { buildingGames = null })
+        buildingGames = buildGamesList(gamesDir, cacheDir, localServer?.port)
+          .then(gamesForThisKiosk)
+          .finally(() => { buildingGames = null })
       }
       cachedGames = await buildingGames
     }
@@ -787,6 +815,30 @@ app.whenReady().then(async () => {
     if (activeWebSession && event.sender === activeWebSession.view.webContents) launcher.back()
   })
 
+  // Controller translation crosses into the game only through Chromium's
+  // trusted input pipeline. Bind every message to the current isolated view,
+  // validate its narrow shape, and honour the manifest-declared adapter.
+  ipcMain.on('webgame:input:key', (event, rawAction: unknown) => {
+    const session = activeWebSession
+    if (!session || event.sender !== session.view.webContents || !adapterUsesKeyboard(session.inputAdapter)) return
+    const action = parseBridgedKeyAction(rawAction)
+    if (!action || event.sender.isDestroyed()) return
+    if (win && !win.isFocused()) win.focus()
+    if (!event.sender.isFocused()) event.sender.focus()
+    for (const input of keyboardInputEvents(action)) event.sender.sendInputEvent(input)
+  })
+
+  ipcMain.on('webgame:input:pointer', (event, rawAction: unknown) => {
+    const session = activeWebSession
+    if (!session || event.sender !== session.view.webContents || !adapterUsesPointer(session.inputAdapter)) return
+    const action = parseBridgedPointerAction(rawAction)
+    if (!action || event.sender.isDestroyed()) return
+    const { width, height } = session.view.getBounds()
+    if (win && !win.isFocused()) win.focus()
+    if (!event.sender.isFocused()) event.sender.focus()
+    for (const input of mouseInputEvents(action, { width, height })) event.sender.sendInputEvent(input)
+  })
+
   createWindow()
 
   // Initialise the launcher after the window exists.
@@ -794,7 +846,7 @@ app.whenReady().then(async () => {
 
   // Controller-based force-back for native games: reads gamepad evdev devices
   // in the main process (renderer/web-preload polling is unavailable once a
-  // native game owns the display). Menu/View/Guide press → forceBack().
+  // native game owns the display). Guide or View+Menu → forceBack().
   gamepadExit = new GamepadExitWatcher(
     realExitWatcherDeps(
       () => launcher.forceBack(),

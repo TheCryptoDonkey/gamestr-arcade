@@ -2,7 +2,7 @@
   "manifestVersion": 2,
   "name": "Word5",
   "tagline": "Guess the 5-letter word in as few tries as possible",
-  "url": "https://word5.otherstuff.ai/",
+  "url": "https://otherstuff.ai/word5/",
   "gameId": "word5",
   "order": 18,
   "accent": "#f59e0b",
@@ -10,7 +10,12 @@
   "scoreField": "streak",
   "scoreDir": "desc",
   "inputModes": ["gamepad", "keyboard"],
+  "controller": { "adapter": "pointer" },
+  "controlHints": [
+    "LEFT STICK = CURSOR",
+    "A = CHOOSE LETTER / ENTER / DELETE"
+  ],
   "network": "required",
   "capabilities": { "nostrSign": true, "walletPay": false, "persistentStorage": false, "externalNavigation": false },
-  "allowedOrigins": ["https://word5.otherstuff.ai"]
+  "allowedOrigins": ["https://otherstuff.ai"]
 }

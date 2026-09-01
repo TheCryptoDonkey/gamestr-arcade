@@ -13,7 +13,7 @@ npm ci
 npm run dist
 ```
 
-Output: `release/gamestr-arcade-0.1.0-x86_64.AppImage`
+Output: `release/gamestr-arcade-<version>-x86_64.AppImage`
 
 The exact name comes from `electron-builder.yml`:
 ```
@@ -59,6 +59,7 @@ working. The canonical JSON Schema is
   "accent":  "#ff6a00",                    // tile accent colour (CSS hex)
   "order":   1,                            // sort order in the grid (default: 999)
   "inputModes": ["gamepad", "keyboard"],
+  "controller": { "adapter": "native" },  // native | keyboard | pointer | hybrid
   "controlHints": ["D-PAD = MOVE", "Ⓐ = ACTION"],
   "tips": "you@walletofsatoshi.com",         // author Lightning address - the post-game
                                            // zap ask tips YOU instead of the booth
@@ -175,7 +176,7 @@ This runs in a normal window. The kiosk flag is off so you can use OS controls n
 ### Full kiosk run (Linux, production)
 
 ```bash
-ARCADE_KIOSK=1 ARCADE_GAMES_DIR=/path/to/games /path/to/gamestr-arcade-0.1.0-x86_64.AppImage
+ARCADE_KIOSK=1 ARCADE_GAMES_DIR=/path/to/games /path/to/gamestr-arcade-<version>-x86_64.AppImage
 ```
 
 ### Install the systemd service (Linux booth)
@@ -236,7 +237,7 @@ gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-timeout 
 | `c`       | Toggle the CRT scanline overlay on/off |
 | `m`       | Toggle audio mute on/off |
 
-While a **web game** is running, `Escape` (or the gamepad Back button) returns to the game grid.
+While a game is running, `Escape`, Guide, or the gamepad View + Menu chord returns to the game grid. Start/Menu on its own remains available to the game.
 
 ---
 

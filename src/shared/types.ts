@@ -17,6 +17,26 @@ export interface GameControls {
 /** Player-facing input families declared by a v2 game manifest. */
 export type GameInputMode = 'gamepad' | 'keyboard' | 'pointer' | 'touch'
 
+/** How the arcade should translate a controller for a launched web game. */
+export type GameInputAdapter = 'native' | 'keyboard' | 'pointer' | 'hybrid'
+
+export interface GameControllerCertification {
+  /** Desk evidence is useful, but only hardware evidence clears a conference gate. */
+  level: 'desk' | 'hardware'
+  testedAt: string
+  hardware: string[]
+  /** Chromium mappings exercised on the real booth, including the Prague HAT regression. */
+  profiles: Array<'standard' | 'linux-hat'>
+  gameRevision: string
+  notes?: string
+}
+
+export interface GameControllerContract {
+  /** Native leaves the Gamepad API alone; other modes add only their named synthetic channels. */
+  adapter: GameInputAdapter
+  certification?: GameControllerCertification
+}
+
 /** How much of a game remains usable when the cabinet loses connectivity. */
 export type GameNetworkMode = 'required' | 'optional' | 'offline'
 
@@ -54,6 +74,8 @@ export interface Game {
   // so a visitor can grab the game on their own device.
   downloadOnly?: boolean
   downloadUrl?: string  // QR target for a download-only game; falls back to `url`
+  /** Hidden from player catalogues unless the process explicitly enables operator tools. */
+  operatorOnly?: boolean
   gameId: string        // kind-30762 `game` tag value (leaderboard key)
   tHints?: string[]     // optional `#t` server-side filter hints; defaults to [gameId]
   logo: string          // absolute path to resolved logo image
@@ -69,6 +91,8 @@ export interface Game {
   description?: string
   genres?: string[]
   inputModes?: GameInputMode[]
+  /** Explicit controller delivery mode and, once obtained, physical-booth evidence. */
+  controller?: GameControllerContract
   /** Concise player-facing instructions, unlike `tHints` (relay filter hints). */
   controlHints?: string[]
   sessionMinutes?: number

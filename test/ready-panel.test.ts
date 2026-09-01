@@ -30,11 +30,19 @@ describe('Ready to Play facts', () => {
     })
   })
 
-  it('prefers explicit player-facing control hints', () => {
-    expect(controlsFor(game({ controlHints: ['LEFT STICK = MOVE', 'Ⓐ = FIRE'] }))).toEqual([
+  it('prefers explicit player-facing control hints and adds the shell exit gesture', () => {
+    expect(controlsFor(game({
+      inputModes: ['gamepad', 'keyboard'],
+      controlHints: ['LEFT STICK = MOVE', 'Ⓐ = FIRE'],
+    }))).toEqual([
       'LEFT STICK = MOVE',
       'Ⓐ = FIRE',
+      'VIEW + MENU = RETURN TO ARCADE',
     ])
+  })
+
+  it('does not claim a cabinet exit gesture for games without gamepad input', () => {
+    expect(controlsFor(game({ inputModes: ['keyboard'] }))).toEqual(['KEYBOARD'])
   })
 
   it('renders only requested cabinet capabilities', () => {

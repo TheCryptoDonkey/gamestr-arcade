@@ -50,14 +50,18 @@ export function readyStatusFor(game: Game): ReadyStatus {
 }
 
 export function controlsFor(game: Game): string[] {
-  if (game.controlHints?.length) return game.controlHints
-  const out: string[] = []
-  if (game.inputModes?.length) out.push(game.inputModes.map(mode => INPUT_LABELS[mode]).join(' + '))
-  if (game.controls) {
+  const out: string[] = game.controlHints?.length ? [...game.controlHints] : []
+  if (!out.length && game.inputModes?.length) {
+    out.push(game.inputModes.map(mode => INPUT_LABELS[mode]).join(' + '))
+  }
+  if (!game.controlHints?.length && game.controls) {
     const move = [game.controls.left, game.controls.up, game.controls.down, game.controls.right]
       .filter((v): v is string => !!v)
     if (move.length) out.push(`MOVE ${Array.from(new Set(move)).join(' / ')}`)
     if (game.controls.fire) out.push(`ACTION ${game.controls.fire}`)
+  }
+  if (game.inputModes?.includes('gamepad') && !out.includes('VIEW + MENU = RETURN TO ARCADE')) {
+    out.push('VIEW + MENU = RETURN TO ARCADE')
   }
   return out.length ? out : ['GAME CONTROLS SHOWN AFTER LAUNCH']
 }

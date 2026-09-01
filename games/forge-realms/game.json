@@ -10,6 +10,12 @@
     "gamepad",
     "keyboard"
   ],
+  "controller": { "adapter": "native" },
+  "controlHints": [
+    "LEFT STICK = CURSOR · A / B = SELECT / CANCEL",
+    "RIGHT STICK / TRIGGERS = PAN / ZOOM",
+    "X = ARMY · Y = BUILD · START = PAUSE"
+  ],
   "network": "required",
   "capabilities": {
     "nostrSign": true,

@@ -20,10 +20,11 @@
     "gamepad",
     "keyboard"
   ],
+  "controller": { "adapter": "native" },
   "controlHints": [
     "LEFT STICK / D-PAD = MOVE",
     "Ⓐ / SPACE = FIRE",
-    "MENU / ESC = RETURN TO ARCADE"
+    "Y / MENU = PAUSE"
   ],
   "sessionMinutes": 5,
   "players": {
