@@ -375,7 +375,7 @@ async function boot(): Promise<void> {
       audio.resume()
       attract.onActivity()
     },
-  })
+  }, { diagnostics: inElectron && window.arcade.gamepadDiagnostics })
   input.start()
 
   // Grab keyboard focus so ← → / Enter work the moment the cabinet loads. In a
@@ -487,6 +487,12 @@ async function boot(): Promise<void> {
     if (new URLSearchParams(window.location.search).get('panel') === 'ready') {
       window.setTimeout(() => requestLaunch(), 0)
     }
+  }
+
+  if (inElectron) {
+    void window.arcade.markReady().catch(err => {
+      console.error(`[arcade] failed to publish renderer readiness: ${String(err)}`)
+    })
   }
 }
 

@@ -102,6 +102,7 @@
       "additionalProperties": false
     },
     "network": { "enum": ["required", "optional", "offline"] },
+    "conferenceFallback": { "type": "boolean" },
     "ageRating": { "type": "string", "maxLength": 32 },
     "allowedOrigins": {
       "type": "array",

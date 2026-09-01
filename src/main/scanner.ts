@@ -250,6 +250,7 @@ async function build(
     sessionMinutes: Number.isSafeInteger(sessionMinutes) && sessionMinutes > 0 && sessionMinutes <= 1440 ? sessionMinutes : undefined,
     players: playerRange(meta?.players),
     network: networkMode(meta?.network, launch.kind),
+    conferenceFallback: meta?.conferenceFallback === true ? true : undefined,
     ageRating: typeof meta?.ageRating === 'string' ? meta.ageRating.trim() || undefined : undefined,
     capabilities: capabilities(meta?.capabilities),
     rewardRules: rewardRules(meta?.rewardRules),

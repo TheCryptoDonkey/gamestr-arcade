@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
-import { readdir, readFile } from 'node:fs/promises'
-import { join, resolve } from 'node:path'
+import { access, readdir, readFile, stat } from 'node:fs/promises'
+import { constants } from 'node:fs'
+import { join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
@@ -61,11 +62,37 @@ if (word5 && word5.manifest.url !== 'https://otherstuff.ai/word5/') {
 const networkRequired = players.filter(({ manifest }) => manifest.network === 'required')
 if (networkRequired.length) warnings.push(`${networkRequired.length}/${players.length} player games require conference connectivity`)
 
-const outageFallbacks = players.filter(({ manifest }) => {
-  return manifest.network === 'optional' || manifest.network === 'offline'
+const nominatedFallbacks = players.filter(({ manifest }) => manifest.conferenceFallback === true)
+if (players.length && nominatedFallbacks.length === 0) {
+  blockers.push('No player title is nominated as the conference outage fallback')
+}
+
+const networkBoundFallbacks = nominatedFallbacks.filter(({ manifest }) => {
+  return manifest.network !== 'optional' && manifest.network !== 'offline'
 })
-if (players.length && outageFallbacks.length === 0) {
-  blockers.push('No player title declares an offline-capable conference fallback')
+if (networkBoundFallbacks.length) {
+  blockers.push(`Conference outage fallback still requires connectivity: ${names(networkBoundFallbacks)}`)
+}
+
+async function installedLocalLaunch({ slug, manifest }) {
+  const gameRoot = resolve(gamesRoot, slug)
+  const localSite = join(gameRoot, 'site', 'index.html')
+  if (await stat(localSite).then(info => info.isFile()).catch(() => false)) return localSite
+  if (typeof manifest.exec !== 'string' || manifest.exec.length === 0) return null
+  const executable = resolve(gameRoot, manifest.exec)
+  if (executable !== gameRoot && !executable.startsWith(`${gameRoot}${sep}`)) return null
+  const isFile = await stat(executable).then(info => info.isFile()).catch(() => false)
+  if (!isFile) return null
+  return await access(executable, constants.X_OK).then(() => executable).catch(() => null)
+}
+
+const fallbackLaunches = await Promise.all(nominatedFallbacks.map(async entry => ({
+  entry,
+  localLaunch: await installedLocalLaunch(entry),
+})))
+const missingLocalFallbacks = fallbackLaunches.filter(({ localLaunch }) => localLaunch === null).map(({ entry }) => entry)
+if (missingLocalFallbacks.length) {
+  blockers.push(`Conference outage fallback has no installed local launch: ${names(missingLocalFallbacks)}`)
 }
 
 const hardwareCertified = controllerGames.length - notHardwareCertified.length

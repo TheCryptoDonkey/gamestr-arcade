@@ -4,7 +4,10 @@ import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { readFile } from 'node:fs/promises'
 
 const read = (path: string) => readFile(path, 'utf8')
-const CONTRAST_TEST_TIMEOUT_MS = 15_000
+// happy-dom's full stylesheet resolution is CPU-heavy on a loaded build host.
+// Keep the assertion synchronous and bounded without turning host contention
+// into a false contrast failure.
+const CONTRAST_TEST_TIMEOUT_MS = 60_000
 
 function channels(color: string): [number, number, number] {
   if (/^#[0-9a-f]{3}$/i.test(color)) {

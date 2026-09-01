@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readdir, readFile } from 'node:fs/promises'
+import { readdir, readFile, stat } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import Ajv2020 from 'ajv/dist/2020.js'
@@ -47,6 +47,18 @@ for (const gamesRoot of roots) {
     if (!validate(manifest)) {
       for (const issue of validate.errors ?? []) {
         failures.push(`${path}${issue.instancePath || '/'} ${issue.message}`)
+      }
+    }
+    if (manifest.conferenceFallback === true) {
+      if (manifest.network !== 'optional' && manifest.network !== 'offline') {
+        failures.push(`${path}/conferenceFallback requires network to be optional or offline`)
+      }
+      const hasDeclaredExec = typeof manifest.exec === 'string' && manifest.exec.length > 0
+      const hasLocalSite = await stat(join(gamesRoot, entry.name, 'site', 'index.html'))
+        .then(info => info.isFile())
+        .catch(() => false)
+      if (!hasDeclaredExec && !hasLocalSite) {
+        failures.push(`${path}/conferenceFallback requires exec or a local site/index.html`)
       }
     }
   }

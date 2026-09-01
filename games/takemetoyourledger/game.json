@@ -24,7 +24,7 @@
     "A / RB / RT = BEAM · X / LB = SPECIAL",
     "START = PAUSE · D-PAD + A / B = MENUS"
   ],
-  "network": "optional",
+  "network": "required",
   "capabilities": {
     "nostrSign": true,
     "walletPay": false,

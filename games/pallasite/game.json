@@ -32,6 +32,7 @@
     "max": 1
   },
   "network": "optional",
+  "conferenceFallback": true,
   "capabilities": {
     "nostrSign": true,
     "walletPay": true,

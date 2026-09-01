@@ -47,13 +47,22 @@ StartLimitIntervalSec=120
 StartLimitBurst=4
 
 [Service]
+# Remove a marker from any previous process before every start. The renderer
+# recreates it only after the cabinet UI has initialised; deploy.sh verifies its
+# PID belongs to this unit and requires both service and renderer to stay stable.
+ExecStartPre=-/usr/bin/rm -f %t/gamestr-arcade.ready
 # ── PATH - stable filename; deploy.sh always ships to this exact path ────────
 ExecStart=%h/gamestr-arcade.AppImage
 # ─────────────────────────────────────────────────────────────────────────────
 
 Environment=ARCADE_GAMES_DIR=%h/gamestr-games
+Environment=ARCADE_READY_FILE=%t/gamestr-arcade.ready
 
 Environment=ARCADE_KIOSK=1
+
+# Controller heartbeat logging is off by default. Enable only in a temporary
+# operator override while diagnosing physical controller enumeration:
+# Environment=ARCADE_GAMEPAD_DIAGNOSTICS=1
 
 # Crash recovery: restart within 2 s - booth never shows a black screen on a
 # one-off crash. The StartLimit cap in [Unit] stops a runaway crash-loop after

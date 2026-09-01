@@ -33,6 +33,7 @@ Important fields include:
 | `exec`, `url` | Native launch plus optional playable web fallback |
 | `inputModes`, `controller`, `controlHints`, `players`, `sessionMinutes` | Pre-launch play instructions and controller delivery path |
 | `network` | `required`, `optional`, or `offline` readiness status |
+| `conferenceFallback` | Explicit local, physically outage-tested conference fallback nomination |
 | `capabilities` | Requested Nostr, wallet, storage and navigation access; not a grant |
 | `allowedOrigins` | Explicit web-session navigation allowlist |
 | `order`, `accent` | Catalogue ordering and cabinet theming |

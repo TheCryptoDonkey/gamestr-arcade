@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
@@ -11,6 +11,12 @@ async function writeManifest(root: string, slug: string, manifest: Record<string
   const folder = join(root, slug)
   await mkdir(folder, { recursive: true })
   await writeFile(join(folder, 'game.json'), `${JSON.stringify(manifest, null, 2)}\n`)
+}
+
+async function writeExecutable(root: string, slug: string, name: string): Promise<void> {
+  const path = join(root, slug, name)
+  await writeFile(path, '#!/bin/sh\n')
+  await chmod(path, 0o755)
 }
 
 function runStatus(root: string): ReturnType<typeof spawnSync> {
@@ -34,6 +40,7 @@ describe('conference source gate', () => {
       manifestVersion: 2,
       name: 'Ready Game',
       gameId: 'ready-game',
+      exec: 'ready.AppImage',
       inputModes: ['gamepad'],
       controller: {
         adapter: 'native',
@@ -47,7 +54,9 @@ describe('conference source gate', () => {
       },
       controlHints: ['LEFT STICK = MOVE'],
       network: 'optional',
+      conferenceFallback: true,
     })
+    await writeExecutable(root, 'ready-game', 'ready.AppImage')
 
     const result = runStatus(root)
     expect(result.stderr).toBe('')
@@ -95,7 +104,35 @@ describe('conference source gate', () => {
 
     const result = runStatus(root)
     expect(result.status).toBe(1)
-    expect(result.stdout).toContain('BLOCKER: No player title declares an offline-capable conference fallback')
+    expect(result.stdout).toContain('BLOCKER: No player title is nominated as the conference outage fallback')
+  })
+
+  it('rejects a nominated fallback that is only a remote URL', async () => {
+    const root = await temporaryGamesRoot()
+    await writeManifest(root, 'remote-fallback', {
+      manifestVersion: 2,
+      name: 'Remote Fallback',
+      gameId: 'remote-fallback',
+      url: 'https://example.test/game',
+      inputModes: ['gamepad'],
+      controller: {
+        adapter: 'native',
+        certification: {
+          level: 'hardware',
+          testedAt: '2026-09-01',
+          hardware: ['Xbox Wireless Controller - USB'],
+          profiles: ['standard', 'linux-hat'],
+          gameRevision: 'etag:verified',
+        },
+      },
+      controlHints: ['LEFT STICK = MOVE'],
+      network: 'optional',
+      conferenceFallback: true,
+    })
+
+    const result = runStatus(root)
+    expect(result.status).toBe(1)
+    expect(result.stdout).toContain('BLOCKER: Conference outage fallback has no installed local launch: Remote Fallback')
   })
 
   it('excludes operator and download-only entries from the player controller gate', async () => {

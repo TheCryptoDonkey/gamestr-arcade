@@ -13,7 +13,7 @@ offline/local game support, and operator-friendly booth controls.
 - Session-wide, bounded Nostr score feeds with event ID and signature verification
 - Live profiles, Today / All-Time boards, relay controls and local cache support
 - Themeable brand, accent, CRT and attract-mode presentation
-- Linux AppImage packaging and repeatable Node 22 CI quality gates
+- Linux AppImage packaging and repeatable, pinned Node 24 CI quality gates
 
 ## Quick start
 
@@ -55,10 +55,7 @@ Legacy manifests remain supported.
 ## Quality gates
 
 ```bash
-npm run typecheck
-npm run validate
-npm test
-npm run build
+npm run check      # shell contract, manifests, types, tests, desktop + both web editions
 npm audit --audit-level=high
 npm run dist       # Linux AppImage
 ```

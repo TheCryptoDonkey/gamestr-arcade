@@ -26,6 +26,10 @@ export interface InputHandlers {
   onActivity?(): void
 }
 
+export interface InputControllerOptions {
+  diagnostics?: boolean
+}
+
 export { DPAD, STICK_DEADZONE }
 export type { Direction }
 
@@ -88,6 +92,7 @@ export function isEditableTarget(target: EventTarget | null): boolean {
 
 export class InputController {
   private readonly handlers: InputHandlers
+  private readonly diagnostics: boolean
   private rafId = 0
   private running = false
 
@@ -95,11 +100,11 @@ export class InputController {
   private prevButtons: boolean[] = []
   private heldDir: Direction = 0
   private nextRepeatAt = 0
-  // Temporary gamepad-diagnostics throttle (plan Phase 2A); remove in 2D.
   private lastGpDiag = 0
 
-  constructor(handlers: InputHandlers) {
+  constructor(handlers: InputHandlers, options: InputControllerOptions = {}) {
     this.handlers = handlers
+    this.diagnostics = options.diagnostics === true
   }
 
   /** Begin listening to keyboard + polling gamepads. */
@@ -108,8 +113,10 @@ export class InputController {
     this.running = true
     window.addEventListener('keydown', this.onKeyDown)
     window.addEventListener('gamepadconnected', this.onActivity)
-    window.addEventListener('gamepadconnected', this.logGamepadEvent)
-    window.addEventListener('gamepaddisconnected', this.logGamepadEvent)
+    if (this.diagnostics) {
+      window.addEventListener('gamepadconnected', this.logGamepadEvent)
+      window.addEventListener('gamepaddisconnected', this.logGamepadEvent)
+    }
     this.poll()
   }
 
@@ -119,8 +126,10 @@ export class InputController {
     this.running = false
     window.removeEventListener('keydown', this.onKeyDown)
     window.removeEventListener('gamepadconnected', this.onActivity)
-    window.removeEventListener('gamepadconnected', this.logGamepadEvent)
-    window.removeEventListener('gamepaddisconnected', this.logGamepadEvent)
+    if (this.diagnostics) {
+      window.removeEventListener('gamepadconnected', this.logGamepadEvent)
+      window.removeEventListener('gamepaddisconnected', this.logGamepadEvent)
+    }
     if (this.rafId) cancelAnimationFrame(this.rafId)
     this.rafId = 0
   }
@@ -161,8 +170,6 @@ export class InputController {
     this.handlers.onActivity?.()
   }
 
-  // Temporary gamepad diagnostics (plan Phase 2A) - forwarded to journald via the
-  // [gp:*] console hook in index.ts. Remove in Phase 2D.
   private logGamepadEvent = (e: Event): void => {
     const g = (e as GamepadEvent).gamepad
     console.log(`[gp:menu] ${e.type} idx=${g?.index} id="${g?.id}" map=${g?.mapping || 'none'}`)
@@ -180,7 +187,7 @@ export class InputController {
     const pads = Array.from(navigator.getGamepads?.() ?? []).filter(
       (p): p is Gamepad => p != null,
     )
-    if (now - this.lastGpDiag > 1000) {
+    if (this.diagnostics && now - this.lastGpDiag > 1000) {
       this.lastGpDiag = now
       const detail = pads.map(p => `${p.index}:"${(p.id || '').slice(0, 28)}" map=${p.mapping || 'none'}`).join(' | ')
       console.log(`[gp:menu] hb pads=${pads.length} focus=${typeof document !== 'undefined' ? document.hasFocus() : '?'} ${detail}`)

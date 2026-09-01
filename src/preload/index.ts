@@ -7,12 +7,15 @@
  */
 
 import { contextBridge, ipcRenderer } from 'electron'
+import { gamepadDiagnosticsEnabled } from '../shared/diagnostics'
 
 contextBridge.exposeInMainWorld('arcade', {
+  gamepadDiagnostics: gamepadDiagnosticsEnabled(process.env.ARCADE_GAMEPAD_DIAGNOSTICS),
   getConfig: () => ipcRenderer.invoke('config:get'),
   listGames: () => ipcRenderer.invoke('games:list'),
   launch: (id: string) => ipcRenderer.invoke('game:launch', id),
   back: () => ipcRenderer.invoke('game:back'),
+  markReady: () => ipcRenderer.invoke('arcade:ready'),
   gamestrCatalogue: () => ipcRenderer.invoke('gamestr:catalogue'),
   gamestrImport: (slug: string) => ipcRenderer.invoke('gamestr:import', slug),
   onReturn: (cb: () => void) => {

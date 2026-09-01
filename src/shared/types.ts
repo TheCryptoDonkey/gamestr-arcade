@@ -98,6 +98,8 @@ export interface Game {
   sessionMinutes?: number
   players?: { min: number; max: number }
   network?: GameNetworkMode
+  /** Explicitly nominated local title for a conference connectivity outage. */
+  conferenceFallback?: boolean
   ageRating?: string
   capabilities?: GameCapabilities
   rewardRules?: GameRewardRules

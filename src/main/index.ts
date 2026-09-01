@@ -26,6 +26,7 @@ import { DEFAULT_CONFIG, parseConfig } from './config'
 import { Launcher } from './launch'
 import type { LaunchDeps } from './launch'
 import { GamepadExitWatcher, realExitWatcherDeps } from './gamepad-exit'
+import { gamepadDiagnosticsEnabled } from '../shared/diagnostics'
 import {
   adapterUsesKeyboard,
   adapterUsesPointer,
@@ -62,6 +63,7 @@ app.commandLine.appendSwitch('enable-zero-copy')
 
 let kioskMode = DEFAULT_CONFIG.kiosk
 let activeGamesDir: string | null = null
+const GAMEPAD_DIAGNOSTICS = gamepadDiagnosticsEnabled(process.env.ARCADE_GAMEPAD_DIAGNOSTICS)
 
 function gamesForThisKiosk(games: readonly Game[]): Game[] {
   return playerVisibleGames(games, process.env.ARCADE_OPERATOR_TOOLS === '1')
@@ -150,13 +152,12 @@ function sizeWebView(): void {
 }
 
 /**
- * Forward gamepad diagnostic console lines (prefixed `[gp`) from a renderer / web
- * view to the main process stdout → journald. Renderer console output otherwise
- * never reaches the booth journal. TEMPORARY (plan Phase 2A - controller
- * intermittency diagnosis); remove with the renderer-side logging in Phase 2D.
- * Filtered to `[gp` so third-party game-page console spam isn't echoed.
+ * Forward explicitly enabled gamepad diagnostic lines (prefixed `[gp`) from a
+ * renderer / web view to stdout → journald. Normal cabinet sessions do not
+ * attach this listener or emit the one-second controller heartbeat.
  */
 function wireGamepadConsole(wc: WebContents, tag: string): void {
+  if (!GAMEPAD_DIAGNOSTICS) return
   wc.on('console-message', (_event, _level, message) => {
     if (typeof message === 'string' && message.startsWith('[gp')) {
       console.log(`[arcade][${tag}] ${message}`)
@@ -476,6 +477,7 @@ function buildLaunchDeps(): LaunchDeps {
         view.webContents.send('arcade:input-config', {
           controls: game.controls ?? {},
           adapter: session.inputAdapter,
+          diagnostics: GAMEPAD_DIAGNOSTICS,
         })
         view.webContents.send('arcade:session-grants', session.grants)
         // Kiosk-ify the game page (runs in the page's main world, so it bypasses
@@ -660,6 +662,15 @@ app.whenReady().then(async () => {
     const localCount = games.filter(g => g.localSite).length
     console.log(`[arcade] games dir: ${gamesDir} - ${games.length} game(s)${localCount ? ` (${localCount} local)` : ''}`)
     return games
+  })
+
+  ipcMain.handle('arcade:ready', async event => {
+    if (!win || event.sender !== win.webContents) return false
+    const readyFile = process.env.ARCADE_READY_FILE
+    if (!readyFile) return true
+    await writeFile(readyFile, `${JSON.stringify({ pid: process.pid, version: app.getVersion(), readyAt: new Date().toISOString() })}\n`, 'utf8')
+    console.log(`[arcade] renderer ready (pid=${process.pid})`)
+    return true
   })
 
   // ── gamestr catalogue import ──────────────────────────────────────────────

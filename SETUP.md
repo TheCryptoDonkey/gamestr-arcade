@@ -67,6 +67,7 @@ working. The canonical JSON Schema is
   "players": { "min": 1, "max": 1 },
   "sessionMinutes": 5,
   "network": "required",                  // required | optional | offline
+  "conferenceFallback": false,             // true only for a locally installed, outage-tested title
   "capabilities": {                        // requests, never automatic grants
     "nostrSign": true,
     "walletPay": false,
@@ -81,6 +82,11 @@ The selector shows these facts in a controller-accessible **Ready to Play** pane
 If both `exec` and `url` are declared, an installed AppImage wins; when the binary
 is missing, the scanner falls back to the web build. An exec-only missing binary
 stays visible as **Not Ready** so the operator gets a useful diagnosis.
+
+`conferenceFallback: true` is an operational claim, not catalogue copy. It
+requires `network: optional` or `offline`, a local executable or
+`site/index.html`, and the physical outage run in
+[`docs/conference-acceptance.md`](docs/conference-acceptance.md).
 
 `gameId` is the value the leaderboard reads from the `game` tag of kind-30762 events. If a game publishes its scores under a specific tag, set `gameId` to match - otherwise boards will be empty for that tile.
 
@@ -190,6 +196,16 @@ loginctl enable-linger "$(whoami)"
 cp systemd/gamestr-arcade.service ~/.config/systemd/user/gamestr-arcade.service
 systemctl --user daemon-reload
 systemctl --user enable --now gamestr-arcade
+```
+
+For an exact, checksum-pinned deployment with restart, renderer readiness and
+automatic AppImage rollback:
+
+```bash
+npm run deploy -- --ship-only \
+  --artifact release/gamestr-arcade-<version>-x86_64.AppImage \
+  --sha256 <64-hex-digest> \
+  --restart
 ```
 
 The service uses `Restart=always` with `RestartSec=2` - a one-off crash returns to the game grid within 2 seconds - **capped** by a `StartLimitBurst=4` / `StartLimitIntervalSec=120` guard so a persistently-failing launch can't crash-loop forever (it trips to `failed` after 4 starts in 2 min instead of hammering the machine).

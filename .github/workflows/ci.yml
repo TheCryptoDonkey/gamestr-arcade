@@ -11,7 +11,7 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Check out repository
@@ -20,26 +20,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Typecheck all TypeScript projects
-        run: npm run typecheck
-
-      - name: Validate configuration and game contracts
-        run: npm run validate
-
-      - name: Run tests
-        run: npm test
-
-      - name: Build application
-        run: npm run build
-
-      - name: Build and validate web platform
-        run: npm run build:web && npm run validate:web
+      - name: Run complete source and build gate
+        run: npm run check
 
       - name: Audit full dependency tree
         run: npm audit --audit-level=high
@@ -50,13 +38,18 @@ jobs:
       - name: Package Linux AppImage
         run: npm run dist
 
+      - name: Record release checksums
+        run: cd release && sha256sum *.AppImage > SHA256SUMS
+
       - name: Upload release evidence
         uses: actions/upload-artifact@v4
         with:
           name: gamestr-arcade-linux-${{ github.sha }}
           path: |
             release/*.AppImage
+            release/SHA256SUMS
             gamestr-arcade.cdx.json
             dist-web/**
+            dist-web-600/**
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 90

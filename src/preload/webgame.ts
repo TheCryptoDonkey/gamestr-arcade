@@ -639,12 +639,11 @@ function initGamepadLoop(): void {
   let lastHoverTime     = 0     // timestamp for hover throttle (ms)
   let lastFrameTime     = 0     // for delta-time calculation
   let lastStickActive   = 0     // timestamp the left stick was last used (cursor engage)
+  let diagnosticsEnabled = false
 
   // ── Temporary gamepad diagnostics (plan Phase 2A) ────────────────────────────
-  // Throttled so journald isn't spammed; forwarded to main via the webContents
-  // 'console-message' hook (wireGamepadConsole in index.ts). `focus`/`vis` reveal
-  // whether Chromium's Gamepad API is even fed (it only updates a focused, visible
-  // document). Remove with the rest of the [gp:*] logging in plan Phase 2D.
+  // Off by default; `focus`/`vis` reveal whether Chromium's Gamepad API is fed
+  // when an operator temporarily enables ARCADE_GAMEPAD_DIAGNOSTICS=1.
   let lastGpDiag = 0
   function gpSummary(): string {
     const live = Array.from(navigator.getGamepads()).filter(Boolean) as Gamepad[]
@@ -654,10 +653,12 @@ function initGamepadLoop(): void {
     return `pads=${live.length} focus=${document.hasFocus()} vis=${document.visibilityState} ${detail}`
   }
   window.addEventListener('gamepadconnected', e => {
+    if (!diagnosticsEnabled) return
     const g = (e as GamepadEvent).gamepad
     console.log(`[gp:web] connected idx=${g.index} id="${g.id}" map=${g.mapping || 'none'}`)
   })
   window.addEventListener('gamepaddisconnected', e => {
+    if (!diagnosticsEnabled) return
     const g = (e as GamepadEvent).gamepad
     console.log(`[gp:web] disconnected idx=${g.index} id="${g.id}"`)
   })
@@ -667,13 +668,15 @@ function initGamepadLoop(): void {
   ipcRenderer.on('arcade:input-config', (_event, config: {
     controls?: Partial<GameControls>
     adapter?: GameInputAdapter
+    diagnostics?: boolean
   }) => {
     activeControls = resolveControls(config?.controls)
     activeAdapter = config?.adapter ?? 'native'
+    diagnosticsEnabled = config?.diagnostics === true
     // Re-evaluate any buttons held during page load under the newly-authorised
     // adapter instead of inheriting state sampled while synthesis was disabled.
     keyTranslator = new GamepadKeyTranslator()
-    console.log(`[gp:web] input=${activeAdapter}; doc-focused=${document.hasFocus()}`)
+    if (diagnosticsEnabled) console.log(`[gp:web] input=${activeAdapter}; doc-focused=${document.hasFocus()}`)
   })
 
   // Main sends only non-sensitive boolean grants after each navigation. No NWC
@@ -688,7 +691,7 @@ function initGamepadLoop(): void {
     const dt = lastFrameTime > 0 ? Math.min((now - lastFrameTime) / 1000, 0.1) : 1 / 60
     lastFrameTime = now
 
-    if (now - lastGpDiag > 1000) {
+    if (diagnosticsEnabled && now - lastGpDiag > 1000) {
       lastGpDiag = now
       console.log(`[gp:web] hb ${gpSummary()}`)
     }

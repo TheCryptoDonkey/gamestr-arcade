@@ -165,6 +165,7 @@ describe('the shipped Pallasite tile', () => {
     expect(pallasite!.kind).toBe('web')
     expect(pallasite!.url).toBe('https://pallasite.app/')
     expect(pallasite!.available).toBe(true)
+    expect(pallasite!.conferenceFallback).toBe(true)
     expect(pallasite!.gameId).toBe('pallasite')
     expect(pallasite!.order).toBe(1)
     expect(pallasite!.accent).toBe('#7cf3ff')

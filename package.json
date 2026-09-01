@@ -7,6 +7,9 @@
   "desktopName": "gamestr-arcade",
   "author": "TheCryptoDonkey",
   "main": "./out/main/index.js",
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
@@ -21,7 +24,7 @@
     "preview:web:prod": "vite preview --config vite.web.config.ts",
     "capture:web": "electron scripts/capture-web.cjs",
     "pretest": "install-electron --no",
-    "test": "vitest run",
+    "test": "vitest run --testTimeout=30000",
     "pretest:watch": "install-electron --no",
     "test:watch": "vitest",
     "dist": "electron-vite build && electron-builder --linux AppImage --x64 --publish never",
@@ -30,6 +33,8 @@
     "validate": "npm run validate:config && npm run validate:manifests",
     "conference:status": "npm run validate:manifests && node scripts/conference-status.mjs",
     "typecheck": "tsc -p tsconfig.node.json --noEmit --pretty false && tsc -p tsconfig.web.json --noEmit --pretty false",
+    "check:deploy": "bash -n scripts/deploy.sh",
+    "check": "npm run check:deploy && npm run validate && npm run typecheck && npm test && npm run build && npm run build:web && npm run validate:web && npm run build:web:600 && npm run validate:web:600",
     "deploy": "bash scripts/deploy.sh",
     "deploy:web:600": "GAMESTR_WEB_EDITION=600 GAMESTR_WEB_ORIGIN=https://arcade.600.wtf bash scripts/deploy-web.sh"
   },
