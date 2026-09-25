@@ -27,6 +27,12 @@ interface NostrWindow extends Window {
 
 const RELAYS = ['wss://main.relay.gamestr.io', 'wss://relay.trotters.cc', 'wss://nos.lol', 'wss://relay.damus.io']
 const GAMESTR_ORIGIN = 'https://gamestr.io'
+const GAMESTR_ARCADE_REPO = 'https://github.com/TheCryptoDonkey/gamestr-arcade'
+const LEGAL_LINKS = {
+  privacy: `${GAMESTR_ARCADE_REPO}/blob/main/docs/legal/privacy-notice-draft.md`,
+  terms: `${GAMESTR_ARCADE_REPO}/blob/main/docs/legal/terms-draft.md`,
+  reportAbuse: 'mailto:abuse@forgesworn.dev',
+}
 const app = document.querySelector<HTMLDivElement>('#app')!
 const state = {
   games: [] as WebGame[], query: '', filter: 'all', genre: 'all', selected: null as WebGame | null,
@@ -699,7 +705,13 @@ function footer(): HTMLElement {
     external.rel = 'noopener noreferrer'
     links.append(external)
   }
-  foot.append(brand, links, el('small', '', 'No custodial account · No nsec collection · No score database'))
+  const legal = el('div', 'footer-legal')
+  legal.append(
+    externalLink('PRIVACY', LEGAL_LINKS.privacy, 'text-link footer-legal-link'),
+    externalLink('TERMS', LEGAL_LINKS.terms, 'text-link footer-legal-link'),
+    externalLink('REPORT ABUSE', LEGAL_LINKS.reportAbuse, 'text-link footer-legal-link'),
+  )
+  foot.append(brand, links, legal, el('small', '', 'No custodial account · No nsec collection · No score database'))
   return foot
 }
 
