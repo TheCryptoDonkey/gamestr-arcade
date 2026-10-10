@@ -691,3 +691,14 @@ returned NIP-98 player/template. All 268 unit tests and the private browser
 regression pass. Six of seven new security regressions fail on unchanged source.
 Its complete player-promise release gate is running; deployment is pending.
 See [Ledger PR 88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88).
+
+## Native view attachment diagnostics
+
+The test-only loopback inspector now records each native window's attached
+child web-contents ID, visibility and bounds, plus loading state and type. This
+will distinguish a nominally focused contents from a visible, attached game
+view during a failing Linux input attempt. It only reads native state and
+retains every original input/return assertion. The original local Mac journey
+passes with both game views attached and visible; see
+[local attachment proof](evidence/gamestr-native-attached-view-local.json).
+This is additional diagnosis, not an input repair or Linux qualification.

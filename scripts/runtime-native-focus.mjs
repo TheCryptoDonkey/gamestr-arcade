@@ -36,10 +36,18 @@ export async function connectNativeFocusInspector(port) {
           expression: `(() => {
             const electron = process.getBuiltinModule('module').createRequire(process.cwd() + '/package.json')('electron');
             return {
-              windows: electron.BrowserWindow.getAllWindows().map(window => ({ focused: window.isFocused(), visible: window.isVisible() })),
+              windows: electron.BrowserWindow.getAllWindows().map(window => ({
+                id: window.id, focused: window.isFocused(), visible: window.isVisible(),
+                bounds: window.getBounds(),
+                children: window.contentView.children.map(view => ({
+                  contentsId: view.webContents?.id ?? null,
+                  visible: view.getVisible(), bounds: view.getBounds()
+                }))
+              })),
               contents: electron.webContents.getAllWebContents().map(contents => {
                 const url = contents.getURL();
-                return { id: contents.id, focused: contents.isFocused(), role: url.startsWith('file:') ? 'shell' : url ? 'game' : 'loading' };
+                return { id: contents.id, focused: contents.isFocused(), loading: contents.isLoading(),
+                  type: contents.getType(), role: url.startsWith('file:') ? 'shell' : url ? 'game' : 'loading' };
               })
             };
           })()`, returnByValue: true,
