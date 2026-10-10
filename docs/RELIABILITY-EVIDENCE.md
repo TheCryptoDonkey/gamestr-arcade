@@ -29,16 +29,27 @@ automated results, hosted artifacts and actual user/device acceptance.
   Android callback denial/tampering/expiry/replay, score impersonation,
   personal records, cache revalidation, exact event lookup, account isolation,
   preference-sync consent and invoice validation/fallback.
+- A launched Electron game failed to receive its guest signer/return controls
+  because its sandboxed preload was emitted as ESM. Preloads now emit bundled
+  CommonJS. Native Electron journeys pass keyboard carousel navigation, actual
+  game launch/Escape return, verified guest signing, fresh keys/storage/cookies
+  on relaunch, and absent wallet/Node/shell access without a wallet grant.
+  `scripts/appimage-journeys.mjs` adds those journeys to the packaged Linux CI
+  check. The new packaged revision still needs its hosted runtime verification;
+  this fixture does not clear physical controller or configured-wallet budgets.
 - Installed `signet-login`: 0.17.3. Rendezvous uses SDK defaults separately from
   score relays. Private-key paste remains excluded.
 - `npm audit --audit-level=high`: passed, no high/critical findings. Eight
   moderate findings remain in the Electron packaging dependency chain.
-- Ledger consumer checkout: unit suite passed 28 files / 260 tests and production
+- Ledger consumer checkout: unit suite passed 28 files / 261 tests and production
   build passed. The startup recovery check passes with full Chromium; the test
   now closes its first renderer before opening independent retry contexts and
   keeps the title active while measuring pre-PLAY loading. A perk touch-target
   measurement now waits for its existing scale entrance animation to finish,
-  preserving the original 60px floor. The full release gate is running again.
+  preserving the original 60px floor. An onboarding composition check now holds
+  the scene at its first visible prompt while the CSS entrance settles, retaining
+  its original distance/layout assertions. Both targeted profiles pass. The full
+  release gate is running again.
   Draft [Ledger PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88)
   contains the consumer; deployment remains pending.
 

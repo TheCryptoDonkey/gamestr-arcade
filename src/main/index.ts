@@ -199,7 +199,7 @@ function createWebSession(game: Game): ActiveWebSession {
   const partition = `gamestr-web-${randomUUID()}`
   const view = new WebContentsView({
     webPreferences: {
-      preload: join(__dirname, '../preload/webgame.mjs'),
+      preload: join(__dirname, '../preload/webgame.cjs'),
       partition,
       sandbox: true,
       contextIsolation: true,
@@ -579,7 +579,7 @@ function createWindow(): void {
     autoHideMenuBar: true,
     webPreferences: {
       // electron-vite builds the preload as .mjs (ESM).
-      preload: join(__dirname, '../preload/index.mjs'),
+      preload: join(__dirname, '../preload/index.cjs'),
       sandbox: false,
     },
   })
