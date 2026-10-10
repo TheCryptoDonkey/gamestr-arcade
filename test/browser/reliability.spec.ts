@@ -14,11 +14,22 @@ async function setup(page: Page, extension = false) {
     w.__selected = pubkey; w.__signed = 0
     if (extension) w.nostr = { getPublicKey: async () => w.__selected, signEvent: async (template: unknown) => { ++w.__signed; return w.__testSign(template, w.__selected) } }
     const Native = window.WebSocket
+    const sockets: { requests: unknown[][]; onmessage?: (event: { data: string }) => void }[] = []
+    ;(window as unknown as { __fixtureRelayEvent(event: { kind: number; pubkey: string }): void }).__fixtureRelayEvent = event => {
+      for (const socket of sockets) for (const request of socket.requests) {
+        const filter = request[2] as { kinds?: number[]; authors?: string[] }
+        if (!filter.kinds?.includes(event.kind) || (filter.authors && !filter.authors.includes(event.pubkey))) continue
+        socket.onmessage?.({ data: JSON.stringify(['EVENT', request[1], event]) })
+        socket.onmessage?.({ data: JSON.stringify(['EOSE', request[1]]) })
+      }
+    }
     window.WebSocket = class {
       readyState = 1
       onopen?: () => void
-      constructor(url: string, protocols?: string | string[]) { if (!url.startsWith('wss://')) return new Native(url, protocols) as unknown as this; setTimeout(() => this.onopen?.(), 0) }
-      send() {} close() {} addEventListener() {} removeEventListener() {}
+      onmessage?: (event: { data: string }) => void
+      requests: unknown[][] = []
+      constructor(url: string, protocols?: string | string[]) { if (!url.startsWith('wss://')) return new Native(url, protocols) as unknown as this; sockets.push(this); setTimeout(() => this.onopen?.(), 0) }
+      send(raw: string) { const request = JSON.parse(raw); if (request[0] === 'REQ') this.requests.push(request) } close() {} addEventListener() {} removeEventListener() {}
     } as unknown as typeof WebSocket
   }, { extension, pubkey })
   await page.route('**/catalogue.json', route => route.fulfill({ json: catalogue }))
@@ -152,12 +163,52 @@ for (const [edition, port] of [['gamestr', 4174], ['600', 4175]] as const) {
     await expect(page.getByRole('button', { name: 'CONNECT NOSTR', exact: true })).toBeVisible()
   })
 
-  test(`${edition}: manifest draft and focus survive identity changes and reload`, async ({ page }) => {
-    await setup(page)
+  test(`${edition}: live profile and score events preserve filter values, selection and focused controls`, async ({ page }) => {
+    await setup(page, true)
+    await page.goto(`http://127.0.0.1:${port}/`)
+    await page.getByRole('button', { name: 'CONNECT NOSTR', exact: true }).click()
+    await page.getByRole('button', { name: 'Browser extension', exact: true }).click()
+    await expect(page.locator('.identity-trigger')).toBeVisible()
+    await page.locator('#arcade-search').fill('palla')
+    await page.locator('#game-filter-featured').click()
+    await expect(page.locator('#game-filter-featured')).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.locator('#game-filter-all')).toHaveAttribute('aria-pressed', 'false')
+    await page.locator('#game-genre').selectOption('arcade')
+    await page.locator('#game-genre').focus()
+    const profile = finalizeEvent({ kind: 0, created_at: Math.floor(Date.now() / 1000), tags: [], content: JSON.stringify({ name: 'Live update player' }) }, key)
+    await page.evaluate(event => (window as unknown as { __fixtureRelayEvent(event: unknown): void }).__fixtureRelayEvent(event), profile)
+    await expect(page.locator('.identity-trigger')).toContainText('Live update player')
+    await expect(page.locator('#game-genre')).toBeFocused()
+    await expect(page.locator('#game-genre')).toHaveValue('arcade')
+    await expect(page.locator('#arcade-search')).toHaveValue('palla')
+    await expect(page.locator('#game-filter-featured')).toHaveAttribute('aria-pressed', 'true')
+    const score = finalizeEvent({ kind: 30762, created_at: Math.floor(Date.now() / 1000), tags: [['game', 'pallasite'], ['score', '12345']], content: '' }, key)
+    await page.locator('#favourite-card-pallasite').focus()
+    await page.evaluate(event => (window as unknown as { __fixtureRelayEvent(event: unknown): void }).__fixtureRelayEvent(event), score)
+    await expect(page.locator('.score-chip')).toContainText('12,345')
+    await expect(page.locator('#favourite-card-pallasite')).toBeFocused()
+    await page.locator('#activity-filter-following').click()
+    await expect(page.locator('#activity-filter-following')).toBeFocused()
+    await expect(page.locator('#activity-filter-following')).toHaveAttribute('aria-pressed', 'true')
+    const next = finalizeEvent({ kind: 30762, created_at: score.created_at + 1, tags: [['game', 'pallasite'], ['score', '12346']], content: '' }, key)
+    await page.evaluate(event => (window as unknown as { __fixtureRelayEvent(event: unknown): void }).__fixtureRelayEvent(event), next)
+    await expect(page.locator('.score-chip')).toContainText('12,346')
+    await expect(page.locator('#activity-filter-following')).toBeFocused()
+  })
+
+  test(`${edition}: manifest draft and focus survive SDK login, live profile updates and reload`, async ({ page }) => {
+    await setup(page, true)
     await page.goto(`http://127.0.0.1:${port}/developers`)
     const editor = page.locator('#manifest-json')
     await editor.fill('{"draft":"keep me"}')
-    await page.evaluate(() => window.dispatchEvent(new CustomEvent('gamestr:nostr-session', { detail: { pubkey: 'a'.repeat(64), method: 'redirect', canSignEvents: false } })))
+    await page.getByRole('button', { name: 'CONNECT NOSTR', exact: true }).click()
+    await page.getByRole('button', { name: 'Browser extension', exact: true }).click()
+    await expect(page.locator('.identity-trigger')).toBeVisible()
+    await expect(editor).toHaveValue('{"draft":"keep me"}')
+    await editor.focus()
+    const profile = finalizeEvent({ kind: 0, created_at: Math.floor(Date.now() / 1000), tags: [], content: JSON.stringify({ name: 'Draft player' }) }, key)
+    await page.evaluate(event => (window as unknown as { __fixtureRelayEvent(event: unknown): void }).__fixtureRelayEvent(event), profile)
+    await expect(page.locator('.identity-trigger')).toContainText('Draft player')
     await expect(editor).toHaveValue('{"draft":"keep me"}')
     await expect(editor).toBeFocused()
     await page.reload()

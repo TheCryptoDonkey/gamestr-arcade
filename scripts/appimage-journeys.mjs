@@ -62,7 +62,7 @@ try {
   async function launch() {
     await shell.bringToFront()
     await shell.keyboard.press('Enter')
-    await shell.locator('.ready-start').waitFor({ state: 'visible' })
+    await shell.locator('.ready-overlay.is-open[aria-hidden="false"] .ready-start').waitFor({ state: 'visible' })
     await shell.keyboard.press('Enter')
     const game = await until(() => context.pages().find(page => page.url() === `${origin}/game-a`))
     await game.waitForFunction(() => !!window.nostr)
@@ -85,6 +85,7 @@ try {
   await first.keyboard.down('Escape')
   await until(() => first.isClosed())
   await shell.keyboard.up('Escape')
+  await shell.waitForFunction(() => document.activeElement?.id === 'app')
   const second = await launch()
   const fresh = await second.evaluate(async () => ({ pubkey: await window.nostr.getPublicKey(), storage: localStorage.getItem('runtime-guest'), cookies: document.cookie, wallet: typeof window.webln }))
   assert.notEqual(fresh.pubkey, pubkey)
@@ -94,6 +95,7 @@ try {
   await second.keyboard.down('Escape')
   await until(() => second.isClosed())
   await shell.keyboard.up('Escape')
+  await shell.waitForFunction(() => document.activeElement?.id === 'app')
   writeFileSync(`${root}/journeys.json`, JSON.stringify({
     keyboardCarouselNavigation: true, launchAndReturn: true, guestSignatureVerified: true,
     freshGuestOnRelaunch: true, gameStorageAndCookiesIsolated: true,

@@ -22,6 +22,11 @@ automated results, hosted artifacts and actual user/device acceptance.
 - Account preferences now offer an explicit guest import, preserve guest data
   and account isolation, keep focus across updates, and explain unavailable
   storage. The complete expanded browser suite passed all 30 journeys.
+- The expanded suite now passes 32 journeys. Real signed relay profile/score
+  events preserve search, genre, selected filters and keyboard focus in both
+  editions. The developer draft checks now use actual SDK login and a signed
+  profile update; both strengthened checks pass separately. Filter buttons now
+  update their visible selection and `aria-pressed` together.
 - A real browser child-port signed a score, then remained revoked through logout
   and re-login to the same key.
 - Unit regressions cover selected keys/templates, late login/restore,
@@ -37,6 +42,10 @@ automated results, hosted artifacts and actual user/device acceptance.
   `scripts/appimage-journeys.mjs` adds those journeys to the packaged Linux CI
   check. The new packaged revision still needs its hosted runtime verification;
   this fixture does not clear physical controller or configured-wallet budgets.
+- The first packaged journey CI run reached and verified the first game's
+  signer, then exposed a relaunch race in the harness. It now waits for the
+  reopened ready panel and returned shell focus. The complete native journey
+  passes with these waits; packaged Linux verification remains pending.
 - Installed `signet-login`: 0.17.3. Rendezvous uses SDK defaults separately from
   score relays. Private-key paste remains excluded.
 - `npm audit --audit-level=high`: passed, no high/critical findings. Eight
@@ -110,6 +119,8 @@ release symlink changes.
 - Public DNS cutover and live exact-revision verification of both editions.
 - Real mobile Lightning wallet payment with a separately authorised recipient
   and amount. Invoice display and wallet responses do not prove settlement.
+  The user authorised 100 sats to `profusemeat89@walletofsatoshi.com`; the
+  address's public LNURL metadata accepts that amount. No payment has been sent.
 - Real browser zoom and physical assistive-technology acceptance; CSS zoom checks alone do not prove these.
 
 No goal is marked complete solely from unit tests or an implementation.

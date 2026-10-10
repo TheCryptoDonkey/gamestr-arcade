@@ -276,10 +276,11 @@ function filters(): HTMLElement {
   search.append(input)
   const tabs = el('div', 'filter-tabs'); tabs.setAttribute('role', 'group'); tabs.setAttribute('aria-label', 'Game filters')
   for (const [key, label] of [['all', 'ALL'], ['favourites', `MY ARCADE${state.social.favourites.length ? ` (${state.social.favourites.length})` : ''}`], ['featured', 'FEATURED'], ['trending', 'TRENDING'], ['new', 'NEW']]) {
-    tabs.append(button(label, state.filter === key ? 'selected' : '', () => { state.filter = key; renderGameGrid() }))
+    const tab = button(label, state.filter === key ? 'selected' : '', () => { state.filter = key; renderGameGrid() })
+    tab.id = `game-filter-${key}`; tab.dataset.filter = key; tab.setAttribute('aria-pressed', String(state.filter === key)); tabs.append(tab)
   }
   const genres = Array.from(new Set(state.games.flatMap(game => game.genres.map(g => g.toLowerCase())))).sort()
-  const select = el('select'); select.setAttribute('aria-label', 'Filter by genre')
+  const select = el('select'); select.id = 'game-genre'; select.setAttribute('aria-label', 'Filter by genre')
   for (const genre of ['all', ...genres]) { const option = el('option', '', genre === 'all' ? 'ALL GENRES' : genre.toUpperCase()); option.value = genre; option.selected = genre === state.genre; select.append(option) }
   select.addEventListener('change', () => { state.genre = select.value; renderGameGrid() })
   wrap.append(search, tabs, select)
@@ -301,7 +302,7 @@ function filteredGames(): WebGame[] {
 function gameCard(game: WebGame): HTMLElement {
   const card = el('article', 'game-card')
   card.style.setProperty('--accent', game.accent)
-  const art = el('button', 'game-art'); art.type = 'button'; art.setAttribute('aria-label', `View ${game.name}`)
+  const art = el('button', 'game-art'); art.id = `view-game-${game.slug}`; art.type = 'button'; art.setAttribute('aria-label', `View ${game.name}`)
   if (game.hero) art.style.backgroundImage = `linear-gradient(180deg, transparent 20%, rgba(8,9,13,.92)), url("${game.hero}")`
   if (game.logo) { const img = el('img'); img.src = game.logo; img.alt = ''; img.loading = 'lazy'; art.append(img) }
   else if (game.artOverlay !== false) art.append(el('span', 'wordmark', game.name))
@@ -315,7 +316,8 @@ function gameCard(game: WebGame): HTMLElement {
   const titleRow = el('div', 'title-row'); titleRow.append(el('h3', '', game.name))
   const cardActions = el('div', 'card-actions')
   const favourite = button(state.social.favourites.includes(game.slug) ? '★' : '☆', 'favourite-button', () => toggleFavourite(game)); favourite.id = `favourite-card-${game.slug}`; favourite.setAttribute('aria-label', `${state.social.favourites.includes(game.slug) ? 'Remove' : 'Add'} ${game.name} ${state.social.favourites.includes(game.slug) ? 'from' : 'to'} favourites`)
-  cardActions.append(favourite, playLink(game)); titleRow.append(cardActions)
+  const play = playLink(game); play.id = `play-card-${game.slug}`
+  cardActions.append(favourite, play); titleRow.append(cardActions)
   body.append(titleRow, el('p', '', game.tagline))
   const tags = el('div', 'tags'); game.genres.slice(0, 3).forEach(genre => tags.append(el('span', '', genre.toUpperCase())))
   const scores = state.scores.get(game.gameId) ?? []
@@ -326,12 +328,21 @@ function gameCard(game: WebGame): HTMLElement {
 }
 
 function renderGameGrid(): void {
+  const focused = document.activeElement instanceof HTMLElement ? document.activeElement : undefined
   const grid = document.querySelector<HTMLElement>('#game-grid')
   const count = document.querySelector<HTMLElement>('#game-count')
   if (!grid || !count) return
+  for (const tab of document.querySelectorAll<HTMLButtonElement>('.filter-tabs button')) { const selected = tab.dataset.filter === state.filter; tab.classList.toggle('selected', selected); tab.setAttribute('aria-pressed', String(selected)) }
   const games = filteredGames(); count.textContent = `${games.length} GAME${games.length === 1 ? '' : 'S'}`
   grid.replaceChildren(...games.map(gameCard))
   if (!games.length) grid.append(el('p', 'empty-state', 'No games match that filter. Try clearing the search.'))
+  if (focused?.id && !focused.isConnected) document.getElementById(focused.id)?.focus({ preventScroll: true })
+}
+
+function refreshActivityPanel(): void {
+  const focused = document.activeElement instanceof HTMLElement ? document.activeElement : undefined
+  document.querySelector('.activity-panel')?.replaceWith(activityPanel())
+  if (focused?.id && !focused.isConnected) document.getElementById(focused.id)?.focus({ preventScroll: true })
 }
 
 function activityPanel(): HTMLElement {
@@ -339,7 +350,8 @@ function activityPanel(): HTMLElement {
   const heading = el('div', 'section-heading'); heading.append(el('div', '', state.activityMode === 'following' ? 'FOLLOWING' : 'GAMESTR.IO LIVE SCORES'), externalLink('GAMESTR.IO ↗', `${GAMESTR_ORIGIN}/scores`))
   const modes = el('div', 'activity-modes'); modes.setAttribute('role', 'group'); modes.setAttribute('aria-label', 'Activity filter')
   for (const [mode, label] of [['all', 'ALL'], ['following', `FOLLOWING ${state.social.follows.length ? `(${state.social.follows.length})` : ''}`]] as const) {
-    const modeButton = button(label, state.activityMode === mode ? 'selected' : '', () => { state.activityMode = mode; document.querySelector('.activity-panel')?.replaceWith(activityPanel()) })
+    const modeButton = button(label, state.activityMode === mode ? 'selected' : '', () => { state.activityMode = mode; refreshActivityPanel() })
+    modeButton.id = `activity-filter-${mode}`
     modeButton.setAttribute('aria-pressed', String(state.activityMode === mode))
     modes.append(modeButton)
   }
@@ -881,7 +893,7 @@ function refreshScores(): void {
   if (current.name === 'developers') return
   if (current.name !== 'home') { render(); return }
   renderGameGrid()
-  document.querySelector('.activity-panel')?.replaceWith(activityPanel())
+  refreshActivityPanel()
 }
 
 function refreshRelayStatus(): void {
