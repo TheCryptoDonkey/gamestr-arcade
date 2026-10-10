@@ -164,8 +164,12 @@ and booth-account selection. Failed personal scores now remain with their
 original account for retry. Normal gameplay and an attributed public score now
 pass in each game with real My Signet. Live same-account retry also passes
 after a real signing timeout in Pallasite. The single-account four-game matrix
-also passes with explicit My Signet approval before each game; physical checks
-remain open.
+also passes with explicit My Signet approval before each game. Published-game
+private fixtures verify independent login controls after reload and expired
+proofs in all four consumers, plus account-bound receipt retention and an arcade
+return after Pallasite's parent closes. These fixtures block external writes;
+they do not complete an independent provider login. Closure checks for the
+other three games and physical checks remain open.
 
 Acceptance criteria:
 

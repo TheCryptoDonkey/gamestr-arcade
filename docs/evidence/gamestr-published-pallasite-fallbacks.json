@@ -1,0 +1,40 @@
+{
+  "fixture": "Disposable canonical signature fixture against published Pallasite. All non-GET HTTP and public relay sockets blocked; no real Signet, physical acceptance or score publication claim.",
+  "results": [
+    {
+      "game": "pallasite",
+      "case": "reload",
+      "origin": "https://pallasite.app",
+      "playerPubkey": "8ead8c5412abb62660dcd0ac869878f3cc2a7149598b2269cacbdfd81cfa884a",
+      "independentLoginAvailable": true,
+      "originalAccountNotReactivated": true,
+      "fragmentRemoved": true,
+      "status": "Independent Nostr sign-in chooser is available",
+      "signedRequests": 0,
+      "physicalDevice": false,
+      "actualMySignet": false,
+      "externalWritesBlocked": true
+    },
+    {
+      "game": "pallasite",
+      "case": "expired",
+      "origin": "https://pallasite.app",
+      "playerPubkey": "8ead8c5412abb62660dcd0ac869878f3cc2a7149598b2269cacbdfd81cfa884a",
+      "independentLoginAvailable": true,
+      "originalAccountNotReactivated": true,
+      "fragmentRemoved": true,
+      "status": "Independent Nostr sign-in chooser is available",
+      "signedRequests": 0,
+      "physicalDevice": false,
+      "actualMySignet": false,
+      "externalWritesBlocked": true
+    }
+  ],
+  "assetFingerprint": {
+    "game": "pallasite",
+    "path": "/assets/index-CXHSiHc7.js",
+    "sha256": "2bb8590e9080f8921e085d7858a36848dcd8885f137272fd4c88f23e2788c96b",
+    "build": "14e969f"
+  },
+  "notes": "After reload, the persisted booth route offers Player 1, Start Solo, then independent Nostr sign-in. The probe follows those visible controls and the initial audio activation gate. It does not complete an independent provider login."
+}

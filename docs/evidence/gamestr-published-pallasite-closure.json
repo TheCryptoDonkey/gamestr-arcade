@@ -1,0 +1,29 @@
+{
+  "fixture": "Disposable canonical signature and seeded public-receipt fixture against published Pallasite. All non-GET HTTP and public relay sockets blocked; no real Signet, physical acceptance or score publication claim.",
+  "results": [
+    {
+      "game": "pallasite",
+      "case": "closed-parent",
+      "origin": "https://pallasite.app",
+      "gameRevision": "14e969f",
+      "playerPubkey": "632912719044445d69768e3e82c10bfd8010c6096391ca4d6b96a7704cfe5710",
+      "publicReceiptSeeded": true,
+      "scoreNotEarnedInThisFixture": true,
+      "receiptRetainedUnchanged": true,
+      "scoreHttpAttempts": 0,
+      "elapsedMs": 30063,
+      "reconnectInArcadeAvailable": true,
+      "reconnectDestination": "https://arcade.600.wtf/game/pallasite",
+      "fragmentRemoved": true,
+      "physicalDevice": false,
+      "actualMySignet": false,
+      "externalWritesBlocked": true
+    }
+  ],
+  "assetFingerprint": {
+    "game": "pallasite",
+    "path": "/assets/index-CXHSiHc7.js",
+    "sha256": "2bb8590e9080f8921e085d7858a36848dcd8885f137272fd4c88f23e2788c96b",
+    "build": "14e969f"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "fixture": "Disposable canonical signature fixture against published Ledger. All non-GET HTTP and public relay sockets blocked; no real Signet, physical acceptance or score publication claim.",
+  "results": [
+    {
+      "game": "takemetoyourledger",
+      "case": "reload",
+      "origin": "https://ledger.playechoseven.com",
+      "playerPubkey": "c97cb9424dd073d287c6e55964b86f1b915763b9c06961ed529a64e4af442498",
+      "independentLoginAvailable": true,
+      "fragmentRemoved": true,
+      "status": "Guest mode \u2014 scores signed with a local key",
+      "signedRequests": 0,
+      "physicalDevice": false,
+      "actualMySignet": false,
+      "externalWritesBlocked": true
+    },
+    {
+      "game": "takemetoyourledger",
+      "case": "expired",
+      "origin": "https://ledger.playechoseven.com",
+      "playerPubkey": "c97cb9424dd073d287c6e55964b86f1b915763b9c06961ed529a64e4af442498",
+      "independentLoginAvailable": true,
+      "expiredProofAccepted": false,
+      "fragmentRemoved": true,
+      "status": "Guest mode \u2014 scores signed with a local key",
+      "signedRequests": 0,
+      "physicalDevice": false,
+      "actualMySignet": false,
+      "externalWritesBlocked": true
+    }
+  ],
+  "gameRevision": "e3937ca0152d0f07bf67d25e5f80b827dba87f36",
+  "assetFingerprint": {
+    "path": "/assets/index-RY1TDfan.js",
+    "sha256": "1b00a773ce7abb093e5408d5496c681bb328cddab2ba989e82aae3242981eeac"
+  },
+  "notes": "Reload deliberately clears the consumed arcade session and exposes independent login. The expired-proof case waits for asynchronous proof consumption before asserting guest UI and fragment cleanup."
+}

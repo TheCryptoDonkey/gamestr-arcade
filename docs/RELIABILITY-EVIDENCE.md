@@ -72,6 +72,26 @@ game tag after receipt, as defined by [NIP-01](https://github.com/nostr-protocol
 The initial Ledger score was independently retrieved; the completed four-game
 matrix uses a fresh single account and the corrected read-only verifier.
 
+Published-consumer fallback checks use disposable canonical signing fixtures,
+with all non-GET HTTP requests and public relay sockets blocked. Ledger, Hang
+On Fren, Neon Sentinel and Pallasite expose independent Nostr login controls
+after reload and after a 31-day-old handoff proof. The first three show guest
+status; Pallasite reaches its sign-in chooser through Player 1 and Start Solo
+on the restored booth route. The original account is not reactivated. Consumed proof
+fragments are removed. These are visible-control checks, not completed provider
+logins or physical acceptance. See [Ledger fallbacks](evidence/gamestr-published-ledger-fallbacks.json)
+and [older-game fallbacks](evidence/gamestr-published-older-game-fallbacks.json),
+plus [Pallasite fallbacks](evidence/gamestr-published-pallasite-fallbacks.json).
+
+Pallasite also retains an unchanged, account-bound public receipt when the
+parent arcade closes: retry times out after about 30 seconds, returns to the
+waiting state without a score HTTP attempt, and RECONNECT IN ARCADE returns
+to `/game/pallasite` without an authentication fragment. This particular
+receipt was seeded in the private fixture, rather than earned in gameplay;
+the separate real earned-score recovery above remains the publication proof.
+See [closed-parent fixture](evidence/gamestr-published-pallasite-closure.json).
+Full per-game closure coverage remains open.
+
 The previous `0948199` deployment and
 [CI 38073823914](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38073823914)
 verified the original held-restoration launch guard and its earlier builds.
@@ -575,12 +595,13 @@ release symlink changes.
   controls. NIP-55 currently supplies identity; signing actions require a live
   My Signet, NIP-07 or NIP-46 connection.
 - Hosted CI must remain green if further source changes are made; `ddd2389` passed the complete packaged Linux gameplay step.
-- Ledger consumer release/deployment and same-player launch into all four games.
+- Complete per-game reload, expiry and arcade-closure qualification; the
+  deployed Ledger consumer and same-player four-game score matrix pass above.
 - Public DNS cutover and live exact-revision verification of both editions.
 - Real mobile Lightning wallet payment with a separately authorised recipient
   and amount. Invoice display and wallet responses do not prove settlement.
   The user authorised 100 sats to `profusemeat89@walletofsatoshi.com`; the
-  address's public LNURL metadata accepts that amount. No payment has been sent.
+  address's public LNURL metadata accepts that amount. Settlement is unconfirmed.
   Arcade's actual invoice function returned and validated a 100,000-msat invoice
   with a 24-hour expiry. Wallet of Satoshi is installed on the paired iPhone 13
   Pro Max, Donkeyfarm; device tools launched it with that invoice. Its screen,
