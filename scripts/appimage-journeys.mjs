@@ -57,6 +57,7 @@ try {
   shellPage = shell
   await shell.evaluate(() => {
     window.runtimeFocusHistory = []
+    window.runtimeKeyHistory = []
     const record = event => {
       const active = document.activeElement
       runtimeFocusHistory.push({ event, id: active?.id, className: active?.className,
@@ -64,7 +65,10 @@ try {
       if (runtimeFocusHistory.length > 20) runtimeFocusHistory.shift()
     }
     addEventListener('focusin', () => record('focusin'))
-    window.arcade.onReturn(() => record('game:returned'))
+    for (const type of ['keydown', 'keyup']) addEventListener(type, event => {
+      runtimeKeyHistory.push({ type, key: event.key, trusted: event.isTrusted, id: document.activeElement?.id })
+      if (runtimeKeyHistory.length > 20) runtimeKeyHistory.shift()
+    }, true)
   })
   const tile = shell.locator('.tile-active .tile-cap')
   await tile.waitFor({ state: 'visible' })
@@ -108,6 +112,7 @@ try {
   await until(() => first.isClosed())
   await shell.keyboard.up('Escape')
   await shell.waitForFunction(() => document.activeElement?.id === 'app')
+  stage = 'second game launch'
   const second = await launch()
   stage = 'second game isolation'
   const fresh = await second.evaluate(async () => ({ pubkey: await window.nostr.getPublicKey(), storage: localStorage.getItem('runtime-guest'), cookies: document.cookie, wallet: typeof window.webln }))
@@ -136,6 +141,7 @@ try {
       activeElementInert: !!document.activeElement?.closest('[inert]'),
       readyOpen: !!document.querySelector('.ready-overlay.is-open'),
       focusHistory: window.runtimeFocusHistory ?? [],
+      keyHistory: window.runtimeKeyHistory ?? [],
       keys: window.fixtureKeys ?? [],
     })).catch(() => ({ inspectionFailed: true }))
   }

@@ -217,9 +217,16 @@ The captured diagnostic shows the game already closed and the shell document
 focused; its active element is a button instead of the required carousel host.
 That narrows this failure to post-return focus, rather than a game that failed
 to receive Escape. The next diagnostic records element id/class/inert state,
-launch-panel visibility and recent focus/return events. Assertions are retained.
+launch-panel visibility and recent passive focus/key events. Assertions are retained.
 A proposed deferred launch-panel focus regression also passed on the unchanged
 baseline, so that timer change was not retained as a demonstrated repair.
+
+The initial expanded diagnostic on `a67a3c9` registered an extra `onReturn`
+observer. That API replaces the existing IPC listener, so it displaced the
+product's return handler. Its subsequent hosted failure is instrumentation
+failure, not fresh evidence of the original input defect. The observer has
+been removed; diagnostics now listen only to passive DOM focus and keyboard
+events. The failed relaunch with that observer cannot justify a product fix.
 
 
 The co-op forge timing gate remains failing: 96 frames during parallel checks,
