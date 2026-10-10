@@ -195,7 +195,7 @@ function header(): HTMLElement {
     })
   } else {
     const connect = button(state.identityConnecting ? 'OPENING SIGNET…' : 'CONNECT NOSTR', 'identity-button', () => void connectIdentity())
-    connect.disabled = state.identityConnecting
+    connect.disabled = state.identityConnecting || state.identityDisconnecting
     identity = connect
   }
   head.append(brand, nav, relay, identity)
@@ -226,7 +226,6 @@ async function logoutIdentity(): Promise<void> {
   render()
   try {
     await disconnectNostrAccess()
-    state.pubkey = ''
     state.accountMenuOpen = false
     toast('Logged out of Nostr.', 'good')
   } catch {

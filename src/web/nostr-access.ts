@@ -220,8 +220,10 @@ export async function disconnectNostrAccess(): Promise<void> {
   activeSession = null
   revokeNostrGameBridges()
   window.dispatchEvent(new CustomEvent(NOSTR_SESSION_EVENT, { detail: null }))
-  const { logout } = await import('signet-login')
   const persistence = sessionStorageFor(epoch)
   persistence.commit()
+  // A refresh during SDK cleanup must not restore the account or a pending login.
+  for (const key of ['pubkey', 'method', 'authEvent', 'bunkerUri', 'bunkerClientSk', 'expiresAt', 'displayName', 'pendingRedirect', 'pendingRelayAuth']) persistence.storage.removeItem(`signet:login.${key}`)
+  const { logout } = await import('signet-login')
   await logout(session ?? undefined, { storage: persistence.storage })
 }

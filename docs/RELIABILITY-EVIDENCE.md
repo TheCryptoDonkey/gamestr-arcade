@@ -27,7 +27,13 @@ automated results, hosted artifacts and actual user/device acceptance.
   simulated scoring-chunk failure to produce a recoverable menu state.
   That failure needs diagnosis before consumer release. Consumer deployment remains pending.
 
-These results precede the final review commit. Recheck relevant gates after any
+Draft [PR #11](https://github.com/TheCryptoDonkey/gamestr-arcade/pull/11)
+contains the implementation. Hosted [CI run 38057669320](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38057669320)
+passed on review commit `0c76437`, including all browser checks, full audit,
+CycloneDX SBOM and Linux AppImage packaging/checksums. Linux runtime smoke is
+still pending. A follow-up clears saved login/callback state synchronously on
+logout; its 11 targeted unit checks and three signing/logout browser journeys
+passed. That follow-up needs hosted CI on its own revision. Recheck relevant gates after any
 further source changes and attach hosted CI/artifact evidence before release.
 
 ## Hosting and DNS

@@ -56,7 +56,11 @@ describe('selected Nostr session', () => {
     const oldSigner = access.currentNostrSigner()!
     const cleanup = deferred<void>()
     mocks.logout.mockReturnValue(cleanup.promise)
+    localStorage.setItem('signet:login.pubkey', PUBKEY)
+    localStorage.setItem('signet:login.pendingRelayAuth', 'pending')
     const logout = access.disconnectNostrAccess()
+    expect(localStorage.getItem('signet:login.pubkey')).toBeNull()
+    expect(localStorage.getItem('signet:login.pendingRelayAuth')).toBeNull()
     expect(access.currentNostrSigner()).toBeUndefined()
     await expect(oldSigner.signEvent(template)).rejects.toThrow('revoked')
     cleanup.resolve(undefined)
