@@ -1,0 +1,45 @@
+{
+  "origin": "https://gamestr.62-238-98-53.sslip.io",
+  "release": {
+    "revision": "326dbd9ec69daae0afd60c5d57c2b96b0e2aa9fd",
+    "edition": "gamestr"
+  },
+  "assets": [
+    {
+      "path": "/assets/index-CFquP4CP.js",
+      "sha256": "54986344cb5ca3564f7f521635f31ae45f3066dffe3f04f5718fbd5a317eef3e"
+    },
+    {
+      "path": "/assets/developer-studio-k_a7fdrt.js",
+      "sha256": "9d11b469290c43cacb7d5b6a3a0f54555e2553a22ca36d3c1ecf9e3a5d3d9ebc"
+    },
+    {
+      "path": "/assets/qrcode-CtOU1MHs.js",
+      "sha256": "75066dc9670886c2b7913df72578587f8b75e64afea7a637f162501af79c6ce3"
+    },
+    {
+      "path": "/assets/signet-login-4q77XkkL.js",
+      "sha256": "1fd133adc621df99ea54d20e2f23a3445f1fe96a98c0fb8c1c2bb5cea456662c"
+    },
+    {
+      "path": "/assets/_commonjsHelpers-CqkleIqs.js",
+      "sha256": "84de5b1724808f6a399a33d5fa7887ba0f752bbb73fbb26cc100fbec111abf63"
+    },
+    {
+      "path": "/assets/preference-sync-CD5tsR8m.js",
+      "sha256": "aa9bf139edd8cba4b99ebfd86cd3c5e8c7e376c3da584b5e7acf6ac6f048504c"
+    },
+    {
+      "path": "/assets/index-CE6SpJ9L.css",
+      "sha256": "0f4bd1555b2cfbbff99b75f8d419957dab30ebb9d4963c0e68f84795c3b1322c"
+    }
+  ],
+  "htmlMatches": true,
+  "generatedDeepRouteMatches": true,
+  "securityHeaders": {
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https: wss:; frame-src https:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY"
+  }
+}

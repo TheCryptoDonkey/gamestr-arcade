@@ -34,8 +34,9 @@ automated results, hosted artifacts and actual user/device acceptance.
   pixels, pixel ratio becomes 2/4, horizontal overflow remains zero and login,
   the fixture account and logout remain operable. This uses the actual browser
   `chrome.tabs.setZoom` API in an isolated temporary extension and profile;
-  see [zoom proof](evidence/gamestr-native-browser-zoom.json). The full CI suite
-  now contains 44 checks. This is desktop Chromium evidence, not a phone check.
+  see [zoom proof](evidence/gamestr-native-browser-zoom.json). Hosted CI passed all 44 browser checks and the packaged Linux journeys on
+  both `f4fa70f` and `326dbd9`; see [current run](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38069730569).
+  This is desktop Chromium evidence, not a phone check.
 - `npm run check`: passed 64 test files / 646 tests, typechecking, manifest and
   configuration validation, desktop build and both production web builds.
 - Initial script for the 600 edition remains within the 150 kB build gate.
@@ -186,15 +187,16 @@ no page errors. Only the signed recipient profile was a disposable fixture;
 provider metadata and invoice requests were real browser requests. This check
 did not invoke a wallet or send payment; see
 [real provider invoice evidence](evidence/gamestr-live-reward-46e40d5.json).
-The current standard release is now `ddd2389c50e3c8e576ca0ea5fa7f0aecad2da7ab`.
-Its release metadata, served JavaScript bytes, headers and deep link were
-verified again; see [current release proof](evidence/gamestr-web-ddd2389.json).
-A live 320px browser showed the publisher-login explanation without horizontal
+The current standard release is now `326dbd9ec69daae0afd60c5d57c2b96b0e2aa9fd`.
+Its release metadata, all seven served JavaScript/CSS assets, root HTML,
+generated game HTML and security headers match the build; see
+[current release proof](evidence/gamestr-web-326dbd9.json).
+At the earlier `ddd2389` release, a live 320px browser showed the publisher-login explanation without horizontal
 overflow and the incomplete-history notes on game, score and personal-best
 pages; only relay traffic was isolated. See
 [mobile history disclosure proof](evidence/gamestr-live-history.json).
 The matching 600 build is uploaded to
-`/opt/gamestr-web-600/releases/ddd2389c50e3` on `stall`; its metadata identifies
+`/opt/gamestr-web-600/releases/326dbd9ec69d` on `stall`; its metadata identifies
 the full revision and edition. Its active symlink remains the July release
 until the Ledger consumer is ready. Direct HTTPS to the new server serves the
 600 route, but public DNS still points at the retired server. No DigitalOcean
