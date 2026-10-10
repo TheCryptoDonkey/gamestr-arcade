@@ -163,21 +163,24 @@ have deployed consumers. Pallasite has a deployed correction for worker reload
 and booth-account selection. Failed personal scores now remain with their
 original account for retry. Normal gameplay and an attributed public score now
 pass in each game with real My Signet. Live same-account retry also passes
-after a real signing timeout in Pallasite. The single-account four-game matrix
+after a real signing timeout in Pallasite and after closing the arcade parent
+in Hang On Fren. The single-account four-game matrix
 also passes with explicit My Signet approval before each game. Published-game
 private fixtures verify independent login controls after reload and expired
 proofs in all four consumers, plus account-bound receipt retention and an arcade
 return after Pallasite's parent closes. These fixtures block external writes;
-they do not complete an independent provider login. Closure checks for the
-other three games and physical checks remain open.
+they do not complete an independent provider login. Closure checks for Ledger and Neon Sentinel and physical checks remain open.
 
-The published Hang On Fren failure path still falls back to a guest key.
-Its replacement is prepared in [consumer PR 2](https://github.com/TheCryptoDonkey/hang-on-fren-public/pull/2):
-206 local and hosted tests and private browser recovery pass, with public
-receipts pinned to the original account. Client revision `2c6716f` is now
-published with all six entry/runtime files matched to its tested artifact. The
-local claim response is simulated; a real earned-score retry is still required. Normal live score proofs above
-do not qualify this failure path.
+Hang On Fren's deployed client `2c6716f` preserves the original account on
+personal signing failure; see [consumer PR 2](https://github.com/TheCryptoDonkey/hang-on-fren-public/pull/2).
+All 206 local and hosted tests and private browser recovery pass. A separate
+real My Signet run earned 4,331 points after the arcade parent closed. Its
+receipt survived the signing timeout, and explicit same-account approval and
+retry returned HTTP 200 with publication to six of seven relays. Independent
+event verification, both editions' displays and receipt clearing pass; see
+[earned recovery](evidence/hangonfren-earned-recovery-2c6716f.json) and
+[display checks](evidence/hangonfren-earned-recovery-ui-2c6716f.json).
+Physical checks remain open.
 
 Acceptance criteria:
 
@@ -278,11 +281,14 @@ device or deployed behaviour.
 
 Arcade changes are in [PR #11](https://github.com/TheCryptoDonkey/gamestr-arcade/pull/11);
 Ledger's consumer is in [PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88).
-The current functional revision `4aa7661` passes the complete hosted gate on
-an unchanged rerun, including 650 unit tests, 48 browser journeys, packaging and
-the Linux game journey. Intermittent native input remains unqualified. Both web
-editions are activated on the new Hetzner box at that revision. The 600 cutover and physical acceptance remain open; see
-[delivery evidence](RELIABILITY-EVIDENCE.md) for exact stages and remaining gates.
+Both web editions serve functional revision `4aa7661` on the new Hetzner box.
+The newer native ReadyPanel repair `8c3ed43` passes the full hosted gate,
+including 652 unit tests, 50 browser journeys and the original Linux AppImage
+journeys. Its downloaded package matches the manifest and runtime hash; see
+[package proof](evidence/gamestr-native-8c3ed43-ci.json). This qualifies that
+package and the stale focus-call repair; other historical intermittent input
+symptoms, physical acceptance and the 600 DNS cutover remain open. See
+[delivery evidence](RELIABILITY-EVIDENCE.md) for exact stages.
 
 | Goal | Implementation and PR | Automated checks | Deployed or packaged revision | Live acceptance | Status |
 | --- | --- | --- | --- | --- | --- |

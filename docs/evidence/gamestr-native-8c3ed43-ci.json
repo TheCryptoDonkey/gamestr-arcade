@@ -1,0 +1,183 @@
+{
+  "sourceRevision": "8c3ed4377bb5415d459d3ef228e6506deed29e6c",
+  "hostedRun": 38093120288,
+  "conclusion": "success",
+  "runUrl": "https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38093120288",
+  "testedMergeRevision": "df1a8387ef8cc1bd4f737039a6e59673e80cc4b2",
+  "testedTree": "2fefc8b96b09a96ae75d493205adb52238183beb",
+  "sourceTreeMatchesTestedMerge": true,
+  "artifactId": 11684723728,
+  "artifactSha256": "1f900c252db03fd2bae3f54830ece8a5b0380f1a034e1882f605d575f843ba4d",
+  "downloadedAppImageMatchesManifestAndRuntime": true,
+  "rendererReady": true,
+  "platform": "linux",
+  "arch": "x64",
+  "journeys": {
+    "keyboardCarouselNavigation": true,
+    "launchAndReturn": true,
+    "guestSignatureVerified": true,
+    "freshGuestOnRelaunch": true,
+    "gameStorageAndCookiesIsolated": true,
+    "trustedGameKeyboardInput": true,
+    "walletUnavailableWithoutConfiguration": true,
+    "noNodeOrShellBridgeInGame": true,
+    "physicalControllerAcceptance": "pending",
+    "nativeFocus": [
+      {
+        "stage": "first game trusted ArrowUp",
+        "windows": [
+          {
+            "focused": true,
+            "visible": true
+          }
+        ],
+        "contents": [
+          {
+            "id": 2,
+            "focused": true,
+            "role": "game"
+          },
+          {
+            "id": 1,
+            "focused": false,
+            "role": "shell"
+          }
+        ]
+      },
+      {
+        "stage": "second game Escape return",
+        "windows": [
+          {
+            "focused": true,
+            "visible": true
+          }
+        ],
+        "contents": [
+          {
+            "id": 3,
+            "focused": true,
+            "role": "game"
+          },
+          {
+            "id": 1,
+            "focused": false,
+            "role": "shell"
+          }
+        ]
+      }
+    ],
+    "shellFocus": {
+      "history": [
+        {
+          "event": "focusin",
+          "id": "",
+          "className": "ready-start",
+          "at": 1450.2999999999884,
+          "documentFocused": true,
+          "readyOpen": true
+        },
+        {
+          "event": "focusin",
+          "id": "app",
+          "className": "arcade",
+          "at": 2118.2999999999884,
+          "documentFocused": true,
+          "readyOpen": false
+        },
+        {
+          "event": "focusin",
+          "id": "",
+          "className": "cta",
+          "at": 2555.899999999994,
+          "documentFocused": true,
+          "readyOpen": false
+        },
+        {
+          "event": "focusin",
+          "id": "app",
+          "className": "arcade",
+          "at": 3118,
+          "documentFocused": true,
+          "readyOpen": false
+        },
+        {
+          "event": "focusin",
+          "id": "",
+          "className": "cta",
+          "at": 3402.7999999999884,
+          "documentFocused": true,
+          "readyOpen": false
+        },
+        {
+          "event": "focusin",
+          "id": "app",
+          "className": "arcade",
+          "at": 3405.399999999994,
+          "documentFocused": true,
+          "readyOpen": false
+        }
+      ],
+      "calls": [
+        {
+          "id": "",
+          "className": "ready-start",
+          "at": 1449.6999999999825,
+          "documentFocused": true,
+          "readyOpen": true,
+          "stack": [
+            "    at file:///tmp/appimage_extracted_15cfeec28b17a858e5d095ea09051821/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10633:65"
+          ]
+        },
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 2115.899999999994,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at ReadyPanel.close (file:///tmp/appimage_extracted_15cfeec28b17a858e5d095ea09051821/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10652:103)",
+            "    at ReadyPanel.confirm (file:///tmp/appimage_extracted_15cfeec28b17a858e5d095ea09051821/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10639:10)",
+            "    at Object.onLaunch (file:///tmp/appimage_extracted_15cfeec28b17a858e5d095ea09051821/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11553:20)",
+            "    at onKeyDown (file:///tmp/appimage_extracted_15cfeec28b17a858e5d095ea09051821/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:4802:23)"
+          ]
+        },
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 3117.5,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at file:///tmp/appimage_extracted_15cfeec28b17a858e5d095ea09051821/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11624:12"
+          ]
+        },
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 3227,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at ReadyPanel.close (file:///tmp/appimage_extracted_15cfeec28b17a858e5d095ea09051821/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10652:103)",
+            "    at ReadyPanel.confirm (file:///tmp/appimage_extracted_15cfeec28b17a858e5d095ea09051821/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10639:10)",
+            "    at Object.onLaunch (file:///tmp/appimage_extracted_15cfeec28b17a858e5d095ea09051821/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11553:20)",
+            "    at onKeyDown (file:///tmp/appimage_extracted_15cfeec28b17a858e5d095ea09051821/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:4802:23)"
+          ]
+        },
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 3404.899999999994,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at file:///tmp/appimage_extracted_15cfeec28b17a858e5d095ea09051821/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11624:12"
+          ]
+        }
+      ]
+    }
+  },
+  "physicalControllerAcceptance": "pending",
+  "consumerPackageRelease": "pending",
+  "allHistoricalInputFailuresExplained": false
+}

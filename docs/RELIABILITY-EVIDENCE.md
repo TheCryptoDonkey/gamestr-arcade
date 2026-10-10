@@ -1,6 +1,6 @@
 # Reliability delivery evidence
 
-Work in progress on 10 October 2026. This file separates implemented changes,
+Work in progress on 11 October 2026. This file separates implemented changes,
 automated results, hosted artifacts and actual user/device acceptance.
 
 ## Latest live My Signet result
@@ -15,11 +15,13 @@ builds. See [standard deployment](evidence/gamestr-web-4aa7661.json),
 [600 forced-origin deployment](evidence/gamestr-600-live-4aa7661.json) and
 [CI qualification](evidence/gamestr-4aa7661-ci.json).
 
-Current documentation revision `881823c` failed hosted CI run `38091007766`
-at the original second Escape return assertion. The game closed and the native
-shell regained focus, but the DOM focused a CTA button instead of `#app`.
-This remains an unresolved packaged-runtime gate, not a repaired input issue.
-See [current failure diagnostics](evidence/gamestr-native-focus-881823c-failure.json).
+Native revision `8c3ed43` passes hosted run `38093120288`, including the
+original trusted-keyboard gameplay/return assertions. The downloaded AppImage
+matches both its SHA256SUMS and runtime report; the tested merge tree matches
+the source tree. See [current package proof](evidence/gamestr-native-8c3ed43-ci.json).
+The ReadyPanel stale focus request is repaired and regression-tested. These
+results do not explain every historical intermittent input failure or establish
+physical-controller acceptance or delivery of a consumer package update.
 
 All four supported games now have real My Signet, normal-gameplay and attributed
 public-score proofs. The latest Pallasite run earned 16,563 points: canonical
@@ -648,4 +650,23 @@ external focus and inerted siblings when replacing a panel opening. Two new
 regressions fail on unchanged source and pass after the repair. All 50 browser
 checks and the original local native journey pass; see
 [local native qualification](evidence/gamestr-native-cancel-stale-focus-local.json).
-Hosted Linux and physical-controller qualification remain separate.
+Hosted Linux qualification passes at `8c3ed43`; physical-controller acceptance
+and consumer package release remain open.
+
+## Live Hang On Fren earned-score recovery
+
+The published `2c6716f` client now passes the actual closed-parent failure path.
+A disposable My Signet account earned 4,331 points through normal keyboard
+play after the arcade closed. Initial signing timed out without any score HTTP
+attempt or guest fallback, preserving one public receipt under its original
+player. RECONNECT IN ARCADE and explicit approval with that same account
+restored signing. RETRY SCORE returned HTTP 200, published to six of seven
+relays and cleared the confirmed receipt. Independent authority signature,
+original player and score verification pass, as do fresh displays on both
+editions. See [earned run](evidence/hangonfren-earned-recovery-2c6716f.json)
+and [display proof](evidence/hangonfren-earned-recovery-ui-2c6716f.json).
+
+This used actual published My Signet, with no injected game/score state or
+seeded receipt. The 600 origin was mapped to Hetzner in Chromium; the standard
+display used public DNS. Physical phones, Lightning settlement and Ledger/Neon
+closed-parent recovery remain separate gates.
