@@ -15,7 +15,7 @@ builds. See [standard deployment](evidence/gamestr-web-4aa7661.json),
 [600 forced-origin deployment](evidence/gamestr-600-live-4aa7661.json) and
 [CI qualification](evidence/gamestr-4aa7661-ci.json).
 
-Native revision `8c3ed43` passes hosted run `38093120288`, including the
+Native revision `8c3ed43` passed hosted run `38093120288`, including the
 original trusted-keyboard gameplay/return assertions. The downloaded AppImage
 matches both its SHA256SUMS and runtime report; the tested merge tree matches
 the source tree. See [current package proof](evidence/gamestr-native-8c3ed43-ci.json).
@@ -670,3 +670,24 @@ This used actual published My Signet, with no injected game/score state or
 seeded receipt. The 600 origin was mapped to Hetzner in Chromium; the standard
 display used public DNS. Physical phones, Lightning settlement and Ledger/Neon
 closed-parent recovery remain separate gates.
+
+## Latest native gate and Ledger retry correction
+
+Documentation revision `758e14c` failed hosted run `38094256541` at the first
+trusted ArrowUp. Source, both web browser suites, audit and packaging passed.
+The failure trace records the game as natively focused but no key receipt in
+either page; it contains no stale ReadyPanel Start focus call. The stale-call
+repair holds, while another input symptom remains unresolved. Preserve the
+successful `8c3ed43` run as historical qualification, alongside
+[this newer failure](evidence/gamestr-native-758e14c-failure.json).
+
+Ledger's published `e3937ca` client passes a private closed-parent fixture with
+an earned 100-point run: signing timeout retains the original receipt, and menu
+return/logout exposes independent login without a guest score submission.
+This is canonical fixture signing with external writes blocked, not My Signet
+or relay publication. Consumer candidate `23c817c` separately prevents a
+finished run being retried under a switched extension account and verifies the
+returned NIP-98 player/template. All 268 unit tests and the private browser
+regression pass. Six of seven new security regressions fail on unchanged source.
+Its complete player-promise release gate is running; deployment is pending.
+See [Ledger PR 88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88).
