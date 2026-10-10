@@ -8,7 +8,7 @@ automated results, hosted artifacts and actual user/device acceptance.
 Both arcade web editions now serve functional revision `4aa7661` on Hetzner.
 Stored bunker identities appear while their remote signer reconnects in the
 background, so an unavailable signer does not hide account reconnection.
-All 650 unit tests and 50 browser journeys pass locally. Hosted CI passes the complete
+All 652 unit tests and 50 browser journeys pass locally. Hosted CI passes the complete
 gate on an unchanged rerun; intermittent native input remains open. Root/game
 HTML, all seven JS/CSS assets, release metadata and security headers match both
 builds. See [standard deployment](evidence/gamestr-web-4aa7661.json),
@@ -99,15 +99,19 @@ See [closed-parent fixture](evidence/gamestr-published-pallasite-closure.json).
 Full per-game closure coverage remains open.
 
 Tracing the older published Hang On Fren consumer exposed a personal-score
-fallback to a guest key after signer failure. That deployment still has this
+fallback to a guest key after signer failure. That historical deployment has this
 behaviour. The replacement in [Hang On Fren PR 2](https://github.com/TheCryptoDonkey/hang-on-fren-public/pull/2)
 pins the run identity, rejects account/template substitution and revoked
 sessions, retains public receipts and offers explicit same-account retry.
 All 206 local tests, client/server builds and a private browser recovery flow
 pass, including closed parent, reload, wrong account, selected saved runs and
 390-pixel controls. Its browser claim response is simulated, with all external
-writes blocked. Public deployment and an actual earned-score retry remain
-required. The relevant source is `hang-on-fren-public`; the similarly named
+writes blocked. Client revision `2c6716f` is now published on the new Hetzner box; the
+HTML, metadata, entry JS/CSS and both SDK bundles match the tested artifact.
+See [public deployment](evidence/hangonfren-live-2c6716f.json). The Actions SSH
+key was rejected before upload, so publication used the established `stall`
+SSH access and an atomic client-release switch. An actual earned-score retry
+remains required. The relevant source is `hang-on-fren-public`; the similarly named
 `hang-on-fren` checkout is an older release copy.
 
 The previous `0948199` deployment and
@@ -628,3 +632,20 @@ release symlink changes.
 - Real browser zoom and physical assistive-technology acceptance; CSS zoom checks alone do not prove these.
 
 No goal is marked complete solely from unit tests or an implementation.
+
+## ReadyPanel pending focus repair
+
+Hosted run `38092267756` failed the first trusted ArrowUp while its native
+game remained focused. Its new focus-call trace records the ReadyPanel Start
+button receiving a focus request after confirmation closed the panel. See
+[failing call trace](evidence/gamestr-native-focus-calls-87a67c7-failure.json).
+This establishes the stale call, rather than proving the cause of every input
+failure.
+
+The candidate cancels queued focus on close and replacement, checks that the
+panel is still open and connected before focusing, and preserves the original
+external focus and inerted siblings when replacing a panel opening. Two new
+regressions fail on unchanged source and pass after the repair. All 50 browser
+checks and the original local native journey pass; see
+[local native qualification](evidence/gamestr-native-cancel-stale-focus-local.json).
+Hosted Linux and physical-controller qualification remain separate.

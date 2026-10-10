@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Game } from '../src/shared/types'
 import { capabilitiesFor, controlsFor, ReadyPanel, readyStatusFor } from '../src/renderer/src/ui/ready-panel'
 
@@ -54,6 +54,7 @@ describe('Ready to Play facts', () => {
 })
 
 describe('ReadyPanel', () => {
+  afterEach(() => vi.restoreAllMocks())
   beforeEach(() => { document.body.innerHTML = '<main id="host"><section id="cabinet"></section></main>' })
 
   it('confirms an available game and closes the modal', () => {
@@ -73,6 +74,49 @@ describe('ReadyPanel', () => {
     expect(panel.isOpen).toBe(false)
     expect((document.querySelector('.ready-overlay') as HTMLElement).inert).toBe(true)
     expect(onConfirm).toHaveBeenCalledWith(selected)
+    expect((document.getElementById('cabinet') as HTMLElement).inert).toBe(false)
+  })
+
+  it('does not request focus on its Start button after the launch closes it', () => {
+    const queued = new Map<number, () => void>()
+    let next = 0
+    vi.spyOn(window, 'setTimeout').mockImplementation(handler => {
+      const id = ++next
+      queued.set(id, handler as () => void)
+      return id
+    })
+    vi.spyOn(window, 'clearTimeout').mockImplementation(id => { queued.delete(Number(id)) })
+    const panel = new ReadyPanel(document.getElementById('host')!, { onConfirm: vi.fn() })
+    const start = document.querySelector('.ready-start') as HTMLButtonElement
+    const focus = vi.spyOn(start, 'focus')
+    panel.open(game())
+    panel.confirm()
+    for (const run of queued.values()) run()
+    expect(focus).not.toHaveBeenCalled()
+  })
+
+  it('does not request focus from a replaced or dismissed panel opening', () => {
+    const queued = new Map<number, () => void>()
+    let next = 0
+    vi.spyOn(window, 'setTimeout').mockImplementation(handler => {
+      const id = ++next
+      queued.set(id, handler as () => void)
+      return id
+    })
+    vi.spyOn(window, 'clearTimeout').mockImplementation(id => { queued.delete(Number(id)) })
+    const panel = new ReadyPanel(document.getElementById('host')!, { onConfirm: vi.fn() })
+    const start = vi.spyOn(document.querySelector('.ready-start') as HTMLButtonElement, 'focus')
+    const cancel = vi.spyOn(document.querySelector('.ready-cancel') as HTMLButtonElement, 'focus')
+    panel.open(game())
+    panel.open(game({ available: false }))
+    for (const run of queued.values()) run()
+    expect(start).not.toHaveBeenCalled()
+    expect(cancel).toHaveBeenCalledOnce()
+    queued.clear(); cancel.mockClear()
+    panel.open(game({ available: false }))
+    panel.close()
+    for (const run of queued.values()) run()
+    expect(cancel).not.toHaveBeenCalled()
     expect((document.getElementById('cabinet') as HTMLElement).inert).toBe(false)
   })
 

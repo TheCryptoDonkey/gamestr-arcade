@@ -71,6 +71,7 @@ try {
     HTMLElement.prototype.focus = function (...args) {
       runtimeFocusCalls.push({ id: this.id, className: this.className,
         at: performance.now(), documentFocused: document.hasFocus(),
+        readyOpen: !!document.querySelector('.ready-overlay.is-open'),
         stack: new Error().stack?.split('\n').slice(2, 6) })
       if (runtimeFocusCalls.length > 30) runtimeFocusCalls.shift()
       return Reflect.apply(originalFocus, this, args)
