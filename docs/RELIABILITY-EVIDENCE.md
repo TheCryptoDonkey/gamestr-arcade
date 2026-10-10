@@ -253,8 +253,14 @@ keyboard, return, signature and isolation assertions. Its native window and
 contents reported unfocused while trusted CDP input still arrived, so native
 focus alone does not explain every result. See
 [local probe evidence](evidence/gamestr-native-focus-probe-local.json).
-The next hosted run will capture the corresponding Linux state; this is
-diagnostic coverage, not a demonstrated product repair.
+
+Hosted [CI 38086645044](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38086645044)
+also passes the complete gate at `0ba5a24`, including the packaged Linux
+journeys with these diagnostics. On that run, the native window and active
+game WebContents were focused before both observed keypresses. The shell
+WebContents were unfocused while each game was active. See
+[Linux probe evidence](evidence/gamestr-native-focus-probe-linux.json).
+This qualifies the diagnostic on Linux; intermittent input remains unresolved.
 
 
 A fresh real My Signet run on arcade `4aa7661` and Pallasite `14e969f` earned
