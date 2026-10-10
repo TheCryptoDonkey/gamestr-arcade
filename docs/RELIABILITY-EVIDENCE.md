@@ -7,7 +7,7 @@ automated results, hosted artifacts and actual user/device acceptance.
 
 - `npm run check`: passed 64 test files / 646 tests, typechecking, manifest and
   configuration validation, desktop build and both production web builds.
-- Initial script for the 600 edition: 140.89 kB, within the 150 kB build gate.
+- Initial script for the 600 edition: 141.09 kB, within the 150 kB build gate.
 - Eight browser journeys passed: both editions at 320, 390, 768,
   1024 and 1440 pixels plus CSS zoom; actual SDK NIP-07 login/refresh/account
   change/logout; draft retention and focus; Android method labels.
@@ -30,10 +30,17 @@ automated results, hosted artifacts and actual user/device acceptance.
 Draft [PR #11](https://github.com/TheCryptoDonkey/gamestr-arcade/pull/11)
 contains the implementation. Hosted [CI run 38057669320](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38057669320)
 passed on review commit `0c76437`, including all browser checks, full audit,
-CycloneDX SBOM and Linux AppImage packaging/checksums. Linux runtime smoke is
-still pending. A follow-up clears saved login/callback state synchronously on
+CycloneDX SBOM and Linux AppImage packaging/checksums. The packaged Linux renderer also booted under Xvfb on `stall` with an isolated
+public fixture and no signer/wallet. Its exact artifact commit was the GitHub PR
+merge `b1cd286c8aef781429205b4e618a63abbee737f2`, with SHA-256
+`38f29b8b884e2db7416887d0b9abab29d35cc6b2fbbcfa248def4e755ef178ee`.
+The temporary runtime files were removed. This proves packaged startup, not
+physical controller/cabinet acceptance. A follow-up clears saved login/callback state synchronously on
 logout; its 11 targeted unit checks and three signing/logout browser journeys
-passed. That follow-up needs hosted CI on its own revision. Recheck relevant gates after any
+passed. Hosted [CI run 38058055255](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38058055255)
+also passed on the logout follow-up `6d68d93`. Commit `9c52a14` adds
+`scripts/smoke-appimage.sh` to CI and uploads the runtime readiness/hash report;
+its hosted check is pending. Recheck relevant gates after any
 further source changes and attach hosted CI/artifact evidence before release.
 
 ## Hosting and DNS
@@ -64,7 +71,7 @@ release symlink changes.
 - Actual Android browser → Cambium and Amber → browser return, plus iPhone
   controls. NIP-55 currently supplies identity; signing actions require a live
   My Signet, NIP-07 or NIP-46 connection.
-- Hosted CI, Linux AppImage packaging and Linux runtime smoke.
+- Hosted CI for the newest revision, including the new Linux runtime step.
 - Ledger consumer release/deployment and same-player launch into all four games.
 - Public DNS cutover and live exact-revision verification of both editions.
 - Real mobile Lightning wallet payment with a separately authorised recipient
