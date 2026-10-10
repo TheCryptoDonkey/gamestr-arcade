@@ -5,6 +5,8 @@ import { revokeNostrGameBridges } from './game-auth-handoff'
 import type { LoginPickerMethod, NostrEvent, SignetSession, SignetStorage } from 'signet-login'
 
 export const NOSTR_SESSION_EVENT = 'gamestr:nostr-session'
+// Authentication needs a reachable rendezvous regardless of score-feed settings.
+export const NOSTR_AUTH_RELAY = 'wss://relay.trotters.cc'
 
 export interface ArcadeNostrSigner {
   signEvent(event: { created_at: number; kind: number; tags: string[][]; content: string }): Promise<NostrEvent>
@@ -166,7 +168,7 @@ export async function connectNostrAccess(options: ConnectNostrOptions): Promise<
     methods,
     preferredMethod: method,
     advancedMethods: options.signingRequired ? [] : ['nostrconnect', 'bunker'],
-    // Use the SDK's rendezvous relay independently of the score-feed relays.
+    relayUrl: NOSTR_AUTH_RELAY,
     timeout: 60_000,
     // NIP-55 markers belong only to the Android signer flow. The SDK checks
     // those first and would reject a My Signet URL return as a missing event.

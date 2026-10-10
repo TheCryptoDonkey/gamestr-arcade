@@ -31,6 +31,7 @@ for (const [edition, port] of [['gamestr', 4174], ['600', 4175]] as const) {
     await expect(openSignet).toBeVisible()
     const request = new URL((await openSignet.getAttribute('href'))!)
     const callback = new URL(request.searchParams.get('callback')!)
+    expect(request.searchParams.get('relay')).toBe('wss://relay.trotters.cc')
     expect(callback.pathname).toBe('/scores')
     expect(callback.searchParams.get('mode')).toBe('play')
     const event = finalizeEvent({ kind: 21236, created_at: Math.floor(Date.now() / 1000), content: '', tags: [['challenge', request.searchParams.get('challenge')!], ['origin', origin]] }, key)

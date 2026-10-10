@@ -106,8 +106,15 @@ automated results, hosted artifacts and actual user/device acceptance.
   passed `ddd2389`, including all 34 browser journeys and complete packaged
   Linux gameplay with the real-focus wait. The stronger-record source is
   included in that passing build.
-- Installed `signet-login`: 0.17.3. Rendezvous uses SDK defaults separately from
-  score relays. Private-key paste remains excluded.
+- Installed `signet-login`: 0.17.3. Authentication now explicitly uses
+  `wss://relay.trotters.cc` independently of score relays. The SDK default
+  `wss://nos.lol` failed to connect during a live published My Signet test;
+  a browser-only override to Trotters completed real relay approval and a
+  canonically verified kind-21236 proof for a disposable identity. That fresh
+  identity had signing disabled and correctly appeared as identity-only.
+  This establishes relay approval, not ongoing signing or physical-phone proof.
+  The source fix still needs deployment and a live repeat without the override.
+  Private-key paste remains excluded.
 - `npm audit --audit-level=high`: passed, no high/critical findings. Eight
   moderate findings remain in the Electron packaging dependency chain.
 - Ledger consumer checkout: unit suite passed 28 files / 261 tests and production
@@ -138,8 +145,12 @@ automated results, hosted artifacts and actual user/device acceptance.
   both targeted browser engines pass the complete probe. Ledger commit
   `fc7f845` contains that readiness fix. Its subsequent full gate stopped at
   startup: the compressed cold core measured 263,173 bytes against the retained
-  263,168-byte ceiling. The budget has not been raised. No complete Ledger
-  release pass is claimed yet.
+  263,168-byte ceiling. Ledger commit `e3937ca` moves the animal voice engine
+  into its existing deferred audio module and warms it during opening loading.
+  The compressed cold core now measures 262,061 bytes with the same ceiling;
+  all 261 unit tests, startup checks and complete Chromium/WebKit voice and
+  media profiles pass. The full release gate is running on that revision.
+  No complete Ledger release pass is claimed yet.
   Draft [Ledger PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88)
   contains the consumer; deployment remains pending.
 
