@@ -8,6 +8,7 @@ export interface AccountIdentityOptions {
   signerStatus?: string
   onReconnect?(): void
   onSyncPreferences?(): void
+  onImportDevicePreferences?(): void
   onToggle(): void
   onProfile(): void
   onLogout(): void
@@ -24,7 +25,7 @@ export function accountIdentity(options: AccountIdentityOptions): HTMLElement {
   const name = options.profile?.name || options.profile?.nip05?.split('@')[0] || 'NOSTR PROFILE'
   const wrapper = element('div', 'identity-menu')
   const trigger = element('button', 'identity-button identity-trigger')
-  trigger.type = 'button'
+  trigger.type = 'button'; trigger.id = 'account-menu-trigger'
   trigger.setAttribute('aria-haspopup', 'menu')
   trigger.setAttribute('aria-expanded', String(options.open))
   trigger.setAttribute('aria-label', `${options.open ? 'Close' : 'Open'} account menu for ${name}`)
@@ -68,7 +69,10 @@ export function accountIdentity(options: AccountIdentityOptions): HTMLElement {
       }
     }
     if (options.onSyncPreferences) {
-      const sync = element('button', '', 'SYNC ARCADE PREFERENCES'); sync.type = 'button'; sync.setAttribute('role', 'menuitem'); sync.addEventListener('click', options.onSyncPreferences); menu.append(sync)
+      const sync = element('button', '', 'SYNC ARCADE PREFERENCES'); sync.id = 'account-sync-preferences'; sync.type = 'button'; sync.setAttribute('role', 'menuitem'); sync.addEventListener('click', options.onSyncPreferences); menu.append(sync)
+    }
+    if (options.onImportDevicePreferences) {
+      const copy = element('button', '', 'IMPORT DEVICE PREFERENCES'); copy.id = 'account-import-preferences'; copy.type = 'button'; copy.setAttribute('role', 'menuitem'); copy.addEventListener('click', options.onImportDevicePreferences); menu.append(copy)
     }
     menu.append(logout)
     wrapper.append(menu)

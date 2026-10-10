@@ -7,10 +7,21 @@ automated results, hosted artifacts and actual user/device acceptance.
 
 - `npm run check`: passed 64 test files / 646 tests, typechecking, manifest and
   configuration validation, desktop build and both production web builds.
-- Initial script for the 600 edition: 141.09 kB, within the 150 kB build gate.
+- Initial script for the 600 edition remains within the 150 kB build gate.
 - Eight browser journeys passed: both editions at 320, 390, 768,
   1024 and 1440 pixels plus CSS zoom; actual SDK NIP-07 login/refresh/account
   change/logout; draft retention and focus; Android method labels.
+- Six additional reward checks passed in both editions: mobile QR/copy/link
+  controls, keyboard recovery, one retained invoice after an uncertain WebLN
+  response, cancellation during wallet approval and wrong-amount rejection.
+  The invoice form is now bounded to the viewport and scrolls when it grows.
+- Ten additional callback checks passed against the actual SDK in both editions:
+  valid JSON/base64 returns, denial, expiry, tampering, replay, URL cleanup and
+  identity-only restoration across reload.
+- Pending NIP-07 restore followed by logout passed in both browser editions.
+- Account preferences now offer an explicit guest import, preserve guest data
+  and account isolation, keep focus across updates, and explain unavailable
+  storage. The expanded complete browser suite is being rerun after fixture fixes.
 - A real browser child-port signed a score, then remained revoked through logout
   and re-login to the same key.
 - Unit regressions cover selected keys/templates, late login/restore,
@@ -23,9 +34,13 @@ automated results, hosted artifacts and actual user/device acceptance.
 - `npm audit --audit-level=high`: passed, no high/critical findings. Eight
   moderate findings remain in the Electron packaging dependency chain.
 - Ledger consumer checkout: unit suite passed 28 files / 260 tests and production
-  build passed. Its full release gate stopped at `tests/startup.mjs:153`, waiting for the
-  simulated scoring-chunk failure to produce a recoverable menu state.
-  That failure needs diagnosis before consumer release. Consumer deployment remains pending.
+  build passed. The startup recovery check passes with full Chromium; the test
+  now closes its first renderer before opening independent retry contexts and
+  keeps the title active while measuring pre-PLAY loading. A perk touch-target
+  measurement now waits for its existing scale entrance animation to finish,
+  preserving the original 60px floor. The full release gate is running again.
+  Draft [Ledger PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88)
+  contains the consumer; deployment remains pending.
 
 Draft [PR #11](https://github.com/TheCryptoDonkey/gamestr-arcade/pull/11)
 contains the implementation. Hosted [CI run 38057669320](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38057669320)
@@ -40,7 +55,8 @@ logout; its 11 targeted unit checks and three signing/logout browser journeys
 passed. Hosted [CI run 38058055255](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38058055255)
 also passed on the logout follow-up `6d68d93`. Commit `9c52a14` adds
 `scripts/smoke-appimage.sh` to CI and uploads the runtime readiness/hash report;
-its hosted check is pending. Recheck relevant gates after any
+hosted [CI run 38058669648](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38058669648)
+passed on `6864d4b`, including the packaged Linux runtime check. Recheck relevant gates after any
 further source changes and attach hosted CI/artifact evidence before release.
 
 ## Hosting and DNS
@@ -71,13 +87,13 @@ release symlink changes.
 - Actual Android browser → Cambium and Amber → browser return, plus iPhone
   controls. NIP-55 currently supplies identity; signing actions require a live
   My Signet, NIP-07 or NIP-46 connection.
-- Hosted CI for the newest revision, including the new Linux runtime step.
+- Hosted CI for the next source revision; the previously pushed revision passed the Linux runtime step.
 - Ledger consumer release/deployment and same-player launch into all four games.
 - Public DNS cutover and live exact-revision verification of both editions.
 - Real mobile Lightning wallet payment with a separately authorised recipient
   and amount. Invoice display and wallet responses do not prove settlement.
 - Expanded browser acceptance for reward/dialog cancellation, account-scoped
-  preferences and callback rendering. CSS zoom checks do not prove real browser
+  preferences and callback rendering at the final revision. CSS zoom checks do not prove real browser
   zoom or physical assistive-technology acceptance.
 
 No goal is marked complete solely from unit tests or an implementation.

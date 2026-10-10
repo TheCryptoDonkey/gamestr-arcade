@@ -101,12 +101,14 @@ function route(): { name: 'home' | 'scores' | 'developers' | 'game' | 'player' |
 }
 
 function toggleFavourite(game: WebGame): void {
-  state.social = toggleSocialItem(state.social, 'favourites', game.slug); if (!writeSocialState(state.social, undefined, state.pubkey)) toast('Preferences are available for this visit; browser storage is unavailable.', 'warn'); render()
+  state.social = toggleSocialItem(state.social, 'favourites', game.slug); const saved = writeSocialState(state.social, undefined, state.pubkey); render()
+  if (!saved) { toast('Preferences are available for this visit; browser storage is unavailable.', 'warn'); return }
   toast(state.social.favourites.includes(game.slug) ? `${game.name} added to your arcade.` : `${game.name} removed from your arcade.`, 'good')
 }
 
 function toggleFollow(pubkey: string): void {
-  state.social = toggleSocialItem(state.social, 'follows', pubkey); if (!writeSocialState(state.social, undefined, state.pubkey)) toast('Preferences are available for this visit; browser storage is unavailable.', 'warn'); render()
+  state.social = toggleSocialItem(state.social, 'follows', pubkey); const saved = writeSocialState(state.social, undefined, state.pubkey); render()
+  if (!saved) { toast('Preferences are available for this visit; browser storage is unavailable.', 'warn'); return }
   toast(state.social.follows.includes(pubkey) ? 'Player followed on this device.' : 'Player unfollowed.', 'good')
 }
 
@@ -189,6 +191,7 @@ function header(): HTMLElement {
       signerStatus: state.identityConnecting ? 'RECONNECTING…' : currentNostrAccess()?.signerStatus === 'unavailable' ? 'SIGNER UNAVAILABLE' : currentNostrAccess()?.canSignEvents ? 'SIGNER CONNECTED' : 'IDENTITY CONNECTED · SIGNER NEEDED',
       onReconnect: () => void connectIdentity(true),
       onSyncPreferences: () => preferenceDialog(),
+      onImportDevicePreferences: () => importDevicePreferencesDialog(),
       onToggle: () => { state.accountMenuOpen = !state.accountMenuOpen; render() },
       onProfile: () => { state.accountMenuOpen = false; navigate(`/player/${state.pubkey}`) },
       onLogout: () => void logoutIdentity(),
@@ -311,7 +314,7 @@ function gameCard(game: WebGame): HTMLElement {
   const body = el('div', 'game-body')
   const titleRow = el('div', 'title-row'); titleRow.append(el('h3', '', game.name))
   const cardActions = el('div', 'card-actions')
-  const favourite = button(state.social.favourites.includes(game.slug) ? '★' : '☆', 'favourite-button', () => toggleFavourite(game)); favourite.setAttribute('aria-label', `${state.social.favourites.includes(game.slug) ? 'Remove' : 'Add'} ${game.name} ${state.social.favourites.includes(game.slug) ? 'from' : 'to'} favourites`)
+  const favourite = button(state.social.favourites.includes(game.slug) ? '★' : '☆', 'favourite-button', () => toggleFavourite(game)); favourite.id = `favourite-card-${game.slug}`; favourite.setAttribute('aria-label', `${state.social.favourites.includes(game.slug) ? 'Remove' : 'Add'} ${game.name} ${state.social.favourites.includes(game.slug) ? 'from' : 'to'} favourites`)
   cardActions.append(favourite, playLink(game)); titleRow.append(cardActions)
   body.append(titleRow, el('p', '', game.tagline))
   const tags = el('div', 'tags'); game.genres.slice(0, 3).forEach(genre => tags.append(el('span', '', genre.toUpperCase())))
@@ -476,7 +479,8 @@ function gamePage(slug: string): HTMLElement {
   if (game.hero) art.style.backgroundImage = `linear-gradient(90deg, rgba(8,9,13,.2), #08090d), url("${game.hero}")`
   if (game.logo) { const image = el('img'); image.src = game.logo; image.alt = `${game.name} logo`; art.append(image) }
   const copy = el('div', 'detail-copy'); copy.append(el('p', 'kicker', game.genres.join(' · ').toUpperCase()), el('h1', '', game.name), el('p', 'page-lede', game.description ?? game.tagline))
-  const actions = el('div', 'hero-actions'); actions.append(playLink(game, 'PLAY ON PUBLISHER SITE ↗', 'primary'), button(state.social.favourites.includes(game.slug) ? '★ IN MY ARCADE' : '☆ ADD TO MY ARCADE', 'secondary', () => toggleFavourite(game)), button('INVITE TO PLAY', 'secondary', () => void shareInvitation(game)), button('CREATE CHALLENGE', 'secondary', () => createChallengeDialog(game))); copy.append(actions)
+  const favourite = button(state.social.favourites.includes(game.slug) ? '★ IN MY ARCADE' : '☆ ADD TO MY ARCADE', 'secondary', () => toggleFavourite(game)); favourite.id = `favourite-detail-${game.slug}`
+  const actions = el('div', 'hero-actions'); actions.append(playLink(game, 'PLAY ON PUBLISHER SITE ↗', 'primary'), favourite, button('INVITE TO PLAY', 'secondary', () => void shareInvitation(game)), button('CREATE CHALLENGE', 'secondary', () => createChallengeDialog(game))); copy.append(actions)
   const facts = el('dl', 'game-facts'); for (const [label, value] of [['IDENTITY', 'NOSTR'], ['SCORES', 'VERIFIED'], ['WALLET', game.walletPay ? 'LIGHTNING' : 'OPTIONAL'], ['PLAYERS', game.players ? `${game.players.min}–${game.players.max}` : '1']]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) } copy.append(facts)
   main.append(art, copy)
   const board = el('section', 'detail-board')
@@ -540,7 +544,7 @@ function playerPage(pubkey: string): HTMLElement {
   copy.append(el('p', 'player-npub', hexToNpub(pubkey)))
   const external = el('a', 'button-link', 'VIEW ON NOSTR'); external.href = `https://njump.me/${hexToNpub(pubkey)}`; external.target = '_blank'; external.rel = 'noopener noreferrer'; copy.append(external)
   copy.append(externalLink('VIEW ON GAMESTR.IO ↗', `${GAMESTR_ORIGIN}/player/${pubkey}`, 'button-link gamestr-source-link'))
-  if (pubkey !== state.pubkey) copy.append(button(state.social.follows.includes(pubkey) ? '✓ FOLLOWING' : '+ FOLLOW PLAYER', 'secondary follow-button', () => toggleFollow(pubkey)))
+  if (pubkey !== state.pubkey) { const follow = button(state.social.follows.includes(pubkey) ? '✓ FOLLOWING' : '+ FOLLOW PLAYER', 'secondary follow-button', () => toggleFollow(pubkey)); follow.id = `follow-player-${pubkey}`; copy.append(follow) }
   if (lightningDestination(profile) && pubkey !== state.pubkey) copy.append(button('⚡ ZAP PLAYER', 'reward-button', () => rewardDialog(pubkey, profile!)))
   else if (pubkey !== state.pubkey) copy.append(zapSetupNote())
   identity.append(avatar, copy); main.append(identity)
@@ -699,6 +703,35 @@ function createChallengeDialog(game: WebGame): void {
   })
 }
 
+function importDevicePreferencesDialog(): void {
+  const pubkey = state.pubkey
+  if (!pubkey) return
+  const guest = readSocialState()
+  const modal = el('div', 'challenge-modal'); modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true'); modal.setAttribute('aria-labelledby', 'device-preferences-title')
+  const form = el('form', 'challenge-form')
+  const title = el('h2', '', 'Import device preferences'); title.id = 'device-preferences-title'
+  const description = el('p', '', `Copy this browser’s ${guest.favourites.length} guest favourites and ${guest.follows.length} arcade follows into your connected account. The guest view keeps its copy. These stay local unless you choose to sync.`)
+  const status = el('output', 'studio-status'); status.setAttribute('aria-live', 'polite')
+  const submit = button('COPY TO MY ACCOUNT', 'primary', () => undefined); submit.type = 'submit'; submit.disabled = !guest.favourites.length && !guest.follows.length
+  form.append(title, description, submit, button('CANCEL', 'secondary', () => modal.remove()), status); modal.append(form); document.body.append(modal); activateDialog(modal)
+  form.addEventListener('submit', async event => {
+    event.preventDefault(); if (submit.disabled || state.pubkey !== pubkey) return
+    submit.disabled = true
+    try {
+      const { mergePreferences } = await import('./preference-sync')
+      if (!modal.isConnected) return
+      if (state.pubkey !== pubkey) { status.textContent = 'Your account changed. Close this dialog and choose the account to import into.'; return }
+      state.social = mergePreferences(state.social, guest)
+      const saved = writeSocialState(state.social, undefined, pubkey)
+      state.accountMenuOpen = false
+      render()
+      modal.remove()
+      toast(saved ? 'Device preferences copied to this account on this browser.' : 'Preferences copied for this visit; browser storage is unavailable.', saved ? 'good' : 'warn')
+    } catch { status.textContent = 'Could not load the import. Your preferences are unchanged; please retry.' }
+    finally { submit.disabled = false }
+  })
+}
+
 function preferenceDialog(): void {
   const pubkey = state.pubkey
   if (!pubkey) return
@@ -713,19 +746,20 @@ function preferenceDialog(): void {
   form.addEventListener('submit', async event => {
     event.preventDefault(); if (!consent.checked || submit.disabled) return
     submit.disabled = true; status.textContent = 'Loading this account’s arcade preferences…'
+    let savedLocally = false
     const approved = () => modal.isConnected && consent.checked && state.pubkey === pubkey
     try {
       const { loadRemotePreferences, mergePreferences, publishPreferences } = await import('./preference-sync')
       const remote = await loadRemotePreferences(pubkey, RELAYS)
       if (!approved()) return
       state.social = mergePreferences(state.social, remote)
-      writeSocialState(state.social, undefined, pubkey)
+      savedLocally = writeSocialState(state.social, undefined, pubkey)
       const signer = currentNostrSigner() ?? await connectIdentity(true)
       if (!signer || !approved()) throw new Error('Connect a signer for this account to publish.')
       const count = await publishPreferences(state.social, pubkey, signer, RELAYS, approved)
-      status.textContent = count ? `Merged preferences accepted by ${count} relay${count === 1 ? '' : 's'}.` : 'Saved locally; no relay confirmed publication. Retry when online.'
+      status.textContent = count ? `Merged preferences accepted by ${count} relay${count === 1 ? '' : 's'}.${savedLocally ? '' : ' Browser storage is unavailable.'}` : `${savedLocally ? 'Saved locally' : 'Available for this visit; browser storage is unavailable'}; no relay confirmed publication. Retry when online.`
       render()
-    } catch (error) { status.textContent = error instanceof Error ? error.message : 'Preferences remain saved locally.' }
+    } catch (error) { status.textContent = error instanceof Error ? error.message : savedLocally ? 'Preferences remain saved locally.' : 'Could not sync preferences. Browser storage is unavailable.' }
     finally { submit.disabled = false }
   })
 }
@@ -834,7 +868,8 @@ function render(): void {
               : current.name === 'invite' ? invitationPage(current.id!)
                 : challengePage(current.id!)
   app.replaceChildren(header(), content, footer())
-  const target = focused?.isConnected ? focused : focusId ? document.getElementById(focusId) : undefined
+  const replacement = focusId ? document.getElementById(focusId) ?? (focusId.startsWith('account-') ? document.getElementById('account-menu-trigger') : undefined) : undefined
+  const target = focused?.isConnected ? focused : replacement
   target?.focus({ preventScroll: true })
   if (selection && (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
     try { target.setSelectionRange(selection[0], selection[1]) } catch { /* non-text controls */ }
@@ -881,7 +916,7 @@ async function boot(): Promise<void> {
       render()
     }).catch(() => undefined)
   }
-  localStorage.removeItem('gamestr:pubkey')
+  try { localStorage.removeItem('gamestr:pubkey') } catch { /* signing still works in memory when browser storage is blocked */ }
   void restoreNostrAccess(RELAYS)
 }
 

@@ -257,17 +257,23 @@ Keep the following record for each goal as work lands. Leave an evidence stage
 pending when it has not been exercised; a merged implementation is not proof of
 device or deployed behaviour.
 
+Arcade changes are in [PR #11](https://github.com/TheCryptoDonkey/gamestr-arcade/pull/11);
+Ledger's consumer is in [PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88).
+The arcade's pushed revision `6864d4b` passed hosted CI, packaging and Linux
+startup. Follow-up browser and preference changes are being verified; see
+[delivery evidence](RELIABILITY-EVIDENCE.md) for exact stages and remaining gates.
+
 | Goal | Implementation and PR | Automated checks | Deployed or packaged revision | Live acceptance | Status |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Selected-session verification, synchronous port revocation and generation guards; PR pending | Local checks in progress; see delivery evidence | Pending | Pending | In progress |
-| 2 | Responsive controls, validated SDK callback and generic Cambium/Amber NIP-55 request; PR pending | Local checks in progress; see delivery evidence | Pending | Pending | In progress |
-| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR pending | Local checks in progress; see delivery evidence | Pending | Pending | In progress |
-| 4 | Per-game score authorities and attribution provenance; PR pending | Local checks in progress; see delivery evidence | Pending | Pending | In progress |
-| 5 | Dependency upgrades and high-severity audit gate; PR pending | Local checks in progress; see delivery evidence | Pending | Pending | In progress |
-| 6 | Reviewed manifest capability and Ledger consumer (separate checkout); PR pending | Local checks in progress; see delivery evidence | Pending | Pending | In progress |
-| 7 | Independent personal records, verified cache and exact-ID lookup; PR pending | Local checks in progress; see delivery evidence | Pending | Pending | In progress |
-| 8 | Persistent draft/focus, account preference isolation and opt-in sync; PR pending | Local checks in progress; see delivery evidence | Pending | Pending | In progress |
-| 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR pending | Local checks in progress; see delivery evidence | Pending | Pending | In progress |
+| 1 | Selected-session verification, synchronous port revocation and generation guards; PR #11 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
+| 2 | Responsive controls, validated SDK callback and generic Cambium/Amber NIP-55 request; PR #11 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
+| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
+| 4 | Per-game score authorities and attribution provenance; PR #11 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
+| 5 | Dependency upgrades and high-severity audit gate; PR #11 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
+| 6 | Reviewed manifest capability and Ledger consumer; PR #11 and PR #88 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
+| 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
+| 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
+| 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
 
 For live runs, record the browser/device, signer or wallet, date, exact revisions,
 steps exercised and result. Cover both editions; local and cross-device My

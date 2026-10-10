@@ -69,6 +69,89 @@ for (const [edition, port] of [['gamestr', 4174], ['600', 4175]] as const) {
     expect(await page.evaluate(() => (window as unknown as { __signed: number }).__signed)).toBe(count)
   })
 
+  test(`${edition}: guest preferences require explicit import and stay isolated between accounts`, async ({ page }) => {
+    await setup(page, true)
+    await page.goto(`http://127.0.0.1:${port}/game/pallasite`)
+    const favourite = page.locator('#favourite-detail-pallasite')
+    await favourite.click()
+    await expect(favourite).toHaveText('★ IN MY ARCADE')
+    await expect(favourite).toBeFocused()
+    await page.getByRole('button', { name: 'CONNECT NOSTR', exact: true }).click()
+    await page.getByRole('button', { name: 'Browser extension', exact: true }).click()
+    await expect(page.locator('.identity-trigger')).toBeVisible()
+    await expect(favourite).toHaveText('☆ ADD TO MY ARCADE')
+    await page.locator('.identity-trigger').click()
+    await page.getByRole('menuitem', { name: 'IMPORT DEVICE PREFERENCES' }).click()
+    await expect(page.getByRole('dialog')).toContainText('1 guest favourites')
+    await expect(page.locator('#app')).toHaveJSProperty('inert', true)
+    await page.getByRole('button', { name: 'CANCEL', exact: true }).click()
+    await expect(page.locator('.identity-trigger')).toBeFocused()
+    await expect(favourite).toHaveText('☆ ADD TO MY ARCADE')
+    await page.locator('.identity-trigger').click()
+    await page.getByRole('menuitem', { name: 'IMPORT DEVICE PREFERENCES' }).click()
+    await page.getByRole('button', { name: 'COPY TO MY ACCOUNT' }).click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await expect(page.locator('#app')).toHaveJSProperty('inert', false)
+    await expect(page.locator('.identity-trigger')).toBeFocused()
+    await expect(favourite).toHaveText('★ IN MY ARCADE')
+    expect(await page.evaluate(() => (window as unknown as { __signed: number }).__signed)).toBe(1)
+    await page.reload()
+    await expect(page.locator('.identity-trigger')).toBeVisible()
+    await expect(favourite).toHaveText('★ IN MY ARCADE')
+    await page.locator('.identity-trigger').click()
+    await page.getByRole('menuitem', { name: 'LOG OUT' }).click()
+    await expect(favourite).toHaveText('★ IN MY ARCADE')
+    await page.evaluate(selected => { (window as unknown as { __selected: string }).__selected = selected }, otherPubkey)
+    await page.getByRole('button', { name: 'CONNECT NOSTR', exact: true }).click()
+    await page.getByRole('button', { name: 'Browser extension', exact: true }).click()
+    await expect(page.locator('.identity-trigger')).toBeVisible()
+    await expect(favourite).toHaveText('☆ ADD TO MY ARCADE')
+    expect(await page.evaluate(() => (window as unknown as { __signed: number }).__signed)).toBe(1)
+  })
+
+  test(`${edition}: unavailable storage keeps preferences for the visit and explains the limitation`, async ({ page }) => {
+    await setup(page)
+    await page.addInitScript(() => {
+      const setItem = Storage.prototype.setItem
+      Storage.prototype.setItem = function (name, value) {
+        if (name.startsWith('gamestr:social:')) throw new DOMException('Storage unavailable', 'QuotaExceededError')
+        setItem.call(this, name, value)
+      }
+    })
+    await page.goto(`http://127.0.0.1:${port}/game/pallasite`)
+    await page.locator('#favourite-detail-pallasite').click()
+    await expect(page.locator('#favourite-detail-pallasite')).toHaveText('★ IN MY ARCADE')
+    await expect(page.getByRole('status')).toContainText('for this visit; browser storage is unavailable')
+    await page.reload()
+    await expect(page.locator('#favourite-detail-pallasite')).toHaveText('☆ ADD TO MY ARCADE')
+  })
+
+  test(`${edition}: logout during pending SDK restoration cannot reactivate the account`, async ({ page }) => {
+    await setup(page, true)
+    await page.goto(`http://127.0.0.1:${port}/game/pallasite`)
+    await page.getByRole('button', { name: 'CONNECT NOSTR', exact: true }).click()
+    await page.getByRole('button', { name: 'Browser extension', exact: true }).click()
+    await expect(page.locator('.identity-trigger')).toBeVisible()
+    await page.addInitScript(() => {
+      const w = window as unknown as { nostr: { getPublicKey: () => Promise<string> }; __releaseRestore?: () => Promise<void> }
+      const original = w.nostr.getPublicKey
+      w.nostr.getPublicKey = () => new Promise(resolve => { w.__releaseRestore = async () => { resolve(await original()); await new Promise<void>(done => requestAnimationFrame(() => done())) } })
+    })
+    await page.reload()
+    await page.waitForFunction(() => !!(window as unknown as { __releaseRestore?: () => Promise<void> }).__releaseRestore)
+    await page.evaluate(async () => {
+      // This is the production module used by the logout button, not a fake session event.
+      // @ts-expect-error Vite resolves this browser URL at runtime.
+      const access = await import('/nostr-access.ts')
+      await access.disconnectNostrAccess()
+      await (window as unknown as { __releaseRestore: () => Promise<void> }).__releaseRestore()
+    })
+    await expect(page.getByRole('button', { name: 'CONNECT NOSTR', exact: true })).toBeVisible()
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('signet:login.pubkey'))).toBeNull()
+    await page.reload()
+    await expect(page.getByRole('button', { name: 'CONNECT NOSTR', exact: true })).toBeVisible()
+  })
+
   test(`${edition}: manifest draft and focus survive identity changes and reload`, async ({ page }) => {
     await setup(page)
     await page.goto(`http://127.0.0.1:${port}/developers`)
@@ -112,6 +195,7 @@ test('600: an actual child signing port stays revoked after logout and signing b
   </script>` }))
   await page.goto('http://127.0.0.1:4175/game/pallasite')
   async function login() {
+    await page.bringToFront()
     await page.getByRole('button', { name: 'CONNECT NOSTR', exact: true }).click()
     await page.getByRole('button', { name: 'Browser extension', exact: true }).click()
     await expect(page.locator('.identity-trigger')).toBeVisible()
