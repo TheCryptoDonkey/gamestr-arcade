@@ -70,6 +70,10 @@ automated results, hosted artifacts and actual user/device acceptance.
   focused the game view. It now waits for the real completed/focused document
   and delivery of its single trusted keypress. The complete native journey
   passes with this wait; the next packaged Linux run remains pending.
+- [Hosted run 38065117909](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38065117909)
+  passed `ddd2389`, including all 34 browser journeys and complete packaged
+  Linux gameplay with the real-focus wait. The stronger-record source is
+  included in that passing build.
 - Installed `signet-login`: 0.17.3. Rendezvous uses SDK defaults separately from
   score relays. Private-key paste remains excluded.
 - `npm audit --audit-level=high`: passed, no high/critical findings. Eight
@@ -89,6 +93,12 @@ automated results, hosted artifacts and actual user/device acceptance.
   fix passed the existing desktop and both phone onboarding checks with the
   animal 2.3 units away, plus all 261 unit tests and the production build.
   The complete release gate is now running on Ledger commit `a30533e`.
+  That run subsequently stopped on a shack whose group origin was 0.97 units
+  above ground, although its visible foundation extends below that origin.
+  The grounding profile now measures the geometry base, retains the 0.9-unit
+  requirement and checks that deliberately raising the geometry is detected.
+  All seven lands pass that targeted check. The full gate is now running on
+  `7d9b82e`; no complete Ledger release pass is claimed yet.
   Draft [Ledger PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88)
   contains the consumer; deployment remains pending.
 
@@ -136,6 +146,19 @@ no page errors. Only the signed recipient profile was a disposable fixture;
 provider metadata and invoice requests were real browser requests. This check
 did not invoke a wallet or send payment; see
 [real provider invoice evidence](evidence/gamestr-live-reward-46e40d5.json).
+The current standard release is now `ddd2389c50e3c8e576ca0ea5fa7f0aecad2da7ab`.
+Its release metadata, served JavaScript bytes, headers and deep link were
+verified again; see [current release proof](evidence/gamestr-web-ddd2389.json).
+A live 320px browser showed the publisher-login explanation without horizontal
+overflow and the incomplete-history notes on game, score and personal-best
+pages; only relay traffic was isolated. See
+[mobile history disclosure proof](evidence/gamestr-live-history.json).
+The matching 600 build is uploaded to
+`/opt/gamestr-web-600/releases/ddd2389c50e3` on `stall`; its metadata identifies
+the full revision and edition. Its active symlink remains the July release
+until the Ledger consumer is ready. Direct HTTPS to the new server serves the
+600 route, but public DNS still points at the retired server. No DigitalOcean
+CLI/configuration was found on `stall` either.
 
 DigitalOcean is authoritative for `600.wtf`:
 `ns1.digitalocean.com`, `ns2.digitalocean.com`, `ns3.digitalocean.com`.
@@ -156,7 +179,7 @@ release symlink changes.
 - Actual Android browser → Cambium and Amber → browser return, plus iPhone
   controls. NIP-55 currently supplies identity; signing actions require a live
   My Signet, NIP-07 or NIP-46 connection.
-- Hosted CI must remain green if further source changes are made; `46e40d5` passed the Linux runtime step.
+- Hosted CI must remain green if further source changes are made; `ddd2389` passed the complete packaged Linux gameplay step.
 - Ledger consumer release/deployment and same-player launch into all four games.
 - Public DNS cutover and live exact-revision verification of both editions.
 - Real mobile Lightning wallet payment with a separately authorised recipient

@@ -1,0 +1,16 @@
+{
+  "origin": "https://gamestr.62-238-98-53.sslip.io",
+  "release": {
+    "revision": "ddd2389c50e3c8e576ca0ea5fa7f0aecad2da7ab",
+    "edition": "gamestr"
+  },
+  "width": 320,
+  "home": {
+    "horizontalOverflow": 0,
+    "loginNote": "Games open on their publisher’s site and may ask you to sign in there."
+  },
+  "game": "Rankings use scores received from the relays, including retained personal bests. Complete history has not been established; earlier or missing scores may change the rankings.",
+  "scores": "Rankings use scores received from the relays, including retained personal bests. Complete history has not been established; earlier or missing scores may change the rankings.",
+  "personalBests": "Rankings use scores received from the relays, including retained personal bests. Complete history has not been established; earlier or missing scores may change the rankings.",
+  "relayFixtureIsolated": true
+}

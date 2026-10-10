@@ -1,0 +1,15 @@
+{
+  "release": {
+    "revision": "ddd2389c50e3c8e576ca0ea5fa7f0aecad2da7ab",
+    "edition": "gamestr"
+  },
+  "deepLink": 200,
+  "entryAsset": "/assets/index-CxMSjlGi.js",
+  "entrySha256": "782df4cf6d877acf80e998d4142faa4840deab606ab1d68d36a4af46c5a77cfa",
+  "headers": {
+    "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https: wss:; frame-src https:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
+    "strict-transport-security": "max-age=31536000; includeSubDomains",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY"
+  }
+}
