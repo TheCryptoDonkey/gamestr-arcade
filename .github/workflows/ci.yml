@@ -44,6 +44,9 @@ jobs:
       - name: Package Linux AppImage
         run: npm run dist
 
+      - name: Boot the packaged Linux renderer
+        run: bash scripts/smoke-appimage.sh release/*.AppImage release/linux-runtime-smoke.json
+
       - name: Record release checksums
         run: cd release && sha256sum *.AppImage > SHA256SUMS
 
@@ -54,6 +57,7 @@ jobs:
           path: |
             release/*.AppImage
             release/SHA256SUMS
+            release/linux-runtime-smoke.json
             gamestr-arcade.cdx.json
             dist-web/**
             dist-web-600/**
