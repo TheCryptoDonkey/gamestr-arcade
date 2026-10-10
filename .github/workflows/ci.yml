@@ -30,7 +30,9 @@ jobs:
         run: npm run check
 
       - name: Install browser for user journey checks
-        run: npx playwright install --with-deps chromium
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y xdotool
 
       - name: Verify both web editions in the browser
         run: npm run test:browser

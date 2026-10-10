@@ -702,3 +702,30 @@ retains every original input/return assertion. The original local Mac journey
 passes with both game views attached and visible; see
 [local attachment proof](evidence/gamestr-native-attached-view-local.json).
 This is additional diagnosis, not an input repair or Linux qualification.
+
+## Attached-view failure and independent input diagnosis
+
+Hosted run `38094979678` at `3935247` failed the second Escape return with its
+game attached, visible, fully loaded and natively focused. Neither page recorded
+the missing key. This excludes an attachment delay for that run; see
+[attached-view failure](evidence/gamestr-native-attached-3935247-failure.json).
+
+A passive native input observer records bounded metadata without preventing
+input, changing focus or replacing product listeners. Local calibration shows
+that successful CDP keys can reach the page without `before-input-event`
+records, so an empty native trace does not establish lost OS input. The original
+Mac journey still passes; see [calibration](evidence/gamestr-native-system-input-local.json).
+
+After an original Linux input assertion fails, a separate XTEST diagnostic may
+send the same key to the private Xvfb display. It first checks the focused native
+window and owning process against the isolated Electron fixture. It activates
+no window, accepts only Up/Escape, and preserves the original failed assertion
+regardless of its result. Six ownership/platform/key guards pass. The next
+Linux gate will report whether this independent keyboard path works; neither
+Linux input repair nor physical controller acceptance is claimed.
+
+Hang On Fren candidate `53113df` also fixes duplicate personal score approvals
+and claims while an automatic submission is pending. All 212 unit tests and
+a private normal-play browser check pass, with bounded clock/claim/body timeouts
+and retained receipts. Its public client is still `2c6716f`; hosted qualification
+and deployment of the new correction are pending.

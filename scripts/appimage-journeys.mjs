@@ -7,6 +7,7 @@ import assert from 'node:assert/strict'
 import { chromium } from 'playwright'
 import { verifyEvent } from 'nostr-tools/pure'
 import { connectNativeFocusInspector } from './runtime-native-focus.mjs'
+import { probeSystemInput } from './runtime-system-input.mjs'
 
 const root = process.argv[2]
 if (!root) throw new Error('Pass the isolated runtime fixture directory')
@@ -59,6 +60,7 @@ async function until(check, timeoutMs = 15000) {
 try {
   await until(() => existsSync(`${root}/ready.json`), 35000)
   nativeInspector = await connectNativeFocusInspector(nativeDebugPort)
+  await nativeInspector.observeInput()
   browser = await chromium.connectOverCDP(`http://127.0.0.1:${debugPort}`)
   const context = browser.contexts()[0]
   const shell = await until(() => context.pages().find(page => page.url().startsWith('file:')))
@@ -175,13 +177,20 @@ try {
     })).catch(() => ({ inspectionFailed: true }))
   }
   const currentNativeFocus = nativeInspector ? await nativeInspector.read().catch(() => ({ inspectionFailed: true })) : null
-  const failure = { stage, error: error instanceof Error ? error.message : String(error), pages, nativeFocus, currentNativeFocus }
+  // Keep the original failure. A separate OS-input probe helps distinguish
+  // debugger injection from keyboard delivery without making the gate pass.
+  const systemInput = nativeInspector && gamePage &&
+    (stage === 'first game trusted ArrowUp' || stage === 'second game Escape return')
+    ? await probeSystemInput({ inspector: nativeInspector, page: gamePage,
+      key: stage === 'first game trusted ArrowUp' ? 'Up' : 'Escape' })
+    : { attempted: false };
+  const failure = { stage, error: error instanceof Error ? error.message : String(error), pages, nativeFocus, currentNativeFocus, systemInput }
   writeFileSync(`${root}/journeys-failure.json`, JSON.stringify(failure, null, 2))
   console.error('Packaged runtime failure diagnostics:', JSON.stringify(failure))
   throw error
 } finally {
   clearTimeout(watchdog)
-  nativeInspector?.close()
+  if (nativeInspector) await nativeInspector.close()
   if (browser) await browser.close()
   await new Promise(resolve => server.close(resolve))
 }
