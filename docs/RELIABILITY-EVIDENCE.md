@@ -210,6 +210,17 @@ fixtures exercise unavailable bunker recovery in both editions. All 650 unit
 tests, 48 browser journeys and the complete build/validation check pass locally.
 This source correction is not yet deployed or qualified by a real score retry.
 
+Hosted [CI 38083846920](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38083846920)
+on `db2688b` passes the full source/build gate, 48 browser journeys, dependency
+audit and AppImage packaging, but fails the packaged second-game return check.
+The captured diagnostic shows the game already closed and the shell document
+focused; its active element is a button instead of the required carousel host.
+That narrows this failure to post-return focus, rather than a game that failed
+to receive Escape. The next diagnostic records element id/class/inert state,
+launch-panel visibility and recent focus/return events. Assertions are retained.
+A proposed deferred launch-panel focus regression also passed on the unchanged
+baseline, so that timer change was not retained as a demonstrated repair.
+
 
 The co-op forge timing gate remains failing: 96 frames during parallel checks,
 188 on the isolated candidate, and 102 on the unchanged `bfab5e2` baseline,

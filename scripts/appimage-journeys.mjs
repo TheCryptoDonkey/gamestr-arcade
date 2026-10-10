@@ -55,6 +55,17 @@ try {
   const context = browser.contexts()[0]
   const shell = await until(() => context.pages().find(page => page.url().startsWith('file:')))
   shellPage = shell
+  await shell.evaluate(() => {
+    window.runtimeFocusHistory = []
+    const record = event => {
+      const active = document.activeElement
+      runtimeFocusHistory.push({ event, id: active?.id, className: active?.className,
+        readyOpen: !!document.querySelector('.ready-overlay.is-open') })
+      if (runtimeFocusHistory.length > 20) runtimeFocusHistory.shift()
+    }
+    addEventListener('focusin', () => record('focusin'))
+    window.arcade.onReturn(() => record('game:returned'))
+  })
   const tile = shell.locator('.tile-active .tile-cap')
   await tile.waitFor({ state: 'visible' })
   assert.match(await tile.innerText(), /Runtime A/i)
@@ -121,6 +132,10 @@ try {
     pages[name] = !page ? { available: false } : page.isClosed() ? { closed: true } : await page.evaluate(() => ({
       closed: false, readyState: document.readyState, focused: document.hasFocus(),
       visibility: document.visibilityState, activeElement: document.activeElement?.tagName,
+      activeElementId: document.activeElement?.id, activeElementClass: document.activeElement?.className,
+      activeElementInert: !!document.activeElement?.closest('[inert]'),
+      readyOpen: !!document.querySelector('.ready-overlay.is-open'),
+      focusHistory: window.runtimeFocusHistory ?? [],
       keys: window.fixtureKeys ?? [],
     })).catch(() => ({ inspectionFailed: true }))
   }
