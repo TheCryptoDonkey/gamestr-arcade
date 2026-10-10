@@ -245,6 +245,17 @@ failure, not fresh evidence of the original input defect. The observer has
 been removed; diagnostics now listen only to passive DOM focus and keyboard
 events. The failed relaunch with that observer cannot justify a product fix.
 
+The smoke launcher now exposes a second loopback inspector only in its isolated
+test process. The harness reads native window and WebContents focus before
+gameplay keys and on failure, without replacing product listeners or changing
+focus. The local macOS journey passes with these snapshots and retains all
+keyboard, return, signature and isolation assertions. Its native window and
+contents reported unfocused while trusted CDP input still arrived, so native
+focus alone does not explain every result. See
+[local probe evidence](evidence/gamestr-native-focus-probe-local.json).
+The next hosted run will capture the corresponding Linux state; this is
+diagnostic coverage, not a demonstrated product repair.
+
 
 A fresh real My Signet run on arcade `4aa7661` and Pallasite `14e969f` earned
 16,563 points through normal keyboard gameplay. The selected account produced

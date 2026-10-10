@@ -6,6 +6,7 @@ import { setTimeout as delay } from 'node:timers/promises'
 import assert from 'node:assert/strict'
 import { chromium } from 'playwright'
 import { verifyEvent } from 'nostr-tools/pure'
+import { connectNativeFocusInspector } from './runtime-native-focus.mjs'
 
 const root = process.argv[2]
 if (!root) throw new Error('Pass the isolated runtime fixture directory')
@@ -13,6 +14,8 @@ let browser
 let stage = 'starting runtime'
 let shellPage
 let gamePage
+let nativeInspector
+const nativeFocus = []
 const server = createServer((_request, response) => {
   response.writeHead(200, { 'content-type': 'text/html' })
   response.end(`<!doctype html><title>Isolated runtime game</title><h1>Runtime fixture</h1><script>
@@ -25,6 +28,9 @@ const origin = `http://127.0.0.1:${server.address().port}`
 const probe = createServer()
 await new Promise(resolve => probe.listen(0, '127.0.0.1', resolve))
 const debugPort = probe.address().port
+await new Promise(resolve => probe.close(resolve))
+await new Promise(resolve => probe.listen(0, '127.0.0.1', resolve))
+const nativeDebugPort = probe.address().port
 await new Promise(resolve => probe.close(resolve))
 for (const [index, slug] of ['game-a', 'game-b'].entries()) {
   const directory = `${root}/games/${slug}`
@@ -41,6 +47,7 @@ writeFileSync(`${root}/arcade.config.json`, JSON.stringify({
   leaderboard: { provider: 'mock', relays: [], topN: 5 },
 }))
 writeFileSync(`${root}/debug-port`, String(debugPort))
+writeFileSync(`${root}/native-debug-port`, String(nativeDebugPort))
 writeFileSync(`${root}/fixture-ready`, 'ready')
 
 const watchdog = setTimeout(() => { console.error('Packaged runtime journeys exceeded 75 seconds'); process.exit(1) }, 75000)
@@ -51,6 +58,7 @@ async function until(check, timeoutMs = 15000) {
 }
 try {
   await until(() => existsSync(`${root}/ready.json`), 35000)
+  nativeInspector = await connectNativeFocusInspector(nativeDebugPort)
   browser = await chromium.connectOverCDP(`http://127.0.0.1:${debugPort}`)
   const context = browser.contexts()[0]
   const shell = await until(() => context.pages().find(page => page.url().startsWith('file:')))
@@ -99,6 +107,7 @@ try {
   assert.equal(signed.pubkey, pubkey)
   assert.equal(verifyEvent(signed), true)
   stage = 'first game trusted ArrowUp'
+  nativeFocus.push({ stage, ...await nativeInspector.read() })
   await first.keyboard.press('ArrowUp')
   await first.waitForFunction(() => fixtureKeys.some(event => event.key === 'ArrowUp' && event.trusted))
   const authority = await first.evaluate(() => {
@@ -121,6 +130,7 @@ try {
   assert.equal(fresh.cookies, '')
   assert.equal(fresh.wallet, 'undefined')
   stage = 'second game Escape return'
+  nativeFocus.push({ stage, ...await nativeInspector.read() })
   await second.keyboard.down('Escape')
   await until(() => second.isClosed())
   await shell.keyboard.up('Escape')
@@ -130,6 +140,7 @@ try {
     freshGuestOnRelaunch: true, gameStorageAndCookiesIsolated: true,
     trustedGameKeyboardInput: true, walletUnavailableWithoutConfiguration: true,
     noNodeOrShellBridgeInGame: true, physicalControllerAcceptance: 'pending',
+    nativeFocus,
   }))
 } catch (error) {
   const pages = {}
@@ -145,12 +156,14 @@ try {
       keys: window.fixtureKeys ?? [],
     })).catch(() => ({ inspectionFailed: true }))
   }
-  const failure = { stage, error: error instanceof Error ? error.message : String(error), pages }
+  const currentNativeFocus = nativeInspector ? await nativeInspector.read().catch(() => ({ inspectionFailed: true })) : null
+  const failure = { stage, error: error instanceof Error ? error.message : String(error), pages, nativeFocus, currentNativeFocus }
   writeFileSync(`${root}/journeys-failure.json`, JSON.stringify(failure, null, 2))
   console.error('Packaged runtime failure diagnostics:', JSON.stringify(failure))
   throw error
 } finally {
   clearTimeout(watchdog)
+  nativeInspector?.close()
   if (browser) await browser.close()
   await new Promise(resolve => server.close(resolve))
 }

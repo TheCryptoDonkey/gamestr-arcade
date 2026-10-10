@@ -33,11 +33,12 @@ for _attempt in {1..40}; do
 done
 if [[ ! -s "$SMOKE_DIR/fixture-ready" ]]; then cat "$SMOKE_DIR/journeys.log" >&2; exit 1; fi
 DEBUG_PORT="$(cat "$SMOKE_DIR/debug-port")"
+NATIVE_DEBUG_PORT="$(cat "$SMOKE_DIR/native-debug-port")"
 chmod +x "$APPIMAGE"
 # Test-only sandbox override: the CI runner has no browser sandbox namespace.
 # This launches the packaged renderer with a public fixture and no signer/wallet.
 setsid env APPIMAGE_EXTRACT_AND_RUN=1 ARCADE_CONFIG="$SMOKE_DIR/arcade.config.json" ARCADE_READY_FILE="$SMOKE_DIR/ready.json" ARCADE_KIOSK=0 \
-  xvfb-run -a "$APPIMAGE" --no-sandbox --disable-gpu --remote-debugging-port="$DEBUG_PORT" --remote-debugging-address=127.0.0.1 --user-data-dir="$SMOKE_DIR/user-data" > "$SMOKE_DIR/runtime.log" 2>&1 &
+  xvfb-run -a "$APPIMAGE" --no-sandbox --disable-gpu --inspect="127.0.0.1:$NATIVE_DEBUG_PORT" --remote-debugging-port="$DEBUG_PORT" --remote-debugging-address=127.0.0.1 --user-data-dir="$SMOKE_DIR/user-data" > "$SMOKE_DIR/runtime.log" 2>&1 &
 SMOKE_PID=$!
 for _attempt in {1..60}; do
   if [[ -s "$SMOKE_DIR/ready.json" ]]; then break; fi
