@@ -162,8 +162,9 @@ The launch handoff is restricted to the 600 Billion edition. All four games now
 have deployed consumers. Pallasite has a deployed correction for worker reload
 and booth-account selection. Failed personal scores now remain with their
 original account for retry. Normal gameplay and an attributed public score now
-pass in each game with real My Signet; the shared-account matrix and live saved-score
-retry remain open.
+pass in each game with real My Signet. Live same-account retry also passes
+after a real signing timeout in Pallasite; the shared-account matrix and
+physical checks remain open.
 
 Acceptance criteria:
 
