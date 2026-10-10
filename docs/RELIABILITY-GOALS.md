@@ -62,7 +62,7 @@ Android NIP-55 signers return a signed event, but application boot does not cons
 
 Acceptance criteria:
 
-- [ ] Sign-in, account and logout controls remain visible and operable at
+- [x] Sign-in, account and logout controls remain visible and operable at
   320px, 390px, 768px, 1024px and desktop widths in both editions. They do not
   overlap navigation or disappear at browser zoom.
 - [x] Boot processes incoming SDK callbacks before normal session restoration,

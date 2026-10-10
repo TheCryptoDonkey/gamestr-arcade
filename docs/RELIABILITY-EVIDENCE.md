@@ -29,8 +29,13 @@ automated results, hosted artifacts and actual user/device acceptance.
 - Genuine Chromium zoom found an account-menu logout option outside the
   viewport. The menu now scrolls within a bounded viewport height. Both added
   320-by-240 browser checks pass with actual SDK login, measured menu bounds,
-  scrolling and logout. The full CI suite now contains 44 checks; genuine
-  200%/400% zoom re-verification is still in progress.
+  scrolling and logout. Genuine 200%/400% Chromium zoom now passes in both
+  production editions: CSS zoom stays at 1, a 1280px window becomes 640/320 CSS
+  pixels, pixel ratio becomes 2/4, horizontal overflow remains zero and login,
+  the fixture account and logout remain operable. This uses the actual browser
+  `chrome.tabs.setZoom` API in an isolated temporary extension and profile;
+  see [zoom proof](evidence/gamestr-native-browser-zoom.json). The full CI suite
+  now contains 44 checks. This is desktop Chromium evidence, not a phone check.
 - `npm run check`: passed 64 test files / 646 tests, typechecking, manifest and
   configuration validation, desktop build and both production web builds.
 - Initial script for the 600 edition remains within the 150 kB build gate.

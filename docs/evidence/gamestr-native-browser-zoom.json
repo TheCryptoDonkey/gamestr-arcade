@@ -1,0 +1,85 @@
+{
+  "method": "chrome.tabs.setZoom in an isolated temporary Chromium extension",
+  "physicalDevice": false,
+  "results": [
+    {
+      "edition": "gamestr",
+      "factor": 2,
+      "actualZoom": 2,
+      "baseline": {
+        "width": 1280,
+        "dpr": 1
+      },
+      "dimensions": {
+        "width": 640,
+        "dpr": 2,
+        "overflow": 0,
+        "cssZoom": "1"
+      },
+      "loginOperable": true,
+      "fixtureAccountAndLogoutOperable": true
+    },
+    {
+      "edition": "gamestr",
+      "factor": 4,
+      "actualZoom": 3.9999999999999996,
+      "baseline": {
+        "width": 1280,
+        "dpr": 1
+      },
+      "dimensions": {
+        "width": 320,
+        "dpr": 4,
+        "overflow": 0,
+        "cssZoom": "1"
+      },
+      "loginOperable": true,
+      "fixtureAccountAndLogoutOperable": true
+    },
+    {
+      "edition": "600",
+      "factor": 2,
+      "actualZoom": 2,
+      "baseline": {
+        "width": 1280,
+        "dpr": 1
+      },
+      "dimensions": {
+        "width": 640,
+        "dpr": 2,
+        "overflow": 0,
+        "cssZoom": "1"
+      },
+      "loginOperable": true,
+      "fixtureAccountAndLogoutOperable": true
+    },
+    {
+      "edition": "600",
+      "factor": 4,
+      "actualZoom": 3.9999999999999996,
+      "baseline": {
+        "width": 1280,
+        "dpr": 1
+      },
+      "dimensions": {
+        "width": 320,
+        "dpr": 4,
+        "overflow": 0,
+        "cssZoom": "1"
+      },
+      "loginOperable": true,
+      "fixtureAccountAndLogoutOperable": true
+    }
+  ],
+  "sourceRevision": "f4fa70fb4891c96cddb8950cc4c493afe234eebe",
+  "builds": {
+    "gamestr": {
+      "/assets/index-CFquP4CP.js": "54986344cb5ca3564f7f521635f31ae45f3066dffe3f04f5718fbd5a317eef3e",
+      "/assets/index-CE6SpJ9L.css": "0f4bd1555b2cfbbff99b75f8d419957dab30ebb9d4963c0e68f84795c3b1322c"
+    },
+    "600": {
+      "/assets/index-MY-UumwF.js": "49e7f082f20f5aceea4c951f5d99b762126dc568823bd99939ca24b74d0a6a96",
+      "/assets/index-CE6SpJ9L.css": "0f4bd1555b2cfbbff99b75f8d419957dab30ebb9d4963c0e68f84795c3b1322c"
+    }
+  }
+}
