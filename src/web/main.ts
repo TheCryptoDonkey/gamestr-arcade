@@ -35,7 +35,7 @@ const state = {
   scoreLookups: new Map<string, { status: 'syncing' | 'found' | 'invalid' | 'unavailable'; match?: { game: WebGame; entry: LeaderboardEntry } }>(),
   games: [] as WebGame[], query: '', filter: 'all', genre: 'all', selected: null as WebGame | null,
   scores: new Map<string, LeaderboardEntry[]>(), cachedScores: false, relay: 'connecting' as 'connecting' | 'up' | 'down',
-  pubkey: '', identityConnecting: false, identityDisconnecting: false, accountMenuOpen: false,
+  pubkey: '', identityConnecting: false, identityRestoring: true, identityDisconnecting: false, accountMenuOpen: false,
   profiles: new Map<string, Profile>(), profileRequests: new Set<string>(),
   members: new Map<string, string>(),
   social: readSocialState(), activityMode: 'all' as 'all' | 'following',
@@ -131,6 +131,16 @@ function playLink(game: WebGame, label = 'PLAY', className = 'play-small'): HTML
   link.target = '_blank'
   link.rel = 'noopener noreferrer'
   const handoff = game.nostrHandoff?.protocol === 'gamestr-auth-v1' && game.nostrHandoff.editions.includes(WEB_EDITION.key) ? game.nostrHandoff : undefined
+  if (handoff && state.identityRestoring) {
+    link.setAttribute('aria-disabled', 'true')
+    link.title = 'Restoring your arcade account before launching with your identity.'
+    link.addEventListener('click', event => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+      event.preventDefault()
+      toast('Your arcade account is still restoring. Try Play again when it is ready.', 'warn')
+    })
+    return link
+  }
   const session = handoff ? currentNostrGameSession() : undefined
   link.title = session ? 'Normal click carries your arcade identity; modifier clicks use the game’s own login.' : 'Opens the game with its own login.'
   if (session) {
@@ -197,8 +207,8 @@ function header(): HTMLElement {
       onLogout: () => void logoutIdentity(),
     })
   } else {
-    const connect = button(state.identityConnecting ? 'OPENING SIGNET…' : 'CONNECT NOSTR', 'identity-button', () => void connectIdentity())
-    connect.disabled = state.identityConnecting || state.identityDisconnecting
+    const connect = button(state.identityRestoring ? 'RESTORING ACCOUNT…' : state.identityConnecting ? 'OPENING SIGNET…' : 'CONNECT NOSTR', 'identity-button', () => void connectIdentity())
+    connect.disabled = state.identityRestoring || state.identityConnecting || state.identityDisconnecting
     identity = connect
   }
   head.append(brand, nav, relay, identity)
@@ -937,7 +947,10 @@ async function boot(): Promise<void> {
     }).catch(() => undefined)
   }
   try { localStorage.removeItem('gamestr:pubkey') } catch { /* signing still works in memory when browser storage is blocked */ }
-  void restoreNostrAccess(RELAYS)
+  void restoreNostrAccess(RELAYS).finally(() => {
+    state.identityRestoring = false
+    render()
+  })
 }
 
 void boot()

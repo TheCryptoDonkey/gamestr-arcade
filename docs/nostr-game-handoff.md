@@ -40,9 +40,10 @@ A future game should:
 The curated manifest must additionally declare `nostrHandoff.protocol`, the
 supported `editions`, and allowed `signKinds`. A generic `nostrSign` permission
 alone does not advertise a consumer. Currently the reviewed contract is the
-600 edition; the standard edition opens the game's own login. Ledger's new
-consumer must pass its release gate and deploy before its support is treated
-as live acceptance.
+600 edition; the standard edition opens the game's own login. Ledger consumer
+`e3937ca` passed all 98 release checks and is deployed with verified assets and
+claim-service health. Real same-player runs through all four games remain a
+separate acceptance gate.
 
 Only declared kinds 30762, 5555 and 27235 may pass the bridge. Score events must
 name the launched game; NIP-98 `u` tags must name the target origin. Event times

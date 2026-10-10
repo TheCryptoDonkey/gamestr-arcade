@@ -5,6 +5,17 @@ automated results, hosted artifacts and actual user/device acceptance.
 
 ## Latest live My Signet result
 
+Normal Ledger launch has now displayed the selected My Signet account and
+completed the deployed MessagePort connection at the forced Hetzner 600
+origin. An earlier launch clicked Play during the arcade's page-reload restore
+and correctly fell back to guest mode, exposing an avoidable race in the arcade
+controls. The source now shows account restoration and prevents normal identity
+handoff launches until restoration finishes. Modifier clicks and standard-edition
+independent game login retain their existing behaviour. Both new held-SDK
+restore checks and the full 46-browser-journey suite pass; all 646 unit tests
+and desktop/both web builds pass. Deployment of this follow-up is pending.
+The completed run and published score are still unverified.
+
 Standard web revision `63c66b5` is deployed on Hetzner and passed hosted
 [CI 38072565641](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38072565641),
 all 646 unit tests and all 44 browser journeys. Root HTML, the Pallasite route,

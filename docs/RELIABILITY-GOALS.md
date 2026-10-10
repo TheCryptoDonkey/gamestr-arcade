@@ -166,7 +166,7 @@ Acceptance criteria:
 
 - [x] Declare which games support identity and signing handoff. Only games
   with the relevant reviewed capability receive a signing bridge.
-- [ ] Implement and deploy the missing Ledger consumer in its own repository.
+- [x] Implement and deploy the missing Ledger consumer in its own repository.
   Consumer changes require that repository's instructions and verification.
 - [x] Support the standard edition through an explicit consumer origin/app
   contract, or show clearly that its games require separate login. Do not claim

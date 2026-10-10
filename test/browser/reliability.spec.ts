@@ -202,6 +202,41 @@ for (const [edition, port] of [['gamestr', 4174], ['600', 4175]] as const) {
     await expect(page.locator('#favourite-detail-pallasite')).toHaveText('☆ ADD TO MY ARCADE')
   })
 
+  test(`${edition}: game launch waits for account restoration only when it carries identity`, async ({ page }) => {
+    await setup(page, true)
+    await page.goto(`http://127.0.0.1:${port}/game/pallasite`)
+    await page.getByRole('button', { name: 'CONNECT NOSTR', exact: true }).click()
+    await page.getByRole('button', { name: 'Browser extension', exact: true }).click()
+    await expect(page.locator('.identity-trigger')).toBeVisible()
+    await page.addInitScript(() => {
+      const w = window as unknown as { nostr: { getPublicKey(): Promise<string> }; __releaseRestore?: () => void }
+      const original = w.nostr.getPublicKey.bind(w.nostr)
+      w.nostr.getPublicKey = () => new Promise(resolve => { w.__releaseRestore = () => { void original().then(resolve) } })
+    })
+    await page.reload()
+    await page.waitForFunction(() => !!(window as unknown as { __releaseRestore?: () => void }).__releaseRestore)
+    await expect(page.getByRole('button', { name: 'RESTORING ACCOUNT…', exact: true })).toBeDisabled()
+    const play = page.getByRole('link', { name: 'PLAY ON PUBLISHER SITE ↗', exact: true })
+    if (edition === '600') {
+      await expect(play).toHaveAttribute('aria-disabled', 'true')
+      let popups = 0
+      page.on('popup', () => { popups++ })
+      const box = (await play.boundingBox())!
+      // A real pointer click verifies the handler; ARIA alone does not disable links.
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+      await expect(page.getByRole('status')).toContainText('account is still restoring')
+      expect(popups).toBe(0)
+    } else {
+      await expect(play).not.toHaveAttribute('aria-disabled', 'true')
+    }
+    await page.evaluate(() => (window as unknown as { __releaseRestore(): void }).__releaseRestore())
+    await expect(page.locator('.identity-trigger')).toBeVisible()
+    await expect(play).not.toHaveAttribute('aria-disabled', 'true')
+    await expect(play).toHaveAttribute('title', edition === '600'
+      ? 'Normal click carries your arcade identity; modifier clicks use the game’s own login.'
+      : 'Opens the game with its own login.')
+  })
+
   test(`${edition}: logout during pending SDK restoration cannot reactivate the account`, async ({ page }) => {
     await setup(page, true)
     await page.goto(`http://127.0.0.1:${port}/game/pallasite`)
