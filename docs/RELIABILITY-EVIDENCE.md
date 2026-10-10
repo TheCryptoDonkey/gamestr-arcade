@@ -71,8 +71,38 @@ REVIEWED GAME AUTHORITY; see [public event](evidence/gamestr-ledger-real-score-0
 and [rendered score proof](evidence/gamestr-ledger-real-score-ui-0948199.json).
 The HTTP claim response was not captured, so this record relies on the
 verified public event rather than inventing a response status. The flight
-is browser automation, not physical-phone or cabinet proof. Pallasite,
-Neon Sentinel and Hang On, Fren still need their completed-run checks.
+is browser automation, not physical-phone or cabinet proof.
+
+## Real Hang On, Fren and Neon Sentinel runs
+
+Both published games completed normal keyboard-controlled runs from the forced
+Hetzner 600 origin with actual My Signet Bunker approval and signing. Hang On,
+Fren earned 4,214 points; Neon Sentinel earned 9,781. Each claim returned HTTP
+200 and published an event. Independent relay reads verified each reviewed
+game-authority signature, the selected player tag and the score. Fresh read-only
+arcade pages displayed the exact events, matching player links and REVIEWED GAME
+AUTHORITY. No game state, score or event was injected. Evidence records the
+published game asset filename and SHA-256 rather than assuming a local checkout
+matches the deployed game.
+
+- Hang On, Fren: [run](evidence/gamestr-hang-on-fren-live-run-0948199.json),
+  [public event](evidence/gamestr-hang-on-fren-real-score-0948199.json),
+  [rendered score](evidence/gamestr-hang-on-fren-real-score-ui-0948199.json).
+- Neon Sentinel: [run](evidence/gamestr-neon-sentinel-live-run-0948199.json),
+  [public event](evidence/gamestr-neon-sentinel-real-score-0948199.json),
+  [rendered score](evidence/gamestr-neon-sentinel-real-score-ui-0948199.json).
+
+These are separate disposable accounts, each preserved through its own run.
+They do not prove one account across all four games or physical acceptance.
+Pallasite, the shared-account matrix, phone lifecycle checks and DNS cutover
+remain pending.
+
+The documentation revision `cc1f2f3` passed
+[CI 38074323905](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38074323905)
+on an unchanged rerun. Its first attempt timed out waiting for a trusted
+ArrowUp event in the packaged Linux game; the preceding build passed the same
+check. The rerun is passing evidence, not a demonstrated fix for the intermittent
+input failure. Physical cabinet input remains a separate acceptance gate.
 
 ## Local implementation and checks
 

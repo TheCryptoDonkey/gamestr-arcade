@@ -1,0 +1,130 @@
+{
+  "relay": "wss://relay.trotters.cc",
+  "signatureVerified": true,
+  "playerPubkey": "2f35aa9cefec18938e2e5b671f9e3452b69f8149d8865936f00f8cb56f538faf",
+  "reviewedAuthority": "370148bb752fee753c8dd436752e801f02913dbc7ac6330828d13d5540c4ca21",
+  "event": {
+    "content": "{\"game\":\"neonsentinel\",\"run_id\":\"run-att60p-lf1ulu\",\"player\":\"2f35aa9cefec18938e2e5b671f9e3452b69f8149d8865936f00f8cb56f538faf\",\"score\":9781,\"wave\":2,\"credits\":0,\"payout_sats\":0,\"playerName\":\"npub 2f35aa\",\"playerMode\":\"nostr\",\"player_name\":\"npub 2f35aa\",\"player_mode\":\"nostr\",\"nip05\":null,\"metrics\":{\"deaths\":6,\"damageEvents\":6,\"shotHitRate\":0.048109965635738834,\"shotsFired\":291,\"shotsHit\":14,\"rescueAverageSeconds\":1.5196666666666285,\"rescueSlowestSeconds\":1.5196666666666285,\"lowCampSeconds\":0,\"lowCampRatio\":0,\"contactsLifted\":6,\"contactsDropped\":0,\"contactsForged\":5,\"topDamageSource\":\"dart:6\",\"waveDurations\":[{\"wave\":1,\"seconds\":28.638666666667493,\"cleared\":true},{\"wave\":2,\"seconds\":12.376666666667756,\"cleared\":false}]}}",
+    "created_at": 1791656142,
+    "id": "499c15ff0a8d3dca9857bd2256a7950c624a314ea112940eb4b795dc6fbb8b7e",
+    "kind": 30762,
+    "pubkey": "370148bb752fee753c8dd436752e801f02913dbc7ac6330828d13d5540c4ca21",
+    "sig": "21bdb08a3acddb3665b8a3069b77f9b7318772b8f99d879c51991f2fcf5557c73c4e844d3b1f9e1443cdfd1ad1d0625030ce4df6270d20c50871a8bbd6e2bd03",
+    "tags": [
+      [
+        "d",
+        "neonsentinel:2f35aa9cefec18938e2e5b671f9e3452b69f8149d8865936f00f8cb56f538faf:run-att60p-lf1ulu"
+      ],
+      [
+        "game",
+        "neonsentinel"
+      ],
+      [
+        "score",
+        "9781"
+      ],
+      [
+        "p",
+        "2f35aa9cefec18938e2e5b671f9e3452b69f8149d8865936f00f8cb56f538faf"
+      ],
+      [
+        "sats",
+        "0"
+      ],
+      [
+        "state",
+        "final"
+      ],
+      [
+        "wave",
+        "2"
+      ],
+      [
+        "duration",
+        "48"
+      ],
+      [
+        "rescues",
+        "1"
+      ],
+      [
+        "known_rescues",
+        "1"
+      ],
+      [
+        "lost",
+        "5"
+      ],
+      [
+        "credits",
+        "0"
+      ],
+      [
+        "max_combo",
+        "3"
+      ],
+      [
+        "title",
+        "Neon Sentinel"
+      ],
+      [
+        "level",
+        "2"
+      ],
+      [
+        "r",
+        "https://neonsentinel.com/"
+      ],
+      [
+        "source",
+        "neonsentinel.com"
+      ],
+      [
+        "platform",
+        "web"
+      ],
+      [
+        "image",
+        "https://neonsentinel.com/brand/icon-512.png"
+      ],
+      [
+        "r",
+        "https://neonsentinel.com/brand/icon-512.png"
+      ],
+      [
+        "imeta",
+        "url https://neonsentinel.com/brand/icon-512.png",
+        "m image/png",
+        "alt Neon Sentinel icon"
+      ],
+      [
+        "t",
+        "arcade"
+      ],
+      [
+        "t",
+        "rescue-shooter"
+      ],
+      [
+        "t",
+        "nostr"
+      ],
+      [
+        "t",
+        "neonsentinel"
+      ],
+      [
+        "player",
+        "npub 2f35aa"
+      ],
+      [
+        "playerName",
+        "npub 2f35aa"
+      ],
+      [
+        "playerMode",
+        "nostr"
+      ]
+    ]
+  }
+}
