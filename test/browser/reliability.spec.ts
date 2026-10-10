@@ -14,7 +14,11 @@ async function setup(page: Page, extension = false) {
     w.__selected = pubkey; w.__signed = 0
     if (extension) w.nostr = { getPublicKey: async () => w.__selected, signEvent: async (template: unknown) => { ++w.__signed; return w.__testSign(template, w.__selected) } }
     const Native = window.WebSocket
-    const sockets: { requests: unknown[][]; onmessage?: (event: { data: string }) => void }[] = []
+    const sockets: { requests: unknown[][]; publications: { id: string }[]; onmessage?: (event: { data: string }) => void }[] = []
+    ;(window as unknown as { __fixturePublishedEvents: { id: string }[] }).__fixturePublishedEvents = []
+    ;(window as unknown as { __fixturePublishOk(): void }).__fixturePublishOk = () => {
+      for (const socket of sockets) for (const event of socket.publications) socket.onmessage?.({ data: JSON.stringify(['OK', event.id, true, 'fixture accepted']) })
+    }
     ;(window as unknown as { __fixtureRelayEvent(event: { kind: number; pubkey: string }): void }).__fixtureRelayEvent = event => {
       for (const socket of sockets) for (const request of socket.requests) {
         const filter = request[2] as { kinds?: number[]; authors?: string[]; ids?: string[] }
@@ -29,8 +33,13 @@ async function setup(page: Page, extension = false) {
       onopen?: () => void
       onmessage?: (event: { data: string }) => void
       requests: unknown[][] = []
+      publications: { id: string }[] = []
       constructor(url: string, protocols?: string | string[]) { if (!url.startsWith('wss://')) return new Native(url, protocols) as unknown as this; sockets.push(this); setTimeout(() => this.onopen?.(), 0) }
-      send(raw: string) { const request = JSON.parse(raw); if (request[0] === 'REQ') this.requests.push(request) } close() {} addEventListener() {} removeEventListener() {}
+      send(raw: string) {
+        const request = JSON.parse(raw)
+        if (request[0] === 'REQ') this.requests.push(request)
+        if (request[0] === 'EVENT') { this.publications.push(request[1]); (window as unknown as { __fixturePublishedEvents: unknown[] }).__fixturePublishedEvents.push(request[1]) }
+      } close() {} addEventListener() {} removeEventListener() {}
     } as unknown as typeof WebSocket
   }, { extension, pubkey })
   await page.route('**/catalogue.json', route => route.fulfill({ json: catalogue }))
@@ -38,6 +47,25 @@ async function setup(page: Page, extension = false) {
 }
 
 for (const [edition, port] of [['gamestr', 4174], ['600', 4175]] as const) {
+  test(`${edition}: completed challenge discloses missing history and ranks only its signed window`, async ({ page }) => {
+    await setup(page)
+    const now = Math.floor(Date.now() / 1000)
+    const start = now - 3 * 86400
+    const challenge = finalizeEvent({ kind: 23034, created_at: start, tags: [['game', 'pallasite'], ['r', 'https://pallasite.app/'], ['start', String(start)], ['end', String(start + 3600)]], content: JSON.stringify({ name: 'Earlier challenge' }) }, key)
+    await page.goto(`http://127.0.0.1:${port}/challenge/${Buffer.from(JSON.stringify(challenge)).toString('base64url')}`)
+    await expect(page.getByRole('heading', { name: 'OBSERVED STANDINGS', exact: true })).toBeVisible()
+    await expect(page.locator('.challenge-standings')).toContainText('complete challenge history has not been established')
+    await expect(page.locator('.challenge-board')).toContainText('No verified scores from this window have been received')
+    const outside = finalizeEvent({ kind: 30762, created_at: now, tags: [['game', 'pallasite'], ['score', '999999']], content: '' }, key)
+    await page.evaluate(event => (window as unknown as { __fixtureRelayEvent(event: unknown): void }).__fixtureRelayEvent(event), outside)
+    await expect(page.locator('.challenge-board')).not.toContainText('999,999')
+    const inside = finalizeEvent({ kind: 30762, created_at: start + 120, tags: [['game', 'pallasite'], ['score', '42']], content: '' }, other)
+    await page.evaluate(event => (window as unknown as { __fixtureRelayEvent(event: unknown): void }).__fixtureRelayEvent(event), inside)
+    await expect(page.locator('.challenge-board')).toContainText('42')
+    await expect(page.locator('.challenge-board')).not.toContainText('999,999')
+    await expect(page.locator('.challenge-standings')).toContainText('complete challenge history has not been established')
+  })
+
   test(`${edition}: old score links resolve independently and finish with useful invalid or unavailable states`, async ({ page }) => {
     await setup(page)
     const old = finalizeEvent({ kind: 30762, created_at: 1_600_000_000, tags: [['game', 'pallasite'], ['score', '4242']], content: '' }, key)
@@ -77,6 +105,21 @@ for (const [edition, port] of [['gamestr', 4174], ['600', 4175]] as const) {
     await expect(page.getByRole('dialog')).toBeVisible()
     await page.getByRole('button', { name: 'Cancel', exact: true }).click()
     await expect(login).toBeEnabled()
+  })
+
+  test(`${edition}: a short viewport keeps the account menu scrollable and logout operable`, async ({ page }) => {
+    await setup(page, true)
+    await page.setViewportSize({ width: 320, height: 240 })
+    await page.goto(`http://127.0.0.1:${port}/`)
+    await page.getByRole('button', { name: 'CONNECT NOSTR', exact: true }).click()
+    await page.getByRole('button', { name: 'Browser extension', exact: true }).click()
+    await page.locator('.identity-trigger').click()
+    const menu = page.getByRole('menu', { exact: true })
+    const bounds = (await menu.boundingBox())!
+    expect(bounds.y + bounds.height).toBeLessThanOrEqual(240)
+    expect(await menu.evaluate(node => node.scrollHeight > node.clientHeight)).toBe(true)
+    await page.getByRole('menuitem', { name: 'LOG OUT', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'CONNECT NOSTR', exact: true })).toBeVisible()
   })
 
   test(`${edition}: extension login, refresh, account switch and logout enforce selected identity`, async ({ page }) => {
@@ -236,6 +279,47 @@ for (const [edition, port] of [['gamestr', 4174], ['600', 4175]] as const) {
     await page.reload()
     await expect(editor).toHaveValue('{"draft":"keep me"}')
   })
+
+  test(`${edition}: validated manifest and pending publication survive SDK login, profile updates and logout`, async ({ page }) => {
+    await setup(page, true)
+    await page.goto(`http://127.0.0.1:${port}/developers`)
+    const studio = page.locator('.manifest-studio')
+    const editor = page.locator('#manifest-json')
+    const draft = await editor.inputValue()
+    await studio.getByRole('button', { name: 'VALIDATE', exact: true }).click()
+    await expect(studio.locator('.studio-status')).toContainText('Valid Manifest v2')
+    await page.getByRole('button', { name: 'CONNECT NOSTR', exact: true }).click()
+    await page.getByRole('button', { name: 'Browser extension', exact: true }).click()
+    await expect(page.locator('.identity-trigger')).toBeVisible()
+    await expect(studio.locator('.studio-status')).toContainText('Valid Manifest v2')
+    await expect(studio.getByRole('button', { name: 'SIGN & PUBLISH', exact: true })).toBeEnabled()
+    await page.evaluate(() => {
+      const w = window as unknown as { nostr: { signEvent(t: { kind: number }): Promise<unknown> }; __releaseManifest?: () => void }
+      const sign = w.nostr.signEvent.bind(w.nostr)
+      w.nostr.signEvent = async template => { if (template.kind === 31990) await new Promise<void>(resolve => { w.__releaseManifest = resolve }); return sign(template) }
+    })
+    await studio.getByRole('button', { name: 'SIGN & PUBLISH', exact: true }).click()
+    await expect(studio.locator('.studio-status')).toContainText('Waiting for your Nostr signer')
+    const profile = finalizeEvent({ kind: 0, created_at: Math.floor(Date.now() / 1000), tags: [], content: JSON.stringify({ name: 'Publishing player' }) }, key)
+    await page.evaluate(event => (window as unknown as { __fixtureRelayEvent(event: unknown): void }).__fixtureRelayEvent(event), profile)
+    await expect(page.locator('.identity-trigger')).toContainText('Publishing player')
+    await expect(studio.locator('.studio-status')).toContainText('Waiting for your Nostr signer')
+    await expect(editor).toHaveValue(draft)
+    await expect(editor).toHaveJSProperty('readOnly', true)
+    await page.evaluate(() => (window as unknown as { __releaseManifest(): void }).__releaseManifest())
+    await page.waitForFunction(() => (window as unknown as { __fixturePublishedEvents: unknown[] }).__fixturePublishedEvents.length > 0)
+    await expect(studio.locator('.studio-status')).toContainText('Publishing the signed submission')
+    await page.locator('.identity-trigger').click()
+    await page.getByRole('menuitem', { name: 'LOG OUT', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'CONNECT NOSTR', exact: true })).toBeVisible()
+    await expect(studio.locator('.studio-status')).toContainText('Publishing the signed submission')
+    await expect(studio.getByRole('button', { name: 'SIGN & PUBLISH', exact: true })).toBeDisabled()
+    await page.evaluate(() => (window as unknown as { __fixturePublishOk(): void }).__fixturePublishOk())
+    await expect(studio.locator('.studio-status')).toContainText('Published')
+    await expect(editor).toHaveValue(draft)
+    await expect(editor).toHaveJSProperty('readOnly', false)
+    expect(await page.evaluate(() => new Set((window as unknown as { __fixturePublishedEvents: { id: string }[] }).__fixturePublishedEvents.map(event => event.id)).size)).toBe(1)
+  })
 }
 
 test('Android picker names Cambium and Amber', async ({ page }) => {
@@ -260,9 +344,10 @@ test('600: an actual child signing port stays revoked after logout and signing b
       if (data.type === 'result') { pending.get(data.id)?.(data); pending.delete(data.id); }
     };
     window.__request = () => new Promise(resolve => {
-      const id = crypto.randomUUID(); pending.set(id, resolve);
+      const id = crypto.randomUUID();
+      const timer = setTimeout(() => { pending.delete(id); resolve({ timeout: true }); }, 1000);
+      pending.set(id, result => { clearTimeout(timer); resolve(result); });
       bridge.port1.postMessage({ protocol: 'gamestr-auth-v1', type: 'sign', id, event: { kind: 30762, created_at: Math.floor(Date.now()/1000), tags: [['game', 'pallasite'], ['score', '1']], content: '' } });
-      setTimeout(() => { pending.delete(id); resolve({ timeout: true }); }, 1000);
     });
     opener.postMessage({ protocol: 'gamestr-auth-v1', type: 'connect', channel: payload.channel }, 'http://127.0.0.1:4175', [bridge.port2]);
   </script>` }))
@@ -278,14 +363,19 @@ test('600: an actual child signing port stays revoked after logout and signing b
   await page.getByRole('link', { name: 'PLAY ON PUBLISHER SITE ↗', exact: true }).click()
   const child = await opened
   await child.waitForFunction(() => (window as unknown as { __connected: boolean }).__connected)
-  const request = () => child.evaluate(() => (window as unknown as { __request(): Promise<{ ok?: boolean; timeout?: boolean }> }).__request())
+  const request = async () => {
+    await child.bringToFront()
+    return child.evaluate(() => (window as unknown as { __request(): Promise<{ ok?: boolean; timeout?: boolean }> }).__request())
+  }
   expect((await request()).ok).toBe(true)
   const signed = await page.evaluate(() => (window as unknown as { __signed: number }).__signed)
+  await page.bringToFront()
   await page.locator('.identity-trigger').click()
   await page.getByRole('menuitem', { name: 'LOG OUT' }).click()
   expect((await request()).timeout).toBe(true)
   await login()
   expect((await request()).timeout).toBe(true)
   // Login signs a fresh auth proof, but the old child must never sign another score.
+  await page.bringToFront()
   expect(await page.evaluate(() => (window as unknown as { __signed: number }).__signed)).toBe(signed + 1)
 })

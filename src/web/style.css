@@ -259,6 +259,7 @@ html[data-web-edition="600"] textarea:focus-visible { outline-color: var(--editi
 }
 
 .reward-qr { display:block; width:min(100%,20rem); margin:1rem auto; background:white; padding:1rem; }
+.identity-dropdown { max-height:calc(100dvh - 6rem); overflow-y:auto; overscroll-behavior:contain; }
 .reward-form > textarea { width:100%; min-height:5rem; overflow-wrap:anywhere; }
 
 .login-method-dialog { width:min(30rem,calc(100vw - 2rem)); max-height:calc(100dvh - 2rem); overflow:auto; padding:1.5rem; background:#111319; color:#fff; border:1px solid #5c6472; }

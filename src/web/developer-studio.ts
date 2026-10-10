@@ -122,6 +122,7 @@ export function mountDeveloperStudio(host: HTMLElement, relays: string[]): void 
     validated = undefined; publishButton.disabled = true; status.textContent = 'Manifest changed. Validate again before signing.' })
   publishButton.addEventListener('click', async () => {
     if (!validated) return
+    textarea.readOnly = true; validateButton.disabled = true
     publishButton.disabled = true; status.className = 'studio-status'; status.textContent = 'Waiting for your Nostr signer…'
     try {
       let signer = currentNostrSigner()
@@ -132,12 +133,15 @@ export function mountDeveloperStudio(host: HTMLElement, relays: string[]): void 
       }
       if (!signer) throw new Error('A signing-capable Signet or Nostr session is required. No private key is accepted by this page.')
       const signed = await signer.signEvent(submissionEvent(validated))
+      status.textContent = 'Publishing the signed submission to relays…'
       const result = await publishEvent(signed, relays)
       if (!result.accepted.length) throw new Error('No relay accepted the signed event.')
       status.className = 'studio-status success'
       status.textContent = `Published ${signed.id.slice(0, 12)}… to ${result.accepted.length} relay${result.accepted.length === 1 ? '' : 's'}. The public event is now your portable submission receipt; curated review remains explicit.`
     } catch (error) {
       status.className = 'studio-status error'; status.textContent = error instanceof Error ? error.message : 'Submission failed.'; publishButton.disabled = false
+    } finally {
+      textarea.readOnly = false; validateButton.disabled = false
     }
   })
   void runValidation()

@@ -168,11 +168,9 @@ export async function connectNostrAccess(options: ConnectNostrOptions): Promise<
     advancedMethods: options.signingRequired ? [] : ['nostrconnect', 'bunker'],
     // Use the SDK's rendezvous relay independently of the score-feed relays.
     timeout: 60_000,
-    redirectCallback: (() => {
-      const callback = new URL(window.location.href)
-      callback.searchParams.set('signet_amber', '1')
-      return callback.toString()
-    })(),
+    // NIP-55 markers belong only to the Android signer flow. The SDK checks
+    // those first and would reject a My Signet URL return as a missing event.
+    redirectCallback: window.location.href,
     nostrConnectPerms: ['sign_event'],
     theme: document.documentElement.dataset.webEdition === '600' ? 'light' : 'dark',
   })
@@ -191,7 +189,7 @@ export async function restoreNostrAccess(_relays: string[]): Promise<NostrAccess
   const persistence = sessionStorageFor(epoch)
   try {
     const params = new URL(window.location.href).searchParams
-    const callback = ['signet_amber', 'event', 'pubkey', 'signature', 'eventId'].some(key => params.has(key))
+    const callback = ['signet_amber', 'event', 'pubkey', 'signature', 'eventId', 'error'].some(key => params.has(key))
     // Anonymous visits still avoid downloading the SDK unless a callback is present.
     if (!callback && !persistence.storage.getItem('signet:login.pubkey') && !persistence.storage.getItem('signet:login.pendingRelayAuth')) return null
     const { handleRedirectCallback, restoreSession } = await import('signet-login')

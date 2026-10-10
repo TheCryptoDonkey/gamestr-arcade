@@ -5,6 +5,32 @@ automated results, hosted artifacts and actual user/device acceptance.
 
 ## Local implementation and checks
 
+- The next revision passed all 38 browser journeys before the My Signet
+  callback follow-up. Added completed-challenge checks receive signed scores
+  inside and outside an old challenge window, exclude the outside score and
+  disclose that complete history has not been established in both editions.
+- Developer publication checks use actual SDK NIP-07 login, hold signing and
+  relay acknowledgement separately, and verify that a signed profile update
+  and logout preserve the draft and visible publication state. Only fixture
+  relay sockets receive the test submission. The editor now locks draft edits
+  during publication and distinguishes signer approval from relay publication.
+- My Signet URL callbacks incorrectly carried `signet_amber=1`, which made the
+  SDK reject their signed proof as a missing Android event. Both editions
+  reproduced the failure before the marker was removed. Denial returns are
+  also detected without a saved account. Four targeted browser checks passed
+  for signed proof, retained destination, denial, URL cleanup and replay
+  rejection. These are protocol fixtures using the installed SDK; the normal
+  My Signet same-device flow opens a separate tab and uses relay approval, so
+  this result does not establish a live or physical signer journey.
+- The complete callback follow-up suite passed all 42 journeys. One earlier
+  run exhausted its total test deadline before observing a five-second replay
+  error; callback checks now wait for DOM readiness and assert application
+  state directly instead of waiting for unrelated page resources.
+- Genuine Chromium zoom found an account-menu logout option outside the
+  viewport. The menu now scrolls within a bounded viewport height. Both added
+  320-by-240 browser checks pass with actual SDK login, measured menu bounds,
+  scrolling and logout. The full CI suite now contains 44 checks; genuine
+  200%/400% zoom re-verification is still in progress.
 - `npm run check`: passed 64 test files / 646 tests, typechecking, manifest and
   configuration validation, desktop build and both production web builds.
 - Initial script for the 600 edition remains within the 150 kB build gate.
@@ -97,8 +123,17 @@ automated results, hosted artifacts and actual user/device acceptance.
   above ground, although its visible foundation extends below that origin.
   The grounding profile now measures the geometry base, retains the 0.9-unit
   requirement and checks that deliberately raising the geometry is detected.
-  All seven lands pass that targeted check. The full gate is now running on
-  `7d9b82e`; no complete Ledger release pass is claimed yet.
+  All seven lands pass that targeted check. The full gate on `7d9b82e` passed
+  grounding, onboarding, extraction, harvest reports and native cargo, then
+  stopped before the WebKit media assertions on a 30-second `networkidle`
+  navigation timeout. An unchanged targeted rerun reproduced that timeout.
+  The media probe now waits for DOM readiness and its existing game/PLAY
+  conditions while preserving all rendering, decoding and playback assertions;
+  both targeted browser engines pass the complete probe. Ledger commit
+  `fc7f845` contains that readiness fix. Its subsequent full gate stopped at
+  startup: the compressed cold core measured 263,173 bytes against the retained
+  263,168-byte ceiling. The budget has not been raised. No complete Ledger
+  release pass is claimed yet.
   Draft [Ledger PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88)
   contains the consumer; deployment remains pending.
 

@@ -672,7 +672,7 @@ function challengePage(encoded: string): HTMLElement {
   const ranked = boardFor(eligible, 'all', 50, Math.min(now, challenge.endsAt), game.scoreDir ?? 'desc')
   const list = el('ol', 'challenge-board')
   ranked.forEach((entry, index) => { const row = el('li'); row.append(el('span', 'rank', String(index + 1).padStart(2, '0')), playerLink(entry), el('small', '', new Date(entry.at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })), scoreLink(entry)); list.append(row) })
-  if (!ranked.length) list.append(el('li', 'activity-empty', phase === 'FINAL' ? 'No verified scores landed during this challenge.' : 'Waiting for the first verified score in this challenge window…'))
+  if (!ranked.length) list.append(el('li', 'activity-empty', phase === 'FINAL' ? 'No verified scores from this window have been received.' : 'Waiting for the first verified score in this challenge window…'))
   standings.append(el('p', 'page-lede', 'Standings use the bounded history received from these relays. Earlier or missing events may change the result; complete challenge history has not been established.'));
   standings.append(list); main.append(standings); return main
 }

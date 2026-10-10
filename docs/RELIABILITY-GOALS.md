@@ -203,7 +203,7 @@ Acceptance criteria:
   complete history must not create an unbounded browser event store.
 - [x] Challenge standings cover their signed time window or disclose incomplete
   history instead of labelling a recent subset as authoritative final results.
-- [ ] Regressions exercise cap eviction, old links, empty relays, cache use,
+- [x] Regressions exercise cap eviction, old links, empty relays, cache use,
   both score directions and challenge windows outside the recent feed.
 
 ## 8 Preserve user work and isolate personal preferences
@@ -214,10 +214,10 @@ storage record across accounts.
 
 Acceptance criteria:
 
-- [ ] Login, profile and score updates preserve developer drafts, validation
+- [x] Login, profile and score updates preserve developer drafts, validation
   state and visible publish progress. Persist drafts locally and recover them
   after refresh where storage is available.
-- [ ] Updates preserve focus, search text, filter selections and open dialogs.
+- [x] Updates preserve focus, search text, filter selections and open dialogs.
   Dialogs trap focus, support Escape and restore focus on close.
 - [x] Favourites and follows are scoped to the selected account, with a separate
   guest store and an explicit migration choice for existing device preferences.
