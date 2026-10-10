@@ -180,7 +180,7 @@ try {
   // Keep the original failure. A separate OS-input probe helps distinguish
   // debugger injection from keyboard delivery without making the gate pass.
   const systemInput = nativeInspector && gamePage &&
-    (stage === 'first game trusted ArrowUp' || stage === 'second game Escape return')
+    (stage === 'first game trusted ArrowUp' || stage === 'first game Escape return' || stage === 'second game Escape return')
     ? await probeSystemInput({ inspector: nativeInspector, page: gamePage,
       key: stage === 'first game trusted ArrowUp' ? 'Up' : 'Escape' })
     : { attempted: false };

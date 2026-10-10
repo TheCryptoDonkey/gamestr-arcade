@@ -729,3 +729,9 @@ and claims while an automatic submission is pending. All 212 unit tests and
 a private normal-play browser check pass, with bounded clock/claim/body timeouts
 and retained receipts. Its public client is still `2c6716f`; hosted qualification
 and deployment of the new correction are pending.
+
+Hosted run `38095743819` at `3bae6bf` failed the first Escape return. Its
+system-keyboard diagnostic initially covered ArrowUp and the second Escape,
+so no independent key was attempted in this run. The diagnostic now covers
+both Escape return stages, preserving the original assertions and ownership
+checks. See [first-return failure](evidence/gamestr-native-3bae6bf-failure.json).

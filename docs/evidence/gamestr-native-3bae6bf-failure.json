@@ -1,0 +1,192 @@
+{
+  "stage": "first game Escape return",
+  "error": "page.waitForFunction: Timeout 30000ms exceeded.",
+  "pages": {
+    "shell": {
+      "closed": false,
+      "readyState": "complete",
+      "focused": true,
+      "visibility": "visible",
+      "activeElement": "BUTTON",
+      "activeElementId": "",
+      "activeElementClass": "cta",
+      "activeElementInert": false,
+      "readyOpen": false,
+      "focusHistory": [
+        {
+          "event": "focusin",
+          "id": "",
+          "className": "cta",
+          "at": 3577.399999999994,
+          "documentFocused": true,
+          "readyOpen": false
+        }
+      ],
+      "focusCalls": [
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 3261.5,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at ReadyPanel.close (file:///tmp/appimage_extracted_ab6ac69c827e9be30d8ad0381ce70df6/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10652:103)",
+            "    at ReadyPanel.confirm (file:///tmp/appimage_extracted_ab6ac69c827e9be30d8ad0381ce70df6/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10639:10)",
+            "    at Object.onLaunch (file:///tmp/appimage_extracted_ab6ac69c827e9be30d8ad0381ce70df6/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11553:20)",
+            "    at onKeyDown (file:///tmp/appimage_extracted_ab6ac69c827e9be30d8ad0381ce70df6/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:4802:23)"
+          ]
+        },
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 3575.100000000006,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at file:///tmp/appimage_extracted_ab6ac69c827e9be30d8ad0381ce70df6/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11624:12"
+          ]
+        }
+      ],
+      "keyHistory": [
+        {
+          "type": "keydown",
+          "key": "ArrowRight",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "ArrowRight",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keydown",
+          "key": "ArrowLeft",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "ArrowLeft",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keydown",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keydown",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "Escape",
+          "trusted": true,
+          "id": ""
+        }
+      ],
+      "keys": []
+    },
+    "game": {
+      "closed": true
+    }
+  },
+  "nativeFocus": [
+    {
+      "stage": "first game trusted ArrowUp",
+      "windows": [
+        {
+          "id": 1,
+          "focused": true,
+          "visible": true,
+          "bounds": {
+            "x": 240,
+            "y": 212,
+            "width": 800,
+            "height": 600
+          },
+          "children": [
+            {
+              "contentsId": 2,
+              "visible": true,
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 800,
+                "height": 600
+              }
+            }
+          ]
+        }
+      ],
+      "nativeInputEvents": [],
+      "contents": [
+        {
+          "id": 2,
+          "focused": true,
+          "loading": false,
+          "type": "window",
+          "role": "game"
+        },
+        {
+          "id": 1,
+          "focused": false,
+          "loading": false,
+          "type": "window",
+          "role": "shell"
+        }
+      ]
+    }
+  ],
+  "currentNativeFocus": {
+    "windows": [
+      {
+        "id": 1,
+        "focused": true,
+        "visible": true,
+        "bounds": {
+          "x": 240,
+          "y": 212,
+          "width": 800,
+          "height": 600
+        },
+        "children": []
+      }
+    ],
+    "nativeInputEvents": [],
+    "contents": [
+      {
+        "id": 1,
+        "focused": true,
+        "loading": false,
+        "type": "window",
+        "role": "shell"
+      }
+    ]
+  },
+  "systemInput": {
+    "attempted": false
+  },
+  "sourceRevision": "3bae6bf99806668be250facca699e11f2c24c5f0",
+  "hostedRun": 38095743819,
+  "packagedRuntime": "failed",
+  "systemProbeDidNotCoverFirstEscapeInThisRevision": true
+}
