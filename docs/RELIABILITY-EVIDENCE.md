@@ -63,6 +63,13 @@ automated results, hosted artifacts and actual user/device acceptance.
   and descending games. Record eviction now removes the lowest-ranked entry
   rather than the oldest entry. All 18 catalogue/cache/lookup checks pass with
   the saturated-cap regressions; recent activity retains its separate limit.
+- Hosted run `38064295383` passed all 34 browser journeys and packaged gameplay
+  on `1604e42`. The record follow-up's run `38064720700` passed source/browser
+  checks but failed the first trusted-keyboard assertion after guest signing.
+  The fixture could use ready preload IPC before the application revealed and
+  focused the game view. It now waits for the real completed/focused document
+  and delivery of its single trusted keypress. The complete native journey
+  passes with this wait; the next packaged Linux run remains pending.
 - Installed `signet-login`: 0.17.3. Rendezvous uses SDK defaults separately from
   score relays. Private-key paste remains excluded.
 - `npm audit --audit-level=high`: passed, no high/critical findings. Eight

@@ -66,6 +66,9 @@ try {
     await shell.keyboard.press('Enter')
     const game = await until(() => context.pages().find(page => page.url() === `${origin}/game-a`))
     await game.waitForFunction(() => !!window.nostr)
+    // Preload IPC can be ready before did-finish-load reveals/focuses the view.
+    // Exercise input after the real application gives the game keyboard focus.
+    await game.waitForFunction(() => document.readyState === 'complete' && document.hasFocus())
     return game
   }
   const first = await launch()
@@ -75,7 +78,7 @@ try {
   assert.equal(signed.pubkey, pubkey)
   assert.equal(verifyEvent(signed), true)
   await first.keyboard.press('ArrowUp')
-  assert.equal(await first.evaluate(() => fixtureKeys.some(event => event.key === 'ArrowUp' && event.trusted)), true)
+  await first.waitForFunction(() => fixtureKeys.some(event => event.key === 'ArrowUp' && event.trusted))
   const authority = await first.evaluate(() => {
     localStorage.setItem('runtime-guest', 'previous visitor')
     document.cookie = 'runtime_guest=previous; path=/'
