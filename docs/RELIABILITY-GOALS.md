@@ -171,6 +171,13 @@ return after Pallasite's parent closes. These fixtures block external writes;
 they do not complete an independent provider login. Closure checks for the
 other three games and physical checks remain open.
 
+The published Hang On Fren failure path still falls back to a guest key.
+Its replacement is prepared in [consumer PR 2](https://github.com/TheCryptoDonkey/hang-on-fren-public/pull/2):
+206 local tests and private browser recovery pass, with public receipts pinned
+to the original account. The local claim response is simulated; deployment and
+a real earned-score retry are still required. Normal live score proofs above
+do not qualify this failure path.
+
 Acceptance criteria:
 
 - [x] Declare which games support identity and signing handoff. Only games

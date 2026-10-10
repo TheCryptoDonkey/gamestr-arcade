@@ -15,6 +15,12 @@ builds. See [standard deployment](evidence/gamestr-web-4aa7661.json),
 [600 forced-origin deployment](evidence/gamestr-600-live-4aa7661.json) and
 [CI qualification](evidence/gamestr-4aa7661-ci.json).
 
+Current documentation revision `881823c` failed hosted CI run `38091007766`
+at the original second Escape return assertion. The game closed and the native
+shell regained focus, but the DOM focused a CTA button instead of `#app`.
+This remains an unresolved packaged-runtime gate, not a repaired input issue.
+See [current failure diagnostics](evidence/gamestr-native-focus-881823c-failure.json).
+
 All four supported games now have real My Signet, normal-gameplay and attributed
 public-score proofs. The latest Pallasite run earned 16,563 points: canonical
 same-account signing, confirmed publication, an independent game-authority
@@ -91,6 +97,18 @@ receipt was seeded in the private fixture, rather than earned in gameplay;
 the separate real earned-score recovery above remains the publication proof.
 See [closed-parent fixture](evidence/gamestr-published-pallasite-closure.json).
 Full per-game closure coverage remains open.
+
+Tracing the older published Hang On Fren consumer exposed a personal-score
+fallback to a guest key after signer failure. That deployment still has this
+behaviour. The replacement in [Hang On Fren PR 2](https://github.com/TheCryptoDonkey/hang-on-fren-public/pull/2)
+pins the run identity, rejects account/template substitution and revoked
+sessions, retains public receipts and offers explicit same-account retry.
+All 206 local tests, client/server builds and a private browser recovery flow
+pass, including closed parent, reload, wrong account, selected saved runs and
+390-pixel controls. Its browser claim response is simulated, with all external
+writes blocked. Public deployment and an actual earned-score retry remain
+required. The relevant source is `hang-on-fren-public`; the similarly named
+`hang-on-fren` checkout is an older release copy.
 
 The previous `0948199` deployment and
 [CI 38073823914](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38073823914)
