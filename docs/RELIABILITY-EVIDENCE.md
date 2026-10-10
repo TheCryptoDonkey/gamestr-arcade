@@ -45,7 +45,14 @@ automated results, hosted artifacts and actual user/device acceptance.
 - The first packaged journey CI run reached and verified the first game's
   signer, then exposed a relaunch race in the harness. It now waits for the
   reopened ready panel and returned shell focus. The complete native journey
-  passes with these waits; packaged Linux verification remains pending.
+  passes with these waits. Hosted
+  [CI run 38063261933](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38063261933)
+  passed on `640fbaa`: 646 unit tests, all 32 browser journeys, both production
+  web builds, audit/SBOM, Linux packaging and the complete packaged game journeys.
+  Physical controller and configured-wallet acceptance remain pending.
+- Standard-edition home and game pages now visibly explain independent
+  publisher login, including on phones; this was previously only a tooltip.
+  The four affected login/viewport browser journeys pass in both editions.
 - Installed `signet-login`: 0.17.3. Rendezvous uses SDK defaults separately from
   score relays. Private-key paste remains excluded.
 - `npm audit --audit-level=high`: passed, no high/critical findings. Eight
@@ -121,6 +128,11 @@ release symlink changes.
   and amount. Invoice display and wallet responses do not prove settlement.
   The user authorised 100 sats to `profusemeat89@walletofsatoshi.com`; the
   address's public LNURL metadata accepts that amount. No payment has been sent.
+  Arcade's actual invoice function returned and validated a 100,000-msat invoice
+  with a 24-hour expiry. Wallet of Satoshi is installed on the paired iPhone 13
+  Pro Max, Donkeyfarm; device tools launched it with that invoice. Its screen,
+  confirmation and settlement cannot be observed through those tools. Awaiting
+  the user's physical result; wallet launch alone does not prove payment.
 - Real browser zoom and physical assistive-technology acceptance; CSS zoom checks alone do not prove these.
 
 No goal is marked complete solely from unit tests or an implementation.

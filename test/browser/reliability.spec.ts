@@ -41,6 +41,7 @@ for (const [edition, port] of [['gamestr', 4174], ['600', 4175]] as const) {
     await setup(page)
     await page.goto(`http://127.0.0.1:${port}/`)
     const login = page.getByRole('button', { name: 'CONNECT NOSTR', exact: true })
+    if (edition === 'gamestr') await expect(page.locator('.launch-login-note')).toContainText('may ask you to sign in there')
     for (const width of [320, 390, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 844 })
       await expect(login).toBeVisible()
@@ -61,6 +62,7 @@ for (const [edition, port] of [['gamestr', 4174], ['600', 4175]] as const) {
   test(`${edition}: extension login, refresh, account switch and logout enforce selected identity`, async ({ page }) => {
     await setup(page, true)
     await page.goto(`http://127.0.0.1:${port}/game/pallasite`)
+    if (edition === 'gamestr') await expect(page.locator('.launch-login-note')).toContainText('Your arcade login is not passed to it')
     await page.getByRole('button', { name: 'CONNECT NOSTR', exact: true }).click()
     await page.getByRole('button', { name: 'Browser extension', exact: true }).click()
     await expect(page.locator('.identity-trigger')).toBeVisible()

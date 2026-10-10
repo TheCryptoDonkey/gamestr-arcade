@@ -251,6 +251,7 @@ function hero(games: WebGame[]): HTMLElement {
   actions.append(button('EXPLORE GAMES', 'primary', () => document.querySelector('#games')?.scrollIntoView({ behavior: 'smooth' })))
   if (featured) actions.append(playLink(featured, `PLAY ${featured.name.toUpperCase()} ↗`, 'secondary'))
   copy.append(actions)
+  if (WEB_EDITION.key === 'gamestr') copy.append(el('p', 'launch-login-note', 'Games open on their publisher’s site and may ask you to sign in there.'))
   const proof = el('dl', 'proof-strip')
   for (const [value, label] of [[String(games.length), 'PLAYABLE GAMES'], ['2', 'SCORE KINDS'], ['0', 'CUSTODIAL ACCOUNTS']]) {
     const item = el('div'); item.append(el('dt', '', value), el('dd', '', label)); proof.append(item)
@@ -493,6 +494,7 @@ function gamePage(slug: string): HTMLElement {
   const copy = el('div', 'detail-copy'); copy.append(el('p', 'kicker', game.genres.join(' · ').toUpperCase()), el('h1', '', game.name), el('p', 'page-lede', game.description ?? game.tagline))
   const favourite = button(state.social.favourites.includes(game.slug) ? '★ IN MY ARCADE' : '☆ ADD TO MY ARCADE', 'secondary', () => toggleFavourite(game)); favourite.id = `favourite-detail-${game.slug}`
   const actions = el('div', 'hero-actions'); actions.append(playLink(game, 'PLAY ON PUBLISHER SITE ↗', 'primary'), favourite, button('INVITE TO PLAY', 'secondary', () => void shareInvitation(game)), button('CREATE CHALLENGE', 'secondary', () => createChallengeDialog(game))); copy.append(actions)
+  if (!game.nostrHandoff?.editions.includes(WEB_EDITION.key)) copy.append(el('p', 'launch-login-note', 'This game opens on its publisher’s site and uses its own login. Your arcade login is not passed to it.'))
   const facts = el('dl', 'game-facts'); for (const [label, value] of [['IDENTITY', 'NOSTR'], ['SCORES', 'VERIFIED'], ['WALLET', game.walletPay ? 'LIGHTNING' : 'OPTIONAL'], ['PLAYERS', game.players ? `${game.players.min}–${game.players.max}` : '1']]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) } copy.append(facts)
   main.append(art, copy)
   const board = el('section', 'detail-board')
