@@ -161,8 +161,9 @@ Acceptance criteria:
 The launch handoff is restricted to the 600 Billion edition. All four games now
 have deployed consumers. Pallasite has a deployed correction for worker reload
 and booth-account selection. Failed personal scores now remain with their
-original account for retry; live Pallasite publication and the full shared-account
-acceptance matrix remain open.
+original account for retry. Normal gameplay and an attributed public score now
+pass in each game with real My Signet; the shared-account matrix and live saved-score
+retry remain open.
 
 Acceptance criteria:
 
@@ -263,22 +264,23 @@ device or deployed behaviour.
 
 Arcade changes are in [PR #11](https://github.com/TheCryptoDonkey/gamestr-arcade/pull/11);
 Ledger's consumer is in [PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88).
-The arcade's source revision `0948199` passed hosted CI, packaging, actual Linux
-game launch/signing/return/isolation journeys and all 46 browser checks. The
-standard edition is live on the new Hetzner box at that revision. The 600 cutover and physical acceptance remain open; see
+The current functional revision `4aa7661` passes the complete hosted gate on
+an unchanged rerun, including 650 unit tests, 48 browser journeys, packaging and
+the Linux game journey. Intermittent native input remains unqualified. Both web
+editions are activated on the new Hetzner box at that revision. The 600 cutover and physical acceptance remain open; see
 [delivery evidence](RELIABILITY-EVIDENCE.md) for exact stages and remaining gates.
 
 | Goal | Implementation and PR | Automated checks | Deployed or packaged revision | Live acceptance | Status |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Selected-session verification, synchronous port revocation and generation guards; PR #11 | 646 unit tests and 46 browser journeys passed | Standard web `0948199`; 600 `0948199` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 2 | Responsive controls, validated SDK callback and generic Cambium/Amber NIP-55 request; PR #11 | 646 unit tests and 46 browser journeys passed | Standard web `0948199`; 600 `0948199` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 646 unit tests and 46 browser journeys passed | Standard web `0948199`; 600 `0948199` on Hetzner; DNS pending | Live desktop My Signet approval, signing, refresh and logout pass; physical checks pending | In progress |
-| 4 | Per-game score authorities and attribution provenance; PR #11 | 646 unit tests and 46 browser journeys passed | Standard web `0948199`; 600 `0948199` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 5 | Dependency upgrades and high-severity audit gate; PR #11 | 646 unit tests and 46 browser journeys passed | Standard web `0948199`; 600 `0948199` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 6 | Reviewed manifest capability and deployed Ledger consumer; PR #11 and PR #88 | 646 unit tests and 46 browser journeys passed; Ledger 98-check release gate and Pallasite seven browser, three queue and seven recovery checks pass | Standard web `0948199`; 600 `0948199` on Hetzner; Ledger `e3937ca`; Pallasite `14e969f`; DNS pending | Ledger, Hang On Fren and Neon Sentinel real My Signet runs and attributed public scores pass at forced origin; Pallasite, shared-account and physical checks pending | In progress |
-| 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | 646 unit tests and 46 browser journeys passed | Standard web `0948199`; 600 `0948199` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | 646 unit tests and 46 browser journeys passed | Standard web `0948199`; 600 `0948199` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | 646 unit tests and 46 browser journeys passed | Standard web `0948199`; 600 `0948199` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 1 | Selected-session verification, synchronous port revocation and generation guards; PR #11 | 650 unit tests and 48 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 2 | Responsive controls, validated SDK callback and generic Cambium/Amber NIP-55 request; PR #11 | 650 unit tests and 48 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 650 unit tests and 48 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Live desktop My Signet approval, signing, refresh and logout pass; physical checks pending | In progress |
+| 4 | Per-game score authorities and attribution provenance; PR #11 | 650 unit tests and 48 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 5 | Dependency upgrades and high-severity audit gate; PR #11 | 650 unit tests and 48 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 6 | Reviewed manifest capability and deployed Ledger consumer; PR #11 and PR #88 | 650 unit tests and 48 browser journeys passed; Ledger 98-check release gate and Pallasite seven browser, three queue and seven recovery checks pass | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; Ledger `e3937ca`; Pallasite `14e969f`; DNS pending | All four games have real My Signet runs and attributed public scores at forced origin; shared-account, live saved-score retry and physical checks pending | In progress |
+| 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | 650 unit tests and 48 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | 650 unit tests and 48 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | 650 unit tests and 48 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 
 For live runs, record the browser/device, signer or wallet, date, exact revisions,
 steps exercised and result. Cover both editions; local and cross-device My

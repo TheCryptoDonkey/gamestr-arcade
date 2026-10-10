@@ -1,0 +1,45 @@
+{
+  "origin": "https://gamestr.62-238-98-53.sslip.io",
+  "revision": "4aa7661d9d18887021c1b044747980dc091c2bf6",
+  "edition": "gamestr",
+  "verifiedAt": "2026-10-10T20:45:54.578Z",
+  "assets": [
+    {
+      "path": "index.html",
+      "sha256": "5688463e913a647070257a1bdf2534948750c09eef899e57c18540ecada057a4"
+    },
+    {
+      "path": "game/pallasite/index.html",
+      "sha256": "461b3bee77aca8f09de9fe8db625439e8a289d03b139456eac107031a1e0806c"
+    },
+    {
+      "path": "assets/_commonjsHelpers-CqkleIqs.js",
+      "sha256": "84de5b1724808f6a399a33d5fa7887ba0f752bbb73fbb26cc100fbec111abf63"
+    },
+    {
+      "path": "assets/developer-studio-CRSWjHYv.js",
+      "sha256": "7ca2e148cabb2b17538e1558b7445422c39a71e05def772729625dac7507e9f5"
+    },
+    {
+      "path": "assets/index-CE6SpJ9L.css",
+      "sha256": "0f4bd1555b2cfbbff99b75f8d419957dab30ebb9d4963c0e68f84795c3b1322c"
+    },
+    {
+      "path": "assets/index-DH6WI612.js",
+      "sha256": "d77a966e116d29ce49778cc6371cd2fed8e7a7d5cd9c61aa24c328e1b88d2d93"
+    },
+    {
+      "path": "assets/preference-sync-DaQu1zDO.js",
+      "sha256": "a3720756e5dc70bb39305f3aa4b7d0230b4436242b230f31360f32b1f405e250"
+    },
+    {
+      "path": "assets/qrcode-CtOU1MHs.js",
+      "sha256": "75066dc9670886c2b7913df72578587f8b75e64afea7a637f162501af79c6ce3"
+    },
+    {
+      "path": "assets/signet-login-C89cbrWF.js",
+      "sha256": "306d98d54f107c32750eed6dc769ed51035ba72b88be91d86779ea7e26559c45"
+    }
+  ],
+  "securityHeaders": true
+}

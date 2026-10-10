@@ -5,19 +5,31 @@ automated results, hosted artifacts and actual user/device acceptance.
 
 ## Latest live My Signet result
 
-Normal Ledger launch has now displayed the selected My Signet account and
-completed the deployed MessagePort connection at the forced Hetzner 600
-origin. An earlier launch clicked Play during the arcade's page-reload restore
-and correctly fell back to guest mode, exposing an avoidable race in the arcade
-controls. The source now shows account restoration and prevents normal identity
-handoff launches until restoration finishes. Modifier clicks and standard-edition
-independent game login retain their existing behaviour. Both new held-SDK
-restore checks and the full 46-browser-journey suite pass; all 646 unit tests
-and desktop/both web builds pass. The follow-up `0948199` is deployed to both editions and passed hosted
-[CI 38073823914](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38073823914).
-Root/game HTML, all seven JS/CSS assets and security headers match both builds;
-see [standard proof](evidence/gamestr-web-0948199.json) and
-[600 forced-origin proof](evidence/gamestr-600-live-0948199.json).
+Both arcade web editions now serve functional revision `4aa7661` on Hetzner.
+Stored bunker identities appear while their remote signer reconnects in the
+background, so an unavailable signer does not hide account reconnection.
+All 650 unit tests and 48 browser journeys pass. Hosted CI passes the complete
+gate on an unchanged rerun; intermittent native input remains open. Root/game
+HTML, all seven JS/CSS assets, release metadata and security headers match both
+builds. See [standard deployment](evidence/gamestr-web-4aa7661.json),
+[600 forced-origin deployment](evidence/gamestr-600-live-4aa7661.json) and
+[CI qualification](evidence/gamestr-4aa7661-ci.json).
+
+All four supported games now have real My Signet, normal-gameplay and attributed
+public-score proofs. The latest Pallasite run earned 16,563 points: canonical
+same-account signing, confirmed publication, an independent game-authority
+signature check and the fresh arcade event page all pass. See
+[run](evidence/gamestr-pallasite-live-run-4aa7661.json),
+[public event](evidence/gamestr-pallasite-real-score-4aa7661.json) and
+[display](evidence/gamestr-pallasite-real-score-ui-4aa7661.json).
+These four runs used separate disposable accounts. The single-account matrix,
+live recovery of a failed saved score, physical acceptance, co-op timing,
+native input, DNS cutover and payment confirmation remain open.
+
+The previous `0948199` deployment and
+[CI 38073823914](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38073823914)
+verified the original held-restoration launch guard and its earlier builds.
+Those rollout proofs are historical.
 
 Earlier standard web revision `63c66b5` was deployed on Hetzner and passed hosted
 [CI 38072565641](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38072565641),
@@ -94,7 +106,8 @@ matches the deployed game.
 
 These are separate disposable accounts, each preserved through its own run.
 They do not prove one account across all four games or physical acceptance.
-Pallasite, the shared-account matrix, phone lifecycle checks and DNS cutover
+Pallasite was still pending at this stage; its later publication proof is
+recorded below. The shared-account matrix, phone lifecycle checks and DNS cutover
 remain pending.
 
 The documentation revision `cc1f2f3` passed
@@ -110,9 +123,9 @@ passed. The harness now records the failing stage, each view's focus/visibility
 and received fixture keys before preserving the original failure. This adds
 diagnostics; it does not claim the native input problem is fixed.
 
-Pallasite's deployed `?p1=1` booth screen loaded and the arcade sent a port
+An earlier Pallasite `?p1=1` booth probe loaded and the arcade sent a port
 connection acknowledgement, but the consumer did not expose the selected live
-signer within the inspection deadline. Its completed run remains unverified.
+signer within the inspection deadline. That probe did not verify a completed run.
 No guest login, state injection or payout action was used to bypass this gate.
 The iPhone inspection confirms Wallet of Satoshi 3.4.10 (build 370) is installed
 on Donkeyfarm; the authorised 100-sat payment remains unconfirmed.
@@ -208,7 +221,7 @@ Four added unit regressions cover unavailable signing, same-account enforcement,
 background upgrade, logout and account mismatch. Real-SDK private browser
 fixtures exercise unavailable bunker recovery in both editions. All 650 unit
 tests, 48 browser journeys and the complete build/validation check pass locally.
-This source correction is not yet deployed or qualified by a real score retry.
+The correction is now deployed in functional revision `4aa7661` on both Hetzner editions. Normal Pallasite gameplay publication is verified below; live recovery of a failed score remains a separate qualification gate.
 
 Hosted [CI 38083846920](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38083846920)
 on `db2688b` passes the full source/build gate, 48 browser journeys, dependency
@@ -229,12 +242,27 @@ been removed; diagnostics now listen only to passive DOM focus and keyboard
 events. The failed relaunch with that observer cannot justify a product fix.
 
 
+A fresh real My Signet run on arcade `4aa7661` and Pallasite `14e969f` earned
+16,563 points through normal keyboard gameplay. The selected account produced
+a canonical NIP-98 score signature; `/api/score` returned HTTP 200 with the exact
+score event id and confirmed publication to all seven relays. An independent
+subscription verified that public event's reviewed game-authority signature and
+matching player, and a fresh arcade event page displayed the same 16,563 points
+and player with REVIEWED GAME AUTHORITY attribution. No game/score state was
+injected. The run completed without a retry, so it does not qualify live recovery
+of a failed saved run. See [live run](evidence/gamestr-pallasite-live-run-4aa7661.json),
+[public score](evidence/gamestr-pallasite-real-score-4aa7661.json) and
+[display proof](evidence/gamestr-pallasite-real-score-ui-4aa7661.json).
+All four games now have individual real-gameplay/public-score proofs; those runs
+used separate disposable accounts. The same-account four-game matrix remains open.
+
+
 The co-op forge timing gate remains failing: 96 frames during parallel checks,
 188 on the isolated candidate, and 102 on the unchanged `bfab5e2` baseline,
 against the retained 90-frame limit. Simulations agreed. This does not establish
 a cause or a fix. The personal-score fallback correction is deployed and its
-isolated same-account recovery checks pass; real gameplay publication remains
-a separate acceptance gate.
+isolated same-account recovery checks pass. Normal gameplay publication now
+passes; live saved-score retry remains a separate acceptance gate.
 The published My Signet run retained the selected live port through worker
 activation and started normal gameplay. A score endpoint response was observed,
 but the selected-account canonical score signature was not verified. The test
@@ -420,16 +448,29 @@ further source changes and attach hosted CI/artifact evidence before release.
 ## Hosting and DNS
 
 Both current arcade editions are activated on the new Hetzner host `stall`
-(`62.238.98.53`) at functional revision `0948199`. Standard web is public at
+(`62.238.98.53`) at functional revision `4aa7661`. Standard web is public at
 `https://gamestr.62-238-98-53.sslip.io/`; the 600 edition is verified with valid
 TLS by resolving `arcade.600.wtf` directly to the new host. Metadata, root/game
 HTML, all seven JS/CSS assets and security headers match their builds; see
-[standard proof](evidence/gamestr-web-0948199.json) and
-[600 proof](evidence/gamestr-600-live-0948199.json). Public 600 DNS cutover is
+[standard proof](evidence/gamestr-web-4aa7661.json) and
+[600 proof](evidence/gamestr-600-live-4aa7661.json). Public 600 DNS cutover is
 still pending. Older rollout proofs are historical, including
 [46e40d5](evidence/gamestr-web-46e40d5.json),
 [3f30f86](evidence/gamestr-web-3f30f86.json) and
 [326dbd9](evidence/gamestr-web-326dbd9.json).
+
+Hosted [CI 38084519014](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38084519014)
+on `4aa7661` passes the complete source/build gate, all 650 unit tests and 48
+browser journeys, audit, packaging and the Linux runtime journey on unchanged
+attempt 2. Attempt 1 failed on trusted ArrowUp: neither the shell nor game DOM
+recorded that key despite both reporting document focus. This passing rerun
+qualifies that run; it does not establish a repair for intermittent native input.
+The hosted pull-request merge tree matches the deployed branch tree exactly;
+see [CI qualification](evidence/gamestr-4aa7661-ci.json).
+A passive local macOS journey also failed its second Escape return, while
+another unchanged run passed. A read-only native inspector probe showed a
+visible but unfocused native window alongside DOM reports of focus. This is
+macOS evidence and does not establish the cause of the Linux failures.
 
 The earlier real provider check displayed an exact 100-sat Wallet of Satoshi
 invoice, QR and matching wallet link at 390px without page errors. Only its
