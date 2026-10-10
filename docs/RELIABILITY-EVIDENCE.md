@@ -8,7 +8,7 @@ automated results, hosted artifacts and actual user/device acceptance.
 Both arcade web editions now serve functional revision `4aa7661` on Hetzner.
 Stored bunker identities appear while their remote signer reconnects in the
 background, so an unavailable signer does not hide account reconnection.
-All 650 unit tests and 48 browser journeys pass. Hosted CI passes the complete
+All 650 unit tests and 50 browser journeys pass locally. Hosted CI passes the complete
 gate on an unchanged rerun; intermittent native input remains open. Root/game
 HTML, all seven JS/CSS assets, release metadata and security headers match both
 builds. See [standard deployment](evidence/gamestr-web-4aa7661.json),
@@ -26,8 +26,8 @@ The public standard edition also displayed that exact score and player without
 forced DNS; see [standard display proof](evidence/gamestr-pallasite-standard-score-ui-4aa7661.json).
 The [public score page](https://gamestr.62-238-98-53.sslip.io/score/256785414a41d8659c61ea97de885e6855c22d3864dab0cd28bca634a3b548e3)
 is accessible while the 600 DNS cutover remains pending.
-These four runs used separate disposable accounts. The single-account matrix,
-physical acceptance, co-op timing,
+Those first four runs used separate disposable accounts. The single-account
+matrix now passes as described below. Physical acceptance, co-op timing,
 native input, DNS cutover and payment confirmation remain open.
 
 A subsequent longer-session run earned 16,490 points after a normal 190-second
@@ -43,6 +43,34 @@ editions match the saved receipt. See [recovery run](evidence/gamestr-pallasite-
 [public standard display](evidence/gamestr-pallasite-pause-recovery-standard-score-ui.json).
 This verifies live saved-score recovery in browser automation. It does not
 establish the precise cause of signer expiry or physical-phone behaviour.
+
+The single-account four-game matrix also passes on the deployed Hetzner 600
+edition using one fresh disposable My Signet identity. Normal gameplay earned
+Ledger 100, Hang On Fren 4,331, Neon Sentinel 7,401 and Pallasite 19,295.
+Explicit My Signet approval preceded each game; canonical NIP-98 signatures
+and independently verified public score events all bind to that same player.
+Fresh pages in both editions display all four exact events, scores and player
+links with REVIEWED GAME AUTHORITY. See [shared-account runs](evidence/gamestr-shared-account-matrix.json)
+and [eight display checks](evidence/gamestr-shared-account-matrix-ui.json).
+Pallasite's HTTP 200 and seven-relay confirmation were captured; the other
+three runs rely on their verified public events rather than an uncaptured HTTP
+response. Entry assets match the known Ledger and Pallasite deployments.
+Hang On Fren reports public build `20260722211910`; Neon Sentinel reports
+`20260722205954`. Their exact entry asset hashes are recorded, while their Git
+revisions remain unknown. The matrix uses forced 600 DNS resolution and browser
+automation, so public DNS and physical acceptance remain separate gates.
+
+The browser suite now has 50 passing journeys. Two new private-fixture checks
+verify that blocked popups preserve the account and show useful next steps,
+and that the platform's modifier-click opens a game without an identity proof
+or opener. A local HTTP publisher fixture handles native first-tab navigation
+without relying on browser request interception. The earlier modifier fixture
+failed to intercept that native navigation; it was not evidence of a product
+login failure. An initial live-matrix verifier also used a multi-letter relay
+filter; the corrected verifier uses the indexed player tag and validates the
+game tag after receipt, as defined by [NIP-01](https://github.com/nostr-protocol/nips/blob/master/01.md).
+The initial Ledger score was independently retrieved; the completed four-game
+matrix uses a fresh single account and the corrected read-only verifier.
 
 The previous `0948199` deployment and
 [CI 38073823914](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38073823914)

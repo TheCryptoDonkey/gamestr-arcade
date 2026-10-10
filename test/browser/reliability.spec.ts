@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+import { createServer } from 'node:http'
 import { finalizeEvent, getPublicKey } from 'nostr-tools/pure'
 
 const key = new Uint8Array(32).fill(7)
@@ -386,6 +387,56 @@ test('Android picker names Cambium and Amber', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Cambium or Amber (Android signer)', exact: true })).toBeVisible()
 })
 
+
+test('600: a blocked game popup preserves the account and explains how to continue', async ({ page }) => {
+  await setup(page, true)
+  await page.goto('http://127.0.0.1:4175/game/pallasite')
+  await page.getByRole('button', { name: 'CONNECT NOSTR', exact: true }).click()
+  await page.getByRole('button', { name: 'Browser extension', exact: true }).click()
+  await expect(page.locator('.identity-trigger')).toBeVisible()
+  const before = await page.evaluate(() => (window as unknown as { __signed: number }).__signed)
+  await page.evaluate(() => { window.open = () => null })
+  await page.getByRole('link', { name: 'PLAY ON PUBLISHER SITE ↗', exact: true }).click()
+  await expect(page.getByRole('status')).toContainText('The game popup was blocked')
+  await expect(page.getByRole('status')).toContainText('sign in inside the game')
+  await expect(page).toHaveURL('http://127.0.0.1:4175/game/pallasite')
+  await page.locator('.identity-trigger').click()
+  await expect(page.locator('.identity-dropdown .signer-status')).toHaveText('SIGNER CONNECTED')
+  expect(await page.evaluate(() => (window as unknown as { __signed: number }).__signed)).toBe(before)
+})
+
+test('600: modifier-click opens an independent game without an identity proof or opener', async ({ page }) => {
+  const publisher = createServer((_request, response) => {
+    response.writeHead(200, { 'content-type': 'text/html' })
+    response.end('<!doctype html><title>Independent game login</title><h1>Sign in inside the game</h1>')
+  })
+  await new Promise<void>(resolve => publisher.listen(0, '127.0.0.1', resolve))
+  try {
+    const address = publisher.address()
+    if (!address || typeof address === 'string') throw new Error('Publisher fixture did not bind')
+    const target = `http://127.0.0.1:${address.port}/`
+    await setup(page, true)
+    await page.route('**/catalogue.json', route => route.fulfill({ json: [{ ...catalogue[0], url: target }] }))
+    await page.goto('http://127.0.0.1:4175/game/pallasite')
+    await page.getByRole('button', { name: 'CONNECT NOSTR', exact: true }).click()
+    await page.getByRole('button', { name: 'Browser extension', exact: true }).click()
+    await expect(page.locator('.identity-trigger')).toBeVisible()
+    const play = page.getByRole('link', { name: 'PLAY ON PUBLISHER SITE ↗', exact: true })
+    await expect(play).toHaveAttribute('title', 'Normal click carries your arcade identity; modifier clicks use the game’s own login.')
+    const opened = page.context().waitForEvent('page')
+    const modifier = await page.evaluate(() => navigator.platform.includes('Mac')) ? 'Meta' : 'Control'
+    await play.click({ modifiers: [modifier] })
+    const child = await opened
+    await expect(child.getByRole('heading')).toHaveText('Sign in inside the game')
+    expect(child.url()).toBe(target)
+    expect(await child.evaluate(() => window.opener === null)).toBe(true)
+    await expect(page.locator('.identity-trigger')).toBeVisible()
+    await child.close()
+  } finally {
+    publisher.closeAllConnections()
+    await new Promise<void>((resolve, reject) => publisher.close(error => error ? reject(error) : resolve()))
+  }
+})
 
 test('600: an actual child signing port stays revoked after logout and signing back in', async ({ page }) => {
   await setup(page, true)

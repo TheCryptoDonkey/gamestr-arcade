@@ -1,0 +1,87 @@
+{
+  "arcadeRevision": "4aa7661d9d18887021c1b044747980dc091c2bf6",
+  "playerPubkey": "cb27dcc23321907eac0f1b02edf4d7fd2930789926adb8d0a9bc5760e0067d8f",
+  "physicalDevice": false,
+  "results": [
+    {
+      "origin": "https://arcade.600.wtf",
+      "forcedHetznerOrigin": true,
+      "game": "takemetoyourledger",
+      "eventId": "31cc39cd55ca6d45d749b5bd676ba4e667603ac7a486f630444f22f3012027a3",
+      "playerPubkey": "cb27dcc23321907eac0f1b02edf4d7fd2930789926adb8d0a9bc5760e0067d8f",
+      "score": 100,
+      "attribution": "REVIEWED GAME AUTHORITY",
+      "actualRelayRead": true
+    },
+    {
+      "origin": "https://arcade.600.wtf",
+      "forcedHetznerOrigin": true,
+      "game": "hang-on-fren",
+      "eventId": "d446dd141bb5b77888ef1501ececf2f8c45aed13c706dd5bc2261cb3f4c92830",
+      "playerPubkey": "cb27dcc23321907eac0f1b02edf4d7fd2930789926adb8d0a9bc5760e0067d8f",
+      "score": 4331,
+      "attribution": "REVIEWED GAME AUTHORITY",
+      "actualRelayRead": true
+    },
+    {
+      "origin": "https://arcade.600.wtf",
+      "forcedHetznerOrigin": true,
+      "game": "neon-sentinel",
+      "eventId": "1235d761600b3a5fcae94a06f108fd80eb5def4358b13c6d79947a328b29d2b2",
+      "playerPubkey": "cb27dcc23321907eac0f1b02edf4d7fd2930789926adb8d0a9bc5760e0067d8f",
+      "score": 7401,
+      "attribution": "REVIEWED GAME AUTHORITY",
+      "actualRelayRead": true
+    },
+    {
+      "origin": "https://arcade.600.wtf",
+      "forcedHetznerOrigin": true,
+      "game": "pallasite",
+      "eventId": "7aee865297df356be82382bd048cd25e0173db90290dc932961c58105004547b",
+      "playerPubkey": "cb27dcc23321907eac0f1b02edf4d7fd2930789926adb8d0a9bc5760e0067d8f",
+      "score": 19295,
+      "attribution": "REVIEWED GAME AUTHORITY",
+      "actualRelayRead": true
+    },
+    {
+      "origin": "https://gamestr.62-238-98-53.sslip.io",
+      "forcedHetznerOrigin": false,
+      "game": "takemetoyourledger",
+      "eventId": "31cc39cd55ca6d45d749b5bd676ba4e667603ac7a486f630444f22f3012027a3",
+      "playerPubkey": "cb27dcc23321907eac0f1b02edf4d7fd2930789926adb8d0a9bc5760e0067d8f",
+      "score": 100,
+      "attribution": "REVIEWED GAME AUTHORITY",
+      "actualRelayRead": true
+    },
+    {
+      "origin": "https://gamestr.62-238-98-53.sslip.io",
+      "forcedHetznerOrigin": false,
+      "game": "hang-on-fren",
+      "eventId": "d446dd141bb5b77888ef1501ececf2f8c45aed13c706dd5bc2261cb3f4c92830",
+      "playerPubkey": "cb27dcc23321907eac0f1b02edf4d7fd2930789926adb8d0a9bc5760e0067d8f",
+      "score": 4331,
+      "attribution": "REVIEWED GAME AUTHORITY",
+      "actualRelayRead": true
+    },
+    {
+      "origin": "https://gamestr.62-238-98-53.sslip.io",
+      "forcedHetznerOrigin": false,
+      "game": "neon-sentinel",
+      "eventId": "1235d761600b3a5fcae94a06f108fd80eb5def4358b13c6d79947a328b29d2b2",
+      "playerPubkey": "cb27dcc23321907eac0f1b02edf4d7fd2930789926adb8d0a9bc5760e0067d8f",
+      "score": 7401,
+      "attribution": "REVIEWED GAME AUTHORITY",
+      "actualRelayRead": true
+    },
+    {
+      "origin": "https://gamestr.62-238-98-53.sslip.io",
+      "forcedHetznerOrigin": false,
+      "game": "pallasite",
+      "eventId": "7aee865297df356be82382bd048cd25e0173db90290dc932961c58105004547b",
+      "playerPubkey": "cb27dcc23321907eac0f1b02edf4d7fd2930789926adb8d0a9bc5760e0067d8f",
+      "score": 19295,
+      "attribution": "REVIEWED GAME AUTHORITY",
+      "actualRelayRead": true
+    }
+  ]
+}
