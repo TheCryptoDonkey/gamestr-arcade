@@ -1,0 +1,19 @@
+{
+  "origin": "https://gamestr.62-238-98-53.sslip.io",
+  "signerOrigin": "https://mysignet.app",
+  "disposableIdentity": true,
+  "physicalDevice": false,
+  "temporarySdkRelayOverride": false,
+  "rendezvousRelay": "wss://relay.trotters.cc",
+  "realRelayApproval": true,
+  "realEventSigning": true,
+  "pubkey": "c5a4ad46bafee4d99795bfa68b0efe5f41a11ae484285a35d9ef392a730cd455",
+  "method": "bunker",
+  "authEventId": "c380ba7df4fdacbd7eb0107fdf7130234f3298bc839f544f717228c05fcd8aad",
+  "signatureVerified": true,
+  "signerStatus": "SIGNER CONNECTED",
+  "restoredRealSigning": true,
+  "logoutClearedCredentials": true,
+  "revision": "63c66b57bb7cc3b01e618f5fc6ffbbebdacf1be4",
+  "publicSubmissionBlocked": true
+}

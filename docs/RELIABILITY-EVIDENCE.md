@@ -3,6 +3,24 @@
 Work in progress on 10 October 2026. This file separates implemented changes,
 automated results, hosted artifacts and actual user/device acceptance.
 
+## Latest live My Signet result
+
+Standard web revision `63c66b5` is deployed on Hetzner and passed hosted
+[CI 38072565641](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38072565641),
+all 646 unit tests and all 44 browser journeys. Root HTML, the Pallasite route,
+all seven JS/CSS assets and security headers match the production build;
+see [asset proof](evidence/gamestr-web-63c66b5.json).
+
+The published `mysignet.app` completed real relay approval using an isolated,
+new disposable identity with its Bunker switch enabled. The deployed arcade
+verified its kind-21236 proof, received and verified a real kind-31990 signature,
+refreshed and signed again with the same account, then cleared public identity
+and pairing credentials on logout. No SDK override or fake signer was used.
+Test submissions were blocked before reaching public relays; only the fixture's
+authentication traffic was sent. See [live signer proof](evidence/gamestr-live-mysignet-63c66b5.json).
+Physical phone, QR, suspension and reconnect journeys remain pending. The
+authorised 100-sat Wallet of Satoshi payment remains unconfirmed.
+
 ## Local implementation and checks
 
 - The next revision passed all 38 browser journeys before the My Signet
@@ -113,7 +131,8 @@ automated results, hosted artifacts and actual user/device acceptance.
   canonically verified kind-21236 proof for a disposable identity. That fresh
   identity had signing disabled and correctly appeared as identity-only.
   This establishes relay approval, not ongoing signing or physical-phone proof.
-  The source fix still needs deployment and a live repeat without the override.
+  The deployed repeat without the override now passes real Bunker signing,
+  refresh and logout, as recorded above.
   Private-key paste remains excluded.
 - `npm audit --audit-level=high`: passed, no high/critical findings. Eight
   moderate findings remain in the Electron packaging dependency chain.
@@ -149,8 +168,8 @@ automated results, hosted artifacts and actual user/device acceptance.
   into its existing deferred audio module and warms it during opening loading.
   The compressed cold core now measures 262,061 bytes with the same ceiling;
   all 261 unit tests, startup checks and complete Chromium/WebKit voice and
-  media profiles pass. The full release gate is running on that revision.
-  No complete Ledger release pass is claimed yet.
+  media profiles pass. The full release gate passed all 98 checks in 1,723.2 seconds on that
+  revision. Consumer deployment remains pending.
   Draft [Ledger PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88)
   contains the consumer; deployment remains pending.
 
