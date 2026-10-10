@@ -1,0 +1,64 @@
+{
+  "relay": "wss://relay.trotters.cc",
+  "signatureVerified": true,
+  "playerPubkey": "06a584018e0d5bf5f41c63d16d11f67c3f9ff902c81ccf0fac8d1cf8f964a277",
+  "reviewedAuthority": "fa9291d038fd1d3e4439364f289f2e53a64a1d32776ee52c000da53ebc718cdc",
+  "event": {
+    "content": "",
+    "created_at": 1791667730,
+    "id": "de8d4600e6c4663f1bc9f0b6266d20f30fd2b80c30648018e6489f3ca406e9ca",
+    "kind": 30762,
+    "pubkey": "fa9291d038fd1d3e4439364f289f2e53a64a1d32776ee52c000da53ebc718cdc",
+    "sig": "efff4dadabad3843e37856bc9d37f3ec3d9d38949d1d112079ade32a59dfcd90ba8f4be7cabf4f07540fc4f6563c06adfb4b8532003b20e29c1cf17787b75717",
+    "tags": [
+      [
+        "d",
+        "pallasite:06a584018e0d5bf5f41c63d16d11f67c3f9ff902c81ccf0fac8d1cf8f964a277:wave-1:daily-1791667390700"
+      ],
+      [
+        "game",
+        "pallasite"
+      ],
+      [
+        "score",
+        "16490"
+      ],
+      [
+        "p",
+        "06a584018e0d5bf5f41c63d16d11f67c3f9ff902c81ccf0fac8d1cf8f964a277"
+      ],
+      [
+        "sats",
+        "0"
+      ],
+      [
+        "state",
+        "final"
+      ],
+      [
+        "wave",
+        "1"
+      ],
+      [
+        "duration",
+        "113"
+      ],
+      [
+        "playerName",
+        "06A58401\u2026A277"
+      ],
+      [
+        "t",
+        "arcade"
+      ],
+      [
+        "t",
+        "asteroids"
+      ],
+      [
+        "t",
+        "lightning"
+      ]
+    ]
+  }
+}

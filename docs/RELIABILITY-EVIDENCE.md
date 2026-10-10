@@ -27,8 +27,22 @@ forced DNS; see [standard display proof](evidence/gamestr-pallasite-standard-sco
 The [public score page](https://gamestr.62-238-98-53.sslip.io/score/256785414a41d8659c61ea97de885e6855c22d3864dab0cd28bca634a3b548e3)
 is accessible while the 600 DNS cutover remains pending.
 These four runs used separate disposable accounts. The single-account matrix,
-live recovery of a failed saved score, physical acceptance, co-op timing,
+physical acceptance, co-op timing,
 native input, DNS cutover and payment confirmation remain open.
+
+A subsequent longer-session run earned 16,490 points after a normal 190-second
+pause. The first score signing attempt timed out; the game retained the earned
+public receipt under the selected account. RECONNECT IN ARCADE exposed the
+account control, explicit My Signet approval restored that same account, and
+RETRY SCORE in the new game tab published the original score. The NIP-98
+signature matches the original player, HTTP 200 confirms publication to all
+seven relays, and independent relay verification and fresh displays in both
+editions match the saved receipt. See [recovery run](evidence/gamestr-pallasite-pause-recovery-live-run.json),
+[public event](evidence/gamestr-pallasite-pause-recovery-real-score.json),
+[600 display](evidence/gamestr-pallasite-pause-recovery-real-score-ui.json) and
+[public standard display](evidence/gamestr-pallasite-pause-recovery-standard-score-ui.json).
+This verifies live saved-score recovery in browser automation. It does not
+establish the precise cause of signer expiry or physical-phone behaviour.
 
 The previous `0948199` deployment and
 [CI 38073823914](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38073823914)
@@ -225,7 +239,7 @@ Four added unit regressions cover unavailable signing, same-account enforcement,
 background upgrade, logout and account mismatch. Real-SDK private browser
 fixtures exercise unavailable bunker recovery in both editions. All 650 unit
 tests, 48 browser journeys and the complete build/validation check pass locally.
-The correction is now deployed in functional revision `4aa7661` on both Hetzner editions. Normal Pallasite gameplay publication is verified below; live recovery of a failed score remains a separate qualification gate.
+The correction is now deployed in functional revision `4aa7661` on both Hetzner editions. Normal Pallasite publication and live same-account recovery after a failed score are now verified; see the latest results above.
 
 Hosted [CI 38083846920](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38083846920)
 on `db2688b` passes the full source/build gate, 48 browser journeys, dependency
