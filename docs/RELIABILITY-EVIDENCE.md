@@ -13,10 +13,13 @@ controls. The source now shows account restoration and prevents normal identity
 handoff launches until restoration finishes. Modifier clicks and standard-edition
 independent game login retain their existing behaviour. Both new held-SDK
 restore checks and the full 46-browser-journey suite pass; all 646 unit tests
-and desktop/both web builds pass. Deployment of this follow-up is pending.
-The completed run and published score are still unverified.
+and desktop/both web builds pass. The follow-up `0948199` is deployed to both editions and passed hosted
+[CI 38073823914](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38073823914).
+Root/game HTML, all seven JS/CSS assets and security headers match both builds;
+see [standard proof](evidence/gamestr-web-0948199.json) and
+[600 forced-origin proof](evidence/gamestr-600-live-0948199.json).
 
-Standard web revision `63c66b5` is deployed on Hetzner and passed hosted
+Earlier standard web revision `63c66b5` was deployed on Hetzner and passed hosted
 [CI 38072565641](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38072565641),
 all 646 unit tests and all 44 browser journeys. Root HTML, the Pallasite route,
 all seven JS/CSS assets and security headers match the production build;
@@ -41,12 +44,35 @@ healthy, configured to sign and publish with the reviewed game key; see
 [Ledger live proof](evidence/ledger-live-e3937ca.json). Deployment kept the
 previous index and existing hashed assets for rollback and active sessions.
 
-600 revision `63c66b5` is activated on Hetzner. Valid TLS requests resolving
+The initial 600 revision `63c66b5` was activated on Hetzner. Valid TLS requests resolving
 `arcade.600.wtf` directly to `62.238.98.53` verify its metadata, root and
 Pallasite route HTML and all seven JavaScript/CSS assets against the build;
 see [600 origin proof](evidence/gamestr-600-live-63c66b5.json). Public DNS still
 returns `95.217.39.110`. Public cutover and real same-player runs through all
 four games remain pending; asset verification does not establish gameplay.
+
+## Real Ledger flight and score
+
+At the forced Hetzner 600 origin, arcade `0948199` and Ledger `e3937ca`
+completed a normal flight using the published My Signet Bunker and one
+new disposable account. Ordinary keyboard beam input harvested one animal;
+the game's pause menu and confirmation banked the flight at 100 points.
+No game state, score or event was injected. Ledger displayed the same
+selected player, removed the launch fragment/opener, and used the live
+parent signing port to obtain a canonically verified NIP-98 signature.
+See [flight proof](evidence/gamestr-ledger-live-handoff-0948199.json).
+
+A separate read-only real-relay subscription received event
+`564172d9bdb0bc8eab0238ba3a75ab246e535718121b2118fc904eff404af8c6`.
+Its verified game-authority signature, player `p` tag and score of 100 match
+the flight. The deployed arcade's exact-event page independently loaded it
+from its configured relays and displayed 100, that player's link and
+REVIEWED GAME AUTHORITY; see [public event](evidence/gamestr-ledger-real-score-0948199.json)
+and [rendered score proof](evidence/gamestr-ledger-real-score-ui-0948199.json).
+The HTTP claim response was not captured, so this record relies on the
+verified public event rather than inventing a response status. The flight
+is browser automation, not physical-phone or cabinet proof. Pallasite,
+Neon Sentinel and Hang On, Fren still need their completed-run checks.
 
 ## Local implementation and checks
 
