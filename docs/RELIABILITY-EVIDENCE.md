@@ -133,22 +133,40 @@ signed disposable local peers, including the actual root-launch route. The
 seven simulation harnesses, quality governor, Chromium presentation checks,
 five viewport menu checks and eight existing booth checks pass. Hosted
 [CI 38077777050](https://github.com/TheCryptoDonkey/pallasite/actions/runs/38077777050)
-passed `cedd45c`. The client is deployed on Hetzner at `pallasite.app`: root,
-version metadata, worker, SDK and eight JS/CSS assets match the verified build,
-and the public claim service still reports the reviewed authority. See
-[live proof](evidence/pallasite-live-cedd45c.json).
+passed `cedd45c`. That initial worker/booth deployment on Hetzner matched the
+build for root HTML, version metadata, worker, SDK and eight JS/CSS assets.
+Its public claim service reported the reviewed authority. See
+[initial live proof](evidence/pallasite-live-cedd45c.json).
+
+A follow-up found that the global signing queue reused the signer that started
+the runner for other accounts’ queued requests. Revision `90d9b64` binds each
+request to its own signer. The new regression fails on the previous code with
+account B’s request signed by account A; the fix passes canonical-signature
+checks for overlapping accounts, a rejection followed by another account, and
+queue re-entry. Hosted
+[CI 38079543360](https://github.com/TheCryptoDonkey/pallasite/actions/runs/38079543360)
+passes these three checks, all seven simulation harnesses, SDK drift, build and
+the six worker/identity checks. `90d9b64` is now deployed: all 12 entry/runtime
+files match the clean build and the reviewed game authority is unchanged. See
+[current live proof](evidence/pallasite-live-90d9b64.json).
 
 The co-op forge timing gate remains failing: 96 frames during parallel checks,
 188 on the isolated candidate, and 102 on the unchanged `bfab5e2` baseline,
 against the retained 90-frame limit. Simulations agreed. This does not establish
 a cause or a fix. A separate public-score fallback can substitute a guest after
 personal signing fails; same-account failure/retry correction remains pending.
-The published My Signet Pallasite run is being checked separately. WebKit,
+The published My Signet run retained the selected live port through worker
+activation and started normal gameplay. A score endpoint response was observed,
+but the selected-account canonical score signature was not verified. The test
+now handles the existing automation-specific omission of the tip screen; this
+is not proof of the physical tip-screen journey. WebKit,
 physical devices and the single-account four-game matrix remain unverified.
 
 Arcade's diagnostic harness revision `adf475d` passed the complete hosted
 [CI 38075818685](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38075818685).
-That pass does not resolve the intermittent native input failures recorded above.
+The subsequent documentation revision `780f37b` also passed
+[CI 38078292737](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38078292737).
+Those passes do not resolve the intermittent native input failures recorded above.
 
 ## Local implementation and checks
 
