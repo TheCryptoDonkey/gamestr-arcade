@@ -1,0 +1,37 @@
+{
+  "origin": "https://arcade.600.wtf",
+  "gameRevision": "b5c9994ab9772072817fb69bf8a219920d61e8ce",
+  "actualMySignet": true,
+  "physicalDevice": false,
+  "forcedHetznerOrigin": true,
+  "pubkey": "b7b31451eb8688a744a3938f90c2657f4c186aa80687d3d12df97115af892653",
+  "failedPhase": "score-pending-with-selected-account",
+  "claims": [],
+  "recovery": {
+    "phase": "gameover",
+    "signerPubkey": "b7b31451eb8688a744a3938f90c2657f4c186aa80687d3d12df97115af892653",
+    "recoveryVisible": true,
+    "pending": [
+      {
+        "pubkey": "b7b31451eb8688a744a3938f90c2657f4c186aa80687d3d12df97115af892653",
+        "score": 15315,
+        "runId": "1791661336372"
+      }
+    ]
+  },
+  "bridge": [
+    {
+      "ok": true,
+      "kind": 27235,
+      "pubkey": "b7b31451eb8688a744a3938f90c2657f4c186aa80687d3d12df97115af892653"
+    },
+    {
+      "ok": false,
+      "error": "event-outside-game-scope"
+    },
+    {
+      "ok": false,
+      "error": "other"
+    }
+  ]
+}

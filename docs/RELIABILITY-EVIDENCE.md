@@ -150,11 +150,37 @@ the six worker/identity checks. `90d9b64` is now deployed: all 12 entry/runtime
 files match the clean build and the reviewed game authority is unchanged. See
 [current live proof](evidence/pallasite-live-90d9b64.json).
 
+Revision `b5c9994` then removes the personal-score guest substitution. Runs
+capture their account at start, and finished score receipts are saved before
+signing. Only a matching session and signer can retry; failures and unconfirmed
+publication remain pending, while confirmed publication clears that receipt.
+Public receipts survive relaunch; blocked storage is explained as lasting only
+for the current visit. RETRY SCORE and RECONNECT TO RETRY appear outside active
+gameplay. Seven recovery/client checks and the seventh production-browser case
+verify failure, relaunch, canonical same-account retry and isolation from another
+account’s receipt. Hosted
+[CI 38080587968](https://github.com/TheCryptoDonkey/pallasite/actions/runs/38080587968)
+passes those checks, the three queue checks, seven simulation harnesses, SDK
+bundle drift and build. All 12 deployed files match the clean `b5c9994` build;
+the reviewed game authority is unchanged. See
+[current recovery deployment](evidence/pallasite-live-b5c9994.json).
+
+The actual published My Signet run on that deployment earned 15,315 points
+through normal keyboard gameplay. Score signing failed before an `/api/score`
+response, but the game retained the original account, kept that run in its
+outbox and displayed recovery. There was no guest score submission. The
+observation does not identify the signing failure's cause or establish a
+published score; the signing bridge's first successful NIP-98 result was not
+verified as the score request. See
+[live pending-score proof](evidence/gamestr-pallasite-live-score-pending-b5c9994.json).
+
+
 The co-op forge timing gate remains failing: 96 frames during parallel checks,
 188 on the isolated candidate, and 102 on the unchanged `bfab5e2` baseline,
 against the retained 90-frame limit. Simulations agreed. This does not establish
-a cause or a fix. A separate public-score fallback can substitute a guest after
-personal signing fails; same-account failure/retry correction remains pending.
+a cause or a fix. The personal-score fallback correction is deployed and its
+isolated same-account recovery checks pass; real gameplay publication remains
+a separate acceptance gate.
 The published My Signet run retained the selected live port through worker
 activation and started normal gameplay. A score endpoint response was observed,
 but the selected-account canonical score signature was not verified. The test
