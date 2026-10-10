@@ -8,7 +8,7 @@ automated results, hosted artifacts and actual user/device acceptance.
 - `npm run check`: passed 64 test files / 646 tests, typechecking, manifest and
   configuration validation, desktop build and both production web builds.
 - Initial script for the 600 edition remains within the 150 kB build gate.
-- Eight browser journeys passed: both editions at 320, 390, 768,
+- Thirty browser journeys passed at `46e40d5`: both editions at 320, 390, 768,
   1024 and 1440 pixels plus CSS zoom; actual SDK NIP-07 login/refresh/account
   change/logout; draft retention and focus; Android method labels.
 - Six additional reward checks passed in both editions: mobile QR/copy/link
@@ -21,7 +21,7 @@ automated results, hosted artifacts and actual user/device acceptance.
 - Pending NIP-07 restore followed by logout passed in both browser editions.
 - Account preferences now offer an explicit guest import, preserve guest data
   and account isolation, keep focus across updates, and explain unavailable
-  storage. The expanded complete browser suite is being rerun after fixture fixes.
+  storage. The complete expanded browser suite passed all 30 journeys.
 - A real browser child-port signed a score, then remained revoked through logout
   and re-login to the same key.
 - Unit regressions cover selected keys/templates, late login/restore,
@@ -66,7 +66,14 @@ Deployment now targets SSH alias `stall`, the new Hetzner server at
 there. The standard public origin is
 `https://gamestr.62-238-98-53.sslip.io/`; HTTPS and the configured CSP, HSTS,
 frame protection and MIME protection headers were checked on the existing
-July build. The reliability changes have not yet been deployed.
+July build. The standard edition's reliability changes are now deployed at
+`46e40d5149f5030ddcc249ba731dcfc1317c2aa8`. Its public release metadata,
+served JavaScript SHA-256 against the local build, protection headers, a
+Pallasite deep link and the 390px login picker were verified; see
+[public deployment evidence](evidence/gamestr-web-46e40d5.json).
+[Hosted CI run 38060976679](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38060976679)
+passed this source revision, including all 30 browser journeys and packaged
+Linux startup. The 600 edition's new source revision has not yet been deployed.
 
 DigitalOcean is authoritative for `600.wtf`:
 `ns1.digitalocean.com`, `ns2.digitalocean.com`, `ns3.digitalocean.com`.
@@ -87,13 +94,11 @@ release symlink changes.
 - Actual Android browser → Cambium and Amber → browser return, plus iPhone
   controls. NIP-55 currently supplies identity; signing actions require a live
   My Signet, NIP-07 or NIP-46 connection.
-- Hosted CI for the next source revision; the previously pushed revision passed the Linux runtime step.
+- Hosted CI must remain green if further source changes are made; `46e40d5` passed the Linux runtime step.
 - Ledger consumer release/deployment and same-player launch into all four games.
 - Public DNS cutover and live exact-revision verification of both editions.
 - Real mobile Lightning wallet payment with a separately authorised recipient
   and amount. Invoice display and wallet responses do not prove settlement.
-- Expanded browser acceptance for reward/dialog cancellation, account-scoped
-  preferences and callback rendering at the final revision. CSS zoom checks do not prove real browser
-  zoom or physical assistive-technology acceptance.
+- Real browser zoom and physical assistive-technology acceptance; CSS zoom checks alone do not prove these.
 
 No goal is marked complete solely from unit tests or an implementation.

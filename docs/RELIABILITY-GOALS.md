@@ -48,7 +48,7 @@ Acceptance criteria:
   event. A mismatch produces a clear reconnect message.
 - [x] Late login or restore results cannot reactivate a logged-out or replaced
   session. In-flight operations cannot deliver success through a revoked port.
-- [ ] Browser regressions cover logout, account switching, pending restore,
+- [x] Browser regressions cover logout, account switching, pending restore,
   re-login and an open game requesting a signature after logout.
 
 Start in [nostr-access.ts](../src/web/nostr-access.ts),
@@ -65,7 +65,7 @@ Acceptance criteria:
 - [ ] Sign-in, account and logout controls remain visible and operable at
   320px, 390px, 768px, 1024px and desktop widths in both editions. They do not
   overlap navigation or disappear at browser zoom.
-- [ ] Boot processes incoming SDK callbacks before normal session restoration,
+- [x] Boot processes incoming SDK callbacks before normal session restoration,
   even when no stored public key exists. It validates the callback and removes
   consumed authentication parameters from the URL.
 - [ ] Successful return, denial, invalid proof, expiry, replay and backing out
@@ -259,21 +259,22 @@ device or deployed behaviour.
 
 Arcade changes are in [PR #11](https://github.com/TheCryptoDonkey/gamestr-arcade/pull/11);
 Ledger's consumer is in [PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88).
-The arcade's pushed revision `6864d4b` passed hosted CI, packaging and Linux
-startup. Follow-up browser and preference changes are being verified; see
+The arcade's source revision `46e40d5` passed hosted CI, packaging, Linux
+startup and all 30 browser checks. The standard edition is live on the new
+Hetzner box at that revision. The 600 cutover and physical acceptance remain open; see
 [delivery evidence](RELIABILITY-EVIDENCE.md) for exact stages and remaining gates.
 
 | Goal | Implementation and PR | Automated checks | Deployed or packaged revision | Live acceptance | Status |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Selected-session verification, synchronous port revocation and generation guards; PR #11 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
-| 2 | Responsive controls, validated SDK callback and generic Cambium/Amber NIP-55 request; PR #11 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
-| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
-| 4 | Per-game score authorities and attribution provenance; PR #11 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
-| 5 | Dependency upgrades and high-severity audit gate; PR #11 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
-| 6 | Reviewed manifest capability and Ledger consumer; PR #11 and PR #88 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
-| 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
-| 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
-| 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | Unit/build gates passed; expanded browser checks in progress | Pending | Pending | In progress |
+| 1 | Selected-session verification, synchronous port revocation and generation guards; PR #11 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
+| 2 | Responsive controls, validated SDK callback and generic Cambium/Amber NIP-55 request; PR #11 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
+| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
+| 4 | Per-game score authorities and attribution provenance; PR #11 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
+| 5 | Dependency upgrades and high-severity audit gate; PR #11 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
+| 6 | Reviewed manifest capability and Ledger consumer; PR #11 and PR #88 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
+| 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
+| 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
+| 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
 
 For live runs, record the browser/device, signer or wallet, date, exact revisions,
 steps exercised and result. Cover both editions; local and cross-device My
