@@ -93,6 +93,19 @@ authentication traffic was sent. See [live signer proof](evidence/gamestr-live-m
 Physical phone, QR, suspension and reconnect journeys remain pending. The
 authorised 100-sat Wallet of Satoshi payment remains unconfirmed.
 
+## Current co-op forge check
+
+The original Pallasite `pnpm test:coop-campaign --forge` passes on unchanged
+functional source `14e969f`. Both clients agree on 812 simulation frames and
+exercise active core pulses; peak stalls are 50 and 36 against the existing
+90-frame limit. The broker reports no frame drops and sub-millisecond p95/p99
+delivery. See [current co-op check](evidence/pallasite-coop-current-original.json).
+Three prior diagnostic runs also passed. Their temporary recorder was removed
+before the original-command run; no product or fixture threshold was changed.
+Earlier 96, 188 and baseline 102-frame failures remain timing-variation evidence.
+This current pass does not establish a product repair, worst-case performance,
+physical co-op acceptance or a cause for those earlier failures.
+
 ## Coordinated deployment after Ledger gate
 
 Ledger client `e3937ca` passed all 98 release checks and is now deployed at
@@ -320,7 +333,7 @@ All four games now have individual real-gameplay/public-score proofs; those runs
 used separate disposable accounts. The same-account four-game matrix remains open.
 
 
-The co-op forge timing gate remains failing: 96 frames during parallel checks,
+Earlier co-op forge timing checks failed: 96 frames during parallel checks,
 188 on the isolated candidate, and 102 on the unchanged `bfab5e2` baseline,
 against the retained 90-frame limit. Simulations agreed. This does not establish
 a cause or a fix. The personal-score fallback correction is deployed and its
