@@ -78,7 +78,12 @@ function node<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string,
   return element
 }
 
+let mountedStudio: HTMLElement | undefined
+const DRAFT_KEY = 'gamestr:manifest-draft:v1'
+
 export function mountDeveloperStudio(host: HTMLElement, relays: string[]): void {
+  // Reuse the editor so a relay/profile/session update preserves draft and async work.
+  if (mountedStudio) { host.append(mountedStudio); return }
   const studio = node('section', 'manifest-studio')
   studio.append(node('p', 'kicker', 'MANIFEST STUDIO'), node('h2', '', 'Validate locally. Sign deliberately. Publish openly.'))
   studio.append(node('p', 'studio-lede', 'The manifest is checked against the same schema used by cabinets and CI. Publishing creates a replaceable NIP-89 event under your Nostr key; it does not grant automatic editorial approval.'))
@@ -87,6 +92,7 @@ export function mountDeveloperStudio(host: HTMLElement, relays: string[]): void 
   const label = node('label', '', 'Manifest v2 JSON')
   label.htmlFor = 'manifest-json'
   const textarea = node('textarea'); textarea.id = 'manifest-json'; textarea.spellcheck = false; textarea.value = JSON.stringify(TEMPLATE, null, 2)
+  try { textarea.value = localStorage.getItem(DRAFT_KEY) ?? textarea.value } catch { /* in-memory editor remains usable */ }
   const actions = node('div', 'hero-actions')
   const validateButton = node('button', 'secondary', 'VALIDATE'); validateButton.type = 'button'
   const publishButton = node('button', 'primary', 'SIGN & PUBLISH'); publishButton.type = 'button'; publishButton.disabled = true
@@ -94,7 +100,7 @@ export function mountDeveloperStudio(host: HTMLElement, relays: string[]): void 
   const status = node('output', 'studio-status'); status.setAttribute('aria-live', 'polite')
   editor.append(label, textarea, actions, status)
   const preview = node('article', 'studio-preview'); preview.append(node('span', 'preview-label', 'LISTING PREVIEW'), node('h3', '', 'Waiting for validation'), node('p', '', 'Your safe preview appears here.'))
-  workspace.append(editor, preview); studio.append(workspace); host.append(studio)
+  workspace.append(editor, preview); studio.append(workspace); host.append(studio); mountedStudio = studio
 
   let validated: PublicGameManifest | undefined
   const runValidation = async () => {
@@ -111,7 +117,9 @@ export function mountDeveloperStudio(host: HTMLElement, relays: string[]): void 
     preview.replaceChildren(node('span', 'preview-label', result.manifest.genres?.join(' · ').toUpperCase() ?? 'GAME'), node('h3', '', result.manifest.name), node('p', '', result.manifest.tagline ?? result.manifest.description ?? 'No description supplied.'), node('code', '', result.manifest.url))
   }
   validateButton.addEventListener('click', () => void runValidation())
-  textarea.addEventListener('input', () => { validated = undefined; publishButton.disabled = true; status.textContent = 'Manifest changed. Validate again before signing.' })
+  textarea.addEventListener('input', () => {
+    try { localStorage.setItem(DRAFT_KEY, textarea.value) } catch { /* keep the draft in memory */ }
+    validated = undefined; publishButton.disabled = true; status.textContent = 'Manifest changed. Validate again before signing.' })
   publishButton.addEventListener('click', async () => {
     if (!validated) return
     publishButton.disabled = true; status.className = 'studio-status'; status.textContent = 'Waiting for your Nostr signer…'

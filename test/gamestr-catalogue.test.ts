@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { finalizeEvent } from 'nostr-tools/pure'
+import { finalizeEvent, getPublicKey } from 'nostr-tools/pure'
 import { createGamestrCatalogue } from '../src/renderer/src/leaderboard/gamestr'
 import type { LeaderboardEntry } from '../src/shared/types'
 
@@ -83,9 +83,10 @@ function makeMockWsFactory() {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const ALICE = 'a'.repeat(64)
-const BOB   = 'b'.repeat(64)
 const SCORE_KEY = new Uint8Array(32).fill(7)
+const BOB_KEY = new Uint8Array(32).fill(8)
+const ALICE = getPublicKey(SCORE_KEY)
+const BOB = getPublicKey(BOB_KEY)
 const NOW = Math.floor(Date.now() / 1000)
 
 function scoreMsg(
@@ -100,7 +101,7 @@ function scoreMsg(
     created_at: createdAt,
     tags: [['game', gameId], ['p', playerPubkey], ['score', String(score)]],
     content: '',
-  }, SCORE_KEY)
+  }, playerPubkey === BOB ? BOB_KEY : SCORE_KEY)
   return JSON.stringify(['EVENT', subId, event])
 }
 
@@ -239,6 +240,24 @@ describe('createGamestrCatalogue', () => {
     cat.dispose()
   })
 
+  for (const dir of ['asc', 'desc'] as const) {
+    it(`retains an old ${dir} record independently of newer lower-ranked activity`, () => {
+      const cat = createGamestrCatalogue(['wss://relay.test'], { maxEventsPerGame: 2 })
+      const updates: LeaderboardEntry[][] = []
+      cat.subscribe('sats-man', entries => updates.push(entries), { dir })
+      const ws = wsFactory.instances[0]; ws.triggerOpen()
+      const subId = JSON.parse(ws.sentMessages[0])[1]
+      const record = dir === 'asc' ? 1 : 100
+      ws.triggerMessage(scoreMsg(subId, 'sats-man', ALICE, record, NOW - 100))
+      ws.triggerMessage(scoreMsg(subId, 'sats-man', ALICE, 20, NOW - 2))
+      ws.triggerMessage(scoreMsg(subId, 'sats-man', BOB, 30, NOW - 1))
+      clock.advance(250)
+      expect(updates.at(-1)!.some(entry => entry.pubkey === ALICE && entry.score === record)).toBe(true)
+      expect(updates.at(-1)!.some(entry => entry.pubkey === ALICE && entry.score === 20)).toBe(true)
+      cat.dispose()
+    })
+  }
+
   it('delivers events for multiple games independently', () => {
     const cat = createGamestrCatalogue(['wss://relay.test'])
     const updates: Record<string, LeaderboardEntry[][]> = { 'sats-man': [], pallasite: [] }
@@ -347,4 +366,29 @@ describe('createGamestrCatalogue', () => {
 
     cat.dispose()
   })
+  it('emits an older personal best even when recent activity immediately evicts it, then restores it from cache', () => {
+    const values = new Map<string, string>()
+    const cacheStorage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value) } }
+    const cat = createGamestrCatalogue(['wss://relay.test'], { maxEventsPerGame: 2, cacheStorage })
+    const updates: LeaderboardEntry[][] = []
+    cat.subscribe('sats-man', entries => updates.push(entries))
+    const ws = wsFactory.instances[0]; ws.triggerOpen()
+    const subId = JSON.parse(ws.sentMessages[0])[1]
+    ws.triggerMessage(scoreMsg(subId, 'sats-man', ALICE, 10, NOW))
+    ws.triggerMessage(scoreMsg(subId, 'sats-man', BOB, 20, NOW + 1))
+    clock.advance(250)
+    ws.triggerMessage(scoreMsg(subId, 'sats-man', ALICE, 1000, NOW - 100))
+    clock.advance(250)
+    expect(updates.at(-1)!.some(entry => entry.pubkey === ALICE && entry.score === 1000)).toBe(true)
+    cat.dispose()
+    const restored: LeaderboardEntry[][] = []
+    const onCached = vi.fn()
+    const next = createGamestrCatalogue([], { maxEventsPerGame: 4, cacheStorage, onCached })
+    next.subscribe('sats-man', entries => restored.push(entries))
+    clock.advance(250)
+    expect(onCached).toHaveBeenCalled()
+    expect(restored.at(-1)!.some(entry => entry.score === 1000)).toBe(true)
+    next.dispose()
+  })
+
 })

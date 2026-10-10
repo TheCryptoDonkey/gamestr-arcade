@@ -1,15 +1,17 @@
 import './style.css'
+import { activateDialog } from './dialog-lifecycle'
 import { createGamestrCatalogue } from '../renderer/src/leaderboard/gamestr'
-import { boardFor } from '../renderer/src/leaderboard/gamestr-reduce'
+import { lookupScore } from './score-lookup'
+import { boardFor, parseAnyScoreEvent, parse5555Event, scoreGameId } from '../renderer/src/leaderboard/gamestr-reduce'
 import { avatarCss, hexToNpub, lightningDestination, playerIdentity, resolveProfiles, type Profile } from '../renderer/src/leaderboard/profiles'
 import type { LeaderboardEntry } from '../shared/types'
 import { decodeInvitation, encodeInvitation, invitationTemplate, parseInvitation } from './game-invitation'
 import { challengeTemplate, decodeChallenge, encodeChallenge, parseChallenge } from './game-challenge'
 import { readSocialState, toggleSocialItem, writeSocialState } from './social-state'
-import { rewardLightningAddress, type WebLNProvider } from './lightning-reward'
+import { requestLightningInvoice, type WebLNProvider } from './lightning-reward'
 import { decode as decodeNip19 } from 'nostr-tools/nip19'
 import { WEB_EDITION } from './web-edition'
-import { connectNostrAccess, currentNostrGameSession, currentNostrSigner, disconnectNostrAccess, NOSTR_SESSION_EVENT, restoreNostrAccess, type ArcadeNostrSigner, type NostrAccess } from './nostr-access'
+import { connectNostrAccess, currentNostrAccess, currentNostrGameSession, currentNostrSigner, disconnectNostrAccess, NOSTR_SESSION_EVENT, restoreNostrAccess, type ArcadeNostrSigner, type NostrAccess } from './nostr-access'
 import { loadWellKnownMembers } from './well-known-members'
 import { accountIdentity } from './account-identity'
 import { createNostrGameLaunch, installNostrGameBridge, openNostrGame } from './game-auth-handoff'
@@ -18,7 +20,8 @@ interface WebGame {
   slug: string; gameId: string; name: string; tagline: string; description?: string; developer?: string
   genres: string[]; url: string; accent: string; hero?: string; logo?: string; artOverlay?: boolean
   featured: boolean; trending: boolean; newRelease: boolean; walletPay: boolean
-  players?: { min: number; max: number }; scoreKind?: number; scoreField?: string; scoreDir?: 'asc' | 'desc'
+  nostrHandoff?: { protocol: 'gamestr-auth-v1'; editions: string[]; signKinds: number[] }
+  players?: { min: number; max: number }; scoreAuthorities?: string[]; scoreKind?: number; scoreField?: string; scoreDir?: 'asc' | 'desc'
 }
 
 interface NostrWindow extends Window {
@@ -29,8 +32,9 @@ const RELAYS = ['wss://main.relay.gamestr.io', 'wss://relay.trotters.cc', 'wss:/
 const GAMESTR_ORIGIN = 'https://gamestr.io'
 const app = document.querySelector<HTMLDivElement>('#app')!
 const state = {
+  scoreLookups: new Map<string, { status: 'syncing' | 'found' | 'invalid' | 'unavailable'; match?: { game: WebGame; entry: LeaderboardEntry } }>(),
   games: [] as WebGame[], query: '', filter: 'all', genre: 'all', selected: null as WebGame | null,
-  scores: new Map<string, LeaderboardEntry[]>(), relay: 'connecting' as 'connecting' | 'up' | 'down',
+  scores: new Map<string, LeaderboardEntry[]>(), cachedScores: false, relay: 'connecting' as 'connecting' | 'up' | 'down',
   pubkey: '', identityConnecting: false, identityDisconnecting: false, accountMenuOpen: false,
   profiles: new Map<string, Profile>(), profileRequests: new Set<string>(),
   members: new Map<string, string>(),
@@ -41,12 +45,22 @@ installNostrGameBridge(() => currentNostrSigner())
 
 window.addEventListener(NOSTR_SESSION_EVENT, event => {
   const access = (event as CustomEvent<NostrAccess>).detail
-  if (!access || !/^[0-9a-f]{64}$/.test(access.pubkey)) return
+  if (!access) {
+    state.pubkey = ''
+    state.social = readSocialState()
+    state.accountMenuOpen = false
+    if (app.childElementCount) render()
+    return
+  }
+  if (!/^[0-9a-f]{64}$/.test(access.pubkey)) return
   state.pubkey = access.pubkey
+  state.social = readSocialState(undefined, access.pubkey)
   state.accountMenuOpen = false
   ensureProfile(access.pubkey)
   if (app.childElementCount) render()
 })
+
+window.addEventListener('gamestr:nostr-error', event => toast((event as CustomEvent<string>).detail, 'warn'))
 
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] => {
   const node = document.createElement(tag)
@@ -87,12 +101,12 @@ function route(): { name: 'home' | 'scores' | 'developers' | 'game' | 'player' |
 }
 
 function toggleFavourite(game: WebGame): void {
-  state.social = toggleSocialItem(state.social, 'favourites', game.slug); writeSocialState(state.social); render()
+  state.social = toggleSocialItem(state.social, 'favourites', game.slug); if (!writeSocialState(state.social, undefined, state.pubkey)) toast('Preferences are available for this visit; browser storage is unavailable.', 'warn'); render()
   toast(state.social.favourites.includes(game.slug) ? `${game.name} added to your arcade.` : `${game.name} removed from your arcade.`, 'good')
 }
 
 function toggleFollow(pubkey: string): void {
-  state.social = toggleSocialItem(state.social, 'follows', pubkey); writeSocialState(state.social); render()
+  state.social = toggleSocialItem(state.social, 'follows', pubkey); if (!writeSocialState(state.social, undefined, state.pubkey)) toast('Preferences are available for this visit; browser storage is unavailable.', 'warn'); render()
   toast(state.social.follows.includes(pubkey) ? 'Player followed on this device.' : 'Player unfollowed.', 'good')
 }
 
@@ -114,12 +128,15 @@ function playLink(game: WebGame, label = 'PLAY', className = 'play-small'): HTML
   link.href = game.url
   link.target = '_blank'
   link.rel = 'noopener noreferrer'
-  const session = WEB_EDITION.key === '600' ? currentNostrGameSession() : undefined
+  const handoff = game.nostrHandoff?.protocol === 'gamestr-auth-v1' && game.nostrHandoff.editions.includes(WEB_EDITION.key) ? game.nostrHandoff : undefined
+  const session = handoff ? currentNostrGameSession() : undefined
+  link.title = session ? 'Normal click carries your arcade identity; modifier clicks use the game’s own login.' : 'Opens the game with its own login.'
   if (session) {
     const launch = createNostrGameLaunch({
       gameId: game.gameId,
+      signKinds: handoff!.signKinds,
       targetUrl: game.url,
-      sourceOrigin: WEB_EDITION.defaultOrigin,
+      sourceOrigin: location.origin,
       sourceApp: WEB_EDITION.pwaName,
       session,
       profile: state.profiles.get(session.pubkey),
@@ -128,7 +145,7 @@ function playLink(game: WebGame, label = 'PLAY', className = 'play-small'): HTML
       link.addEventListener('click', event => {
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
         event.preventDefault()
-        openNostrGame(launch)
+        if (!openNostrGame(launch)) toast('The game popup was blocked. Allow popups to carry your identity, or use a modifier click and sign in inside the game.', 'warn')
       })
     }
   }
@@ -159,7 +176,7 @@ function header(): HTMLElement {
     link.addEventListener('click', event => { event.preventDefault(); navigate(path) })
     nav.append(link)
   }
-  const relay = el('span', `relay-pill ${state.relay}`, state.relay === 'up' ? 'NOSTR LIVE' : state.relay === 'down' ? 'RELAYS OFFLINE' : 'CONNECTING')
+  const relay = el('span', `relay-pill ${state.relay}`, state.relay === 'up' ? 'NOSTR LIVE' : state.relay === 'down' ? (state.cachedScores ? 'CACHED · RELAYS OFFLINE' : 'RELAYS OFFLINE') : (state.cachedScores ? 'CACHED · CONNECTING' : 'CONNECTING'))
   relay.title = 'Score events are verified locally before display'
   let identity: HTMLElement
   if (state.pubkey) {
@@ -168,7 +185,10 @@ function header(): HTMLElement {
       pubkey: state.pubkey,
       profile: state.profiles.get(state.pubkey),
       open: state.accountMenuOpen,
-      busy: state.identityDisconnecting,
+      busy: state.identityDisconnecting || state.identityConnecting,
+      signerStatus: state.identityConnecting ? 'RECONNECTING…' : currentNostrAccess()?.signerStatus === 'unavailable' ? 'SIGNER UNAVAILABLE' : currentNostrAccess()?.canSignEvents ? 'SIGNER CONNECTED' : 'IDENTITY CONNECTED · SIGNER NEEDED',
+      onReconnect: () => void connectIdentity(true),
+      onSyncPreferences: () => preferenceDialog(),
       onToggle: () => { state.accountMenuOpen = !state.accountMenuOpen; render() },
       onProfile: () => { state.accountMenuOpen = false; navigate(`/player/${state.pubkey}`) },
       onLogout: () => void logoutIdentity(),
@@ -249,7 +269,7 @@ function filters(): HTMLElement {
   const search = el('label', 'search-box')
   search.append(el('span', 'sr-only', 'Search games'))
   const input = el('input')
-  input.type = 'search'; input.placeholder = 'Search games, genres, developers…'; input.value = state.query
+  input.id = 'arcade-search'; input.type = 'search'; input.placeholder = 'Search games, genres, developers…'; input.value = state.query
   input.addEventListener('input', () => { state.query = input.value; renderGameGrid() })
   search.append(input)
   const tabs = el('div', 'filter-tabs'); tabs.setAttribute('role', 'group'); tabs.setAttribute('aria-label', 'Game filters')
@@ -420,8 +440,11 @@ function scoresPage(): HTMLElement {
   main.append(grid); return main
 }
 
+let developerPageElement: HTMLElement | undefined
+
 function developersPage(): HTMLElement {
-  const main = el('main', 'page prose'); main.id = 'main'
+  if (developerPageElement) return developerPageElement
+  const main = el('main', 'page prose'); main.id = 'main'; developerPageElement = main
   main.append(el('p', 'kicker', 'DEVELOPER GUIDE'), el('h1', '', 'Bring your game. Keep your sovereignty.'), el('p', 'page-lede', 'Gamestr is discovery and interoperability, not a hosting lock-in. Your URL, your code, your revenue, your player relationship.'))
   const steps = [
     ['1', 'Declare the game', 'Add a Manifest v2 file with a stable gameId, HTTPS URL, genres, art, controls, and only the capabilities you actually need.'],
@@ -548,14 +571,36 @@ function scorePage(eventId: string): HTMLElement {
     if (entry) { match = { game, entry }; break }
   }
   const main = el('main', 'page score-detail'); main.id = 'main'
-  if (!match) { main.append(el('p', 'kicker', 'VERIFIED SCORE'), el('h1', '', 'Syncing event…'), el('p', 'page-lede', 'This score has not arrived from the configured relays yet. The app will continue reconnecting.')); return main }
+  let lookup = state.scoreLookups.get(eventId)
+  if (!match && !lookup) {
+    if (state.scoreLookups.size >= 32) state.scoreLookups.delete(state.scoreLookups.keys().next().value!)
+    lookup = { status: 'syncing' }; state.scoreLookups.set(eventId, lookup)
+    void lookupScore(eventId, RELAYS).then(result => {
+      let loaded: { game: WebGame; entry: LeaderboardEntry } | undefined
+      if (result.status === 'found') {
+        const game = state.games.find(candidate => candidate.gameId === scoreGameId(result.event) && (candidate.scoreKind ?? 30762) === result.event.kind)
+        const entry = game ? result.event.kind === 5555 ? parse5555Event(result.event, game.gameId, game.scoreField ?? 'score', { [game.gameId]: game.scoreAuthorities ?? [] }) : parseAnyScoreEvent(result.event, { [game.gameId]: game.scoreAuthorities ?? [] })?.entry : null
+        if (game && entry) loaded = { game, entry }
+      }
+      state.scoreLookups.set(eventId, loaded ? { status: 'found', match: loaded } : { status: result.status === 'found' ? 'invalid' : result.status })
+      if (route().name === 'score' && route().id === eventId) render()
+    })
+  }
+  match ??= lookup?.match
+  if (!match) {
+    const status = lookup?.status ?? 'unavailable'
+    main.append(el('p', 'kicker', 'SCORE LOOKUP'), el('h1', '', status === 'syncing' ? 'Looking up this event…' : status === 'invalid' ? 'Score failed validation' : 'Score unavailable'), el('p', 'page-lede', status === 'syncing' ? 'Requesting this exact event from the configured relays.' : status === 'invalid' ? 'The returned event is invalid, has untrusted player attribution, or belongs outside this catalogue.' : 'The configured relays did not return this event. This does not prove the score never existed.'))
+    if (status !== 'syncing') main.append(button('RETRY LOOKUP', 'secondary', () => { state.scoreLookups.delete(eventId); render() }))
+    return main
+  }
   ensureProfile(match.entry.pubkey)
   const profile = state.profiles.get(match.entry.pubkey)
   const identity = playerIdentity(match.entry.pubkey, match.entry, profile)
   main.append(el('p', 'kicker', 'VERIFIED GAMESTR.IO SCORE'), el('h1', '', match.entry.score.toLocaleString()), el('p', 'page-lede', `${match.game.name} · ${new Date(match.entry.at * 1000).toLocaleString()}`))
   const facts = el('dl', 'score-facts')
-  const factValues = [['PLAYER', identity.label], ...(identity.nip05 ? [['NIP-05', identity.nip05]] : []), ['SATS', String(match.entry.sats ?? 0)], ['SIGNATURE', 'VALID'], ['EVENT', eventId]]
+  const factValues = [['PLAYER', identity.label], ...(identity.nip05 ? [['NIP-05', identity.nip05]] : []), ['REPORTED SATS', String(match.entry.sats ?? 0)], ['ATTRIBUTION', match.entry.attribution === 'game-authority' ? 'REVIEWED GAME AUTHORITY' : 'PLAYER SIGNED'], ['SIGNATURE', 'VALID'], ['EVENT', eventId]]
   for (const [label, value] of factValues) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) }
+  main.append(el('p', 'page-lede', 'The signature verifies the event author and attribution. It does not prove honest gameplay or Lightning settlement.'));
   main.append(facts, playerLink(match.entry, 'button-link'), playLink(match.game, `PLAY ${match.game.name.toUpperCase()} ↗`, 'primary'), externalLink('VIEW ORIGINAL ON GAMESTR.IO ↗', `${GAMESTR_ORIGIN}/${encodeURIComponent(match.game.gameId)}/score/${eventId}`, 'button-link gamestr-source-link'))
   if (lightningDestination(profile) && match.entry.pubkey !== state.pubkey) main.append(button('⚡ ZAP THIS SCORE', 'reward-button', () => rewardDialog(match!.entry.pubkey, profile!)))
   else if (match.entry.pubkey !== state.pubkey) main.append(zapSetupNote())
@@ -599,12 +644,13 @@ function challengePage(encoded: string): HTMLElement {
   const facts = el('dl', 'game-facts')
   for (const [label, value] of [['STATUS', phase], ['START', new Date(challenge.startsAt * 1000).toLocaleString()], ['END', new Date(challenge.endsAt * 1000).toLocaleString()], ['ORIGIN', new URL(game.url).host]]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) }
   const actions = el('div', 'hero-actions'); actions.append(playLink(game, phase === 'FINAL' ? 'PLAY THIS GAME ↗' : 'ENTER & PLAY ↗', 'primary'), playerLink(challenge.event.pubkey, 'button-link')); hero.append(facts, actions); main.append(hero)
-  const standings = el('section', 'challenge-standings'); const heading = el('div', 'section-heading'); heading.append(el('h2', '', phase === 'FINAL' ? 'FINAL STANDINGS' : 'LIVE STANDINGS'), el('span', '', `${new Date(challenge.startsAt * 1000).toLocaleDateString()} - ${new Date(challenge.endsAt * 1000).toLocaleDateString()}`)); standings.append(heading)
+  const standings = el('section', 'challenge-standings'); const heading = el('div', 'section-heading'); heading.append(el('h2', '', phase === 'FINAL' ? 'OBSERVED STANDINGS' : 'LIVE STANDINGS'), el('span', '', `${new Date(challenge.startsAt * 1000).toLocaleDateString()} - ${new Date(challenge.endsAt * 1000).toLocaleDateString()}`)); standings.append(heading)
   const eligible = (state.scores.get(game.gameId) ?? []).filter(entry => entry.at >= challenge.startsAt && entry.at <= challenge.endsAt)
   const ranked = boardFor(eligible, 'all', 50, Math.min(now, challenge.endsAt), game.scoreDir ?? 'desc')
   const list = el('ol', 'challenge-board')
   ranked.forEach((entry, index) => { const row = el('li'); row.append(el('span', 'rank', String(index + 1).padStart(2, '0')), playerLink(entry), el('small', '', new Date(entry.at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })), scoreLink(entry)); list.append(row) })
   if (!ranked.length) list.append(el('li', 'activity-empty', phase === 'FINAL' ? 'No verified scores landed during this challenge.' : 'Waiting for the first verified score in this challenge window…'))
+  standings.append(el('p', 'page-lede', 'Standings use the bounded history received from these relays. Earlier or missing events may change the result; complete challenge history has not been established.'));
   standings.append(list); main.append(standings); return main
 }
 
@@ -619,7 +665,7 @@ async function shareInvitation(game: WebGame): Promise<void> {
     else { await navigator.clipboard.writeText(url); toast('Signed invitation link copied.', 'good') }
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') return
-    toast('Invitation signing or sharing was cancelled.', 'warn')
+    toast(error instanceof Error ? error.message : 'Invitation signing or sharing was cancelled.', 'warn')
   }
 }
 
@@ -634,8 +680,7 @@ function createChallengeDialog(game: WebGame): void {
   durationLabel.append(duration)
   const status = el('output', 'studio-status'); status.setAttribute('aria-live', 'polite')
   const actions = el('div', 'hero-actions'); const create = button('SIGN & CREATE', 'primary', () => undefined); create.type = 'submit'; const cancel = button('CANCEL', 'secondary', () => modal.remove()); actions.append(create, cancel)
-  form.append(el('p', 'kicker', 'SIGNED CHALLENGE'), heading, lede, nameLabel, durationLabel, actions, status); modal.append(form); document.body.append(modal); name.focus()
-  const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') { modal.remove(); window.removeEventListener('keydown', escape) } }; window.addEventListener('keydown', escape)
+  form.append(el('p', 'kicker', 'SIGNED CHALLENGE'), heading, lede, nameLabel, durationLabel, actions, status); modal.append(form); document.body.append(modal); activateDialog(modal); name.focus()
   form.addEventListener('submit', async event => {
     event.preventDefault()
     const signer = currentNostrSigner() ?? await connectIdentity(true)
@@ -655,6 +700,37 @@ function createChallengeDialog(game: WebGame): void {
   })
 }
 
+function preferenceDialog(): void {
+  const pubkey = state.pubkey
+  if (!pubkey) return
+  const modal = el('div', 'challenge-modal'); modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true'); modal.setAttribute('aria-labelledby', 'preference-title')
+  const form = el('form', 'challenge-form')
+  const heading = el('h2', '', 'Sync arcade preferences'); heading.id = 'preference-title'
+  const disclosure = el('p', '', 'This merges favourites and arcade follows from this account, then publishes them as public Nostr data. It never changes your NIP-02 follow list. Local preferences remain available if relays are offline.')
+  const label = el('label'); const consent = el('input'); consent.type = 'checkbox'; consent.required = true; label.append(consent, el('span', '', 'I agree to publish my favourites and arcade follows publicly.'))
+  const status = el('output', 'studio-status'); status.setAttribute('aria-live', 'polite')
+  const submit = button('MERGE & PUBLISH', 'primary', () => undefined); submit.type = 'submit'
+  form.append(heading, disclosure, label, submit, button('CANCEL', 'secondary', () => modal.remove()), status); modal.append(form); document.body.append(modal); activateDialog(modal)
+  form.addEventListener('submit', async event => {
+    event.preventDefault(); if (!consent.checked || submit.disabled) return
+    submit.disabled = true; status.textContent = 'Loading this account’s arcade preferences…'
+    const approved = () => modal.isConnected && consent.checked && state.pubkey === pubkey
+    try {
+      const { loadRemotePreferences, mergePreferences, publishPreferences } = await import('./preference-sync')
+      const remote = await loadRemotePreferences(pubkey, RELAYS)
+      if (!approved()) return
+      state.social = mergePreferences(state.social, remote)
+      writeSocialState(state.social, undefined, pubkey)
+      const signer = currentNostrSigner() ?? await connectIdentity(true)
+      if (!signer || !approved()) throw new Error('Connect a signer for this account to publish.')
+      const count = await publishPreferences(state.social, pubkey, signer, RELAYS, approved)
+      status.textContent = count ? `Merged preferences accepted by ${count} relay${count === 1 ? '' : 's'}.` : 'Saved locally; no relay confirmed publication. Retry when online.'
+      render()
+    } catch (error) { status.textContent = error instanceof Error ? error.message : 'Preferences remain saved locally.' }
+    finally { submit.disabled = false }
+  })
+}
+
 function rewardDialog(pubkey: string, profile: Profile): void {
   const lightning = lightningDestination(profile)
   if (!lightning) return
@@ -662,7 +738,7 @@ function rewardDialog(pubkey: string, profile: Profile): void {
   const form = el('form', 'challenge-form reward-form')
   const identity = playerIdentity(pubkey, latestPlayerEntry(pubkey), profile)
   const heading = el('h2', '', `Zap ${identity.label}`); heading.id = 'reward-title'
-  const lede = el('p', '', 'Zap directly from your own WebLN wallet to the player’s lud16 Lightning address or lud06 LNURL. This arcade never sees wallet credentials or routes this through the cabinet wallet.')
+  const lede = el('p', '', 'Pay with your own wallet by QR, Lightning link, or WebLN to the player’s lud16 Lightning address or lud06 LNURL. This arcade never sees wallet credentials or routes this through the cabinet wallet.')
   const amountLabel = el('label', '', 'Amount in sats'); const amount = el('input'); amount.type = 'number'; amount.min = '1'; amount.max = '100000'; amount.step = '1'; amount.required = true; amount.value = '21'; amountLabel.append(amount)
   const presets = el('div', 'reward-presets'); for (const value of [21, 100, 500, 1000]) presets.append(button(`${value} SATS`, 'secondary', () => { amount.value = String(value) }))
   const zapLabel = el('label', 'zap-option'); const publicZap = el('input'); publicZap.type = 'checkbox'; zapLabel.append(publicZap, el('span', '', 'Create a public Nostr zap receipt (reveals your signing identity)'))
@@ -670,20 +746,46 @@ function rewardDialog(pubkey: string, profile: Profile): void {
   const privacy = el('p', 'reward-privacy', 'Your browser contacts the recipient’s Lightning service only after you approve. The wallet still shows the final invoice for authorization.')
   const status = el('output', 'studio-status'); status.setAttribute('aria-live', 'polite')
   const actions = el('div', 'hero-actions'); const pay = button('OPEN MY WALLET', 'primary', () => undefined); pay.type = 'submit'; const cancel = button('CANCEL', 'secondary', () => modal.remove()); actions.append(pay, cancel)
-  form.append(el('p', 'kicker', 'USER-OWNED LIGHTNING'), heading, lede, amountLabel, presets, zapLabel, destination, privacy, actions, status); modal.append(form); document.body.append(modal); amount.focus(); amount.select()
-  const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') { modal.remove(); window.removeEventListener('keydown', escape) } }; window.addEventListener('keydown', escape)
+  form.append(el('p', 'kicker', 'USER-OWNED LIGHTNING'), heading, lede, amountLabel, presets, zapLabel, destination, privacy, actions, status); modal.append(form); document.body.append(modal); activateDialog(modal); amount.focus(); amount.select()
+  let invoiceCreated = false
   form.addEventListener('submit', async event => {
     event.preventDefault(); const provider = (window as NostrWindow).webln
-    if (!provider) { status.className = 'studio-status error'; status.textContent = 'No WebLN wallet was found. Install or connect a WebLN-capable wallet and retry.'; return }
+    if (pay.disabled) return
     pay.disabled = true; status.className = 'studio-status'; status.textContent = 'Requesting an exact-amount invoice from the player’s Lightning address…'
     try {
       const signer = publicZap.checked ? currentNostrSigner() ?? await connectIdentity(true) : undefined
       if (publicZap.checked && !signer) throw new Error('A signing-capable Signet or Nostr session is required for a public zap receipt.')
-      await rewardLightningAddress(lightning, Number(amount.value), provider, fetch, publicZap.checked ? { zap: { recipientPubkey: pubkey, signer: signer!, relays: RELAYS } } : {})
-      status.className = 'studio-status success'; status.textContent = `${Number(amount.value).toLocaleString()} sats sent directly to ${identity.label}.`
-      setTimeout(() => modal.remove(), 1800)
+      if (!modal.isConnected) return
+      const invoice = await requestLightningInvoice(lightning, Number(amount.value), fetch, publicZap.checked ? { zap: { recipientPubkey: pubkey, signer: signer!, relays: RELAYS } } : {})
+      if (!modal.isConnected) return
+      invoiceCreated = true
+      amount.disabled = true; publicZap.disabled = true
+      for (const preset of presets.querySelectorAll('button')) preset.disabled = true
+      const { default: qrcode } = await import('qrcode-generator')
+      if (!modal.isConnected) return
+      const qr = qrcode(0, 'M'); qr.addData(invoice.toUpperCase()); qr.make()
+      const image = el('img', 'reward-qr'); image.alt = `Lightning invoice for ${Number(amount.value)} sats to ${identity.label}`
+      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(qr.createSvgTag({ scalable: true }))}`
+      const walletLink = el('a', 'primary', 'OPEN LIGHTNING WALLET'); walletLink.href = `lightning:${invoice}`
+      const copy = button('COPY INVOICE', 'secondary', () => {
+        void (navigator.clipboard?.writeText(invoice) ?? Promise.reject(new Error('Clipboard unavailable'))).then(() => toast('Invoice copied. Pay this invoice once.', 'good'), () => { status.textContent = 'Copy the invoice text below; clipboard access is unavailable.' })
+      })
+      const invoiceText = el('textarea'); invoiceText.readOnly = true; invoiceText.value = invoice; invoiceText.setAttribute('aria-label', 'Exact Lightning invoice')
+      form.append(image, walletLink, copy, invoiceText)
+      pay.textContent = 'INVOICE READY'
+      status.textContent = 'Invoice ready. Pay once in your wallet. Settlement has not been confirmed here.'
+      if (provider) {
+        if (!modal.isConnected) return
+        await provider.enable()
+        if (!modal.isConnected) return
+        status.textContent = 'Waiting for your wallet. If interrupted, check payment history before paying this invoice again.'
+        await provider.sendPayment(invoice)
+        status.className = 'studio-status success'
+        status.textContent = 'Your wallet returned a payment result. Check your wallet for confirmed settlement.'
+      }
     } catch (error) {
-      status.className = 'studio-status error'; status.textContent = error instanceof Error ? error.message : 'Lightning reward failed or was cancelled.'; pay.disabled = false
+      status.className = 'studio-status error'; status.textContent = error instanceof Error ? error.message : 'Lightning reward failed or was cancelled.'; pay.disabled = invoiceCreated
+      if (invoiceCreated) status.textContent += ' Check your wallet before retrying. Use the same invoice above; no new invoice was requested.'
     }
   })
 }
@@ -719,6 +821,9 @@ function updateMetadata(): void {
 }
 
 function render(): void {
+  const focused = document.activeElement instanceof HTMLElement && app.contains(document.activeElement) ? document.activeElement : undefined
+  const focusId = focused?.id
+  const selection = focused instanceof HTMLInputElement || focused instanceof HTMLTextAreaElement ? [focused.selectionStart, focused.selectionEnd] : undefined
   updateMetadata()
   const current = route()
   const content = current.name === 'home' ? home()
@@ -730,6 +835,11 @@ function render(): void {
               : current.name === 'invite' ? invitationPage(current.id!)
                 : challengePage(current.id!)
   app.replaceChildren(header(), content, footer())
+  const target = focused?.isConnected ? focused : focusId ? document.getElementById(focusId) : undefined
+  target?.focus({ preventScroll: true })
+  if (selection && (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
+    try { target.setSelectionRange(selection[0], selection[1]) } catch { /* non-text controls */ }
+  }
 }
 
 function refreshScores(): void {
@@ -744,7 +854,7 @@ function refreshRelayStatus(): void {
   const pill = document.querySelector<HTMLElement>('.relay-pill')
   if (!pill) return
   pill.className = `relay-pill ${state.relay}`
-  pill.textContent = state.relay === 'up' ? 'NOSTR LIVE' : state.relay === 'down' ? 'RELAYS OFFLINE' : 'CONNECTING'
+  pill.textContent = state.relay === 'up' ? 'NOSTR LIVE' : state.relay === 'down' ? (state.cachedScores ? 'CACHED · RELAYS OFFLINE' : 'RELAYS OFFLINE') : (state.cachedScores ? 'CACHED · CONNECTING' : 'CONNECTING')
 }
 
 async function boot(): Promise<void> {
@@ -756,7 +866,9 @@ async function boot(): Promise<void> {
     app.replaceChildren(el('main', 'fatal', 'The arcade catalogue could not be loaded. Please retry.'))
     return
   }
-  const feed = createGamestrCatalogue(RELAYS, { onStatus: status => { state.relay = status; refreshRelayStatus() } })
+  let cacheStorage: Storage | undefined
+  try { cacheStorage = localStorage } catch { /* live-only when storage is blocked */ }
+  const feed = createGamestrCatalogue(RELAYS, { cacheStorage, onCached: () => { state.cachedScores = true }, scoreAuthorities: Object.fromEntries(state.games.map(game => [game.gameId, game.scoreAuthorities ?? []])), onStatus: status => { state.relay = status; refreshRelayStatus() } })
   for (const game of state.games) {
     feed.subscribe(game.gameId, entries => { state.scores.set(game.gameId, entries); refreshScores() }, { kind: game.scoreKind, field: game.scoreField, dir: game.scoreDir })
   }

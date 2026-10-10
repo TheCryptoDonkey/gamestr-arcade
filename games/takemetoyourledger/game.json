@@ -18,11 +18,13 @@
     "touch",
     "gamepad"
   ],
-  "controller": { "adapter": "native" },
+  "controller": {
+    "adapter": "native"
+  },
   "controlHints": [
     "D-PAD / LEFT STICK = FLY",
-    "A / RB / RT = BEAM · X / LB = SPECIAL",
-    "START = PAUSE · D-PAD + A / B = MENUS"
+    "A / RB / RT = BEAM \u00b7 X / LB = SPECIAL",
+    "START = PAUSE \u00b7 D-PAD + A / B = MENUS"
   ],
   "network": "required",
   "capabilities": {
@@ -35,5 +37,18 @@
     "https://ledger.playechoseven.com"
   ],
   "developer": "The Crypto Donkey",
-  "tips": "profusemeat89@walletofsatoshi.com"
+  "tips": "profusemeat89@walletofsatoshi.com",
+  "scoreAuthorities": [
+    "6f0baf0c26e68afa787ff8c6e34e41f0395fb53fde4152e2c7bcb5f4674080c2"
+  ],
+  "nostrHandoff": {
+    "protocol": "gamestr-auth-v1",
+    "editions": [
+      "600"
+    ],
+    "signKinds": [
+      30762,
+      27235
+    ]
+  }
 }

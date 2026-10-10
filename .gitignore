@@ -31,3 +31,7 @@ games/**/site/
 
 # Playwright MCP session artefacts (local only)
 .playwright-mcp/
+
+# Browser regression evidence
+test-results/
+playwright-report/

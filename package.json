@@ -33,10 +33,11 @@
     "validate": "npm run validate:config && npm run validate:manifests",
     "conference:status": "npm run validate:manifests && node scripts/conference-status.mjs",
     "typecheck": "tsc -p tsconfig.node.json --noEmit --pretty false && tsc -p tsconfig.web.json --noEmit --pretty false",
-    "check:deploy": "bash -n scripts/deploy.sh",
+    "check:deploy": "bash -n scripts/deploy.sh && bash -n scripts/deploy-web.sh",
     "check": "npm run check:deploy && npm run validate && npm run typecheck && npm test && npm run build && npm run build:web && npm run validate:web && npm run build:web:600 && npm run validate:web:600",
     "deploy": "bash scripts/deploy.sh",
-    "deploy:web:600": "GAMESTR_WEB_EDITION=600 GAMESTR_WEB_ORIGIN=https://arcade.600.wtf bash scripts/deploy-web.sh"
+    "deploy:web:600": "GAMESTR_WEB_EDITION=600 GAMESTR_WEB_ORIGIN=https://arcade.600.wtf bash scripts/deploy-web.sh",
+    "test:browser": "playwright test"
   },
   "dependencies": {
     "@getalby/sdk": "^8.0.3",
@@ -45,20 +46,21 @@
     "light-bolt11-decoder": "^3.2.0",
     "nostr-tools": "^2.23.5",
     "qrcode-generator": "^1.5.2",
-    "signet-login": "^0.14.2"
+    "signet-login": "^0.17.3"
   },
   "devDependencies": {
     "@electron-toolkit/tsconfig": "^2.0.0",
     "@electron-toolkit/utils": "^3.0.0",
+    "@playwright/test": "^1.64.0",
     "@types/node": "^22.13.10",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
-    "electron": "^43.1.0",
+    "electron": "^44.7.0",
     "electron-builder": "^26.15.3",
-    "electron-vite": "^3.0.0",
+    "electron-vite": "^5.0.0",
     "happy-dom": "^20.10.2",
     "typescript": "^5.7.3",
-    "vite": "^6.2.0",
-    "vitest": "^3.0.8"
+    "vite": "^7.3.7",
+    "vitest": "^5.0.3"
   }
 }

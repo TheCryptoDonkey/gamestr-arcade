@@ -20,10 +20,12 @@
     "gamepad",
     "keyboard"
   ],
-  "controller": { "adapter": "native" },
+  "controller": {
+    "adapter": "native"
+  },
   "controlHints": [
     "LEFT STICK / D-PAD = MOVE",
-    "Ⓐ / SPACE = FIRE",
+    "\u24b6 / SPACE = FIRE",
     "Y / MENU = PAUSE"
   ],
   "sessionMinutes": 5,
@@ -42,5 +44,18 @@
   "allowedOrigins": [
     "https://pallasite.app"
   ],
-  "developer": "The Crypto Donkey"
+  "developer": "The Crypto Donkey",
+  "nostrHandoff": {
+    "protocol": "gamestr-auth-v1",
+    "editions": [
+      "600"
+    ],
+    "signKinds": [
+      30762,
+      27235
+    ]
+  },
+  "scoreAuthorities": [
+    "fa9291d038fd1d3e4439364f289f2e53a64a1d32776ee52c000da53ebc718cdc"
+  ]
 }

@@ -1,4 +1,4 @@
-gamestr.95-217-39-110.sslip.io {
+gamestr.62-238-98-53.sslip.io {
 	root * /opt/gamestr-web/current
 	encode zstd gzip
 

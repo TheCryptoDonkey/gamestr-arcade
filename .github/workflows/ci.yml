@@ -29,6 +29,12 @@ jobs:
       - name: Run complete source and build gate
         run: npm run check
 
+      - name: Install browser for user journey checks
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify both web editions in the browser
+        run: npm run test:browser
+
       - name: Audit full dependency tree
         run: npm audit --audit-level=high
 

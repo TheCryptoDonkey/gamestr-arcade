@@ -1,4 +1,8 @@
-import type { LoginPickerMethod, NostrEvent, SignetSession } from 'signet-login'
+import { verifyEvent } from 'nostr-tools/pure'
+import { startAndroidSignerLogin } from './android-signer'
+import { pickLoginMethod } from './login-method-picker'
+import { revokeNostrGameBridges } from './game-auth-handoff'
+import type { LoginPickerMethod, NostrEvent, SignetSession, SignetStorage } from 'signet-login'
 
 export const NOSTR_SESSION_EVENT = 'gamestr:nostr-session'
 
@@ -17,6 +21,7 @@ export interface NostrAccess {
   pubkey: string
   method: SignetSession['method']
   canSignEvents: boolean
+  signerStatus: 'connected' | 'identity-only' | 'unavailable'
 }
 
 export interface NostrGameSessionProof {
@@ -32,73 +37,191 @@ export interface ConnectNostrOptions {
 }
 
 let activeSession: SignetSession | null = null
+let generation = 0
+let signerUnavailable = false
+
+export const NOSTR_SIGN_TIMEOUT_MS = 45_000
+
+async function boundedSigning<T>(operation: () => Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    return await Promise.race([operation(), new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('Signer did not respond. Wake your signer and reconnect; pairing credentials were retained.')), NOSTR_SIGN_TIMEOUT_MS) })])
+  } finally { clearTimeout(timer) }
+}
+
+function sessionStorageFor(epoch: number): { storage: SignetStorage; commit(): void } {
+  const staged = new Map<string, string | null>()
+  let committed = false
+  const sessionKeys = new Set(['pubkey', 'method', 'authEvent', 'bunkerUri', 'bunkerClientSk', 'expiresAt', 'displayName'].map(key => `signet:login.${key}`))
+  const write = (key: string, value: string | null) => {
+    if (generation !== epoch) return
+    if (!committed && sessionKeys.has(key)) { staged.set(key, value); return }
+    try { if (value === null) localStorage.removeItem(key); else localStorage.setItem(key, value) } catch { /* session stays usable in memory */ }
+  }
+  return {
+    storage: {
+      getItem(key) { try { return staged.has(key) ? staged.get(key)! : localStorage.getItem(key) } catch { return null } },
+      setItem: (key, value) => write(key, value),
+      removeItem: key => write(key, null),
+    },
+    commit() {
+      committed = true
+      for (const [key, value] of staged) write(key, value)
+      staged.clear()
+    },
+  }
+}
+
+function closeSession(session: SignetSession | null): void {
+  if (session) void Promise.resolve(session.signer.close()).catch(() => {})
+}
 
 function accessFor(session: SignetSession): NostrAccess {
   return {
     pubkey: session.pubkey,
     method: session.method,
-    canSignEvents: session.signer.capabilities.canSignEvents,
+    canSignEvents: session.signer.capabilities.canSignEvents && !signerUnavailable,
+    signerStatus: signerUnavailable ? 'unavailable' : session.signer.capabilities.canSignEvents ? 'connected' : 'identity-only',
   }
 }
 
 function activate(session: SignetSession): NostrAccess {
+  revokeNostrGameBridges()
+  if (activeSession !== session) closeSession(activeSession)
   activeSession = session
+  signerUnavailable = false
   const access = accessFor(session)
   window.dispatchEvent(new CustomEvent<NostrAccess>(NOSTR_SESSION_EVENT, { detail: access }))
   return access
 }
 
-function preferredRelay(relays: string[]): string {
-  return relays.find(relay => relay === 'wss://relay.damus.io') ?? relays[0] ?? 'wss://relay.damus.io'
+/** A signer is a capability of one selected session, never ambient extension access. */
+export function currentNostrSigner(): ArcadeNostrSigner | undefined {
+  const session = activeSession
+  const epoch = generation
+  if (!session?.signer.capabilities.canSignEvents || signerUnavailable) return undefined
+  return {
+    async signEvent(template) {
+      const expected = structuredClone(template)
+      const assertActive = () => {
+        if (signerUnavailable) throw new Error('Signer unavailable. Reconnect the selected account to sign.')
+        if (generation !== epoch || activeSession !== session) throw new Error('Nostr session revoked. Connect again to sign.')
+      }
+      assertActive()
+      try {
+        return await boundedSigning(async () => {
+        if (session.method === 'nip07') {
+          const extension = (window as Nip07Window).nostr
+          if (!extension || await extension.getPublicKey() !== session.pubkey) {
+            throw new Error('Your extension account changed. Connect the selected account again.')
+          }
+          assertActive()
+        }
+        const signed = await session.signer.signEvent(structuredClone(expected))
+        assertActive()
+        if (signed.pubkey !== session.pubkey || !verifyEvent({ id: signed.id, pubkey: signed.pubkey, sig: signed.sig, kind: signed.kind, created_at: signed.created_at, content: signed.content, tags: signed.tags })
+          || signed.kind !== expected.kind || signed.created_at !== expected.created_at
+          || signed.content !== expected.content || JSON.stringify(signed.tags) !== JSON.stringify(expected.tags)) {
+          throw new Error('The signer returned an event for a different account or request.')
+        }
+        return signed
+        })
+      } catch (error) {
+        if (generation === epoch && activeSession === session && error instanceof Error
+          && /did not respond|account changed|different account or request/.test(error.message)) {
+          signerUnavailable = true
+          revokeNostrGameBridges()
+          window.dispatchEvent(new CustomEvent<NostrAccess>(NOSTR_SESSION_EVENT, { detail: accessFor(session) }))
+        }
+        throw error
+      }
+    },
+  }
 }
 
-/** The selected Signet signer wins; a raw extension is only a pre-login fallback. */
-export function currentNostrSigner(): ArcadeNostrSigner | undefined {
-  if (activeSession) return activeSession.signer.capabilities.canSignEvents ? activeSession.signer : undefined
-  return (window as Nip07Window).nostr
-}
+export function currentNostrAccess(): NostrAccess | undefined { return activeSession ? accessFor(activeSession) : undefined }
 
 export function currentNostrGameSession(): NostrGameSessionProof | undefined {
   if (!activeSession) return undefined
   return {
     pubkey: activeSession.pubkey,
-    canSignEvents: activeSession.signer.capabilities.canSignEvents,
+    canSignEvents: activeSession.signer.capabilities.canSignEvents && !signerUnavailable,
     authEvent: activeSession.authEvent,
   }
 }
 
 export async function connectNostrAccess(options: ConnectNostrOptions): Promise<NostrAccess | null> {
-  const methods: LoginPickerMethod[] = options.signingRequired
-    ? ['nip07', 'nostrconnect', 'bunker']
-    : ['local-signet', 'remote-signet', 'nip07', 'amber', 'nostrconnect', 'bunker']
+  const epoch = ++generation
+  const expectedPubkey = options.signingRequired ? activeSession?.pubkey : undefined
+  const persistence = sessionStorageFor(epoch)
+  revokeNostrGameBridges()
+  const method = await pickLoginMethod(options.signingRequired)
+  if (!method || generation !== epoch) return null
+  if (method === 'android-signer') return startAndroidSignerLogin(options.appName, persistence.storage)
+  const methods: LoginPickerMethod[] = ['local-signet', 'remote-signet', 'nip07', 'nostrconnect', 'bunker']
   const { login } = await import('signet-login')
   const session = await login({
     appName: options.appName,
+    storage: persistence.storage,
     methods,
+    preferredMethod: method,
     advancedMethods: options.signingRequired ? [] : ['nostrconnect', 'bunker'],
-    relayUrl: preferredRelay(options.relays),
-    relayUrls: options.relays,
+    // Use the SDK's rendezvous relay independently of the score-feed relays.
+    timeout: 60_000,
+    redirectCallback: (() => {
+      const callback = new URL(window.location.href)
+      callback.searchParams.set('signet_amber', '1')
+      return callback.toString()
+    })(),
     nostrConnectPerms: ['sign_event'],
     theme: document.documentElement.dataset.webEdition === '600' ? 'light' : 'dark',
   })
-  return session ? activate(session) : null
+  if (!session) return null
+  if (generation !== epoch || (expectedPubkey && session.pubkey !== expectedPubkey)) {
+    closeSession(session)
+    if (generation === epoch) throw new Error('Connect the same Nostr account to enable signing.')
+    return null
+  }
+  persistence.commit()
+  return activate(session)
 }
 
-export async function restoreNostrAccess(relays: string[]): Promise<NostrAccess | null> {
+export async function restoreNostrAccess(_relays: string[]): Promise<NostrAccess | null> {
+  const epoch = ++generation
+  const persistence = sessionStorageFor(epoch)
   try {
-    // Keep the sizeable QR/NIP-46 SDK off the wire for anonymous first-time visitors.
-    if (!localStorage.getItem('signet:login.pubkey')) return null
-    const { restoreSession } = await import('signet-login')
-    const session = await restoreSession({ defaultRelay: preferredRelay(relays) })
-    return session ? activate(session) : null
-  } catch {
+    const params = new URL(window.location.href).searchParams
+    const callback = ['signet_amber', 'event', 'pubkey', 'signature', 'eventId'].some(key => params.has(key))
+    // Anonymous visits still avoid downloading the SDK unless a callback is present.
+    if (!callback && !persistence.storage.getItem('signet:login.pubkey') && !persistence.storage.getItem('signet:login.pendingRelayAuth')) return null
+    const { handleRedirectCallback, restoreSession } = await import('signet-login')
+    const result = await handleRedirectCallback({ storage: persistence.storage })
+    if (generation !== epoch) {
+      if (result.kind === 'session') closeSession(result.session)
+      return null
+    }
+    if (result.kind === 'denied' || result.kind === 'invalid') {
+      throw new Error(result.kind === 'denied' ? 'Nostr login was declined.' : 'Nostr login callback expired or failed validation. Please connect again.')
+    }
+    const session = result.kind === 'session' ? result.session : await restoreSession({ storage: persistence.storage })
+    if (!session) return null
+    if (generation !== epoch) { closeSession(session); return null }
+    persistence.commit()
+    return activate(session)
+  } catch (error) {
+    if (generation === epoch) window.dispatchEvent(new CustomEvent('gamestr:nostr-error', { detail: error instanceof Error ? error.message : 'Nostr session could not be restored.' }))
     return null
   }
 }
 
 export async function disconnectNostrAccess(): Promise<void> {
-  const { logout } = await import('signet-login')
   const session = activeSession
-  await logout(session ?? undefined)
+  const epoch = ++generation
   activeSession = null
+  revokeNostrGameBridges()
+  window.dispatchEvent(new CustomEvent(NOSTR_SESSION_EVENT, { detail: null }))
+  const { logout } = await import('signet-login')
+  const persistence = sessionStorageFor(epoch)
+  persistence.commit()
+  await logout(session ?? undefined, { storage: persistence.storage })
 }

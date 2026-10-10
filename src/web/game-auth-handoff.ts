@@ -22,6 +22,8 @@ export interface NostrGameLaunch {
   channel: string
   targetOrigin: string
   pubkey: string
+  gameId: string
+  signKinds: number[]
 }
 
 interface HandoffPayload {
@@ -39,6 +41,8 @@ interface PendingLaunch {
   targetOrigin: string
   pubkey: string
   expires: number
+  gameId: string
+  signKinds: number[]
 }
 
 interface SigningTemplate {
@@ -54,6 +58,19 @@ interface ArcadeSigner {
 
 const launches = new Map<string, PendingLaunch>()
 let bridgeInstalled = false
+const activePorts = new Set<MessagePort>()
+let bridgeGeneration = 0
+
+/** Revoke pending launches and established ports before any asynchronous logout. */
+export function revokeNostrGameBridges(): void {
+  ++bridgeGeneration
+  launches.clear()
+  for (const port of activePorts) {
+    port.onmessage = null
+    port.close()
+  }
+  activePorts.clear()
+}
 
 function eventTag(event: NostrEvent, name: string): string | undefined {
   return event.tags.find(tag => tag[0] === name)?.[1]
@@ -95,6 +112,7 @@ export function decodeNostrGameHandoffToken(token: string): HandoffPayload | nul
 
 export function createNostrGameLaunch(options: {
   gameId: string
+  signKinds?: number[]
   targetUrl: string
   sourceOrigin: string
   sourceApp: string
@@ -131,7 +149,7 @@ export function createNostrGameLaunch(options: {
   const fragment = new URLSearchParams(target.hash.slice(1))
   fragment.set(GAME_AUTH_FRAGMENT, encodeBase64Url(JSON.stringify(payload)))
   target.hash = fragment.toString()
-  return { url: target.toString(), channel, targetOrigin: target.origin, pubkey: event.pubkey }
+  return { url: target.toString(), channel, targetOrigin: target.origin, pubkey: event.pubkey, gameId: options.gameId, signKinds: (options.signKinds ?? []).filter(kind => [30762, 5555, 27235].includes(kind)) }
 }
 
 export function validGameSigningTemplate(value: unknown): value is SigningTemplate {
@@ -158,20 +176,42 @@ export function installNostrGameBridge(getSigner: () => ArcadeSigner | undefined
     if (!pending || !port || pending.expires < Date.now()) return
     if (event.origin !== pending.targetOrigin || event.source !== pending.child) return
     launches.delete(data.channel)
+    const epoch = bridgeGeneration
+    const boundSigner = getSigner()
+    if (activePorts.size >= 8) { const oldest = activePorts.values().next().value!; oldest.onmessage = null; oldest.close(); activePorts.delete(oldest) }
+    activePorts.add(port)
+    let signing = false
     port.onmessage = async message => {
       const request = message.data as { protocol?: unknown; type?: unknown; id?: unknown; event?: unknown }
       if (request?.protocol !== GAME_AUTH_PROTOCOL || request.type !== 'sign' || typeof request.id !== 'string') return
+      if (epoch !== bridgeGeneration) return
+      if (signing) {
+        port.postMessage({ protocol: GAME_AUTH_PROTOCOL, type: 'result', id: request.id, ok: false, error: 'signing-in-progress' })
+        return
+      }
       if (!validGameSigningTemplate(request.event)) {
         port.postMessage({ protocol: GAME_AUTH_PROTOCOL, type: 'result', id: request.id, ok: false, error: 'invalid-event-template' })
         return
       }
-      const signer = getSigner()
+      const template = request.event
+      const now = Math.floor(Date.now() / 1000)
+      const scoped = pending.signKinds.includes(template.kind) && Math.abs(template.created_at - now) <= 600
+        && (template.kind === 27235
+          ? template.tags.filter(tag => tag[0] === 'u').length === 1 && (() => { try { return new URL(template.tags.find(tag => tag[0] === 'u')![1]).origin === pending.targetOrigin } catch { return false } })()
+          : template.tags.filter(tag => tag[0] === 'game').length === 1 && template.tags.find(tag => tag[0] === 'game')?.[1] === pending.gameId)
+      if (!scoped) {
+        port.postMessage({ protocol: GAME_AUTH_PROTOCOL, type: 'result', id: request.id, ok: false, error: 'event-outside-game-scope' })
+        return
+      }
+      const signer = boundSigner
       if (!signer) {
         port.postMessage({ protocol: GAME_AUTH_PROTOCOL, type: 'result', id: request.id, ok: false, error: 'signer-unavailable' })
         return
       }
+      signing = true
       try {
         const signed = await signer.signEvent(request.event)
+        if (epoch !== bridgeGeneration) return
         if (signed.pubkey !== pending.pubkey || !verifyEvent(signed)) throw new Error('invalid-signed-event')
         if (signed.kind !== request.event.kind
           || signed.created_at !== request.event.created_at
@@ -181,6 +221,7 @@ export function installNostrGameBridge(getSigner: () => ArcadeSigner | undefined
         }
         port.postMessage({ protocol: GAME_AUTH_PROTOCOL, type: 'result', id: request.id, ok: true, event: signed })
       } catch (error) {
+        if (epoch !== bridgeGeneration) return
         port.postMessage({
           protocol: GAME_AUTH_PROTOCOL,
           type: 'result',
@@ -188,6 +229,8 @@ export function installNostrGameBridge(getSigner: () => ArcadeSigner | undefined
           ok: false,
           error: error instanceof Error ? error.message.slice(0, 160) : 'signing-failed',
         })
+      } finally {
+        signing = false
       }
     }
     port.start()
@@ -195,18 +238,21 @@ export function installNostrGameBridge(getSigner: () => ArcadeSigner | undefined
   })
 }
 
-export function openNostrGame(launch: NostrGameLaunch): void {
+export function openNostrGame(launch: NostrGameLaunch): boolean {
   const child = window.open('', '_blank')
   if (!child) {
-    window.location.assign(launch.url)
-    return
+    return false
   }
+  if (launches.size >= 16) launches.delete(launches.keys().next().value!)
   launches.set(launch.channel, {
     child,
     targetOrigin: launch.targetOrigin,
     pubkey: launch.pubkey,
     expires: Date.now() + 60_000,
+    gameId: launch.gameId,
+    signKinds: launch.signKinds,
   })
   window.setTimeout(() => launches.delete(launch.channel), 60_000)
   child.location.replace(launch.url)
+  return true
 }

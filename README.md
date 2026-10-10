@@ -62,3 +62,5 @@ npm run dist       # Linux AppImage
 
 See [SETUP.md](./SETUP.md) for the booth runbook and
 [`games/README.md`](./games/README.md) for the catalogue contract.
+The prioritised [reliability goals](./docs/RELIABILITY-GOALS.md) track login,
+signer safety, game handoff, score integrity and user experience improvements.

@@ -5,6 +5,9 @@ export interface AccountIdentityOptions {
   profile?: Profile
   open: boolean
   busy: boolean
+  signerStatus?: string
+  onReconnect?(): void
+  onSyncPreferences?(): void
   onToggle(): void
   onProfile(): void
   onLogout(): void
@@ -40,6 +43,7 @@ export function accountIdentity(options: AccountIdentityOptions): HTMLElement {
   const copy = element('span', 'identity-copy')
   copy.append(element('strong', '', name))
   if (options.profile?.nip05) copy.append(element('small', '', options.profile.nip05))
+  if (options.signerStatus) copy.append(element('small', 'signer-status', options.signerStatus))
   trigger.append(avatar, copy, element('span', 'identity-chevron', options.open ? '▲' : '▼'))
   wrapper.append(trigger)
 
@@ -55,7 +59,18 @@ export function accountIdentity(options: AccountIdentityOptions): HTMLElement {
     logout.setAttribute('role', 'menuitem')
     logout.disabled = options.busy
     logout.addEventListener('click', options.onLogout)
-    menu.append(profile, logout)
+    menu.append(profile)
+    if (options.signerStatus) {
+      menu.append(element('p', 'signer-status', options.signerStatus))
+      if (options.onReconnect) {
+        const reconnect = element('button', '', 'RECONNECT SIGNER'); reconnect.type = 'button'; reconnect.setAttribute('role', 'menuitem'); reconnect.disabled = options.busy
+        reconnect.addEventListener('click', options.onReconnect); menu.append(reconnect)
+      }
+    }
+    if (options.onSyncPreferences) {
+      const sync = element('button', '', 'SYNC ARCADE PREFERENCES'); sync.type = 'button'; sync.setAttribute('role', 'menuitem'); sync.addEventListener('click', options.onSyncPreferences); menu.append(sync)
+    }
+    menu.append(logout)
     wrapper.append(menu)
   }
 

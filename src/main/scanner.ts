@@ -258,6 +258,7 @@ async function build(
     available,
     availabilityReason,
     order: typeof meta?.order === 'number' ? meta.order : 999,
+    scoreAuthorities: Array.isArray(meta?.scoreAuthorities) ? meta.scoreAuthorities.filter((key: unknown): key is string => typeof key === 'string' && /^[0-9a-f]{64}$/.test(key)).slice(0, 8) : undefined,
     scoreKind: typeof meta?.scoreKind === 'number' ? meta.scoreKind : undefined,
     scoreField: typeof meta?.scoreField === 'string' ? meta.scoreField : undefined,
     scoreDir: meta?.scoreDir === 'asc' || meta?.scoreDir === 'desc' ? meta.scoreDir : undefined,

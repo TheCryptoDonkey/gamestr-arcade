@@ -64,13 +64,12 @@ function invoiceAmountMsats(invoice: string): bigint | undefined {
   } catch { return }
 }
 
-export async function rewardLightningAddress(
+export async function requestLightningInvoice(
   address: string,
   sats: number,
-  provider: WebLNProvider,
   fetcher: typeof fetch = fetch,
   options: RewardOptions = {},
-): Promise<{ preimage?: string }> {
+): Promise<string> {
   if (!Number.isSafeInteger(sats) || sats < 1 || sats > MAX_REWARD_SATS) throw new Error('Reward must be between 1 and 100,000 sats.')
   const endpoint = lightningDestinationEndpoint(address)
   if (!endpoint) throw new Error('Player Lightning address or LNURL is invalid.')
@@ -98,6 +97,12 @@ export async function rewardLightningAddress(
   if (invoicePayload.status === 'ERROR') throw new Error(typeof invoicePayload.reason === 'string' ? invoicePayload.reason.slice(0, 160) : 'Lightning provider rejected the reward.')
   if (typeof invoicePayload.pr !== 'string' || invoicePayload.pr.length > 8_192) throw new Error('Lightning provider returned an invalid invoice.')
   if (invoiceAmountMsats(invoicePayload.pr) !== BigInt(amount)) throw new Error('Lightning invoice amount does not match the approved reward.')
+  return invoicePayload.pr
+}
+
+/** WebLN keeps the same exact-amount invoice validation as mobile wallets. */
+export async function rewardLightningAddress(address: string, sats: number, provider: WebLNProvider, fetcher: typeof fetch = fetch, options: RewardOptions = {}): Promise<{ preimage?: string }> {
+  const invoice = await requestLightningInvoice(address, sats, fetcher, options)
   await provider.enable()
-  return provider.sendPayment(invoicePayload.pr)
+  return provider.sendPayment(invoice)
 }

@@ -5,16 +5,16 @@ import { parseScoreEvent, collapseToBest, parseAnyScoreEvent, parse5555Event, bo
 const P1 = 'a'.repeat(64), P2 = 'b'.repeat(64), P3 = 'c'.repeat(64), GAME = 'g'.repeat(64)
 const NOW = Math.floor(Date.now() / 1000)
 function ev(over: Partial<ScoreEvent>): ScoreEvent {
-  return { id: 'i', pubkey: GAME, kind: 30762, created_at: NOW, content: '', sig: 's',
+  return { id: 'i', pubkey: over.tags?.find(tag => tag[0] === 'p')?.[1] ?? P1, kind: 30762, created_at: NOW, content: '', sig: 's',
     tags: [['game', 'pallasite'], ['p', P1], ['score', '500']], ...over }
 }
 
 describe('parseScoreEvent', () => {
-  it('parses a valid game-signed event (player from p tag)', () => {
+  it('parses a player-signed event with a matching player tag', () => {
     const e = parseScoreEvent(ev({}), 'pallasite')!
     expect(e.pubkey).toBe(P1); expect(e.score).toBe(500)
   })
-  it('retains the player name and NIP-05 protected by the game-signed score', () => {
+  it('retains the player name and NIP-05 protected by the player-signed score', () => {
     const entry = parseScoreEvent(ev({ tags: [
       ['game', 'pallasite'], ['p', P1], ['score', '500'],
       ['playerName', ' ArcadePlayer '], ['nip05', 'Player@example.com'],
@@ -189,13 +189,31 @@ describe('parse5555Event (Other Stuff schema)', () => {
     expect(e.score).toBe(7)
   })
 
-  it('prefers a p tag over the signer pubkey when present', () => {
-    const e = parse5555Event(ev5555({ tags: [['game', 'word5'], ['p', P2], ['streak', '3']] }), 'word5', 'streak')!
-    expect(e.pubkey).toBe(P2)
+  it('rejects an untrusted p tag overriding the signer', () => {
+    expect(parse5555Event(ev5555({ tags: [['game', 'word5'], ['p', P2], ['streak', '3']] }), 'word5', 'streak')).toBeNull()
   })
 
   it('rejects a wrong game or a missing score field', () => {
     expect(parse5555Event(ev5555({}), 'pallasite', 'streak')).toBeNull()
     expect(parse5555Event(ev5555({ tags: [['game', 'word5']] }), 'word5', 'streak')).toBeNull()
+  })
+})
+
+
+describe('score attribution', () => {
+  it('rejects another player claimed by an untrusted signer for both schemas', () => {
+    const spoof = ev({ pubkey: P2 })
+    expect(parseScoreEvent(spoof, 'pallasite')).toBeNull()
+    expect(parseAnyScoreEvent(spoof)).toBeNull()
+    expect(parse5555Event({ ...spoof, kind: 5555 }, 'pallasite', 'score')).toBeNull()
+  })
+  it('accepts only an authority explicitly reviewed for this game and retains provenance', () => {
+    const delegated = ev({ pubkey: P2 })
+    const authorities = { pallasite: [P2] }
+    expect(parseScoreEvent(delegated, 'pallasite', authorities)).toMatchObject({ pubkey: P1, eventSigner: P2, attribution: 'game-authority' })
+    expect(parseAnyScoreEvent(delegated, authorities)?.entry.attribution).toBe('game-authority')
+    expect(parse5555Event({ ...delegated, kind: 5555 }, 'pallasite', 'score', authorities)?.pubkey).toBe(P1)
+    expect(parseScoreEvent(delegated, 'pallasite', { other: [P2] })).toBeNull()
+    expect(parseScoreEvent(ev({}), 'pallasite')?.attribution).toBe('player')
   })
 })

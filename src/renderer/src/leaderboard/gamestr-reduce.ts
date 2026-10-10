@@ -11,6 +11,8 @@ export interface ParsedAnyScore {
   entry: LeaderboardEntry
 }
 
+export type ScoreAuthorities = Readonly<Record<string, readonly string[]>>
+
 export type Period = 'today' | 'all'
 
 const MIN_NOSTR_TIMESTAMP_SEC = 1_577_836_800 // 2020-01-01
@@ -81,11 +83,14 @@ function parseNonNegativeInteger(raw: string | undefined): number | null {
   return Number.isSafeInteger(value) && value >= 0 ? value : null
 }
 
-function parsePlayer(tags: string[][], fallback: string): string | null {
+function parsePlayer(tags: string[][], fallback: string, gameId: string, authorities: ScoreAuthorities): string | null {
   const tagged = singleTagValue(tags, 'p')
   if (!tagged.valid) return null
   const pubkey = tagged.value ?? fallback
-  return /^[0-9a-f]{64}$/i.test(pubkey) ? pubkey.toLowerCase() : null
+  if (!/^[0-9a-f]{64}$/i.test(pubkey)) return null
+  const player = pubkey.toLowerCase()
+  if (player !== fallback && !authorities[gameId]?.includes(fallback)) return null
+  return player
 }
 
 function parseSats(tags: string[][]): number | null {
@@ -133,8 +138,8 @@ export function scoreGameId(e: ScoreEvent): string | null {
   return isReasonableEventTimestamp(e.created_at) ? parseGameId(e.tags) : null
 }
 
-/** Port of pallasite/src/score.ts `consider`: game match, not cheated, score>0, player from `p` or pubkey. */
-export function parseScoreEvent(e: ScoreEvent, gameId: string): LeaderboardEntry | null {
+/** Player-owned scores, or explicit per-game authorities, with positive scores. */
+export function parseScoreEvent(e: ScoreEvent, gameId: string, authorities: ScoreAuthorities = {}): LeaderboardEntry | null {
   if (e.kind !== 30762 || !isReasonableEventTimestamp(e.created_at)) return null
   if (parseGameId(e.tags) !== gameId) return null
   if (hasTagValue(e.tags, 'cheated', 'true')) return null
@@ -142,10 +147,10 @@ export function parseScoreEvent(e: ScoreEvent, gameId: string): LeaderboardEntry
   if (!scoreTag.valid) return null
   const score = parseNonNegativeInteger(scoreTag.value)
   if (score === null || score <= 0) return null
-  const pubkey = parsePlayer(e.tags, e.pubkey)
+  const pubkey = parsePlayer(e.tags, e.pubkey, gameId, authorities)
   const sats = parseSats(e.tags)
   if (!pubkey || sats === null) return null
-  return { eventId: e.id, pubkey, score, sats, at: e.created_at, ...signedIdentity(e.tags) }
+  return { eventId: e.id, pubkey, score, sats, at: e.created_at, eventSigner: e.pubkey, attribution: pubkey === e.pubkey ? 'player' : 'game-authority', ...signedIdentity(e.tags) }
 }
 
 /**
@@ -154,7 +159,7 @@ export function parseScoreEvent(e: ScoreEvent, gameId: string): LeaderboardEntry
  * Accepts score >= 0 (gamestr.io shows 0s on live boards; the per-game
  * parseScoreEvent retains score > 0 for backwards compatibility with existing tests).
  */
-export function parseAnyScoreEvent(e: ScoreEvent): ParsedAnyScore | null {
+export function parseAnyScoreEvent(e: ScoreEvent, authorities: ScoreAuthorities = {}): ParsedAnyScore | null {
   if (e.kind !== 30762 || !isReasonableEventTimestamp(e.created_at)) return null
   const gameId = parseGameId(e.tags)
   if (!gameId) return null
@@ -163,7 +168,7 @@ export function parseAnyScoreEvent(e: ScoreEvent): ParsedAnyScore | null {
   if (!scoreTag.valid) return null
   const score = parseNonNegativeInteger(scoreTag.value)
   if (score === null) return null
-  const pubkey = parsePlayer(e.tags, e.pubkey)
+  const pubkey = parsePlayer(e.tags, e.pubkey, gameId, authorities)
   const sats = parseSats(e.tags)
   if (!pubkey || sats === null) return null
   const entry: LeaderboardEntry = {
@@ -172,7 +177,7 @@ export function parseAnyScoreEvent(e: ScoreEvent): ParsedAnyScore | null {
     score,
     sats,
     at: e.created_at,
-    ...signedIdentity(e.tags),
+    eventSigner: e.pubkey, attribution: pubkey === e.pubkey ? 'player' : 'game-authority', ...signedIdentity(e.tags),
   }
   return { gameId, entry }
 }
@@ -180,20 +185,20 @@ export function parseAnyScoreEvent(e: ScoreEvent): ParsedAnyScore | null {
 /**
  * Parse a kind-5555 (Other Stuff) score event. Unlike 30762, the "score" is a
  * game-specific tag (`field`, e.g. word5 → `streak`) and the player is the event
- * `pubkey` (player-signed) unless a `p` tag overrides it. There is no `cheated`
+ * `pubkey` (player-signed); delegated attribution requires a reviewed authority. There is no `cheated`
  * tag in this schema.
  */
-export function parse5555Event(e: ScoreEvent, gameId: string, field: string): LeaderboardEntry | null {
+export function parse5555Event(e: ScoreEvent, gameId: string, field: string, authorities: ScoreAuthorities = {}): LeaderboardEntry | null {
   if (e.kind !== 5555 || !isReasonableEventTimestamp(e.created_at)) return null
   if (!field || field.length > 64 || parseGameId(e.tags) !== gameId) return null
   const scoreTag = singleTagValue(e.tags, field)
   if (!scoreTag.valid) return null
   const score = parseNonNegativeInteger(scoreTag.value)
   if (score === null) return null
-  const pubkey = parsePlayer(e.tags, e.pubkey)
+  const pubkey = parsePlayer(e.tags, e.pubkey, gameId, authorities)
   const sats = parseSats(e.tags)
   if (!pubkey || sats === null) return null
-  return { eventId: e.id, pubkey, score, sats, at: e.created_at, ...signedIdentity(e.tags) }
+  return { eventId: e.id, pubkey, score, sats, at: e.created_at, eventSigner: e.pubkey, attribution: pubkey === e.pubkey ? 'player' : 'game-authority', ...signedIdentity(e.tags) }
 }
 
 /**

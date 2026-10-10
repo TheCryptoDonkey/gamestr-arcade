@@ -159,8 +159,8 @@ async function boot(): Promise<void> {
   // Per-game scoring (kind 5555 Other Stuff games carry their own score field +
   // direction; most games omit these and use the kind-30762 default).
   const scoringOf = (game: Game) =>
-    game.scoreKind || game.scoreField || game.scoreDir
-      ? { kind: game.scoreKind, field: game.scoreField, dir: game.scoreDir }
+    game.scoreKind || game.scoreField || game.scoreDir || game.scoreAuthorities?.length
+      ? { kind: game.scoreKind, field: game.scoreField, dir: game.scoreDir, authorityPubkeys: game.scoreAuthorities }
       : undefined
 
   // HOT TONIGHT: flag this cabinet's most-played game of the recent window and
