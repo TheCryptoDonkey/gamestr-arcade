@@ -157,9 +157,12 @@ export function createGamestrCatalogue(
     }
     // Record retention is independent of recent activity and still bounded.
     if (subscriber.records.size > maxEventsPerGame) {
-      const oldest = [...subscriber.records.values()].sort((a, b) => a.at - b.at)[0]
-      subscriber.records.delete(oldest.pubkey)
-      subscriber.recordEvents.delete(oldest.pubkey)
+      const worst = [...subscriber.records.values()].reduce((candidate, entry) => {
+        const lowerRank = subscriber.scoring?.dir === 'asc' ? entry.score > candidate.score : entry.score < candidate.score
+        return lowerRank || (entry.score === candidate.score && entry.at < candidate.at) ? entry : candidate
+      })
+      subscriber.records.delete(worst.pubkey)
+      subscriber.recordEvents.delete(worst.pubkey)
     }
   }
 

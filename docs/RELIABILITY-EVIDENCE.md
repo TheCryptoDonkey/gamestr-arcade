@@ -58,6 +58,11 @@ automated results, hosted artifacts and actual user/device acceptance.
   that relay history may be incomplete. Two additional browser journeys pass:
   an old exact-ID score resolves without the recent feed, invalid proof finishes
   with a validation error, and an empty relay query finishes with a retry action.
+- Strengthening the retained-record test with a third player reproduced loss
+  of an older stronger record when the record cap filled, in both ascending
+  and descending games. Record eviction now removes the lowest-ranked entry
+  rather than the oldest entry. All 18 catalogue/cache/lookup checks pass with
+  the saturated-cap regressions; recent activity retains its separate limit.
 - Installed `signet-login`: 0.17.3. Rendezvous uses SDK defaults separately from
   score relays. Private-key paste remains excluded.
 - `npm audit --audit-level=high`: passed, no high/critical findings. Eight
@@ -74,7 +79,9 @@ automated results, hosted artifacts and actual user/device acceptance.
   opening prompt. The opening animal starts wandering during the five-second
   title before the player receives beam instructions. Ledger now keeps that
   first animal grazing through a first-time pilot's opening cue; this product
-  fix needs its targeted and complete release verification.
+  fix passed the existing desktop and both phone onboarding checks with the
+  animal 2.3 units away, plus all 261 unit tests and the production build.
+  The complete release gate is now running on Ledger commit `a30533e`.
   Draft [Ledger PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88)
   contains the consumer; deployment remains pending.
 

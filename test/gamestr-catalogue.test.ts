@@ -254,6 +254,10 @@ describe('createGamestrCatalogue', () => {
       clock.advance(250)
       expect(updates.at(-1)!.some(entry => entry.pubkey === ALICE && entry.score === record)).toBe(true)
       expect(updates.at(-1)!.some(entry => entry.pubkey === ALICE && entry.score === 20)).toBe(true)
+      const third = finalizeEvent({ kind: 30762, created_at: NOW, tags: [['game', 'sats-man'], ['score', '40']], content: '' }, new Uint8Array(32).fill(9))
+      ws.triggerMessage(JSON.stringify(['EVENT', subId, third]))
+      clock.advance(250)
+      expect(updates.at(-1)!.some(entry => entry.pubkey === ALICE && entry.score === record)).toBe(true)
       cat.dispose()
     })
   }
