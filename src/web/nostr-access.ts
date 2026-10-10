@@ -203,6 +203,24 @@ export async function restoreNostrAccess(_relays: string[]): Promise<NostrAccess
     if (result.kind === 'denied' || result.kind === 'invalid') {
       throw new Error(result.kind === 'denied' ? 'Nostr login was declined.' : 'Nostr login callback expired or failed validation. Please connect again.')
     }
+    if (result.kind !== 'session' && persistence.storage.getItem('signet:login.method') === 'bunker') {
+      // Recognised identity must remain available while the remote signer is
+      // asleep. Let the SDK restore its auth-only session without relay work,
+      // then reconnect in the background. Explicit reconnect/logout supersedes
+      // that operation and closes its late result.
+      const identity = await restoreSession({ storage: persistence.storage, reconnectBunker: false })
+      if (!identity) return null
+      if (generation !== epoch) { closeSession(identity); return null }
+      persistence.commit()
+      const access = activate(identity)
+      void restoreSession({ storage: persistence.storage }).then(session => {
+        if (!session) return
+        if (generation !== epoch || activeSession !== identity || session.pubkey !== identity.pubkey
+          || session.signer.pubkey !== identity.pubkey) { closeSession(session); return }
+        activate(session)
+      }).catch(() => { /* recognised account and pairing remain available for explicit reconnect */ })
+      return access
+    }
     const session = result.kind === 'session' ? result.session : await restoreSession({ storage: persistence.storage })
     if (!session) return null
     if (generation !== epoch) { closeSession(session); return null }

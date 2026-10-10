@@ -197,6 +197,19 @@ The arcade currently awaits remote SDK restoration before showing the account;
 an unavailable signer must not indefinitely block access to reconnection.
 See [live reconnection gate](evidence/gamestr-pallasite-reconnect-pending-14e969f.json).
 
+Arcade restoration now obtains the SDK's auth-only identity for stored bunker
+sessions before starting remote reconnection in the background. The recognised
+account and RECONNECT SIGNER remain available while the remote signer is asleep.
+Signing stays disabled until the SDK reconnects the matching session and signer.
+Logout or explicit reconnection invalidates the pending result; late or
+different-account results are closed. Pairing credentials remain in their
+existing SDK storage. No signer serving lease is extended automatically.
+Four added unit regressions cover unavailable signing, same-account enforcement,
+background upgrade, logout and account mismatch. Real-SDK private browser
+fixtures exercise unavailable bunker recovery in both editions. All 650 unit
+tests, 48 browser journeys and the complete build/validation check pass locally.
+This source correction is not yet deployed or qualified by a real score retry.
+
 
 The co-op forge timing gate remains failing: 96 frames during parallel checks,
 188 on the isolated candidate, and 102 on the unchanged `bfab5e2` baseline,

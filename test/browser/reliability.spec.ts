@@ -237,6 +237,27 @@ for (const [edition, port] of [['gamestr', 4174], ['600', 4175]] as const) {
       : 'Opens the game with its own login.')
   })
 
+  test(`${edition}: unavailable bunker preserves the account and exposes signer reconnection`, async ({ page }) => {
+    await setup(page)
+    const authEvent = finalizeEvent({ kind: 21236, created_at: Math.floor(Date.now() / 1000), tags: [['origin', `http://127.0.0.1:${port}`]], content: '' }, key)
+    await page.addInitScript(({ pubkey, authEvent }) => {
+      localStorage.setItem('signet:login.pubkey', pubkey)
+      localStorage.setItem('signet:login.method', 'bunker')
+      localStorage.setItem('signet:login.authEvent', JSON.stringify(authEvent))
+      // Only private fixture sockets are available; the remote signer never replies.
+      localStorage.setItem('signet:login.bunkerUri', `bunker://${pubkey}?relay=wss%3A%2F%2Frelay.invalid`)
+      localStorage.setItem('signet:login.bunkerClientSk', '07'.repeat(32))
+    }, { pubkey, authEvent })
+    await page.goto(`http://127.0.0.1:${port}/game/pallasite`)
+    await expect(page.locator('.identity-trigger')).toBeVisible()
+    await expect(page.locator('.identity-trigger .signer-status')).toHaveText('IDENTITY CONNECTED · SIGNER NEEDED')
+    await page.locator('.identity-trigger').click()
+    await expect(page.getByRole('menuitem', { name: 'RECONNECT SIGNER', exact: true })).toBeEnabled()
+    await page.getByRole('menuitem', { name: 'RECONNECT SIGNER', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'My Signet on this device', exact: true })).toBeVisible()
+    expect(await page.evaluate(() => localStorage.getItem('signet:login.pubkey'))).toBe(pubkey)
+  })
+
   test(`${edition}: logout during pending SDK restoration cannot reactivate the account`, async ({ page }) => {
     await setup(page, true)
     await page.goto(`http://127.0.0.1:${port}/game/pallasite`)

@@ -144,4 +144,74 @@ describe('selected Nostr session', () => {
     expect(await restoring).toBeNull()
     expect(late.signer.close).toHaveBeenCalled()
   })
+
+  it('exposes a saved bunker identity without waiting for an unavailable signer', async () => {
+    localStorage.setItem('signet:login.pubkey', PUBKEY)
+    localStorage.setItem('signet:login.method', 'bunker')
+    const identity = session()
+    identity.signer.capabilities.canSignEvents = false
+    const remote = deferred<ReturnType<typeof session> | null>()
+    mocks.restoreSession.mockImplementation(options => options.reconnectBunker === false ? Promise.resolve(identity) : remote.promise)
+    const access = await import('../src/web/nostr-access')
+    expect(await access.restoreNostrAccess([])).toMatchObject({ pubkey: PUBKEY, canSignEvents: false })
+    expect(access.currentNostrSigner()).toBeUndefined()
+    // Reconnection still requires the recognised account, even while its old
+    // remote signer remains unresolved.
+    const other = session()
+    other.pubkey = getPublicKey(OTHER)
+    mocks.login.mockResolvedValue(other)
+    await expect(access.connectNostrAccess({ appName: 'Arcade', relays: [], signingRequired: true })).rejects.toThrow('same Nostr account')
+    expect(other.signer.close).toHaveBeenCalled()
+    remote.resolve(null)
+  })
+
+  it('upgrades the recognised bunker identity only after its signer reconnects', async () => {
+    localStorage.setItem('signet:login.pubkey', PUBKEY)
+    localStorage.setItem('signet:login.method', 'bunker')
+    const identity = session()
+    identity.signer.capabilities.canSignEvents = false
+    const remote = deferred<ReturnType<typeof session>>()
+    mocks.restoreSession.mockImplementation(options => options.reconnectBunker === false ? Promise.resolve(identity) : remote.promise)
+    const access = await import('../src/web/nostr-access')
+    await access.restoreNostrAccess([])
+    expect(access.currentNostrSigner()).toBeUndefined()
+    remote.resolve(session())
+    await vi.waitFor(() => expect(access.currentNostrAccess()?.canSignEvents).toBe(true))
+    expect(await access.currentNostrSigner()!.signEvent(template)).toMatchObject({ pubkey: PUBKEY })
+  })
+
+  it('closes a background bunker result after logout without restoring the account', async () => {
+    localStorage.setItem('signet:login.pubkey', PUBKEY)
+    localStorage.setItem('signet:login.method', 'bunker')
+    const identity = session()
+    identity.signer.capabilities.canSignEvents = false
+    const remote = deferred<ReturnType<typeof session>>()
+    mocks.restoreSession.mockImplementation(options => options.reconnectBunker === false ? Promise.resolve(identity) : remote.promise)
+    const access = await import('../src/web/nostr-access')
+    await access.restoreNostrAccess([])
+    await access.disconnectNostrAccess()
+    const late = session()
+    remote.resolve(late)
+    await vi.waitFor(() => expect(late.signer.close).toHaveBeenCalled())
+    expect(access.currentNostrAccess()).toBeUndefined()
+    expect(localStorage.getItem('signet:login.pubkey')).toBeNull()
+  })
+
+  it('never substitutes another account returned by background restoration', async () => {
+    localStorage.setItem('signet:login.pubkey', PUBKEY)
+    localStorage.setItem('signet:login.method', 'bunker')
+    const identity = session()
+    identity.signer.capabilities.canSignEvents = false
+    const remote = deferred<ReturnType<typeof session>>()
+    mocks.restoreSession.mockImplementation(options => options.reconnectBunker === false ? Promise.resolve(identity) : remote.promise)
+    const access = await import('../src/web/nostr-access')
+    await access.restoreNostrAccess([])
+    const other = session()
+    other.pubkey = getPublicKey(OTHER)
+    other.signer.pubkey = other.pubkey
+    remote.resolve(other)
+    await vi.waitFor(() => expect(other.signer.close).toHaveBeenCalled())
+    expect(access.currentNostrAccess()).toMatchObject({ pubkey: PUBKEY, canSignEvents: false })
+    expect(access.currentNostrSigner()).toBeUndefined()
+  })
 })
