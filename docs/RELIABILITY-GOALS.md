@@ -160,8 +160,9 @@ Acceptance criteria:
 
 The launch handoff is restricted to the 600 Billion edition. All four games now
 have deployed consumers. Pallasite has a deployed correction for worker reload
-and booth-account selection; its personal-score signing failure fallback still
-needs correction, and the full shared-account acceptance matrix remains open.
+and booth-account selection. Failed personal scores now remain with their
+original account for retry; live Pallasite publication and the full shared-account
+acceptance matrix remain open.
 
 Acceptance criteria:
 
@@ -274,7 +275,7 @@ standard edition is live on the new Hetzner box at that revision. The 600 cutove
 | 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 646 unit tests and 46 browser journeys passed | Standard web `0948199`; 600 `0948199` on Hetzner; DNS pending | Live desktop My Signet approval, signing, refresh and logout pass; physical checks pending | In progress |
 | 4 | Per-game score authorities and attribution provenance; PR #11 | 646 unit tests and 46 browser journeys passed | Standard web `0948199`; 600 `0948199` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 5 | Dependency upgrades and high-severity audit gate; PR #11 | 646 unit tests and 46 browser journeys passed | Standard web `0948199`; 600 `0948199` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 6 | Reviewed manifest capability and deployed Ledger consumer; PR #11 and PR #88 | 646 unit tests and 46 browser journeys passed; Ledger 98-check release gate and Pallasite seven browser, three queue and seven recovery checks pass | Standard web `0948199`; 600 `0948199` on Hetzner; Ledger `e3937ca`; Pallasite `b5c9994`; DNS pending | Ledger, Hang On Fren and Neon Sentinel real My Signet runs and attributed public scores pass at forced origin; Pallasite, shared-account and physical checks pending | In progress |
+| 6 | Reviewed manifest capability and deployed Ledger consumer; PR #11 and PR #88 | 646 unit tests and 46 browser journeys passed; Ledger 98-check release gate and Pallasite seven browser, three queue and seven recovery checks pass | Standard web `0948199`; 600 `0948199` on Hetzner; Ledger `e3937ca`; Pallasite `14e969f`; DNS pending | Ledger, Hang On Fren and Neon Sentinel real My Signet runs and attributed public scores pass at forced origin; Pallasite, shared-account and physical checks pending | In progress |
 | 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | 646 unit tests and 46 browser journeys passed | Standard web `0948199`; 600 `0948199` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | 646 unit tests and 46 browser journeys passed | Standard web `0948199`; 600 `0948199` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | 646 unit tests and 46 browser journeys passed | Standard web `0948199`; 600 `0948199` on Hetzner; DNS pending | Physical checks pending | In progress |

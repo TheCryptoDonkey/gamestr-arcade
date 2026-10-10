@@ -174,6 +174,29 @@ published score; the signing bridge's first successful NIP-98 result was not
 verified as the score request. See
 [live pending-score proof](evidence/gamestr-pallasite-live-score-pending-b5c9994.json).
 
+Revision `14e969f` adds RECONNECT IN ARCADE for saved scores from arcade
+sessions, including after the original port closes. It returns to the Pallasite
+launch page so the player can reconnect through the existing account flow and
+launch again. It does not automatically extend My Signet's serving window.
+Recovery controls participate in menu navigation. The private browser case
+passes Enter activation, same-account retry after that arcade hop, a 44px touch
+target and no horizontal overflow at 320px. Hosted
+[CI 38083048196](https://github.com/TheCryptoDonkey/pallasite/actions/runs/38083048196)
+passes all checks. All 12 deployed entry/runtime files match the clean build,
+and the reviewed game authority is unchanged. See
+[reconnection deployment](evidence/pallasite-live-14e969f.json).
+
+The subsequent actual My Signet run earned 13,403 points through normal play.
+Its signing timeout left the original account's public receipt saved in the
+game outbox. RECONNECT IN ARCADE navigated to the correct launch page, but the
+arcade's restored identity control did not appear within 60 seconds, preventing
+the test from reaching its reconnect action. No score response was received.
+The receipt was observed on the game origin before navigation; reading the
+arcade's separate storage afterwards cannot establish loss of that receipt.
+The arcade currently awaits remote SDK restoration before showing the account;
+an unavailable signer must not indefinitely block access to reconnection.
+See [live reconnection gate](evidence/gamestr-pallasite-reconnect-pending-14e969f.json).
+
 
 The co-op forge timing gate remains failing: 96 frames during parallel checks,
 188 on the isolated candidate, and 102 on the unchanged `bfab5e2` baseline,
