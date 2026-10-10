@@ -103,6 +103,19 @@ on an unchanged rerun. Its first attempt timed out waiting for a trusted
 ArrowUp event in the packaged Linux game; the preceding build passed the same
 check. The rerun is passing evidence, not a demonstrated fix for the intermittent
 input failure. Physical cabinet input remains a separate acceptance gate.
+The subsequent evidence revision `30b206d` failed
+[CI 38075434819](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38075434819)
+at the second game's Escape return, after trusted ArrowUp and first return
+passed. The harness now records the failing stage, each view's focus/visibility
+and received fixture keys before preserving the original failure. This adds
+diagnostics; it does not claim the native input problem is fixed.
+
+Pallasite's deployed `?p1=1` booth screen loaded and the arcade sent a port
+connection acknowledgement, but the consumer did not expose the selected live
+signer within the inspection deadline. Its completed run remains unverified.
+No guest login, state injection or payout action was used to bypass this gate.
+The iPhone inspection confirms Wallet of Satoshi 3.4.10 (build 370) is installed
+on Donkeyfarm; the authorised 100-sat payment remains unconfirmed.
 
 ## Local implementation and checks
 

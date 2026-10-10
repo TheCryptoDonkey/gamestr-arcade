@@ -10,6 +10,9 @@ import { verifyEvent } from 'nostr-tools/pure'
 const root = process.argv[2]
 if (!root) throw new Error('Pass the isolated runtime fixture directory')
 let browser
+let stage = 'starting runtime'
+let shellPage
+let gamePage
 const server = createServer((_request, response) => {
   response.writeHead(200, { 'content-type': 'text/html' })
   response.end(`<!doctype html><title>Isolated runtime game</title><h1>Runtime fixture</h1><script>
@@ -51,6 +54,7 @@ try {
   browser = await chromium.connectOverCDP(`http://127.0.0.1:${debugPort}`)
   const context = browser.contexts()[0]
   const shell = await until(() => context.pages().find(page => page.url().startsWith('file:')))
+  shellPage = shell
   const tile = shell.locator('.tile-active .tile-cap')
   await tile.waitFor({ state: 'visible' })
   assert.match(await tile.innerText(), /Runtime A/i)
@@ -65,6 +69,7 @@ try {
     await shell.locator('.ready-overlay.is-open[aria-hidden="false"] .ready-start').waitFor({ state: 'visible' })
     await shell.keyboard.press('Enter')
     const game = await until(() => context.pages().find(page => page.url() === `${origin}/game-a`))
+    gamePage = game
     await game.waitForFunction(() => !!window.nostr)
     // Preload IPC can be ready before did-finish-load reveals/focuses the view.
     // Exercise input after the real application gives the game keyboard focus.
@@ -72,11 +77,13 @@ try {
     return game
   }
   const first = await launch()
+  stage = 'first game signing'
   const pubkey = await first.evaluate(() => window.nostr.getPublicKey())
   assert.match(pubkey, /^[0-9a-f]{64}$/)
   const signed = await first.evaluate(() => window.nostr.signEvent({ kind: 1, created_at: Math.floor(Date.now() / 1000), tags: [], content: 'Disposable packaged-runtime check; never published.' }))
   assert.equal(signed.pubkey, pubkey)
   assert.equal(verifyEvent(signed), true)
+  stage = 'first game trusted ArrowUp'
   await first.keyboard.press('ArrowUp')
   await first.waitForFunction(() => fixtureKeys.some(event => event.key === 'ArrowUp' && event.trusted))
   const authority = await first.evaluate(() => {
@@ -85,16 +92,19 @@ try {
     return { wallet: typeof window.webln, node: typeof window.require, shellBridge: typeof window.arcade }
   })
   assert.deepEqual(authority, { wallet: 'undefined', node: 'undefined', shellBridge: 'undefined' })
+  stage = 'first game Escape return'
   await first.keyboard.down('Escape')
   await until(() => first.isClosed())
   await shell.keyboard.up('Escape')
   await shell.waitForFunction(() => document.activeElement?.id === 'app')
   const second = await launch()
+  stage = 'second game isolation'
   const fresh = await second.evaluate(async () => ({ pubkey: await window.nostr.getPublicKey(), storage: localStorage.getItem('runtime-guest'), cookies: document.cookie, wallet: typeof window.webln }))
   assert.notEqual(fresh.pubkey, pubkey)
   assert.equal(fresh.storage, null)
   assert.equal(fresh.cookies, '')
   assert.equal(fresh.wallet, 'undefined')
+  stage = 'second game Escape return'
   await second.keyboard.down('Escape')
   await until(() => second.isClosed())
   await shell.keyboard.up('Escape')
@@ -105,6 +115,19 @@ try {
     trustedGameKeyboardInput: true, walletUnavailableWithoutConfiguration: true,
     noNodeOrShellBridgeInGame: true, physicalControllerAcceptance: 'pending',
   }))
+} catch (error) {
+  const pages = {}
+  for (const [name, page] of [['shell', shellPage], ['game', gamePage]]) {
+    pages[name] = !page ? { available: false } : page.isClosed() ? { closed: true } : await page.evaluate(() => ({
+      closed: false, readyState: document.readyState, focused: document.hasFocus(),
+      visibility: document.visibilityState, activeElement: document.activeElement?.tagName,
+      keys: window.fixtureKeys ?? [],
+    })).catch(() => ({ inspectionFailed: true }))
+  }
+  const failure = { stage, error: error instanceof Error ? error.message : String(error), pages }
+  writeFileSync(`${root}/journeys-failure.json`, JSON.stringify(failure, null, 2))
+  console.error('Packaged runtime failure diagnostics:', JSON.stringify(failure))
+  throw error
 } finally {
   clearTimeout(watchdog)
   if (browser) await browser.close()
