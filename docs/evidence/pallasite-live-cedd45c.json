@@ -1,0 +1,78 @@
+{
+  "origin": "https://pallasite.app",
+  "revision": "cedd45c305613713159b5bd66253797d1f208b87",
+  "verifiedAt": "2026-10-10T19:00:30.661Z",
+  "version": {
+    "build": "cedd45c",
+    "date": "2026-10-10"
+  },
+  "reviewedAuthority": "fa9291d038fd1d3e4439364f289f2e53a64a1d32776ee52c000da53ebc718cdc",
+  "assets": [
+    {
+      "path": "/index.html",
+      "sha256": "e25680f0a0f1476b4f75428db6caf92eff709ecd9a462983e752e8e7b1eac020",
+      "bytes": 4450
+    },
+    {
+      "path": "/version.json",
+      "sha256": "3d7227ecffb39988e5a6a5a1263421212a8c5803c5d54926f141553d39d29e4b",
+      "bytes": 40
+    },
+    {
+      "path": "/sw.js",
+      "sha256": "ebb10302517c56d1b3562e45e04ee1dfe3bc5768a028a0f045bf80201fa74df5",
+      "bytes": 6510
+    },
+    {
+      "path": "/signet-login.iife.js",
+      "sha256": "d689b4e72aa562b3fe3272504057d7b1b474a89f19bc1c4ec03c20c4245fb1be",
+      "bytes": 397100
+    },
+    {
+      "path": "/assets/controller-host-CezRXjdj.js",
+      "sha256": "70f4721ec0ef1f0e878d7ec1b56109f0e4aa5916023763b4adc3e4f6c1024579",
+      "bytes": 7011
+    },
+    {
+      "path": "/assets/controller-mobile-D7VLYQbu.js",
+      "sha256": "b6875d8d7b941bbbe59c86cfdec87c587636d4621d746faca1ad67c2560fb349",
+      "bytes": 2229
+    },
+    {
+      "path": "/assets/index-CYaQcrRM.js",
+      "sha256": "a9811a94e568bae97105fedf3aaf73bce2441bc623b21b1a0d405481f6784195",
+      "bytes": 900653
+    },
+    {
+      "path": "/assets/index-WmPsmUSn.css",
+      "sha256": "fc3196f246670f26b2fe8223145ecd851f61bfaca4cffe106b27722417c1b5d5",
+      "bytes": 19898
+    },
+    {
+      "path": "/assets/jsQR-OY1mHGGk.js",
+      "sha256": "a50acac918cd32164bd0890f5d41632d42693d6af7b4a7d1d8a1c35fa4031316",
+      "bytes": 130758
+    },
+    {
+      "path": "/assets/overlay-B7IrIzOo.js",
+      "sha256": "1e1605afe683570bcbfaee67f2bbf77098c19e2956dabbf197410ea94dd29007",
+      "bytes": 581587
+    },
+    {
+      "path": "/assets/remote-signer-DJNN0dO5.js",
+      "sha256": "7b72b8b0d7d39b449551052ccc9d6f0603f40883ce5d57cb4579a1ac7726e544",
+      "bytes": 1492
+    },
+    {
+      "path": "/assets/veil-D15dqLTL.js",
+      "sha256": "2c5a99ed7df86bcd90b47b5989e57c353e03b9745ccb5966714706375192f481",
+      "bytes": 43375
+    }
+  ],
+  "securityHeaders": {
+    "content-security-policy": null,
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN"
+  }
+}

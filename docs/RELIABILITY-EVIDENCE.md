@@ -117,6 +117,39 @@ No guest login, state injection or payout action was used to bypass this gate.
 The iPhone inspection confirms Wallet of Satoshi 3.4.10 (build 370) is installed
 on Donkeyfarm; the authorised 100-sat payment remains unconfirmed.
 
+## Pallasite worker and booth correction
+
+Actual My Signet inspection showed the game accept the live session before
+losing it on a first-install service-worker reload. Pallasite
+[PR #6](https://github.com/TheCryptoDonkey/pallasite/pull/6) preserves the first
+document, defers updates while an arcade port is active, and carries that
+account into the first booth setup once. A subsequent visitor's setup closes
+the old signing port and clears the session; player two and ordinary walk-up
+visitors still choose their own identities. The vendored SDK matches the
+published Signet Login 0.17.3 bundle.
+
+All six production-build regressions pass using native service workers and
+signed disposable local peers, including the actual root-launch route. The
+seven simulation harnesses, quality governor, Chromium presentation checks,
+five viewport menu checks and eight existing booth checks pass. Hosted
+[CI 38077777050](https://github.com/TheCryptoDonkey/pallasite/actions/runs/38077777050)
+passed `cedd45c`. The client is deployed on Hetzner at `pallasite.app`: root,
+version metadata, worker, SDK and eight JS/CSS assets match the verified build,
+and the public claim service still reports the reviewed authority. See
+[live proof](evidence/pallasite-live-cedd45c.json).
+
+The co-op forge timing gate remains failing: 96 frames during parallel checks,
+188 on the isolated candidate, and 102 on the unchanged `bfab5e2` baseline,
+against the retained 90-frame limit. Simulations agreed. This does not establish
+a cause or a fix. A separate public-score fallback can substitute a guest after
+personal signing fails; same-account failure/retry correction remains pending.
+The published My Signet Pallasite run is being checked separately. WebKit,
+physical devices and the single-account four-game matrix remain unverified.
+
+Arcade's diagnostic harness revision `adf475d` passed the complete hosted
+[CI 38075818685](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38075818685).
+That pass does not resolve the intermittent native input failures recorded above.
+
 ## Local implementation and checks
 
 - The next revision passed all 38 browser journeys before the My Signet
@@ -288,45 +321,24 @@ further source changes and attach hosted CI/artifact evidence before release.
 
 ## Hosting and DNS
 
-Deployment now targets SSH alias `stall`, the new Hetzner server at
-`62.238.98.53`. Both static release directories and Caddy routes already exist
-there. The standard public origin is
-`https://gamestr.62-238-98-53.sslip.io/`; HTTPS and the configured CSP, HSTS,
-frame protection and MIME protection headers were checked on the existing
-July build. The standard edition's reliability changes are now deployed at
-`46e40d5149f5030ddcc249ba731dcfc1317c2aa8`. Its public release metadata,
-served JavaScript SHA-256 against the local build, protection headers, a
-Pallasite deep link and the 390px login picker were verified; see
-[public deployment evidence](evidence/gamestr-web-46e40d5.json).
-[Hosted CI run 38060976679](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38060976679)
-passed this source revision, including all 30 browser journeys and packaged
-Linux startup. The 600 edition's new source revision has not yet been deployed.
-The standard edition has since been updated to `3f30f8691b574401161fcc28e31e55398e9479a4`.
-[Hosted CI run 38063563955](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38063563955)
-passed all 32 browser journeys and the complete packaged Linux game journeys.
-The public release metadata, exact served entry bytes, security headers and
-Pallasite deep link match the local production build; see
-[current public deployment evidence](evidence/gamestr-web-3f30f86.json).
-The deployed standard app also created a real exact-amount 100-sat invoice from
-Wallet of Satoshi in a 390px browser: QR and matching wallet link appeared with
-no page errors. Only the signed recipient profile was a disposable fixture;
-provider metadata and invoice requests were real browser requests. This check
-did not invoke a wallet or send payment; see
-[real provider invoice evidence](evidence/gamestr-live-reward-46e40d5.json).
-The current standard release is now `326dbd9ec69daae0afd60c5d57c2b96b0e2aa9fd`.
-Its release metadata, all seven served JavaScript/CSS assets, root HTML,
-generated game HTML and security headers match the build; see
-[current release proof](evidence/gamestr-web-326dbd9.json).
-At the earlier `ddd2389` release, a live 320px browser showed the publisher-login explanation without horizontal
-overflow and the incomplete-history notes on game, score and personal-best
-pages; only relay traffic was isolated. See
-[mobile history disclosure proof](evidence/gamestr-live-history.json).
-The matching 600 build is uploaded to
-`/opt/gamestr-web-600/releases/326dbd9ec69d` on `stall`; its metadata identifies
-the full revision and edition. Its active symlink remains the July release
-until the Ledger consumer is ready. Direct HTTPS to the new server serves the
-600 route, but public DNS still points at the retired server. No DigitalOcean
-CLI/configuration was found on `stall` either.
+Both current arcade editions are activated on the new Hetzner host `stall`
+(`62.238.98.53`) at functional revision `0948199`. Standard web is public at
+`https://gamestr.62-238-98-53.sslip.io/`; the 600 edition is verified with valid
+TLS by resolving `arcade.600.wtf` directly to the new host. Metadata, root/game
+HTML, all seven JS/CSS assets and security headers match their builds; see
+[standard proof](evidence/gamestr-web-0948199.json) and
+[600 proof](evidence/gamestr-600-live-0948199.json). Public 600 DNS cutover is
+still pending. Older rollout proofs are historical, including
+[46e40d5](evidence/gamestr-web-46e40d5.json),
+[3f30f86](evidence/gamestr-web-3f30f86.json) and
+[326dbd9](evidence/gamestr-web-326dbd9.json).
+
+The earlier real provider check displayed an exact 100-sat Wallet of Satoshi
+invoice, QR and matching wallet link at 390px without page errors. Only its
+signed recipient profile was a disposable fixture; provider requests were real.
+It did not invoke a wallet or send payment; see
+[invoice evidence](evidence/gamestr-live-reward-46e40d5.json).
+The subsequent authorised physical 100-sat payment remains unconfirmed.
 
 DigitalOcean is authoritative for `600.wtf`:
 `ns1.digitalocean.com`, `ns2.digitalocean.com`, `ns3.digitalocean.com`.
