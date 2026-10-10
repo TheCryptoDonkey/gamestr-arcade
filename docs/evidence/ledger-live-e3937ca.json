@@ -1,0 +1,157 @@
+{
+  "origin": "https://ledger.playechoseven.com",
+  "revision": "e3937ca0152d0f07bf67d25e5f80b827dba87f36",
+  "verifiedAt": "2026-10-10T17:45:21.562Z",
+  "releaseGate": {
+    "checks": 98,
+    "seconds": 1723.2
+  },
+  "assets": [
+    {
+      "path": "index.html",
+      "sha256": "483f67fd3db9afd3e59e907755252f5ac96d67528f8bb5a35643c747f304c1a6"
+    },
+    {
+      "path": "assets/arcade-handoff-BtuCXcIQ.js",
+      "sha256": "496386e44dcc2b148a381d2b473b6567c5019f63ce3ac95c6fd929bf1a451871"
+    },
+    {
+      "path": "assets/audio-mixer-CWFZueFM.js",
+      "sha256": "4b111e0147479eb821698a18c2c1f37bdcee88122d46c6a737d3118b9c1e6968"
+    },
+    {
+      "path": "assets/auth-DiaXA7mZ.js",
+      "sha256": "aef11af01b7b8d8392c8d5bee3f0cc42727b50a6ae948c363f2cc1873f989fe8"
+    },
+    {
+      "path": "assets/auth-DlZ_Amdx.js",
+      "sha256": "51dd273c21e088609ec32593f72b27873cb1db89cf0a16940ac0f7ff71c5a63e"
+    },
+    {
+      "path": "assets/challenges-BBloerdm.js",
+      "sha256": "8aa6984dccd82301f7a33930e73384da5a2a612b76f2fdbc4a4834e61119963e"
+    },
+    {
+      "path": "assets/combine-NxhL3Ev3.js",
+      "sha256": "9153609665ae5acd41c3cb40a880c2e53397f10bd397f19bd7590c872bcd641e"
+    },
+    {
+      "path": "assets/crash-d8MmDDGv.js",
+      "sha256": "050fb8e54d7e0a256736f3046248bc295c3764b6b2d1b40c324afe41d76da2af"
+    },
+    {
+      "path": "assets/cult3d-CAn_EFcD.js",
+      "sha256": "df8b675090127b1b5abedec18ae55ad7017afa76db732661702438125fb9ee27"
+    },
+    {
+      "path": "assets/daily-B7qxBd8M.js",
+      "sha256": "03b5a8f58b6882473efffa2c0713bfc302823d162e34088bee3c4dca47b53772"
+    },
+    {
+      "path": "assets/debrief-BJeaJRB4.js",
+      "sha256": "9d98bbc7ddc7ca20fef85919cba3b081d437964c3aaf9d4fba390b3f117b2f62"
+    },
+    {
+      "path": "assets/dev-Bv5eWkyW.js",
+      "sha256": "82e0d6b4a28bcef00e05828f5b6b75d59df2e43901efa1f9e9434c8e59bff359"
+    },
+    {
+      "path": "assets/flight-audio-BBWZuArq.js",
+      "sha256": "a52d48451722ca6ec227d634a66a70e99d676c1129f379d3f2fc16eb0ebd08fd"
+    },
+    {
+      "path": "assets/flight-card-BwHEISAy.js",
+      "sha256": "b0840f392eab1fe1f42277291a477d0517b1654f7451942d7ca79b7f442ca796"
+    },
+    {
+      "path": "assets/glyph-marks-BMXJfTg8.js",
+      "sha256": "b11b3164ad386b9192c6007ceb0b5db59e7ec4a937eed91309b79106a02277fb"
+    },
+    {
+      "path": "assets/groupies-GVI9D7oY.js",
+      "sha256": "55a6806e9b45d464925e0790714b29a22ad838fd79d0ddfd136a3700369436ae"
+    },
+    {
+      "path": "assets/haptics-D-451Gpf.js",
+      "sha256": "8af2b3bbd16b11fe399bf30c46829cece03fc2a6c8d182e856fbda9e8cba7e27"
+    },
+    {
+      "path": "assets/index-CBJg-ggB.css",
+      "sha256": "7297a0f8d3dde92d65fc88f9c1d174a67b65acf219204e78544e754abae56326"
+    },
+    {
+      "path": "assets/index-RY1TDfan.js",
+      "sha256": "1b00a773ce7abb093e5408d5496c681bb328cddab2ba989e82aae3242981eeac"
+    },
+    {
+      "path": "assets/keypad-CZaK8b92.js",
+      "sha256": "d04e994d0a9d787381e263ab86b4199d6d0d22db40351c34fc54013d2f1bbcf8"
+    },
+    {
+      "path": "assets/late-world-CbBwbC3v.js",
+      "sha256": "ae26cf4825ccffaad0387258e5937412b35b70c5921480fb132de6f5d4ae6f84"
+    },
+    {
+      "path": "assets/nostr-MFrvbbiS.js",
+      "sha256": "386a5842167c7f58ba6448f6104748277f1ce08350b3704a5c2ad8f49916a980"
+    },
+    {
+      "path": "assets/perks-oY8Ih0uT.js",
+      "sha256": "773a31260c977a82a196ada6206613625fca5afbc809394cc308d59254a3983a"
+    },
+    {
+      "path": "assets/preload-BaO3PhxK.js",
+      "sha256": "a98106bd81a38dae19bbda9007b20853466c40053f277424d976c21b9e05f591"
+    },
+    {
+      "path": "assets/prophecy-C1hl6s46.js",
+      "sha256": "0a978232b58ef7cfdfd6d0d72b2c12311e5de40ebdc154aa2333c9e364bd6a8d"
+    },
+    {
+      "path": "assets/pure-B8tmGdXS.js",
+      "sha256": "9227343a53ab35ac640adc66c8b02d7f90073e97ef4ef73400f435e2a73463bc"
+    },
+    {
+      "path": "assets/qrcode-DJw-22Yv.js",
+      "sha256": "ca0b639f6919b0628fb50ff882e265681bcda9fa5bbb0fa183281af7c464e589"
+    },
+    {
+      "path": "assets/scoring-BtqlK7fC.js",
+      "sha256": "745b368319eac60e261f5e736d652031b4209cf73003dea3ba4818ef7db69aad"
+    },
+    {
+      "path": "assets/scoring-u0gKnPhQ.js",
+      "sha256": "d495496cf1166b9b50558acda9812d1ebad047202844eeb5935ecd9e68e39dbc"
+    },
+    {
+      "path": "assets/supply-Dt2XmP57.js",
+      "sha256": "0ce2bbdb42a6a60de1f009456be0d44cefd91fadc05feb1230f9b96c18e784a5"
+    },
+    {
+      "path": "assets/taxman-DujokpLk.js",
+      "sha256": "f108ef118d373b0dc14b1cac53fc40737c3c31193fe99e8cd6e2bcb50ce691c9"
+    },
+    {
+      "path": "assets/three-DTzggPaG.js",
+      "sha256": "f4871f75711d0c526c5c6953e271cf500214e57963ddcdb81dc2bc8d7b08aaeb"
+    },
+    {
+      "path": "assets/v4v-Dao0JqFG.js",
+      "sha256": "d534c150e7d3c7a0496ba1f1c22d7047441159b6718d9476074b1e8e485de80f"
+    },
+    {
+      "path": "assets/voice-lab-Bb8t22D3.js",
+      "sha256": "0d10dd31e67341eb850ffbaf17a72e553c07a70dc2ac6827c3b19c86f9afc31c"
+    },
+    {
+      "path": "assets/water-detail-DE0VipDj.js",
+      "sha256": "36c9771c99b0de93e7b53c9cab96d2d3e3d9dabd07aea1e25945b081afda9017"
+    }
+  ],
+  "claimHealth": {
+    "ok": true,
+    "signerConfigured": true,
+    "publishEnabled": true,
+    "gamePubkey": "6f0baf0c26e68afa787ff8c6e34e41f0395fb53fde4152e2c7bcb5f4674080c2"
+  }
+}

@@ -268,15 +268,15 @@ standard edition is live on the new Hetzner box at that revision. The 600 cutove
 
 | Goal | Implementation and PR | Automated checks | Deployed or packaged revision | Live acceptance | Status |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Selected-session verification, synchronous port revocation and generation guards; PR #11 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` staged | Physical checks pending | In progress |
-| 2 | Responsive controls, validated SDK callback and generic Cambium/Amber NIP-55 request; PR #11 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` staged | Physical checks pending | In progress |
-| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` staged | Live desktop My Signet approval, signing, refresh and logout pass; physical checks pending | In progress |
-| 4 | Per-game score authorities and attribution provenance; PR #11 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` staged | Physical checks pending | In progress |
-| 5 | Dependency upgrades and high-severity audit gate; PR #11 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` staged | Physical checks pending | In progress |
-| 6 | Reviewed manifest capability and Ledger consumer; PR #11 and PR #88 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` staged | Physical checks pending | In progress |
-| 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` staged | Physical checks pending | In progress |
-| 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` staged | Physical checks pending | In progress |
-| 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` staged | Physical checks pending | In progress |
+| 1 | Selected-session verification, synchronous port revocation and generation guards; PR #11 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 2 | Responsive controls, validated SDK callback and generic Cambium/Amber NIP-55 request; PR #11 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` on Hetzner; DNS pending | Live desktop My Signet approval, signing, refresh and logout pass; physical checks pending | In progress |
+| 4 | Per-game score authorities and attribution provenance; PR #11 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 5 | Dependency upgrades and high-severity audit gate; PR #11 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 6 | Reviewed manifest capability and Ledger consumer; PR #11 and PR #88 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | 646 unit tests and 44 browser journeys passed | Standard web `63c66b5`; 600 `63c66b5` on Hetzner; DNS pending | Physical checks pending | In progress |
 
 For live runs, record the browser/device, signer or wallet, date, exact revisions,
 steps exercised and result. Cover both editions; local and cross-device My

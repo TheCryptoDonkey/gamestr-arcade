@@ -21,6 +21,22 @@ authentication traffic was sent. See [live signer proof](evidence/gamestr-live-m
 Physical phone, QR, suspension and reconnect journeys remain pending. The
 authorised 100-sat Wallet of Satoshi payment remains unconfirmed.
 
+## Coordinated deployment after Ledger gate
+
+Ledger client `e3937ca` passed all 98 release checks and is now deployed at
+`ledger.playechoseven.com`. The root HTML and all 34 JavaScript/CSS assets
+match the verified production build. The existing claim service remains
+healthy, configured to sign and publish with the reviewed game key; see
+[Ledger live proof](evidence/ledger-live-e3937ca.json). Deployment kept the
+previous index and existing hashed assets for rollback and active sessions.
+
+600 revision `63c66b5` is activated on Hetzner. Valid TLS requests resolving
+`arcade.600.wtf` directly to `62.238.98.53` verify its metadata, root and
+Pallasite route HTML and all seven JavaScript/CSS assets against the build;
+see [600 origin proof](evidence/gamestr-600-live-63c66b5.json). Public DNS still
+returns `95.217.39.110`. Public cutover and real same-player runs through all
+four games remain pending; asset verification does not establish gameplay.
+
 ## Local implementation and checks
 
 - The next revision passed all 38 browser journeys before the My Signet
@@ -169,9 +185,9 @@ authorised 100-sat Wallet of Satoshi payment remains unconfirmed.
   The compressed cold core now measures 262,061 bytes with the same ceiling;
   all 261 unit tests, startup checks and complete Chromium/WebKit voice and
   media profiles pass. The full release gate passed all 98 checks in 1,723.2 seconds on that
-  revision. Consumer deployment remains pending.
+  revision. The verified client is now deployed, as recorded above.
   Draft [Ledger PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88)
-  contains the consumer; deployment remains pending.
+  contains the deployed consumer; same-player game acceptance remains pending.
 
 Draft [PR #11](https://github.com/TheCryptoDonkey/gamestr-arcade/pull/11)
 contains the implementation. Hosted [CI run 38057669320](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38057669320)

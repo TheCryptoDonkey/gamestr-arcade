@@ -1,0 +1,44 @@
+{
+  "origin": "https://arcade.600.wtf",
+  "forcedHostAddress": "62.238.98.53",
+  "publicDnsCutover": false,
+  "revision": "63c66b57bb7cc3b01e618f5fc6ffbbebdacf1be4",
+  "assets": [
+    {
+      "path": "index.html",
+      "sha256": "080addcb27af78d53680ed2cf3f5dac581b4117687f2ea323d73f3455b5bdd53"
+    },
+    {
+      "path": "game/pallasite/index.html",
+      "sha256": "f52c0f052b3cd53af93708613613f48e054f57b563a9e2ff66bd998c8366d8b0"
+    },
+    {
+      "path": "assets/preference-sync-C9t_v2wP.js",
+      "sha256": "58b7d3ec7649270ae7f88587c38eb375773caea09f1fe27212ee857e7939005c"
+    },
+    {
+      "path": "assets/index-CE6SpJ9L.css",
+      "sha256": "0f4bd1555b2cfbbff99b75f8d419957dab30ebb9d4963c0e68f84795c3b1322c"
+    },
+    {
+      "path": "assets/signet-login-4yGhndit.js",
+      "sha256": "d6bf6a2c7cbfc70f25cfe5d698df11f25db2f02ce85c746007f1304f26dd165c"
+    },
+    {
+      "path": "assets/qrcode-CtOU1MHs.js",
+      "sha256": "75066dc9670886c2b7913df72578587f8b75e64afea7a637f162501af79c6ce3"
+    },
+    {
+      "path": "assets/developer-studio-BAH6fCx4.js",
+      "sha256": "5cc7db72e0ab1f361f93000d8a290a4950d458c312a10892a821f7fe66149264"
+    },
+    {
+      "path": "assets/_commonjsHelpers-CqkleIqs.js",
+      "sha256": "84de5b1724808f6a399a33d5fa7887ba0f752bbb73fbb26cc100fbec111abf63"
+    },
+    {
+      "path": "assets/index-BIsW1xZ5.js",
+      "sha256": "6ebdf87b81be5488080d4027928ad0b5ef54e0f5226f1a0d151995198b02148d"
+    }
+  ]
+}
