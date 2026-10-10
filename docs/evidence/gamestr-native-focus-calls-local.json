@@ -1,0 +1,139 @@
+{
+  "keyboardCarouselNavigation": true,
+  "launchAndReturn": true,
+  "guestSignatureVerified": true,
+  "freshGuestOnRelaunch": true,
+  "gameStorageAndCookiesIsolated": true,
+  "trustedGameKeyboardInput": true,
+  "walletUnavailableWithoutConfiguration": true,
+  "noNodeOrShellBridgeInGame": true,
+  "physicalControllerAcceptance": "pending",
+  "nativeFocus": [
+    {
+      "stage": "first game trusted ArrowUp",
+      "windows": [
+        {
+          "focused": false,
+          "visible": true
+        }
+      ],
+      "contents": [
+        {
+          "id": 2,
+          "focused": false,
+          "role": "game"
+        },
+        {
+          "id": 1,
+          "focused": false,
+          "role": "shell"
+        }
+      ]
+    },
+    {
+      "stage": "second game Escape return",
+      "windows": [
+        {
+          "focused": false,
+          "visible": true
+        }
+      ],
+      "contents": [
+        {
+          "id": 3,
+          "focused": false,
+          "role": "game"
+        },
+        {
+          "id": 1,
+          "focused": false,
+          "role": "shell"
+        }
+      ]
+    }
+  ],
+  "shellFocus": {
+    "history": [
+      {
+        "event": "focusin",
+        "id": "",
+        "className": "ready-start",
+        "at": 2607.6999999284744,
+        "documentFocused": true,
+        "readyOpen": true
+      },
+      {
+        "event": "focusin",
+        "id": "app",
+        "className": "arcade",
+        "at": 2821.2999999523163,
+        "documentFocused": true,
+        "readyOpen": false
+      }
+    ],
+    "calls": [
+      {
+        "id": "app",
+        "className": "arcade",
+        "at": 1108.7999999523163,
+        "documentFocused": true,
+        "stack": [
+          "    at ReadyPanel.close (<checkout>/out/renderer/assets/index-BwcT1SsG.js:10639:25)",
+          "    at ReadyPanel.confirm (<checkout>/out/renderer/assets/index-BwcT1SsG.js:10627:10)",
+          "    at Object.onLaunch (<checkout>/out/renderer/assets/index-BwcT1SsG.js:11535:20)",
+          "    at onKeyDown (<checkout>/out/renderer/assets/index-BwcT1SsG.js:4802:23)"
+        ]
+      },
+      {
+        "id": "",
+        "className": "ready-start",
+        "at": 1136.1999999284744,
+        "documentFocused": true,
+        "stack": [
+          "    at <checkout>/out/renderer/assets/index-BwcT1SsG.js:10622:87"
+        ]
+      },
+      {
+        "id": "app",
+        "className": "arcade",
+        "at": 1722.5,
+        "documentFocused": true,
+        "stack": [
+          "    at <checkout>/out/renderer/assets/index-BwcT1SsG.js:11606:12"
+        ]
+      },
+      {
+        "id": "",
+        "className": "ready-start",
+        "at": 2606.899999976158,
+        "documentFocused": true,
+        "stack": [
+          "    at <checkout>/out/renderer/assets/index-BwcT1SsG.js:10622:87"
+        ]
+      },
+      {
+        "id": "app",
+        "className": "arcade",
+        "at": 2819.899999976158,
+        "documentFocused": true,
+        "stack": [
+          "    at ReadyPanel.close (<checkout>/out/renderer/assets/index-BwcT1SsG.js:10639:25)",
+          "    at ReadyPanel.confirm (<checkout>/out/renderer/assets/index-BwcT1SsG.js:10627:10)",
+          "    at Object.onLaunch (<checkout>/out/renderer/assets/index-BwcT1SsG.js:11535:20)",
+          "    at onKeyDown (<checkout>/out/renderer/assets/index-BwcT1SsG.js:4802:23)"
+        ]
+      },
+      {
+        "id": "app",
+        "className": "arcade",
+        "at": 3088,
+        "documentFocused": true,
+        "stack": [
+          "    at <checkout>/out/renderer/assets/index-BwcT1SsG.js:11606:12"
+        ]
+      }
+    ]
+  },
+  "platform": "darwin",
+  "notes": "Test-only focus-call wrapper delegates unchanged arguments and receiver to the original DOM focus method. Original packaged journey assertions pass locally. Native focus remains separate from document focus. This is diagnostic qualification, not a Linux timing repair."
+}

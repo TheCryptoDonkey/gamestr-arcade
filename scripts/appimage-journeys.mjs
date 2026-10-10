@@ -66,13 +66,25 @@ try {
   await shell.evaluate(() => {
     window.runtimeFocusHistory = []
     window.runtimeKeyHistory = []
+    window.runtimeFocusCalls = []
+    const originalFocus = HTMLElement.prototype.focus
+    HTMLElement.prototype.focus = function (...args) {
+      runtimeFocusCalls.push({ id: this.id, className: this.className,
+        at: performance.now(), documentFocused: document.hasFocus(),
+        stack: new Error().stack?.split('\n').slice(2, 6) })
+      if (runtimeFocusCalls.length > 30) runtimeFocusCalls.shift()
+      return Reflect.apply(originalFocus, this, args)
+    }
     const record = event => {
       const active = document.activeElement
       runtimeFocusHistory.push({ event, id: active?.id, className: active?.className,
+        at: performance.now(), documentFocused: document.hasFocus(),
         readyOpen: !!document.querySelector('.ready-overlay.is-open') })
       if (runtimeFocusHistory.length > 20) runtimeFocusHistory.shift()
     }
     addEventListener('focusin', () => record('focusin'))
+    addEventListener('focus', () => record('window-focus'))
+    addEventListener('blur', () => record('window-blur'))
     for (const type of ['keydown', 'keyup']) addEventListener(type, event => {
       runtimeKeyHistory.push({ type, key: event.key, trusted: event.isTrusted, id: document.activeElement?.id })
       if (runtimeKeyHistory.length > 20) runtimeKeyHistory.shift()
@@ -141,6 +153,10 @@ try {
     trustedGameKeyboardInput: true, walletUnavailableWithoutConfiguration: true,
     noNodeOrShellBridgeInGame: true, physicalControllerAcceptance: 'pending',
     nativeFocus,
+    shellFocus: await shell.evaluate(() => ({
+      history: window.runtimeFocusHistory ?? [],
+      calls: window.runtimeFocusCalls ?? [],
+    })),
   }))
 } catch (error) {
   const pages = {}
@@ -152,6 +168,7 @@ try {
       activeElementInert: !!document.activeElement?.closest('[inert]'),
       readyOpen: !!document.querySelector('.ready-overlay.is-open'),
       focusHistory: window.runtimeFocusHistory ?? [],
+      focusCalls: window.runtimeFocusCalls ?? [],
       keyHistory: window.runtimeKeyHistory ?? [],
       keys: window.fixtureKeys ?? [],
     })).catch(() => ({ inspectionFailed: true }))
