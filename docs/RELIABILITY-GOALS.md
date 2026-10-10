@@ -115,19 +115,19 @@ ownership of that score or prove honest gameplay.
 
 Acceptance criteria:
 
-- [ ] Define attribution for each supported score schema: player-signed scores
+- [x] Define attribution for each supported score schema: player-signed scores
   belong to the signer; delegated scores require an explicitly trusted game
   authority and a valid player attribution contract.
-- [ ] Unauthorised `p` overrides cannot enter a trusted player board, personal
+- [x] Unauthorised `p` overrides cannot enter a trusted player board, personal
   best or challenge standing.
-- [ ] Preserve provenance so the UI can explain player signatures and trusted
+- [x] Preserve provenance so the UI can explain player signatures and trusted
   game-issued scores. Unknown historical authorities are labelled or excluded
   explicitly rather than silently promoted to trusted records.
-- [ ] Decide and document compatibility for existing game-issued scores before
+- [x] Decide and document compatibility for existing game-issued scores before
   rollout; declarations must not trust every signer publishing a game tag.
-- [ ] Regressions cover attacker-signed victim claims, legitimate player
+- [x] Regressions cover attacker-signed victim claims, legitimate player
   signatures, allowed game authorities, malformed tags and both score kinds.
-- [ ] Public wording distinguishes signature and attribution checks from
+- [x] Public wording distinguishes signature and attribution checks from
   anti-cheat or proof of payment. A signed `sats` tag alone is not settlement.
 
 Start in [gamestr-reduce.ts](../src/renderer/src/leaderboard/gamestr-reduce.ts),
@@ -142,17 +142,17 @@ Electron because it is declared as a development dependency.
 
 Acceptance criteria:
 
-- [ ] Refresh affected direct and transitive dependencies with a reviewed
+- [x] Refresh affected direct and transitive dependencies with a reviewed
   lockfile. Upgrade Electron and affected test tooling deliberately, without
   using a forced audit fix as a substitute for compatibility checks.
-- [ ] `npm run check` and `npm audit --audit-level=high` pass. Record both full
+- [x] `npm run check` and `npm audit --audit-level=high` pass. Record both full
   and production audit results and the version of the packaged Electron runtime.
 - [ ] Package and smoke-test the Linux AppImage. Check launch, return,
   controller navigation, isolated game sessions and bounded wallet behaviour.
 - [ ] Verify both deployed web editions serve the intended release, usable TLS
   and security headers. Investigate the review's failed TLS connections before
   asserting a production outage or a successful live release.
-- [ ] Keep CI, deployment, packaged-runtime and physical cabinet acceptance as
+- [x] Keep CI, deployment, packaged-runtime and physical cabinet acceptance as
   separate evidence. Preserve the existing
   [conference acceptance gate](conference-acceptance.md).
 
@@ -164,17 +164,17 @@ Take Me To Your Ledger authentication assets do not.
 
 Acceptance criteria:
 
-- [ ] Declare which games support identity and signing handoff. Only games
+- [x] Declare which games support identity and signing handoff. Only games
   with the relevant reviewed capability receive a signing bridge.
 - [ ] Implement and deploy the missing Ledger consumer in its own repository.
   Consumer changes require that repository's instructions and verification.
-- [ ] Support the standard edition through an explicit consumer origin/app
+- [x] Support the standard edition through an explicit consumer origin/app
   contract, or show clearly that its games require separate login. Do not claim
   universal account continuity while it is edition-specific.
 - [ ] Verify normal launch, modifier-click, popup denial, proof expiry, game
   reload and arcade closure. Unsupported paths use a clear independent login
   fallback rather than a copied but unusable proof.
-- [ ] Game requests have bounded size and concurrency and an explicit signing
+- [x] Game requests have bounded size and concurrency and an explicit signing
   scope. Logout and account replacement obey Goal 1.
 - [ ] On the deployed 600 edition, the same player completes a run and sees a
   correctly attributed score in all four games without an unexpected account
@@ -193,15 +193,15 @@ requested event directly.
 
 Acceptance criteria:
 
-- [ ] Separate bounded recent activity from retained best scores. Older bests
+- [x] Separate bounded recent activity from retained best scores. Older bests
   survive unrelated activity and respect ascending and descending scoring.
-- [ ] Fetch a requested score by event ID, validate it and its attribution, and
+- [x] Fetch a requested score by event ID, validate it and its attribution, and
   resolve it without relying on the latest broad relay query.
-- [ ] Distinguish syncing, unavailable, invalid, cached and live results. A
+- [x] Distinguish syncing, unavailable, invalid, cached and live results. A
   missing event does not leave an indefinite "Syncing event" page.
-- [ ] State the history coverage of all-time boards honestly. Discovering
+- [x] State the history coverage of all-time boards honestly. Discovering
   complete history must not create an unbounded browser event store.
-- [ ] Challenge standings cover their signed time window or disclose incomplete
+- [x] Challenge standings cover their signed time window or disclose incomplete
   history instead of labelling a recent subset as authoritative final results.
 - [ ] Regressions exercise cap eviction, old links, empty relays, cache use,
   both score directions and challenge windows outside the recent feed.
@@ -219,14 +219,14 @@ Acceptance criteria:
   after refresh where storage is available.
 - [ ] Updates preserve focus, search text, filter selections and open dialogs.
   Dialogs trap focus, support Escape and restore focus on close.
-- [ ] Favourites and follows are scoped to the selected account, with a separate
+- [x] Favourites and follows are scoped to the selected account, with a separate
   guest store and an explicit migration choice for existing device preferences.
-- [ ] Local storage failure does not crash the page or falsely claim a saved
+- [x] Local storage failure does not crash the page or falsely claim a saved
   preference. Local-only follow behaviour remains clearly described.
-- [ ] Add optional, consented Nostr preference sync with local fallback and
+- [x] Add optional, consented Nostr preference sync with local fallback and
   tested merge behaviour. Importing or publishing a follow list must not replace
   an existing Nostr contact list accidentally.
-- [ ] Browser regressions cover a draft across login, focus during live events,
+- [x] Browser regressions cover a draft across login, focus during live events,
   dialog keyboard use, account switching and preference isolation.
 
 ## 9 Make mobile rewards usable without an extension
@@ -236,15 +236,15 @@ does not itself provide a Lightning wallet.
 
 Acceptance criteria:
 
-- [ ] Offer an exact-amount invoice with QR, copy and wallet-link options when
+- [x] Offer an exact-amount invoice with QR, copy and wallet-link options when
   WebLN is absent. Keep WebLN available where supported.
-- [ ] Separate optional public zap signing from wallet payment. Describe the
+- [x] Separate optional public zap signing from wallet payment. Describe the
   identity disclosure before creating a public zap request.
-- [ ] Preserve recipient and amount validation. A malformed or wrong-amount
+- [x] Preserve recipient and amount validation. A malformed or wrong-amount
   invoice never reaches a wallet action.
-- [ ] Distinguish invoice created, wallet opened, payment pending and confirmed.
+- [x] Distinguish invoice created, wallet opened, payment pending and confirmed.
   Displaying a QR or opening a wallet does not count as payment confirmation.
-- [ ] Cancellation and uncertain outcomes do not trigger an automatic duplicate
+- [x] Cancellation and uncertain outcomes do not trigger an automatic duplicate
   payment. The public app does not reuse the cabinet's wallet authority.
 - [ ] Test WebLN and an actual mobile wallet route. A payment test uses a
   separately authorised recipient and amount and records the confirmation method.
@@ -253,28 +253,30 @@ Start in [lightning-reward.ts](../src/web/lightning-reward.ts) and the reward di
 
 ## Acceptance evidence
 
+Checked criteria identify requirements proven by source and automated evidence;
+they do not mark an entire goal complete or clear its independent live gates.
 Keep the following record for each goal as work lands. Leave an evidence stage
 pending when it has not been exercised; a merged implementation is not proof of
 device or deployed behaviour.
 
 Arcade changes are in [PR #11](https://github.com/TheCryptoDonkey/gamestr-arcade/pull/11);
 Ledger's consumer is in [PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88).
-The arcade's source revision `46e40d5` passed hosted CI, packaging, Linux
-startup and all 30 browser checks. The standard edition is live on the new
-Hetzner box at that revision. The 600 cutover and physical acceptance remain open; see
+The arcade's source revision `3f30f86` passed hosted CI, packaging, actual Linux
+game launch/signing/return/isolation journeys and all 32 browser checks. The
+standard edition is live on the new Hetzner box at that revision. The 600 cutover and physical acceptance remain open; see
 [delivery evidence](RELIABILITY-EVIDENCE.md) for exact stages and remaining gates.
 
 | Goal | Implementation and PR | Automated checks | Deployed or packaged revision | Live acceptance | Status |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Selected-session verification, synchronous port revocation and generation guards; PR #11 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
-| 2 | Responsive controls, validated SDK callback and generic Cambium/Amber NIP-55 request; PR #11 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
-| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
-| 4 | Per-game score authorities and attribution provenance; PR #11 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
-| 5 | Dependency upgrades and high-severity audit gate; PR #11 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
-| 6 | Reviewed manifest capability and Ledger consumer; PR #11 and PR #88 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
-| 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
-| 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
-| 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | Unit/build gates and 30 browser journeys passed | Pending | Pending | In progress |
+| 1 | Selected-session verification, synchronous port revocation and generation guards; PR #11 | 646 unit tests and 32 browser journeys passed | Standard web `3f30f86`; 600 pending | Physical checks pending | In progress |
+| 2 | Responsive controls, validated SDK callback and generic Cambium/Amber NIP-55 request; PR #11 | 646 unit tests and 32 browser journeys passed | Standard web `3f30f86`; 600 pending | Physical checks pending | In progress |
+| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 646 unit tests and 32 browser journeys passed | Standard web `3f30f86`; 600 pending | Physical checks pending | In progress |
+| 4 | Per-game score authorities and attribution provenance; PR #11 | 646 unit tests and 32 browser journeys passed | Standard web `3f30f86`; 600 pending | Physical checks pending | In progress |
+| 5 | Dependency upgrades and high-severity audit gate; PR #11 | 646 unit tests and 32 browser journeys passed | Standard web `3f30f86`; 600 pending | Physical checks pending | In progress |
+| 6 | Reviewed manifest capability and Ledger consumer; PR #11 and PR #88 | 646 unit tests and 32 browser journeys passed | Standard web `3f30f86`; 600 pending | Physical checks pending | In progress |
+| 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | 646 unit tests and 32 browser journeys passed | Standard web `3f30f86`; 600 pending | Physical checks pending | In progress |
+| 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | 646 unit tests and 32 browser journeys passed | Standard web `3f30f86`; 600 pending | Physical checks pending | In progress |
+| 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | 646 unit tests and 32 browser journeys passed | Standard web `3f30f86`; 600 pending | Physical checks pending | In progress |
 
 For live runs, record the browser/device, signer or wallet, date, exact revisions,
 steps exercised and result. Cover both editions; local and cross-device My

@@ -17,8 +17,9 @@ async function setup(page: Page, extension = false) {
     const sockets: { requests: unknown[][]; onmessage?: (event: { data: string }) => void }[] = []
     ;(window as unknown as { __fixtureRelayEvent(event: { kind: number; pubkey: string }): void }).__fixtureRelayEvent = event => {
       for (const socket of sockets) for (const request of socket.requests) {
-        const filter = request[2] as { kinds?: number[]; authors?: string[] }
-        if (!filter.kinds?.includes(event.kind) || (filter.authors && !filter.authors.includes(event.pubkey))) continue
+        const filter = request[2] as { kinds?: number[]; authors?: string[]; ids?: string[] }
+        if (filter.ids ? !filter.ids.includes((event as { id?: string }).id ?? '') : !filter.kinds?.includes(event.kind)) continue
+        if (filter.authors && !filter.authors.includes(event.pubkey)) continue
         socket.onmessage?.({ data: JSON.stringify(['EVENT', request[1], event]) })
         socket.onmessage?.({ data: JSON.stringify(['EOSE', request[1]]) })
       }
@@ -37,6 +38,25 @@ async function setup(page: Page, extension = false) {
 }
 
 for (const [edition, port] of [['gamestr', 4174], ['600', 4175]] as const) {
+  test(`${edition}: old score links resolve independently and finish with useful invalid or unavailable states`, async ({ page }) => {
+    await setup(page)
+    const old = finalizeEvent({ kind: 30762, created_at: 1_600_000_000, tags: [['game', 'pallasite'], ['score', '4242']], content: '' }, key)
+    await page.goto(`http://127.0.0.1:${port}/score/${old.id}`)
+    await expect(page.getByRole('heading', { name: 'Looking up this event…', exact: true })).toBeVisible()
+    await page.evaluate(event => (window as unknown as { __fixtureRelayEvent(event: unknown): void }).__fixtureRelayEvent(event), old)
+    await expect(page.locator('.score-detail')).toContainText('4,242')
+    await expect(page.locator('.score-detail')).toContainText('PLAYER SIGNED')
+    const invalid = { ...old, id: 'a'.repeat(64) }
+    await page.goto(`http://127.0.0.1:${port}/score/${invalid.id}`)
+    await expect(page.getByRole('heading', { name: 'Looking up this event…', exact: true })).toBeVisible()
+    await page.evaluate(event => (window as unknown as { __fixtureRelayEvent(event: unknown): void }).__fixtureRelayEvent(event), invalid)
+    await expect(page.getByRole('heading', { name: 'Score failed validation', exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'RETRY LOOKUP', exact: true })).toBeEnabled()
+    await page.goto(`http://127.0.0.1:${port}/score/${'b'.repeat(64)}`)
+    await expect(page.getByRole('heading', { name: 'Score unavailable', exact: true })).toBeVisible({ timeout: 12000 })
+    await expect(page.getByRole('button', { name: 'RETRY LOOKUP', exact: true })).toBeEnabled()
+  })
+
   test(`${edition}: login remains operable without navigation overlap at narrow widths and zoom`, async ({ page }) => {
     await setup(page)
     await page.goto(`http://127.0.0.1:${port}/`)

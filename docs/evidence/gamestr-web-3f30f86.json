@@ -1,0 +1,15 @@
+{
+  "release": {
+    "revision": "3f30f8691b574401161fcc28e31e55398e9479a4",
+    "edition": "gamestr"
+  },
+  "deepLink": 200,
+  "entryAsset": "/assets/index-B7XGIwyt.js",
+  "entrySha256": "005b5ed494a72bcbfba9b396a6a2ea12c5ee1cd89fd4408b1d09242a427b41db",
+  "headers": {
+    "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https: wss:; frame-src https:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
+    "strict-transport-security": "max-age=31536000; includeSubDomains",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY"
+  }
+}

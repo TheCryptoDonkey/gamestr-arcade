@@ -53,6 +53,11 @@ automated results, hosted artifacts and actual user/device acceptance.
 - Standard-edition home and game pages now visibly explain independent
   publisher login, including on phones; this was previously only a tooltip.
   The four affected login/viewport browser journeys pass in both editions.
+- An audit found the incomplete-history disclosure was limited to challenges.
+  Main score boards, game boards, personal bests and the cabinet now explain
+  that relay history may be incomplete. Two additional browser journeys pass:
+  an old exact-ID score resolves without the recent feed, invalid proof finishes
+  with a validation error, and an empty relay query finishes with a retry action.
 - Installed `signet-login`: 0.17.3. Rendezvous uses SDK defaults separately from
   score relays. Private-key paste remains excluded.
 - `npm audit --audit-level=high`: passed, no high/critical findings. Eight
@@ -64,8 +69,12 @@ automated results, hosted artifacts and actual user/device acceptance.
   measurement now waits for its existing scale entrance animation to finish,
   preserving the original 60px floor. An onboarding composition check now holds
   the scene at its first visible prompt while the CSS entrance settles, retaining
-  its original distance/layout assertions. Both targeted profiles pass. The full
-  release gate is running again.
+  its original distance/layout assertions. Both targeted profiles passed, but
+  the full release gate stopped again on a cow already 6.86 units away at the
+  opening prompt. The opening animal starts wandering during the five-second
+  title before the player receives beam instructions. Ledger now keeps that
+  first animal grazing through a first-time pilot's opening cue; this product
+  fix needs its targeted and complete release verification.
   Draft [Ledger PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88)
   contains the consumer; deployment remains pending.
 
@@ -101,6 +110,18 @@ Pallasite deep link and the 390px login picker were verified; see
 [Hosted CI run 38060976679](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38060976679)
 passed this source revision, including all 30 browser journeys and packaged
 Linux startup. The 600 edition's new source revision has not yet been deployed.
+The standard edition has since been updated to `3f30f8691b574401161fcc28e31e55398e9479a4`.
+[Hosted CI run 38063563955](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38063563955)
+passed all 32 browser journeys and the complete packaged Linux game journeys.
+The public release metadata, exact served entry bytes, security headers and
+Pallasite deep link match the local production build; see
+[current public deployment evidence](evidence/gamestr-web-3f30f86.json).
+The deployed standard app also created a real exact-amount 100-sat invoice from
+Wallet of Satoshi in a 390px browser: QR and matching wallet link appeared with
+no page errors. Only the signed recipient profile was a disposable fixture;
+provider metadata and invoice requests were real browser requests. This check
+did not invoke a wallet or send payment; see
+[real provider invoice evidence](evidence/gamestr-live-reward-46e40d5.json).
 
 DigitalOcean is authoritative for `600.wtf`:
 `ns1.digitalocean.com`, `ns2.digitalocean.com`, `ns3.digitalocean.com`.

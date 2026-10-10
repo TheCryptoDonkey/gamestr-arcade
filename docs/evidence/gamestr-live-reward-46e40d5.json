@@ -1,0 +1,17 @@
+{
+  "origin": "https://gamestr.62-238-98-53.sslip.io",
+  "release": {
+    "revision": "46e40d5149f5030ddcc249ba731dcfc1317c2aa8",
+    "edition": "gamestr"
+  },
+  "recipient": "profusemeat89@walletofsatoshi.com",
+  "sats": 100,
+  "realProviderMetadataAndInvoice": true,
+  "signedProfileFixture": true,
+  "qrVisible": true,
+  "walletLinkMatchesInvoice": true,
+  "status": "Invoice ready. Pay once in your wallet. Settlement has not been confirmed here.",
+  "walletNotInvoked": true,
+  "paymentNotSentByHarness": true,
+  "pageErrors": []
+}

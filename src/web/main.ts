@@ -440,6 +440,10 @@ function developerCallout(): HTMLElement {
   section.append(copy, code); return section
 }
 
+function scoreHistoryNote(): HTMLElement {
+  return el('p', 'score-history-note', 'Rankings use scores received from the relays, including retained personal bests. Complete history has not been established; earlier or missing scores may change the rankings.')
+}
+
 function scoresPage(): HTMLElement {
   const main = el('main', 'page'); main.id = 'main'
   main.append(el('p', 'kicker', 'GAMESTR.IO · CRYPTOGRAPHICALLY VERIFIED'), el('h1', '', 'Live score network'), el('p', 'page-lede', 'Gamestr.io scores, assembled from signed Nostr events rather than a platform database. Profiles come from each player’s signed kind-0 metadata, with the game-signed player name as the fallback.'), externalLink('OPEN THE SCORE NETWORK ON GAMESTR.IO ↗', `${GAMESTR_ORIGIN}/scores`, 'button-link gamestr-source-link'))
@@ -452,7 +456,7 @@ function scoresPage(): HTMLElement {
     const list = el('ol'); board.forEach((entry, index) => { const row = el('li'); row.append(el('span', 'rank', String(index + 1).padStart(2, '0')), playerLink(entry), scoreLink(entry)); list.append(row) }); section.append(list); grid.append(section)
   }
   if (!grid.children.length) grid.append(el('p', 'empty-state', 'Verified boards are syncing from Nostr relays…'))
-  main.append(grid); return main
+  main.append(scoreHistoryNote(), grid); return main
 }
 
 let developerPageElement: HTMLElement | undefined
@@ -499,6 +503,7 @@ function gamePage(slug: string): HTMLElement {
   main.append(art, copy)
   const board = el('section', 'detail-board')
   const boardHeading = el('div', 'section-heading'); boardHeading.append(el('h2', '', 'GAMESTR.IO LEADERBOARD'), externalLink('OPEN ON GAMESTR.IO ↗', `${GAMESTR_ORIGIN}/${encodeURIComponent(game.gameId)}`)); board.append(boardHeading)
+  board.append(scoreHistoryNote())
   const entries = boardFor(state.scores.get(game.gameId) ?? [], 'all', 10, Math.floor(Date.now() / 1000), game.scoreDir ?? 'desc')
   const list = el('ol'); entries.forEach((entry, index) => { const item = el('li'); item.append(el('span', 'rank', String(index + 1).padStart(2, '0')), playerLink(entry), scoreLink(entry)); list.append(item) }); if (!entries.length) list.append(el('li', 'activity-empty', 'Syncing verified Gamestr.io scores…')); board.append(list); main.append(board)
   return main
@@ -575,6 +580,7 @@ function playerPage(pubkey: string): HTMLElement {
     return { game, entry: boardFor(entries, 'all', 1, Math.floor(Date.now() / 1000), game.scoreDir ?? 'desc')[0] }
   }).filter(item => item.entry)
   const section = el('section', 'player-bests'); section.append(el('h2', '', 'PERSONAL BESTS'))
+  section.append(scoreHistoryNote())
   const grid = el('div', 'score-boards')
   bests.forEach(({ game, entry }) => { const card = el('article', 'personal-best'); card.append(el('span', '', game.name), scoreLink(entry), playLink(game)); grid.append(card) })
   if (!bests.length) grid.append(el('p', 'empty-state', 'No verified scores have synced for this player yet.'))

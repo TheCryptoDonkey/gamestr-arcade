@@ -66,6 +66,14 @@
 }
 
 /* ── Header ───────────────────────────────────────────────────────────────── */
+.lb-history-note {
+  flex: 0 0 auto;
+  margin: 0.65rem 0 0;
+  color: var(--ink-dim);
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
 .lb-head {
   flex: 0 0 auto;
   margin-bottom: 1rem;
