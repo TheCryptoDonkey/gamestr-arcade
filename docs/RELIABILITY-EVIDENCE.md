@@ -22,6 +22,10 @@ signature check and the fresh arcade event page all pass. See
 [run](evidence/gamestr-pallasite-live-run-4aa7661.json),
 [public event](evidence/gamestr-pallasite-real-score-4aa7661.json) and
 [display](evidence/gamestr-pallasite-real-score-ui-4aa7661.json).
+The public standard edition also displayed that exact score and player without
+forced DNS; see [standard display proof](evidence/gamestr-pallasite-standard-score-ui-4aa7661.json).
+The [public score page](https://gamestr.62-238-98-53.sslip.io/score/256785414a41d8659c61ea97de885e6855c22d3864dab0cd28bca634a3b548e3)
+is accessible while the 600 DNS cutover remains pending.
 These four runs used separate disposable accounts. The single-account matrix,
 live recovery of a failed saved score, physical acceptance, co-op timing,
 native input, DNS cutover and payment confirmation remain open.
