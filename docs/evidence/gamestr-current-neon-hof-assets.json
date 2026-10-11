@@ -1,0 +1,73 @@
+{
+  "verifiedAt": "2026-10-11T16:42:37.966Z",
+  "results": [
+    {
+      "game": "neon-sentinel",
+      "origin": "https://neonsentinel.com",
+      "revision": "046a822da97b059ee048f5240add89eaf58871a1",
+      "version": {
+        "build": "20261011063939",
+        "revision": "046a822da97b059ee048f5240add89eaf58871a1"
+      },
+      "assets": [
+        {
+          "path": "/sw.js",
+          "sha256": "08b2e48dc157eb3dedf7b1691d50395037738372eda9a4b54c683a2886c9e598"
+        },
+        {
+          "path": "/signet/signet-login-0.17.3.iife.js",
+          "sha256": "d689b4e72aa562b3fe3272504057d7b1b474a89f19bc1c4ec03c20c4245fb1be"
+        },
+        {
+          "path": "/assets/index-V3pMRgTx.js",
+          "sha256": "b22b39055447cb6ff795c75dfce39b04ec7c2fd15f81f5bdc3cdee01dea971e5"
+        },
+        {
+          "path": "/assets/index-DqCSlrae.css",
+          "sha256": "af11b3225bbe6854cff00e9094cdddba77e852f4e27e76be2c33f07296bda338"
+        }
+      ],
+      "allCriticalScriptsAndStylesMatch": true,
+      "publicEventWritesBlocked": true,
+      "httpMutationsBlocked": true,
+      "gameplayPerformed": false,
+      "scoreSubmitted": false,
+      "lightningPayment": false,
+      "physicalDevice": false
+    },
+    {
+      "game": "hang-on-fren",
+      "origin": "https://hang-on-fren.playechoseven.com",
+      "revision": "e4ec515c37cac48cb114f0314fc53bf9b2948211",
+      "version": {
+        "build": "20261011072823",
+        "revision": "e4ec515c37cac48cb114f0314fc53bf9b2948211"
+      },
+      "assets": [
+        {
+          "path": "/signet-login.iife.js",
+          "sha256": "237541e0c68dff8bddf84a1c3e7feed1c0753423a832f15adf32e9adb082280a"
+        },
+        {
+          "path": "/signet-verify.iife.js",
+          "sha256": "e1e3fbf675428c46cad743debecda96b4ba94de4a2b1930517373f63277d383d"
+        },
+        {
+          "path": "/assets/index-C22w-CIe.js",
+          "sha256": "894b596836af817a1c092dbae26aad46e016643a9649f8aeaef4ae844256b591"
+        },
+        {
+          "path": "/assets/index-BRmZg4AQ.css",
+          "sha256": "aa5b47cdf258e97a55ad61ca108d7706e2b370898355db7c8c9ee4bcf73a688c"
+        }
+      ],
+      "allCriticalScriptsAndStylesMatch": true,
+      "publicEventWritesBlocked": true,
+      "httpMutationsBlocked": true,
+      "gameplayPerformed": false,
+      "scoreSubmitted": false,
+      "lightningPayment": false,
+      "physicalDevice": false
+    }
+  ]
+}

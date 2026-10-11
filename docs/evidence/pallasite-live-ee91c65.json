@@ -1,0 +1,93 @@
+{
+  "origin": "https://pallasite.app",
+  "revision": "ee91c654eafe6686c72a3626406d523f5418317b",
+  "verifiedAt": "2026-10-11T16:44:24.672Z",
+  "version": {
+    "build": "ee91c65",
+    "date": "2026-10-11"
+  },
+  "reviewedAuthority": "fa9291d038fd1d3e4439364f289f2e53a64a1d32776ee52c000da53ebc718cdc",
+  "assets": [
+    {
+      "path": "/index.html",
+      "sha256": "68a8e9448f10ccbb31e9771572ba032e74326d40458ca3248830433a45155090",
+      "bytes": 4450
+    },
+    {
+      "path": "/version.json",
+      "sha256": "404dad92bff8d723f8a3ec5be884e457a2c4a3642305ff1f3886343cf1516742",
+      "bytes": 40
+    },
+    {
+      "path": "/sw.js",
+      "sha256": "988f8bc87ec34ad412951b7f37fb6d337d2184878ccc0ea69e292dbc3f136c86",
+      "bytes": 6510
+    },
+    {
+      "path": "/signet-login.iife.js",
+      "sha256": "d689b4e72aa562b3fe3272504057d7b1b474a89f19bc1c4ec03c20c4245fb1be",
+      "bytes": 397100
+    },
+    {
+      "path": "/assets/controller-host-DdrOSx2r.js",
+      "sha256": "9609f32b0c71d54fca37fef86d8e76648c973b27f204beb0411635b274d38727",
+      "bytes": 7011
+    },
+    {
+      "path": "/assets/controller-mobile-D7VLYQbu.js",
+      "sha256": "b6875d8d7b941bbbe59c86cfdec87c587636d4621d746faca1ad67c2560fb349",
+      "bytes": 2229
+    },
+    {
+      "path": "/assets/index-BcyOlpCG.js",
+      "sha256": "bf398ca01a46f713f160f7d786efe4f78c39298d21128f0e61bb9a868ad3474c",
+      "bytes": 961920
+    },
+    {
+      "path": "/assets/index-WmPsmUSn.css",
+      "sha256": "fc3196f246670f26b2fe8223145ecd851f61bfaca4cffe106b27722417c1b5d5",
+      "bytes": 19898
+    },
+    {
+      "path": "/assets/jsQR-CIyPe4Nl.js",
+      "sha256": "c5f2170af779d9ab94832e1f029a7a48e6d7b393d2098f318c78c88f684903ef",
+      "bytes": 130758
+    },
+    {
+      "path": "/assets/level-one-DWPaYshL.js",
+      "sha256": "66f387965b34d0ec064346c6af14f84cc8db8951528f411b4ad1e71295bc693c",
+      "bytes": 74432
+    },
+    {
+      "path": "/assets/overlay-BVKwfxmR.js",
+      "sha256": "8e8747714ee1761e3acb2a2e39dc2caf2ab5c4935fc34321ec460c2913ecd15e",
+      "bytes": 38509
+    },
+    {
+      "path": "/assets/remote-signer-4wbV0QJg.js",
+      "sha256": "e8a8e86ee3cdf7c75e5708827d752e13c1fa310eb466eb7a1648bb778109f3a8",
+      "bytes": 1492
+    },
+    {
+      "path": "/assets/three.module-B1ZQSoYB.js",
+      "sha256": "07d8d58ea66af727aefadc8f73315adf54f3bd3ce1c28539b2715b2127a97e1c",
+      "bytes": 594372
+    },
+    {
+      "path": "/assets/veil-D15dqLTL.js",
+      "sha256": "2c5a99ed7df86bcd90b47b5989e57c353e03b9745ccb5966714706375192f481",
+      "bytes": 43375
+    }
+  ],
+  "sourceTree": "97aedc570c3a00a23631e3a0d188e50456a3e226",
+  "mergedTree": "97aedc570c3a00a23631e3a0d188e50456a3e226",
+  "qualification": {
+    "branchRun": 38156218862,
+    "deploymentRun": 38156527375,
+    "conclusion": "success"
+  },
+  "localBuild": "Identical source tree, published Signet bundle and merged revision metadata; each served critical file matches this local build",
+  "publicReadsOnly": true,
+  "actualEarnedRecovery": false,
+  "physicalDevice": false
+}

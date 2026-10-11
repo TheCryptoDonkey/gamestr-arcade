@@ -3,7 +3,15 @@
 Work in progress on 11 October 2026. This file separates implemented changes,
 automated results, hosted artifacts and actual user/device acceptance.
 
-## Latest live My Signet result
+Current arcade web revision is `c4b7929`, with exact hosted CI, served asset
+hashes and real desktop signer checks recorded below. Ledger client remains
+`e3937ca` while candidate `a1d3290` runs the complete release gate. Pallasite
+restoration PR #13 passed branch CI and is merged as `ee91c65`; its deployment passes and all 14 checked critical files match. Current actual
+earned-score acceptance and receipt-removal controls remain pending. Earlier releases and failed gates
+below are retained as historical evidence. Public 600 DNS, physical provider
+checks and the unpaid 100-sat test remain open.
+
+## Earlier live My Signet result: 4aa7661
 
 Both arcade web editions now serve functional revision `4aa7661` on Hetzner.
 Stored bunker identities appear while their remote signer reconnects in the
@@ -1863,3 +1871,18 @@ Ledger exact candidate `a1d32905eee8d309926bd0c2aec4e4490aebcfc3` is now
 in full hosted release run
 [38156400254](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38156400254).
 No client publication or live earned recovery is claimed.
+
+### Pallasite recovery restored on current main: ee91c65
+
+Restoration PR #13 is merged. Exact branch CI `38156218862` and merged
+deployment `38156527375` pass. Both source trees are
+`97aedc570c3a00a23631e3a0d188e50456a3e226`. A local build with the merged
+revision metadata matches all 14 served entry/version/worker/SDK/JavaScript/CSS
+files. Public version is `ee91c65`. The current council and Ultra graphics
+remain in the source tree. See [publication proof](evidence/pallasite-live-ee91c65.json).
+This proves restored publication, not a new actual earned-score recovery.
+
+Fresh read-only checks also match all four critical scripts/styles each for
+Neon `046a822` and Hang On Fren `e4ec515`, including public revision metadata.
+External event writes and HTTP mutations were blocked, with no gameplay,
+score or payment. See [current consumer asset proof](evidence/gamestr-current-neon-hof-assets.json).
