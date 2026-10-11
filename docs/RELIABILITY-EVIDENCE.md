@@ -12,7 +12,15 @@ Ledger candidate `bc18049` passed the arrival, supply and pickup-media release c
 then failed the Chromium harvest report: image download and clipboard content
 passed, but its transient confirmation label had reset before the fixture read it.
 The fixture now records the real label mutation before its timed reset. Candidate
-`e6e2066` awaits the complete [hosted gate](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38170291018).
+`e6e2066` passed 56 release checks, including both harvest profiles, then failed
+the Chromium animal-audio fixture: synchronous snapshots preceded deferred
+voice-engine loading. Candidate `052b2c4` observes each species’ actual sources
+after a real click and requires running audio contexts. Chromium and WebKit
+pass locally; delayed-engine old/new and missing-engine negative cases verify
+the correction without changing the original voice-count assertions. See
+[fixture evidence](evidence/ledger-animal-audio-052b2c4.json). Its full
+[98-check gate](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38174397091)
+is in progress; the durable score-service job has passed.
 See the [current fixture qualification](evidence/ledger-harvest-feedback-e6e2066.json).
 Its local WebKit harvest profile passes; local Chromium remains unqualified at
 an earlier game-over startup wait. Published Ledger client remains `e3937ca`.

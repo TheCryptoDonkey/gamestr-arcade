@@ -1,0 +1,43 @@
+{
+  "revision": "052b2c484eb956be317f30ca81715225a45b68e5",
+  "previousRun": 38170291018,
+  "previousConclusion": "failure",
+  "previousReleaseChecksPassed": 56,
+  "previousFailure": "Animal voices Chromium snapshots before deferred sources became ready",
+  "change": "Real click, running audio contexts, bounded per-species wait for actual sources",
+  "productionCodeChanged": false,
+  "originalVoiceAssertionsPreserved": true,
+  "localCases": [
+    {
+      "case": "Original fixture Chromium",
+      "result": "failure",
+      "log": "/tmp/ledger-animal-audio-original-actual-chromium.log"
+    },
+    {
+      "case": "Corrected Chromium",
+      "result": "pass"
+    },
+    {
+      "case": "Corrected WebKit",
+      "result": "pass"
+    },
+    {
+      "case": "Original delayed engine 650ms",
+      "result": "failure"
+    },
+    {
+      "case": "Corrected delayed engine 650ms",
+      "result": "pass"
+    },
+    {
+      "case": "Corrected missing engine 404",
+      "result": "failure"
+    }
+  ],
+  "fullGate": {
+    "run": 38174397091,
+    "status": "in_progress"
+  },
+  "publishedClient": "e3937ca0152d0f07bf67d25e5f80b827dba87f36",
+  "physicalAcceptance": false
+}
