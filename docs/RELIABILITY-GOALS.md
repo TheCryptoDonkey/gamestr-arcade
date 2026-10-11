@@ -16,15 +16,18 @@ existing suite therefore does not close these goals.
 The owner confirmed that Beamward supersedes Ledger. Further Ledger client or
 API development is not an active requirement of this arcade delivery. The
 previous Ledger implementation and deployment evidence remains historical;
-it does not qualify Beamward or complete its catalogue transition.
+it does not qualify Beamward. The owner subsequently confirmed that Ledger
+should stay in the arcade catalogue for now; no Beamward replacement is part
+of this release.
 
 The checked arcade catalogue still contains `games/takemetoyourledger/game.json`
 and has no Beamward entry. Beamward's current `docs/ORIGIN.md` permits controlled
 neutral engine extraction, while `scripts/check-boundary.mjs` excludes Nostr,
 Lightning and external URLs from its production surface. Do not copy Ledger's
 signing capability, score authority, handoff contract or hosted URL into a
-Beamward entry. Resolve its actual arcade availability and distribution contract
-before claiming a supported replacement. All nine goals remain in scope.
+Beamward entry. Keep the existing Ledger entry and its reviewed capability declarations.
+Beamward remains separate until an actual arcade distribution contract exists.
+All nine goals remain in scope.
 
 ## Delivery order
 
@@ -181,7 +184,8 @@ Acceptance criteria:
 
 The launch handoff is restricted to the 600 Billion edition. The historical
 four-game set included Ledger and had deployed consumers; that set no longer
-defines current product acceptance after the owner's Beamward correction. Pallasite has a deployed correction for worker reload
+proves Beamward acceptance. The owner has retained Ledger in the current
+catalogue for now. Pallasite has a deployed correction for worker reload
 and booth-account selection. Failed personal scores now remain with their
 original account for retry. Normal gameplay and an attributed public score now
 pass in each game with real My Signet. Live same-account retry also passes
@@ -227,9 +231,9 @@ Acceptance criteria:
 
 - [x] Declare which games support identity and signing handoff. Only games
   with the relevant reviewed capability receive a signing bridge.
-- [ ] Resolve the Beamward replacement in the arcade catalogue using its actual
-  availability and capability contract. Preserve historical Ledger score
-  attribution and evidence without claiming Beamward supports Ledger login.
+- [x] Resolve the current catalogue scope: keep Ledger for now, as instructed
+  by the owner. Preserve Ledger score attribution and the reviewed handoff
+  contract; do not claim Beamward supports Ledger login.
   Consumer changes require that repository's instructions and verification.
 - [x] Support the standard edition through an explicit consumer origin/app
   contract, or show clearly that its games require separate login. Do not claim
@@ -366,7 +370,7 @@ symptoms, physical acceptance and the 600 DNS cutover remain open. See
 | 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Live desktop My Signet approval, signing, refresh and logout pass; physical checks pending | In progress |
 | 4 | Per-game score authorities and attribution provenance; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 5 | Dependency upgrades and high-severity audit gate; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 6 | Reviewed handoff capability; PR #11; Beamward catalogue transition pending; Ledger PR #88 is historical | 658 unit tests and 50 browser journeys passed; Hang On Fren published correction passes 219 units, private API recovery and checked browser; published Ledger passed 98 release checks; Ledger corrected transport remains unqualified; Ledger 272 units and local real PLAY pass; edc direct hosted opening still fails; ceb hosted real-route UI thresholds pass but music cancellation fails gate; Ledger API a6bcd26 published from checked artifact; 275 units/twelve recovery groups and existing-history preflight pass; latest client gate fails phone tour HUD opacity; actual candidate recovery and client midnight expiry remain; Neon 101 units, recovery and real SDK modal CI pass; current desktop My Signet earned recovery passes | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; Ledger client `e3937ca` / API `a6bcd26`; Pallasite `14e969f`; Hang On Fren `e4ec515` client/API; Neon `046a822` verified public client/API/SDK; DNS pending | Historical four-game My Signet matrix and saved-score retry pass at forced origin; Neon earned recovery and historical Hang On Fren recovery pass; Neon real delayed recovery passes; HOF actual eleven-minute delayed recovery and both fresh displays pass; physical checks pending | In progress |
+| 6 | Reviewed handoff capability; PR #11; owner retains Ledger catalogue entry; Beamward remains separate; Ledger PR #88 is historical | 658 unit tests and 50 browser journeys passed; Hang On Fren published correction passes 219 units, private API recovery and checked browser; published Ledger passed 98 release checks; Ledger corrected transport remains unqualified; Ledger 272 units and local real PLAY pass; edc direct hosted opening still fails; ceb hosted real-route UI thresholds pass but music cancellation fails gate; Ledger API a6bcd26 published from checked artifact; 275 units/twelve recovery groups and existing-history preflight pass; latest client gate fails phone tour HUD opacity; actual candidate recovery and client midnight expiry remain; Neon 101 units, recovery and real SDK modal CI pass; current desktop My Signet earned recovery passes | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; Ledger client `e3937ca` / API `a6bcd26`; Pallasite `14e969f`; Hang On Fren `e4ec515` client/API; Neon `046a822` verified public client/API/SDK; DNS pending | Historical four-game My Signet matrix and saved-score retry pass at forced origin; Neon earned recovery and historical Hang On Fren recovery pass; Neon real delayed recovery passes; HOF actual eleven-minute delayed recovery and both fresh displays pass; physical checks pending | In progress |
 | 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
