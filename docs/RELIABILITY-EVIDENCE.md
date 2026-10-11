@@ -786,6 +786,81 @@ requests were blocked; no score was published. See
 [published guest substitution](evidence/neon-published-guest-substitution.json).
 Its public entry hash still matches `index-CejSwacQ.js`. The matching source
 is in `neon-sentinel-public`, rather than the older similarly named checkout.
-The new candidate removes guest fallback and guards original-account/template
-ownership; browser recovery, persisted retry UI and deployment remain pending.
+The `5dcf1b4` candidate removes guest fallback, guards original-account/template
+ownership, and adds account-bound persisted receipts with selectable retry and
+original-account reconnect. Its 101 unit tests, builds and hosted private recovery
+check pass (run `38099407492`). The browser check covers delayed SDK startup,
+validated callbacks, reload, wrong-account reconnect and selective clearing. A
+separate normal-play check earns 7,974 points, persists the original receipt after
+closed-parent timeout and makes no claim request. These private checks block
+external writes; exact-client deployment and actual My Signet acceptance remain
+pending.
 The historical successful four-game matrix does not qualify this failure path.
+
+
+## Ledger hosted gate after localhost transport failure
+
+The `a99f5f8` full local gate passed all 12 original developer controls and later
+profiles through parachute interception. It stopped before loading the council
+profile with localhost `ERR_INVALID_HTTP_RESPONSE`. The unchanged targeted
+council profile passes. The failed full run remains recorded; isolated hosted
+[run 38099081554](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38099081554)
+failed the original WebKit first-flight playing wait at the same source
+revision; the Chromium warm profile passed. A local original WebKit check with
+delayed audio also passes, leaving the hosted cause unproven. Diagnostic-only
+revision `95a01de` records opening/game/audio state if that original wait fails,
+without changing any assertion or threshold. Full hosted
+[run 38101630063](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38101630063)
+is in progress. Ledger's new finished-score correction is not yet deployed.
+
+
+## Neon archived release, stale SDK and modal correction
+
+Neon's personal recovery client `5dcf1b4` passed hosted CI and exact archive
+checksum verification. The private recovery fixture and normal 7,624-point
+closed-parent run pass against that exact archive. Hetzner activation checked
+all 106 static files and 99 preserved API files; process 480607 remained running.
+Public HTML, version and service worker match, but the fixed SDK URL returns
+the previous release's hash despite correct origin bytes. This is a partial
+rollout, not complete public qualification. See
+[partial proof](evidence/neon-live-5dcf1b4-partial.json).
+
+Follow-up `59f6452` uses a versioned SDK filename and checks both copies against
+locked Signet Login 0.17.3. Its real SDK picker also reproduces Enter opening
+the underlying support prompt and the accelerated idle demo starting behind
+the dialog. Keyboard and idle modal guards fix both; native Escape cancels
+login and retains the original receipt. All 101 units, type checks, builds and
+both private browser checks pass locally. See
+[modal proof](evidence/neon-sdk-modal-regressions.json). The identity/receipts
+are private fixtures, and external writes/relay sockets are blocked.
+
+The `59f6452` follow-up passes hosted run `38104841854` and both browser
+checks against its exact archived code and full file manifest. It is now
+active on Hetzner; all 107 static files and 99 preserved API files match.
+Public HTML, version, service worker, versioned SDK and entry JS/CSS pass
+exact-byte verification, with API process 480607 unchanged. See
+[live proof](evidence/neon-live-59f6452.json),
+[checked recovery](evidence/neon-recovery-checked-59f6452.json) and
+[checked modal](evidence/neon-modal-checked-59f6452.json).
+
+Actual My Signet attempts stop before any game or claim: one initial signer
+readiness failure, one homepage navigation timeout, and then an approval
+timeout. A separate read-only browser transport probe from mysignet.app opens
+Trotters and Ditto, while nos.lol times out at 15 seconds. It creates no
+identity and sends no auth message. This does not establish the approval
+failure cause; see [transport probe](evidence/neon-signet-browser-transport.json).
+Current real provider reconnect/publication, physical signers and payment
+settlement remain unqualified.
+
+
+## Ledger atomic arrival observation
+
+Run `38101630063` passes the previously failing WebKit voice warm-up and stops
+later at cinematic arrivals. Desktop opening opacity is 0.888588 after a
+separate wait observed >0.95; both reports also include a cancelled music
+request without event timing. Source `918ffb3` captures opening readiness and
+all opening fields in one callback, preserving the original 5-second wait
+and every threshold. It retains cancelled requests as failures and records
+whether they occur during teardown. Chromium and WebKit pass locally. Full
+[run 38108876547](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38108876547)
+is running; Ledger's new score correction is still not published.
