@@ -1614,3 +1614,22 @@ or HUD change is included.
 is running. Ledger client remains `e3937ca`, compatible API remains `ed73ebc`;
 no client publication or actual candidate score recovery is claimed. See
 [retained failure and correction](evidence/ledger-arrival-range-0d06073.json).
+
+
+## Actual generic NIP-46 QR journey
+
+On public standard `8bcc49b`, the generic NIP-46 QR decodes to the exact
+`nostrconnect://` payload and published My Signet approves it in a separate
+browser context using its supported web entry point. Its relay and application
+origin match the SDK request. Real authentication, signing after page navigation,
+sleep detection after closing all signer tabs (15,435 ms), retained pairing and
+account, same-account NIP-46 reconnect, a fresh verified signature and logout
+all pass. Public event submission is blocked; no game claim or payment is made.
+See [actual NIP-46 proof](evidence/gamestr-8bcc49b-nip46-qr-live.json).
+
+The first fixture stopped before pairing because it expected application origin
+in a metadata JSON field; the installed SDK carries it in the top-level `url`
+parameter. Correcting that fixture check requires no application change. This
+is actual generic NIP-46 protocol acceptance with My Signet, not qualification
+of another signer application or a physical camera/phone. Donkeyfarm remains
+unavailable in the current paired-device listing.

@@ -114,9 +114,9 @@ Acceptance criteria:
   installed version and compatibility results.
 - [x] Configure a tested login rendezvous relay independently of score relay
   preferences. Verify that wrapper overrides do not defeat SDK fixes.
-- [ ] A recognised identity can reconnect through local or remote My Signet
+- [x] A recognised identity can reconnect through local or remote My Signet
   without silently selecting another account or forcing an unrelated method.
-- [ ] The UI distinguishes identity connected, signer connected, reconnecting
+- [x] The UI distinguishes identity connected, signer connected, reconnecting
   and unavailable. A sleeping signer or failed relay has a bounded wait and a
   retry action; transient failures preserve usable pairing credentials.
 - [ ] Refresh reuses the paired client identity. Closing or suspending the
@@ -150,6 +150,12 @@ remote My Signet approval using the decoded QR in separate browser contexts
 passes authentication, signing, sleep detection in 15,424 ms, pairing
 preservation, same-account reconnect and logout. Public submission is blocked.
 This does not qualify a physical camera, phone or other external signers.
+A separate actual generic NIP-46 QR journey using published My Signet also
+passes pairing, page restoration, signing, 15,435 ms sleep detection, retained
+credentials, same-account reconnect and logout on `8bcc49b`. The selected-account
+reconnect and signer-state criteria are checked using these live journeys plus
+source regressions for auth-only restoration, failed relay and superseded
+sessions. The combined physical/provider acceptance criterion remains open.
 
 Start in [nostr-access.ts](../src/web/nostr-access.ts),
 [account-identity.ts](../src/web/account-identity.ts) and the package lockfile.
@@ -208,9 +214,9 @@ Acceptance criteria:
 ## 6 Carry identity into supported games consistently
 
 The launch handoff is restricted to the 600 Billion edition. The historical
-four-game set included Ledger and had deployed consumers; that set no longer
-proves Beamward acceptance. The owner has retained Ledger in the current
-catalogue for now. Pallasite has a deployed correction for worker reload
+four-game set included Ledger and had deployed consumers. The owner has
+retained Ledger in the current catalogue; Beamward remains outside this delivery.
+Current acceptance must record the latest arcade and consumer revisions. Pallasite has a deployed correction for worker reload
 and booth-account selection. Failed personal scores now remain with their
 original account for retry. Normal gameplay and an attributed public score now
 pass in each game with real My Signet. Live same-account retry also passes
@@ -270,8 +276,8 @@ Acceptance criteria:
   scope. Logout and account replacement obey Goal 1.
 - [ ] On the deployed 600 edition, verify each current supported game
   against its reviewed login and scoring capabilities. The historical four-game
-  matrix passed, but includes superseded Ledger and does not prove Beamward
-  acceptance. Record both arcade and game revisions.
+  matrix passed on earlier revisions. Requalify Ledger and the other retained
+  games against their current releases. Record both arcade and game revisions.
 - [x] Keep cabinet guest identity explicit; personal login must not retain one
   booth visitor's signing authority for the next visitor.
 - [ ] Recover saved personal runs after a later reload, including beyond the
@@ -407,7 +413,7 @@ symptoms, physical acceptance and the 600 DNS cutover remain open. See
 | --- | --- | --- | --- | --- | --- |
 | 1 | Selected-session verification, synchronous port revocation and generation guards; PR #11 | 667 local unit tests and 54 hosted browser journeys passed | Standard web `8bcc49b`; 600 `8bcc49b` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 2 | Responsive controls, validated SDK callback and generic Cambium/Amber NIP-55 request; PR #11 | 667 local unit tests and 54 hosted browser journeys passed | Standard web `8bcc49b`; 600 `8bcc49b` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 667 local unit tests and 54 hosted browser journeys passed | Standard web `8bcc49b`; 600 `8bcc49b` on Hetzner; DNS pending | Current standard desktop My Signet approval, page-navigation restoration, real signing, 15.5-second sleeping-signer detection, pairing preservation, same-account reconnect and logout pass; Actual remote QR approval/signing/sleep/reconnect/logout pass in separate browser contexts; physical checks pending | In progress |
+| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 667 local unit tests and 54 hosted browser journeys passed | Standard web `8bcc49b`; 600 `8bcc49b` on Hetzner; DNS pending | Current standard desktop My Signet approval, page-navigation restoration, real signing, 15.5-second sleeping-signer detection, pairing preservation, same-account reconnect and logout pass; Actual My Signet and generic NIP-46 QR approval/signing/sleep/reconnect/logout pass in separate browser contexts using published My Signet; physical and independent-provider checks pending | In progress |
 | 4 | Per-game score authorities and attribution provenance; PR #11 | 667 local unit tests and 54 hosted browser journeys passed | Standard web `8bcc49b`; 600 `8bcc49b` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 5 | Dependency upgrades and high-severity audit gate; PR #11 | 667 local unit tests and 54 hosted browser journeys passed | Standard web `8bcc49b`; 600 `8bcc49b` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 6 | Reviewed handoff capability; PR #11; owner retains Ledger catalogue entry; Beamward remains separate; Ledger PR #88 preserves held work; saved-score fix explicitly authorised in PR #89 | 667 local unit tests and 54 hosted browser journeys passed; Hang On Fren published correction passes 219 units, private API recovery and checked browser; published Ledger passed 98 release checks; Ledger corrected transport remains unqualified; Ledger 272 units and local real PLAY pass; edc direct hosted opening still fails; ceb hosted real-route UI thresholds pass but music cancellation fails gate; Ledger API a6bcd26 published from checked artifact; 275 units/twelve recovery groups and existing-history preflight pass; latest client gate fails phone tour HUD opacity; scoped receipt/day fix 0d06073 is in draft PR #89, including explicit owner removal and NIP-07 personal-account safeguards; 283 hosted units/types and thirteen private groups pass; both isolated controls and full-game saved-score engines pass; original 1300c88 full gate failed developer Backquote, corrected in 56840dc; hosted run 38138295851 failed WebKit audio startup after passing both score-recovery engines; ed73ebc adds restored-owner and legacy-client compatibility, event-time capture and bounded requests; 287 local units/types and thirteen private groups pass; exact full client qualification 38139937880 failed WebKit arrival/media fixture; corrected real-PLAY and atomic-animation fixture passes locally in Chromium/WebKit with unchanged assertions; b6ee8dd full qualification 38141857525 failed only on a cancelled WebKit music request after all arrival/HUD thresholds passed; production-equivalent byte-range fixture correction 0d06073 passes both engines locally and five HTTP range cases; complete exact qualification 38144669741 is running; checked API ed73ebc is deployed with production-history preflight and hash/health verification; actual candidate recovery remains; Neon 101 units, recovery and real SDK modal CI pass; current desktop My Signet earned recovery passes | Standard web `8bcc49b`; 600 `8bcc49b` on Hetzner; Ledger client `e3937ca` / API `ed73ebc`; Pallasite `14e969f`; Hang On Fren `e4ec515` client/API; Neon `046a822` verified public client/API/SDK; DNS pending | Historical four-game My Signet matrix and saved-score retry pass at forced origin; Neon earned recovery and historical Hang On Fren recovery pass; Neon real delayed recovery passes; HOF actual eleven-minute delayed recovery and both fresh displays pass; physical checks pending | In progress |
