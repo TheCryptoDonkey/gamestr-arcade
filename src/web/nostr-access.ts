@@ -232,6 +232,17 @@ export async function restoreNostrAccess(_relays: string[]): Promise<NostrAccess
       }).catch(() => { /* recognised account and pairing remain available for explicit reconnect */ })
       return access
     }
+    if (result.kind !== 'session' && persistence.storage.getItem('signet:login.method') === 'nip07') {
+      // Extensions inject after document_end and can arrive after our lazy SDK.
+      // Give the selected extension session a bounded injection window before
+      // the SDK downgrades it to an identity-only session. The SDK still checks
+      // that the provider's account matches the saved account.
+      const deadline = Date.now() + 3_000
+      while (generation === epoch && !(window as Nip07Window).nostr?.getPublicKey && Date.now() < deadline) {
+        await new Promise(resolve => setTimeout(resolve, 50))
+      }
+      if (generation !== epoch) return null
+    }
     const session = result.kind === 'session' ? result.session : await restoreSession({ storage: persistence.storage })
     if (!session) return null
     if (generation !== epoch) { closeSession(session); return null }

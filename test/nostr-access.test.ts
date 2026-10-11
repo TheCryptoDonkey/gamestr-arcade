@@ -212,6 +212,60 @@ describe('selected Nostr session', () => {
     remote.resolve(null)
   })
 
+  it('restores the selected extension after delayed document-end injection', async () => {
+    localStorage.setItem('signet:login.pubkey', PUBKEY)
+    localStorage.setItem('signet:login.method', 'nip07')
+    mocks.restoreSession.mockImplementation(async () => {
+      const restored = session('nip07')
+      restored.signer.capabilities.canSignEvents = 'nostr' in window
+      return restored
+    })
+    const access = await import('../src/web/nostr-access')
+    vi.useFakeTimers()
+    try {
+      const restoring = access.restoreNostrAccess([])
+      await vi.advanceTimersByTimeAsync(100)
+      expect(mocks.restoreSession).not.toHaveBeenCalled()
+      Object.assign(window, { nostr: { getPublicKey: vi.fn(async () => PUBKEY) } })
+      await vi.advanceTimersByTimeAsync(50)
+      expect(await restoring).toMatchObject({ pubkey: PUBKEY, canSignEvents: true })
+    } finally { vi.useRealTimers() }
+  })
+
+  it('keeps the recognised identity after the extension injection deadline', async () => {
+    localStorage.setItem('signet:login.pubkey', PUBKEY)
+    localStorage.setItem('signet:login.method', 'nip07')
+    const identity = session('nip07')
+    identity.signer.capabilities.canSignEvents = false
+    mocks.restoreSession.mockResolvedValue(identity)
+    const access = await import('../src/web/nostr-access')
+    vi.useFakeTimers()
+    try {
+      const restoring = access.restoreNostrAccess([])
+      await vi.advanceTimersByTimeAsync(2_999)
+      expect(mocks.restoreSession).not.toHaveBeenCalled()
+      await vi.advanceTimersByTimeAsync(51)
+      expect(await restoring).toMatchObject({ pubkey: PUBKEY, canSignEvents: false })
+    } finally { vi.useRealTimers() }
+  })
+
+  it('does not restore a late injected extension after logout', async () => {
+    localStorage.setItem('signet:login.pubkey', PUBKEY)
+    localStorage.setItem('signet:login.method', 'nip07')
+    const access = await import('../src/web/nostr-access')
+    vi.useFakeTimers()
+    try {
+      const restoring = access.restoreNostrAccess([])
+      await vi.advanceTimersByTimeAsync(100)
+      await access.disconnectNostrAccess()
+      Object.assign(window, { nostr: { getPublicKey: vi.fn(async () => PUBKEY) } })
+      await vi.advanceTimersByTimeAsync(50)
+      expect(await restoring).toBeNull()
+      expect(mocks.restoreSession).not.toHaveBeenCalled()
+      expect(access.currentNostrSigner()).toBeUndefined()
+    } finally { vi.useRealTimers() }
+  })
+
   it('upgrades the recognised bunker identity only after its signer reconnects', async () => {
     localStorage.setItem('signet:login.pubkey', PUBKEY)
     localStorage.setItem('signet:login.method', 'bunker')
