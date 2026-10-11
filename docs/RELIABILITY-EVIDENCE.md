@@ -1596,3 +1596,21 @@ credentials. Public event submission is blocked; no game score or payment is
 sent. See [actual remote result](evidence/gamestr-8bcc49b-remote-qr-live.json).
 This qualifies the remote protocol in browser contexts, not a physical camera,
 phone, Cambium/Amber or independent NIP-07/NIP-46 application acceptance.
+
+
+## Ledger byte-range fixture qualification
+
+Run `38141857525` for `b6ee8dd` is terminal failure on a cancelled WebKit
+music request. All arrival/reveal/restored-HUD assertions passed in that run;
+the fixture returned HTTP 200 with the whole track for media byte-range
+requests. The public production origin returns HTTP 206 and exact requested
+bytes. Candidate `0d06073` corrects only the fixture server's range responses.
+Five explicit HTTP cases and Chromium/WebKit desktop/phone arrival profiles
+pass locally with no failed requests. Final assertions, thresholds and
+failed-request checks remain byte-for-byte unchanged. No production audio
+or HUD change is included.
+
+[Full exact qualification 38144669741](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38144669741)
+is running. Ledger client remains `e3937ca`, compatible API remains `ed73ebc`;
+no client publication or actual candidate score recovery is claimed. See
+[retained failure and correction](evidence/ledger-arrival-range-0d06073.json).
