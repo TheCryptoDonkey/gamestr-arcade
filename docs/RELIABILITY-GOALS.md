@@ -11,6 +11,21 @@ and both web build gates passed. Additional browser and disposable-key checks
 reproduced the login, signer, draft and score problems below. Passing the
 existing suite therefore does not close these goals.
 
+## Current product scope — 11 October 2026
+
+The owner confirmed that Beamward supersedes Ledger. Further Ledger client or
+API development is not an active requirement of this arcade delivery. The
+previous Ledger implementation and deployment evidence remains historical;
+it does not qualify Beamward or complete its catalogue transition.
+
+The checked arcade catalogue still contains `games/takemetoyourledger/game.json`
+and has no Beamward entry. Beamward's current `docs/ORIGIN.md` permits controlled
+neutral engine extraction, while `scripts/check-boundary.mjs` excludes Nostr,
+Lightning and external URLs from its production surface. Do not copy Ledger's
+signing capability, score authority, handoff contract or hosted URL into a
+Beamward entry. Resolve its actual arcade availability and distribution contract
+before claiming a supported replacement. All nine goals remain in scope.
+
 ## Delivery order
 
 Implementation is in progress. P1 fixes and the dependent P2 changes are
@@ -158,8 +173,9 @@ Acceptance criteria:
 
 ## 6 Carry identity into supported games consistently
 
-The launch handoff is restricted to the 600 Billion edition. All four games now
-have deployed consumers. Pallasite has a deployed correction for worker reload
+The launch handoff is restricted to the 600 Billion edition. The historical
+four-game set included Ledger and had deployed consumers; that set no longer
+defines current product acceptance after the owner's Beamward correction. Pallasite has a deployed correction for worker reload
 and booth-account selection. Failed personal scores now remain with their
 original account for retry. Normal gameplay and an attributed public score now
 pass in each game with real My Signet. Live same-account retry also passes
@@ -205,7 +221,9 @@ Acceptance criteria:
 
 - [x] Declare which games support identity and signing handoff. Only games
   with the relevant reviewed capability receive a signing bridge.
-- [x] Implement and deploy the missing Ledger consumer in its own repository.
+- [ ] Resolve the Beamward replacement in the arcade catalogue using its actual
+  availability and capability contract. Preserve historical Ledger score
+  attribution and evidence without claiming Beamward supports Ledger login.
   Consumer changes require that repository's instructions and verification.
 - [x] Support the standard edition through an explicit consumer origin/app
   contract, or show clearly that its games require separate login. Do not claim
@@ -215,9 +233,10 @@ Acceptance criteria:
   fallback rather than a copied but unusable proof.
 - [x] Game requests have bounded size and concurrency and an explicit signing
   scope. Logout and account replacement obey Goal 1.
-- [x] On the deployed 600 edition, the same player completes a run and sees a
-  correctly attributed score in all four games without an unexpected account
-  switch. Record both arcade and game revisions.
+- [ ] On the deployed 600 edition, verify each current supported game
+  against its reviewed login and scoring capabilities. The historical four-game
+  matrix passed, but includes superseded Ledger and does not prove Beamward
+  acceptance. Record both arcade and game revisions.
 - [ ] Keep cabinet guest identity explicit; personal login must not retain one
   booth visitor's signing authority for the next visitor.
 - [ ] Recover saved personal runs after a later reload, including beyond the
@@ -237,13 +256,14 @@ physical signers remain unqualified. See
 [API deployment](evidence/neon-api-live-046a822.json) and
 [public client verification](evidence/neon-live-046a822.json).
 
-Ledger's checked API source still has a separate recovery gap: an unconfirmed
-claim is cached without republication after relay recovery or restart; changed
-run details under the same ID return the original response; pruning after
-thirty minutes can regenerate a different event. A private compiled-service
-probe reproduces these behaviours with fake relays and disposable keys. The
-live API is unchanged and durable backend recovery remains required. See
-[private baseline](evidence/ledger-claim-gap-private-edc8427.json).
+Historical Ledger work: the original private baseline reproduced lost retry
+publication and unstable deduplication. API `a6bcd26` was subsequently deployed
+with durable recovery, passing 275 units, twelve private recovery groups and an
+existing-history preflight. Its newer client was not deployed because the phone
+HUD gate failed; midnight receipt expiry also remains unresolved. These are
+legacy observations, not active Beamward requirements. Preserve the
+[baseline](evidence/ledger-claim-gap-private-edc8427.json) and
+[deployment evidence](evidence/ledger-claim-api-deployed-a6bcd26.json).
 
 Update [the handoff contract](nostr-game-handoff.md) and
 [platform documentation](WEB-PLATFORM.md) alongside the implementation.
@@ -323,7 +343,7 @@ pending when it has not been exercised; a merged implementation is not proof of
 device or deployed behaviour.
 
 Arcade changes are in [PR #11](https://github.com/TheCryptoDonkey/gamestr-arcade/pull/11);
-Ledger's consumer is in [PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88).
+Historical Ledger work is in [PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88).
 Both web editions serve functional revision `4aa7661` on the new Hetzner box.
 The newer native ReadyPanel repair `8c3ed43` passes the full hosted gate,
 including 652 unit tests, 50 browser journeys and the original Linux AppImage
@@ -340,14 +360,14 @@ symptoms, physical acceptance and the 600 DNS cutover remain open. See
 | 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Live desktop My Signet approval, signing, refresh and logout pass; physical checks pending | In progress |
 | 4 | Per-game score authorities and attribution provenance; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 5 | Dependency upgrades and high-severity audit gate; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 6 | Reviewed manifest capability and deployed Ledger consumer; PR #11 and PR #88 | 658 unit tests and 50 browser journeys passed; Hang On Fren published correction passes 219 units, private API recovery and checked browser; published Ledger passed 98 release checks; Ledger corrected transport remains unqualified; Ledger 272 units and local real PLAY pass; edc direct hosted opening still fails; ceb hosted real-route UI thresholds pass but music cancellation fails gate; Ledger API a6bcd26 published from checked artifact; 275 units/twelve recovery groups and existing-history preflight pass; latest client gate fails phone tour HUD opacity; actual candidate recovery and client midnight expiry remain; Neon 101 units, recovery and real SDK modal CI pass; current desktop My Signet earned recovery passes | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; Ledger client `e3937ca` / API `a6bcd26`; Pallasite `14e969f`; Hang On Fren `e4ec515` client/API; Neon `046a822` verified public client/API/SDK; DNS pending | Historical four-game My Signet matrix and saved-score retry pass at forced origin; Neon earned recovery and historical Hang On Fren recovery pass; Neon real delayed recovery passes; HOF actual eleven-minute delayed recovery and both fresh displays pass; physical checks pending | In progress |
+| 6 | Reviewed handoff capability; PR #11; Beamward catalogue transition pending; Ledger PR #88 is historical | 658 unit tests and 50 browser journeys passed; Hang On Fren published correction passes 219 units, private API recovery and checked browser; published Ledger passed 98 release checks; Ledger corrected transport remains unqualified; Ledger 272 units and local real PLAY pass; edc direct hosted opening still fails; ceb hosted real-route UI thresholds pass but music cancellation fails gate; Ledger API a6bcd26 published from checked artifact; 275 units/twelve recovery groups and existing-history preflight pass; latest client gate fails phone tour HUD opacity; actual candidate recovery and client midnight expiry remain; Neon 101 units, recovery and real SDK modal CI pass; current desktop My Signet earned recovery passes | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; Ledger client `e3937ca` / API `a6bcd26`; Pallasite `14e969f`; Hang On Fren `e4ec515` client/API; Neon `046a822` verified public client/API/SDK; DNS pending | Historical four-game My Signet matrix and saved-score retry pass at forced origin; Neon earned recovery and historical Hang On Fren recovery pass; Neon real delayed recovery passes; HOF actual eleven-minute delayed recovery and both fresh displays pass; physical checks pending | In progress |
 | 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 
 For live runs, record the browser/device, signer or wallet, date, exact revisions,
 steps exercised and result. Cover both editions; local and cross-device My
-Signet; NIP-07; Cambium and Amber on Android; NIP-46; and all four 600 games. Use disposable
+Signet; NIP-07; Cambium and Amber on Android; NIP-46; and every current supported 600 game. The old four-game Ledger matrix is historical. Use disposable
 identities for automated checks and redact credentials from evidence.
 
 Implement Goals 1 to 3 with browser journey coverage first. Goal 4 and dependency
