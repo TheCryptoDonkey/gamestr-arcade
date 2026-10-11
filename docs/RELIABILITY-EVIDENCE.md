@@ -20,7 +20,15 @@ pass locally; delayed-engine old/new and missing-engine negative cases verify
 the correction without changing the original voice-count assertions. See
 [fixture evidence](evidence/ledger-animal-audio-052b2c4.json). Its full
 [98-check gate](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38174397091)
-is in progress; the durable score-service job has passed.
+passed 90 checks, including both animal-voice and seven-biome profiles, then failed
+the WebKit landscape upgrade target measurement during its opening scale animation.
+Candidate `4ecadcb` waits for the finite reveal before measuring; original
+geometry/model/layout assertions are byte-identical. Normal Chromium/WebKit
+pass; a controlled reveal reproduces the old 57.9px failure and passes at 60px
+after waiting, while a 50px negative still fails. See
+[fixture qualification](evidence/ledger-draft-reveal-4ecadcb.json). The new
+[full gate](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38177444455)
+is queued. No new client is published.
 See the [current fixture qualification](evidence/ledger-harvest-feedback-e6e2066.json).
 Its local WebKit harvest profile passes; local Chromium remains unqualified at
 an earlier game-over startup wait. Published Ledger client remains `e3937ca`.
