@@ -205,7 +205,13 @@
   "completeReleaseQualified": false,
   "completeReleaseQualification": {
     "run": 38161445947,
-    "status": "in_progress",
+    "status": "completed",
+    "conclusion": "failure",
+    "passedReleaseChecks": 38,
+    "failedCheck": "Cinematic arrivals and progressive HUD (WebKit)",
+    "failure": "Two cancelled gameplay music requests per viewport; reported arrival/HUD assertions pass",
+    "supplyPlaybackCheckReached": false,
+    "pickupMediaCheckReached": false,
     "notYetQualified": true
   }
 }

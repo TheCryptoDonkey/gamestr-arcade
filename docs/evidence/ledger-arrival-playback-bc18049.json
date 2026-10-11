@@ -1,0 +1,612 @@
+{
+  "revision": "bc18049f490964fe19b78f38c34404433c191229",
+  "previousFullGate": {
+    "run": 38161445947,
+    "revision": "f6e810ad62c43f87045bbbfbf19e5f2b204f5ba2",
+    "conclusion": "failure",
+    "passedReleaseChecks": 38,
+    "failedCheck": "Cinematic arrivals and progressive HUD (WebKit)",
+    "supplyAndPickupMediaReached": false
+  },
+  "controlledStreaming": {
+    "chunkBytes": 65536,
+    "intervalMs": 30,
+    "originalFixture": "failure",
+    "originalReports": [
+      {
+        "mediaAudit": [
+          {
+            "path": "/music/saucer-theme.m4a",
+            "paused": true,
+            "muted": false,
+            "currentTime": 0.9764655379746829,
+            "volume": 0,
+            "readyState": 4,
+            "error": 0
+          },
+          {
+            "path": "/music/600-billion-eyes.m4a",
+            "paused": false,
+            "muted": false,
+            "currentTime": 5.8416857839584555,
+            "volume": 0.45,
+            "readyState": 4,
+            "error": 0
+          }
+        ],
+        "label": "desktop",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 0.954425,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": false,
+          "touchState": {
+            "hidden": true,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 980,
+            "height": 178,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "restored": {
+          "hudOpacity": 0.982931,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "scored": {
+          "dailyHidden": true,
+          "routeHidden": true,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "council": {
+          "routeHidden": false,
+          "dailyHidden": true
+        },
+        "secondWave": {
+          "hidden": false,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0.009923,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 0.985299,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "failures": [
+          "request: http://localhost:58241/music/saucer-theme.m4a cancelled",
+          "request: http://localhost:58241/music/600-billion-eyes.m4a cancelled"
+        ]
+      },
+      {
+        "mediaAudit": [
+          {
+            "path": "/music/saucer-theme.m4a",
+            "paused": true,
+            "muted": false,
+            "currentTime": 2.1746636167940316,
+            "volume": 0,
+            "readyState": 4,
+            "error": 0
+          },
+          {
+            "path": "/music/600-billion-eyes.m4a",
+            "paused": false,
+            "muted": false,
+            "currentTime": 6.570198231991909,
+            "volume": 0.45,
+            "readyState": 4,
+            "error": 0
+          }
+        ],
+        "label": "phone",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 1,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": true,
+          "touchState": {
+            "hidden": false,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 843.984375,
+            "height": 118,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 844,
+            "height": 390
+          }
+        },
+        "restored": {
+          "hudOpacity": 0.989457,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "scored": {
+          "dailyHidden": true,
+          "routeHidden": true,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "council": {
+          "routeHidden": false,
+          "dailyHidden": true
+        },
+        "secondWave": {
+          "hidden": false,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0.008185,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 0.987473,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "failures": [
+          "request: http://localhost:58241/music/saucer-theme.m4a cancelled",
+          "request: http://localhost:58241/music/600-billion-eyes.m4a cancelled"
+        ]
+      }
+    ],
+    "correctedFixture": "success",
+    "correctedReports": [
+      {
+        "label": "desktop",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 0.952514,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": false,
+          "touchState": {
+            "hidden": true,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 980,
+            "height": 178,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "restored": {
+          "hudOpacity": 0.999192,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "scored": {
+          "dailyHidden": true,
+          "routeHidden": true,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "council": {
+          "routeHidden": false,
+          "dailyHidden": true
+        },
+        "secondWave": {
+          "hidden": false,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0.001599,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 0.981241,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "music": {
+          "paused": false,
+          "muted": false,
+          "volume": 0.45,
+          "readyState": 4,
+          "currentTime": 6.762080719657999,
+          "error": 0,
+          "elementErrors": [
+            0,
+            0
+          ],
+          "contexts": [
+            "running"
+          ]
+        },
+        "musicProgress": 0.5246824990722851,
+        "musicHealthy": true,
+        "streamingCancellations": [
+          {
+            "path": "/music/600-billion-eyes.m4a",
+            "type": "other",
+            "error": "cancelled"
+          },
+          {
+            "path": "/music/saucer-theme.m4a",
+            "type": "other",
+            "error": "cancelled"
+          },
+          {
+            "path": "/music/600-billion-eyes.m4a",
+            "type": "other",
+            "error": "cancelled"
+          }
+        ],
+        "failures": []
+      },
+      {
+        "label": "phone",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 0.9569,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": true,
+          "touchState": {
+            "hidden": false,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 843.984375,
+            "height": 118,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 844,
+            "height": 390
+          }
+        },
+        "restored": {
+          "hudOpacity": 0.992875,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "scored": {
+          "dailyHidden": true,
+          "routeHidden": true,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "council": {
+          "routeHidden": false,
+          "dailyHidden": true
+        },
+        "secondWave": {
+          "hidden": false,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0.014701,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 0.988817,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "music": {
+          "paused": false,
+          "muted": false,
+          "volume": 0.45,
+          "readyState": 4,
+          "currentTime": 6.7638831607896215,
+          "error": 0,
+          "elementErrors": [
+            0,
+            0
+          ],
+          "contexts": [
+            "running"
+          ]
+        },
+        "musicProgress": 0.5081503754368173,
+        "musicHealthy": true,
+        "streamingCancellations": [
+          {
+            "path": "/music/saucer-theme.m4a",
+            "type": "other",
+            "error": "cancelled"
+          },
+          {
+            "path": "/music/600-billion-eyes.m4a",
+            "type": "other",
+            "error": "cancelled"
+          }
+        ],
+        "failures": []
+      }
+    ]
+  },
+  "missingMusicNegative": {
+    "httpStatus": 404,
+    "correctedFixture": "failure",
+    "playback": {
+      "musicPlaybackFailed": true,
+      "media": [
+        {
+          "src": "/music/saucer-theme.m4a",
+          "paused": true,
+          "muted": false,
+          "currentTime": 8.344937959077233,
+          "readyState": 4,
+          "error": 0
+        },
+        {
+          "src": "/music/600-billion-eyes.m4a",
+          "paused": false,
+          "muted": false,
+          "currentTime": 0,
+          "readyState": 0,
+          "error": 4
+        }
+      ],
+      "streamingCancellations": [],
+      "failures": []
+    }
+  },
+  "currentWebkit": {
+    "browser": "webkit",
+    "reports": [
+      {
+        "label": "desktop",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 0.953793,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": false,
+          "touchState": {
+            "hidden": true,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 980,
+            "height": 178,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "restored": {
+          "hudOpacity": 0.983742,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "scored": {
+          "dailyHidden": true,
+          "routeHidden": true,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "council": {
+          "routeHidden": false,
+          "dailyHidden": true
+        },
+        "secondWave": {
+          "hidden": false,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0.01232,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 0.986045,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "music": {
+          "paused": false,
+          "muted": false,
+          "volume": 0.45,
+          "readyState": 4,
+          "currentTime": 6.379655419285779,
+          "error": 0,
+          "elementErrors": [
+            0,
+            0
+          ],
+          "contexts": [
+            "running"
+          ]
+        },
+        "musicProgress": 0.5032872496246803,
+        "musicHealthy": true,
+        "streamingCancellations": [],
+        "failures": []
+      },
+      {
+        "label": "phone",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 0.953793,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": true,
+          "touchState": {
+            "hidden": false,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 843.984375,
+            "height": 118,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 844,
+            "height": 390
+          }
+        },
+        "restored": {
+          "hudOpacity": 0.98677,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "scored": {
+          "dailyHidden": true,
+          "routeHidden": true,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "council": {
+          "routeHidden": false,
+          "dailyHidden": true
+        },
+        "secondWave": {
+          "hidden": false,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0.007973,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 0.984532,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "music": {
+          "paused": false,
+          "muted": false,
+          "volume": 0.45,
+          "readyState": 4,
+          "currentTime": 6.637683998734144,
+          "error": 0,
+          "elementErrors": [
+            0,
+            0
+          ],
+          "contexts": [
+            "running"
+          ]
+        },
+        "musicProgress": 0.5025908757846738,
+        "musicHealthy": true,
+        "streamingCancellations": [],
+        "failures": []
+      }
+    ]
+  },
+  "localChromium": {
+    "qualified": false,
+    "failuresBeforeGameplay": [
+      "ledger-arrival-playback-chromium.log",
+      "ledger-arrival-playback-chromium-diagnostic-corrected.log",
+      "ledger-arrival-playback-chromium-ready.log",
+      "ledger-arrival-playback-chromium-timer.log"
+    ],
+    "initialReadinessTimeoutMs": 30000,
+    "noDeadlineExtension": true,
+    "diagnosticsReportedLoadedDailyContract": true,
+    "experimentalReadinessChangesRetained": false
+  },
+  "originalArrivalAndHudAssertionsUnchanged": true,
+  "productionSourceChanged": false,
+  "apiChanged": false,
+  "requiredOriginalReleaseChecks": 98,
+  "completeReleaseQualified": false,
+  "fullReleaseGate": {
+    "run": 38165987187,
+    "headSha": "bc18049f490964fe19b78f38c34404433c191229",
+    "status": "in_progress",
+    "qualified": false
+  }
+}

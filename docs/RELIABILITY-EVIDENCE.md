@@ -6,8 +6,10 @@ automated results, hosted artifacts and actual user/device acceptance.
 Current arcade web revision is `c4b7929`, with exact hosted CI, served asset
 hashes and real desktop signer checks recorded below. Ledger client remains
 `e3937ca`. Candidate `a1d3290` failed after 46 checks on a WebKit supply
-stream cancellation; corrected fixture candidate `f6e810a` is now in the full
-release gate. Pallasite restoration and receipt controls are merged and published as
+stream cancellation. Candidate `f6e810a` failed after 38 release checks on
+WebKit arrival music cancellations, before supply or pickup-media qualification.
+Arrival playback candidate `bc18049` is now in the complete hosted gate.
+Its current WebKit checks pass; local Chromium startup remains unqualified. Pallasite restoration and receipt controls are merged and published as
 `9813d13`: full hosted checks pass and all 14 checked critical served files
 match. Current actual earned-score acceptance remains pending. Earlier releases and failed gates
 below are retained as historical evidence. Public 600 DNS, physical provider
@@ -1953,7 +1955,57 @@ detects missing music while accepting recovered streaming cancellations. No
 production code, API, HUD or music assets change. See
 [playback and negative-control evidence](evidence/ledger-supply-playback-f6e810a.json).
 
-Full exact revision `f6e810ad62c43f87045bbbfbf19e5f2b204f5ba2` is in run
-[38161445947](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38161445947).
+Full exact revision `f6e810ad62c43f87045bbbfbf19e5f2b204f5ba2` failed run
+[38161445947](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38161445947)
+after 38 release checks. The WebKit arrival fixture reports correct arrival/HUD
+behaviour but two cancelled gameplay music requests per viewport. This gate
+stopped before supply and pickup-media qualification. The earlier local
+playback and negative controls remain scoped evidence, not a completed release.
 All 98 original release checks remain required before client deployment and
 actual earned recovery. No new invoice or payment was attempted.
+
+
+### Arrival playback qualification: bc18049
+
+Full f6e810a run 38161445947 stopped after 38 release checks on WebKit
+arrival music cancellations, before supply and pickup-media qualification.
+A controlled range-stream fixture reproduces the original failure while the
+music element has no error, readyState 4, positive playback time and volume
+0.45. The corrected fixture passes both desktop and phone cases, including
+actual playback progress of 0.525 and 0.508 seconds across the observation.
+Its current normal WebKit desktop and phone cases also pass. A missing-track
+404 fails the twelve-second playback check with media error 4 and zero time.
+
+Candidate `bc18049f490964fe19b78f38c34404433c191229` preserves every original
+arrival/HUD assertion and deadline. It records streaming cancellations and
+requires healthy, advancing, unmuted gameplay music, no element errors and
+running audio contexts. It adds diagnostic state and cleanup on startup
+failure. No production source, API or music asset changes are included.
+Local Chromium attempts stop at the original thirty-second startup wait,
+before arrival/media checks; diagnostics show a loaded daily contract and no
+request or page errors. Experimental Promise and timer-poll readiness changes
+also time out and are not retained. Local Chromium playback is unqualified.
+See [scoped playback evidence](evidence/ledger-arrival-playback-bc18049.json).
+
+[Full gate 38165987187](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38165987187)
+is running for that exact candidate. All 98 original checks must pass before
+publishing the client. Published client remains e3937ca and API ed73ebc.
+
+### Current earned-score acceptance attempts
+
+A three-game disposable remote My Signet fixture first times out during
+initial approval. A diagnostic attempt connects and reaches Hang On Fren's
+natural gameover, then times out waiting for its NIP-98 signature. The arcade
+reports signer unavailable. This does not qualify current same-account
+publication; explicit original-account reconnect and receipt retry remain
+required.
+
+A current Pallasite 9813d13 run earns 22,683 points with its arcade parent
+closed and retains the score under the selected account. The first fixture
+then waits for the saved-score controls behind the normal TAP TO START gate
+after reload and times out. This is incomplete acceptance, not proof of a
+storage failure. The revised fixture performs that normal user gesture before
+checking the recovery controls. It is running with a new disposable account;
+no score state or receipt is injected. Eleven-minute retention, reconnect,
+positive publication and both fresh arcade displays remain unqualified.
+No payment or new invoice is attempted.
