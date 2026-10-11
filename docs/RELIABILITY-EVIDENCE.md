@@ -1203,3 +1203,14 @@ remain recorded and this does not establish every hosted timeout's cause.
 New full run `38126484713` is queued at `1f41ed8`; no candidate is published.
 Public Ledger remains `e3937ca`, and the API is unchanged. See
 [polling and streaming proof](evidence/ledger-arrival-polling-and-faststart-258c262.json).
+
+
+Ledger `38126484713` / `1f41ed8` is now terminal failure after 268 unit
+passes. The early desktop opening check records no request failures and a
+completed music response, but observes only one opacity-zero sample despite
+50-ms polling. The card is hidden by the diagnostic snapshot and no media
+play resolution is captured. The cause remains unestablished; compare the
+fixture's direct start with real PLAY's preload/render warm-up. No full
+gate or checked artifact is produced, no Ledger gate remains live, and public
+source stays `e3937ca`. See
+[hosted result](evidence/ledger-arrival-hosted-1f41ed8.json).
