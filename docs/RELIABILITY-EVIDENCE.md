@@ -1406,3 +1406,20 @@ from the published client remains unchanged. Hosted run
 [38135981494](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38135981494)
 is checking the exact commit. No saved-score client or timestamp extension has
 been deployed; production still serves Ledger client `e3937ca` and API `a6bcd26`.
+
+## Downloaded Linux artifact provenance: e96baa9
+
+The current functional arcade release's Linux artifact was downloaded from
+completed successful run `38133934854`, artifact `11699809630`. Its SHA-256
+is `45c8bef63f45421e87cfdd33661df24f5ce830a904fc694521e4ca47537ccf77`,
+matching both `SHA256SUMS` and the packaged runtime report. The artifact uses
+integration commit `c55aa49848c8e2780af9766ea1de89dcc1e04fa6`; git tree
+comparison proves it is identical to source head `e96baa9`. Its SBOM records
+Electron `44.7.0`. No new runtime test was performed locally.
+
+The original report proves launch/return, keyboard navigation, trusted game
+keyboard input, verified guest signing, a fresh guest on relaunch, isolated
+cookies/storage, unavailable wallet without configuration and no Node/shell
+bridge. The ready-panel regression verifies explicit GUEST NOSTR SIGNING
+wording. This qualifies cabinet guest isolation, while physical controllers
+remain explicitly pending. See [downloaded artifact verification](evidence/linux-artifact-e96baa9.json).

@@ -257,7 +257,7 @@ Acceptance criteria:
   against its reviewed login and scoring capabilities. The historical four-game
   matrix passed, but includes superseded Ledger and does not prove Beamward
   acceptance. Record both arcade and game revisions.
-- [ ] Keep cabinet guest identity explicit; personal login must not retain one
+- [x] Keep cabinet guest identity explicit; personal login must not retain one
   booth visitor's signing authority for the next visitor.
 - [ ] Recover saved personal runs after a later reload, including beyond the
   API's current ten-minute submission window. Preserve original run timestamps,
