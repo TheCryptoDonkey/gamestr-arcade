@@ -207,7 +207,7 @@ function header(): HTMLElement {
       onLogout: () => void logoutIdentity(),
     })
   } else {
-    const connect = button(state.identityRestoring ? 'RESTORING ACCOUNT…' : state.identityConnecting ? 'OPENING SIGNET…' : 'CONNECT NOSTR', 'identity-button', () => void connectIdentity())
+    const connect = button(state.identityRestoring ? 'RESTORING ACCOUNT…' : state.identityConnecting ? 'CONNECTING NOSTR…' : 'CONNECT NOSTR', 'identity-button', () => void connectIdentity())
     connect.disabled = state.identityRestoring || state.identityConnecting || state.identityDisconnecting
     identity = connect
   }
@@ -222,10 +222,10 @@ async function connectIdentity(signingRequired = false): Promise<ArcadeNostrSign
   try {
     const access = await connectNostrAccess({ appName: WEB_EDITION.pwaName, relays: RELAYS, signingRequired })
     if (!access) return undefined
-    toast(access.canSignEvents ? 'Nostr signer connected through Signet.' : 'Nostr identity connected through Signet. Signing can be connected when needed.', 'good')
+    toast(access.canSignEvents ? 'Nostr signer connected.' : 'Nostr identity connected. Signing can be connected when needed.', 'good')
     return currentNostrSigner()
   } catch (error) {
-    toast(error instanceof Error ? `Signet login failed: ${error.message}` : 'Signet login was cancelled or refused.', 'warn')
+    toast(error instanceof Error ? `Nostr login failed: ${error.message}` : 'Nostr login was cancelled or refused.', 'warn')
     return undefined
   } finally {
     state.identityConnecting = false

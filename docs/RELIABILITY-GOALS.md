@@ -11,7 +11,7 @@ and both web build gates passed. Additional browser and disposable-key checks
 reproduced the login, signer, draft and score problems below. Passing the
 existing suite therefore does not close these goals.
 
-## Current product scope — 11 October 2026
+## Current product scope: 11 October 2026
 
 The owner confirmed that Beamward supersedes Ledger. Further Ledger client or
 API development is not an active requirement of this arcade delivery. The
@@ -88,6 +88,12 @@ Acceptance criteria:
 - [ ] Returning from the signer preserves the intended arcade destination.
 - [ ] Automated callback and viewport regressions pass, followed by an actual
   Android browser to Cambium and Amber round trips and an iPhone login-control check.
+
+Current Android request lifecycle: backing out clears the pending proof and
+returns the connection control to its idle state. A request with no signer
+response expires after sixty seconds with an actionable Cambium/Amber retry
+message. Lifecycle regressions cover cancellation, timeout and proof cleanup;
+these automated checks do not prove a physical app round trip.
 
 Start in [style.css](../src/web/style.css),
 [nostr-access.ts](../src/web/nostr-access.ts) and application boot.

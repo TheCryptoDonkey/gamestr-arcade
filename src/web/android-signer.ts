@@ -21,19 +21,21 @@ export async function startAndroidSignerLogin(appName: string, storage: SignetSt
   const challenge = [...bytes].map(byte => byte.toString(16).padStart(2, '0')).join('')
   const request = androidSignerRequest(appName, challenge, window.location.href)
   await storage.setItem('signet:login.pendingRedirect', request.pending)
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     let settled = false
-    const finish = () => {
+    const finish = (timedOut = false) => {
       if (settled) return
       settled = true
       clearTimeout(timer)
-      window.removeEventListener('pageshow', finish)
+      window.removeEventListener('pageshow', returned)
       void storage.removeItem('signet:login.pendingRedirect')
-      resolve(null)
+      if (timedOut) reject(new Error('Android signer did not return. Open Cambium or Amber, then try connecting again.'))
+      else resolve(null)
     }
     // Back/cancel or an unhandled scheme must not leave CONNECT stuck forever.
-    const timer = setTimeout(finish, 60_000)
-    window.addEventListener('pageshow', finish)
+    const returned = () => finish()
+    const timer = setTimeout(() => finish(true), 60_000)
+    window.addEventListener('pageshow', returned)
     try { window.location.href = request.url } catch { finish() }
   })
 }
