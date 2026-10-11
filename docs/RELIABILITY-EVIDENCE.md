@@ -1473,3 +1473,20 @@ six and no script errors; it does not clear the hosted failure.
 [Exact revision qualification](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38139937880)
 is running. No new client or timestamp API extension has been deployed; live
 remains client `e3937ca` / API `a6bcd26`.
+
+## Ledger checked API deployment: ed73ebc
+
+Hosted service job 114471539883 in run 38139937880 passes for exact revision
+`ed73ebcece1c40033064432e8f1fd4700275b799`. The downloaded artifact matches
+both manifest hashes. A private, network-blocked preflight on Hetzner Node
+22.23.2 loads all four claims, daily bests and badges from copied current
+history without an owner signing key; original history hashes remain exact.
+
+The service is deployed from that checked artifact. Public health and both
+deployed binary hashes pass; authority, relays and environment are unchanged.
+All original history prefixes remain intact, private backups are 0600 and
+rollback restores only binaries. See [deployment evidence](evidence/ledger-api-ed73ebc.json).
+The first attempt stopped before mutation because the SSH user could not read
+the service environment; the existing non-interactive sudo route completed
+deployment. The frontend remains published `e3937ca`; the full client release
+gate and real candidate score recovery remain required.
