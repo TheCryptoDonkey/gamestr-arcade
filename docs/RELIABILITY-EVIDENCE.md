@@ -30,7 +30,16 @@ and [hosted qualification](evidence/pallasite-faucet-recovery-3173d18-ci.json) p
 The checked API binary is now [published](evidence/pallasite-faucet-live-3173d18.json):
 twelve existing tables remain unchanged through the additive migration; original
 authority, relays and configuration remain intact. The old binary and a private
-consistent database backup are retained. Actual earned recovery remains pending.
+consistent database backup are retained. Current Pallasite actual recovery passes for a normally earned 20,820-point run:
+parent closure, reload, a real eleven-minute delay, explicit same-account
+reconnect, unchanged receipt signing, HTTP 200 and seven of seven relay
+acknowledgements, receipt clearing and independent public-event verification.
+The event preserves the original run dates, and fresh pages in both arcade
+editions display the exact score/player with reviewed authority. See
+[earned recovery](evidence/pallasite-earned-recovery-9813d13.json) and
+[both displays](evidence/pallasite-earned-recovery-ui-9813d13.json). This uses
+browser automation and forced 600 DNS; current four-game and physical
+acceptance remain open.
 
 Fresh GET-only checks display the previously earned Neon and Hang On Fren
 scores correctly on current arcade `c4b7929` in both editions. These four
@@ -2084,3 +2093,17 @@ by the old API as `stale_run`, while retaining its original receipt. See the
 [incomplete receipt-stage proof](evidence/pallasite-earned-recovery-progress-9813d13.json).
 Reconnect, positive publication, receipt clearing and both fresh arcade displays
 remain unqualified. All original Goal 6 criteria remain in scope.
+
+
+### Actual current Pallasite delayed recovery passes
+
+Current Pallasite actual recovery passes for a normally earned 20,820-point run:
+parent closure, reload, a real eleven-minute delay, explicit same-account
+reconnect, unchanged receipt signing, HTTP 200 and seven of seven relay
+acknowledgements, receipt clearing and independent public-event verification.
+The event preserves the original run dates, and fresh pages in both arcade
+editions display the exact score/player with reviewed authority. See
+[earned recovery](evidence/pallasite-earned-recovery-9813d13.json) and
+[both displays](evidence/pallasite-earned-recovery-ui-9813d13.json). This uses
+browser automation and forced 600 DNS; current four-game and physical
+acceptance remain open.

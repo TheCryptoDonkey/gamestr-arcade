@@ -14,7 +14,9 @@
   "linuxBuild": "pass",
   "binarySha256": "a6a2d491fe8519a6cb66e5336c82f883828719550dad479a3583d3342d3ad049",
   "activation": "published from checked artifact",
-  "actualEarnedRecovery": "pending",
+  "actualEarnedRecovery": "pass",
   "realPayments": 0,
-  "liveProof": "pallasite-faucet-live-3173d18.json"
+  "liveProof": "pallasite-faucet-live-3173d18.json",
+  "earnedRecoveryProof": "pallasite-earned-recovery-9813d13.json",
+  "freshDisplayProof": "pallasite-earned-recovery-ui-9813d13.json"
 }
