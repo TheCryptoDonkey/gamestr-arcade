@@ -21,8 +21,15 @@
   "apiChanged": false,
   "completeReleaseQualification": {
     "run": 38150978824,
-    "status": "in_progress",
-    "notYetQualified": true
+    "status": "completed",
+    "notYetQualified": true,
+    "conclusion": "failure",
+    "failedCheck": "3D cultists and pickup voices (Chromium)",
+    "pickupMusicBusGain": 0.3858509957790375,
+    "requiredPickupGainRange": [
+      0.27,
+      0.35
+    ]
   },
   "individualTestDeadlinesChanged": false,
   "ciJobTimeAllowanceMinutes": 75,

@@ -1753,8 +1753,10 @@ The full CI job now allows 75 minutes to finish all 98 checks: its previous run
 spent about 38 minutes reaching check 47. Individual test deadlines, performance
 limits, assertions and the required gate list are unchanged. New exact run
 [38150978824](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38150978824)
-is running. The candidate client and actual earned recovery remain unqualified
-until that whole run passes. See [the scoped correction proof](evidence/ledger-shared-range-supply-6aa3e11.json).
+is terminal failure: the Chromium pickup voice check sampled a music-bus gain of
+`0.385851`, above the unchanged `0.35` upper limit. Its reported decoding,
+requests, models and recovery passed. The candidate client and actual earned
+recovery remain unqualified. See [the scoped correction proof](evidence/ledger-shared-range-supply-6aa3e11.json).
 
 ### Exact pairing across browser refresh on current c4b7929
 
@@ -1819,3 +1821,45 @@ configured login methods continue to exclude private-key paste. Physical phone
 and independent provider acceptance remain open. See
 [the exact account-switch proof](evidence/gamestr-c4b7929-signet-account-switch.json)
 and [QR cancellation/retry](evidence/gamestr-c4b7929-login-cancellation-retry.json).
+
+### Current Pallasite release displaced the arcade recovery branch
+
+A fresh public check on 11 October 2026 identifies Pallasite `ee6a4aa`,
+the current main release with the council and Ultra graphics updates. The
+earlier `14e969f` client is historical: its entry assets now return 404.
+Current main lacks the saved-score outbox and retains the personal-to-guest
+retry path. The earlier successful recovery evidence does not qualify this
+new client.
+
+Isolated branch `fix/arcade-recovery-current-main` restores the six arcade
+commits on top of current main, preserving the newer graphics and bumping the
+worker version from v233 to v234. Signing-queue checks, seven saved-score
+cases, the existing simulation harnesses, Signet bundle check, build and seven
+production-build arcade handoff journeys pass locally. Hosted CI, publication
+and current real earned-score acceptance remain pending. Owner-controlled
+receipt removal remains a separate open criterion.
+
+### Pickup observation correction: a1d3290
+
+The failed `6aa3e11` pickup observation began after a renderer/Playwright round
+trip. A controlled 3.6-second late read on the original fixture misses the
+brief duck and fails at `0.999428`. Candidate `a1d3290` starts observation
+before triggering pickup and awaits that existing observation. Both normal
+Chromium and WebKit profiles pass near `0.28`; the same delayed Chromium read
+also passes at `0.28`. An initial corrected attempt timed out at PLAY before
+reaching pickup; the subsequent isolated run passed.
+
+The five-second voice-start deadline, 2.5-second duck observation, final
+assertions, production audio and saved-score source are unchanged. This is
+local evidence of the sampling race, not proof that the full hosted gate
+passes. See [observer correction proof](evidence/ledger-pickup-observer-a1d3290.json).
+
+Pallasite restoration [PR #13](https://github.com/TheCryptoDonkey/pallasite/pull/13)
+is under hosted qualification in exact run
+[38156218862](https://github.com/TheCryptoDonkey/pallasite/actions/runs/38156218862)
+for `9c09fa7c01dbcd8bbd01acffedbee017038b25ad`.
+
+Ledger exact candidate `a1d32905eee8d309926bd0c2aec4e4490aebcfc3` is now
+in full hosted release run
+[38156400254](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38156400254).
+No client publication or live earned recovery is claimed.
