@@ -1256,3 +1256,32 @@ that evidence does not turn the failed gate into a pass. Direct/full gates are
 not exercised and no checked artifact is produced. No Ledger gate remains
 running, publication stays `e3937ca` and backend retry gaps remain open. See
 [hosted real-route evidence](evidence/ledger-arrival-real-play-hosted-ceb581a.json).
+
+
+## Ledger durable score recovery candidate
+
+`a6bcd26` corrects the privately reproduced API retry gaps: fsynced full signed
+events before publication, permanent player/run identity, semantic conflicts,
+serialized publication and strict daily-best timestamp ordering. A failed history
+write holds acceptance until repaired history is validated at restart. Original
+legacy IDs and valid midnight crossings remain readable; missing unconfirmed
+legacy events and corrupt histories fail explicitly. The exact service passes
+twelve private recovery/durability groups on Node 22.19.0, with disposable keys,
+fake WebSockets and blocked external HTTP. Its manifest contains exactly the
+executable and source map.
+
+The client also discarded a receipt on any HTTP 200, including zero relay
+acknowledgements. Two regressions fail on that source. It now retains unpublished
+or malformed successes and distinguishes superseded daily scores. All 275 units,
+type checks/builds and Chromium/WebKit visible zero-ack/retry fixtures pass.
+The separate identity fixture times out during startup before claiming; its
+cause remains unestablished and that journey remains unqualified.
+
+Hosted `38129812716` at `3230b22` passes 275 units, both type checks and eleven
+service-recovery groups, then fails the artifact guard on copied public assets.
+The full player gate is skipped. Server builds now exclude those assets; new
+complete run `38130450803` at `a6bcd26` is dispatched, with results pending.
+No live Ledger client/API changes or new actual provider acceptance. Seven-day
+private API retry preserves an already accepted event's original board day;
+client receipts still expire at midnight UTC. The full nine-goal scope remains
+open. See [candidate recovery evidence](evidence/ledger-claim-recovery-a6bcd26.json).
