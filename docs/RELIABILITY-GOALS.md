@@ -192,9 +192,12 @@ The earlier published `328540a` actual My Signet journey earned 4,331 points aft
 parent closure and published through explicit same-account reconnect/retry with
 five of seven relay acknowledgements. This remains historical evidence for that
 client; see [earned recovery](evidence/hangonfren-earned-recovery-328540a.json) and
-[display checks](evidence/hangonfren-earned-recovery-ui-328540a.json). Current
-actual long-delay provider journeys for HOF `e4ec515` and Neon `046a822` are
-running. Their outcome and physical acceptance remain unqualified.
+[display checks](evidence/hangonfren-earned-recovery-ui-328540a.json). Current Neon `046a822` actual delayed recovery passes after an earned 5,566-point
+run is held beyond eleven minutes, with preserved timestamps, one canonical
+claim, six of seven relay acknowledgements and both fresh displays. HOF
+`e4ec515` preserves its receipt through the delay but times out during original-
+account My Signet reconnect before score submission. Its current delayed
+provider journey and all physical acceptance remain unqualified.
 
 Acceptance criteria:
 
@@ -327,7 +330,7 @@ symptoms, physical acceptance and the 600 DNS cutover remain open. See
 | 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Live desktop My Signet approval, signing, refresh and logout pass; physical checks pending | In progress |
 | 4 | Per-game score authorities and attribution provenance; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 5 | Dependency upgrades and high-severity audit gate; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 6 | Reviewed manifest capability and deployed Ledger consumer; PR #11 and PR #88 | 658 unit tests and 50 browser journeys passed; Hang On Fren published correction passes 219 units, private API recovery and checked browser; published Ledger passed 98 release checks; newer Ledger retry correction gate pending; Neon 101 units, recovery and real SDK modal CI pass; current desktop My Signet earned recovery passes | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; Ledger `e3937ca`; Pallasite `14e969f`; Hang On Fren `e4ec515` client/API; Neon `046a822` verified public client/API/SDK; DNS pending | Historical four-game My Signet matrix and saved-score retry pass at forced origin; Neon earned recovery and historical Hang On Fren recovery pass; current real long-delay provider journeys running; physical checks pending | In progress |
+| 6 | Reviewed manifest capability and deployed Ledger consumer; PR #11 and PR #88 | 658 unit tests and 50 browser journeys passed; Hang On Fren published correction passes 219 units, private API recovery and checked browser; published Ledger passed 98 release checks; Ledger f6 full gate fails WebKit arrival music transport; e8 fixture correction/new full gate pending; Neon 101 units, recovery and real SDK modal CI pass; current desktop My Signet earned recovery passes | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; Ledger `e3937ca`; Pallasite `14e969f`; Hang On Fren `e4ec515` client/API; Neon `046a822` verified public client/API/SDK; DNS pending | Historical four-game My Signet matrix and saved-score retry pass at forced origin; Neon earned recovery and historical Hang On Fren recovery pass; Neon real delayed recovery passes; HOF delayed provider reconnect times out before claim; physical checks pending | In progress |
 | 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |

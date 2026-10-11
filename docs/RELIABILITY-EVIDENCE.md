@@ -1035,3 +1035,63 @@ Lightning settlement remain open. See
 [API activation](evidence/hangonfren-api-live-e4ec515.json),
 [private checked client](evidence/hangonfren-recovery-checked-e4ec515.json) and
 [checked private API recovery](evidence/hangonfren-api-recovery-checked-e4ec515.json).
+
+
+## Real delayed Neon recovery qualified
+
+An actual My Signet journey on published `046a822` now holds a normally earned
+5,566-point run beyond eleven minutes (662,617ms at the retry sequence). The
+arcade parent closes before play. Explicit original-account reconnect and reload
+preserve the receipt; after the delay, another explicit same-account approval
+and selected retry make exactly one canonical NIP-98 claim. The request retains
+the original finished timestamp exactly, returns HTTP 200 with six of seven
+relay acknowledgements, and clears the receipt only after positive publication.
+
+Independent verification confirms the game authority, player and score. Fresh
+relay-backed displays in both editions show the same event. No game state or
+receipt was seeded. The 600 browser uses forced Hetzner DNS; standard public DNS
+is used normally. This proves the actual delayed desktop provider journey,
+separate from private seven-day/restart API tests and physical qualification.
+See [earned delayed recovery](evidence/neon-earned-delayed-recovery-046a822.json)
+and [fresh display checks](evidence/neon-earned-delayed-recovery-ui-046a822.json).
+
+
+## Current HOF delayed provider check
+
+The published `e4ec515` client retains a normally earned 4,331-point personal
+receipt after parent closure and through the eleven-minute delay. Explicit
+original-account My Signet reconnect then times out before the game is reopened
+for retry. The approval page remains at Login Request, with no outgoing auth
+messages in its captured traffic; the arcade shows RECONNECTING. A read-only
+API history check confirms no accepted row for this disposable account. This
+neither qualifies delayed live publication nor demonstrates an API age rejection.
+The private seven-day/restart API gate remains qualified separately. The cause
+of the provider reconnect timeout is not established. See
+[bounded live failure evidence](evidence/hangonfren-earned-delayed-recovery-failure-e4ec515.json).
+
+
+## Ledger original gate and arrival fixture
+
+Hosted `38120087817` at `f6b160a` passes all 13 developer-panel checks, then
+fails WebKit cinematic arrivals on a cancelled music request before teardown.
+The fixture replied to `Range: bytes=0-1` with chunked HTTP 200; the published
+origin correctly replies HTTP 206/two bytes. Source `e8fee80` corrects the
+fixture's Range, Content-Length and HEAD responses without changing original
+UI, network, timing or accessibility assertions. Private corrected WebKit and
+Chromium profiles pass. The original Mac WebKit fixture also passes, so the
+Linux cancellation's cause is not established. An initial concurrent Chromium
+card-hidden timeout is retained and its cause remains unestablished.
+
+New hosted run `38122913408` passes 268 units and the early Linux WebKit arrival
+check. The complete original release gate remains in progress; no candidate
+client is published and Ledger stays at `e3937ca`. See
+[fixture evidence](evidence/ledger-arrival-range-f6b160a.json) and
+[consumer PR 88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88).
+
+
+A follow-up check stops before gameplay while its captured My Signet UI shows
+Signed in and the arcade shows SIGNER CONNECTED. That observation does not prove
+the failure's cause, but requires checking the driver's readiness assumptions.
+The next bounded driver observes connected, approval and PIN states instead of
+assuming the approval button must remain visible. Its outcome remains pending;
+see [UI observation](evidence/hangonfren-reconnect-ui-observation-e4ec515.json).
