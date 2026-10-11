@@ -1490,3 +1490,21 @@ The first attempt stopped before mutation because the SSH user could not read
 the service environment; the existing non-interactive sudo route completed
 deployment. The frontend remains published `e3937ca`; the full client release
 gate and real candidate score recovery remain required.
+
+## Current real signer sleep check stops at authentication
+
+A fresh disposable My Signet fixture on published standard arcade `e96baa9`
+uses the configured `relay.trotters.cc` rendezvous, with no SDK/relay override.
+The approval UI remains on disabled “Signing…” after approval, and the arcade
+has no authenticated identity at the fixture's sixty-second deadline. No
+sleep/reconnect step, game claim or payment is performed. This does not prove
+a root cause or supersede earlier successful signing; it is a current negative
+authentication result and cannot qualify sleeping-signer recovery. The
+disposable browser is closed. See [fixture outcome](evidence/gamestr-e96-signer-sleep-incomplete.json).
+
+Separately, all 35 previously checked `e3937ca` frontend assets still match
+public responses after API `ed73ebc` deployment. The prepared client deployment
+procedure passes a private fixture for pre-mutation filename-conflict rejection,
+exact candidate files, retained old-tab assets and original-index rollback.
+It has not been executed on production; run `38139937880` remains in its full
+client release gate.
