@@ -1137,3 +1137,18 @@ See [approval-readiness proof](evidence/signet-approval-readiness-4aa7661.json).
 A fresh Hang On Fren delayed earned-score journey now uses this qualified
 approval driver. Its result remains pending; this auth-only success does not
 qualify game submission or physical-device behaviour.
+
+
+Ledger `38124922090` / `f94a0e8` is terminal failure in the early WebKit
+arrival check: the original five-second opening-ready condition times out.
+Neither supply-drop nor the full gate is exercised. Source `c2ae613` adds
+bounded readiness samples, start duration, current visibility and request
+diagnostics before rethrowing the unchanged timeout. It changes no product
+code, assertion or deadline. New hosted run `38125161236` is queued; no candidate
+client is published.
+
+The fresh HOF `e4ec515` actual journey has passed initial My Signet sign-in and
+explicit same-account reconnect, then normally earned 4,732 points after parent
+closure. The original receipt remains saved with zero claim HTTP attempts while
+the eleven-minute delay elapses. Submission, subsequent reconnect and display
+qualification remain pending; this is progress evidence, not a completed gate.
