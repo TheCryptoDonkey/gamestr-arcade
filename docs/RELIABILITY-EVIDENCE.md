@@ -1508,3 +1508,38 @@ procedure passes a private fixture for pre-mutation filename-conflict rejection,
 exact candidate files, retained old-tab assets and original-index rollback.
 It has not been executed on production; run `38139937880` remains in its full
 client release gate.
+
+## Real sleeping-signer recovery qualified on standard e96baa9
+
+A disposable account on published My Signet authenticates to deployed standard
+arcade `e96baa9` without a relay or SDK override. After normal page navigation
+and live-signer restoration, the fixture obtains a cryptographically verified
+kind-31990 event; public submission is blocked. Closing all My Signet tabs
+produces SIGNER UNAVAILABLE after 15,501 ms, keeps the exact selected public
+key and pairing URI/client credential, and produces no new signed event.
+Explicit reconnect approves the same account, obtains a different verified
+event and logout removes the selected credentials. No game claim or payment
+is made. See [actual sleep/reconnect result](evidence/gamestr-e96-signer-sleep-reconnect.json).
+
+The earlier negative fixtures remain recorded. Fixture corrections use the
+single SDK-opened approval tab, wait for a live signer after navigation, respect
+the PIN overlay and distinguish an old publication retry from a fresh signed
+event. This qualifies the current standard desktop journey, not phone QR,
+physical signers or every game. Installed SDK 0.17.3 and its npm publication
+are confirmed; its version/integrity match the lockfile.
+
+Ledger full run `38139937880` is terminal failure at WebKit cinematic arrival: a
+cancelled music request and below-threshold reveal/restored opacity snapshots.
+The profile bypassed PLAY media permissions and sampled animated state after
+its readiness check. A correction exercises real PLAY/NEXT TIME and captures
+qualifying frames atomically, preserving every final assertion and threshold.
+The corrected WebKit desktop/phone profile passes locally; full committed
+qualification remains required before client publication. Ledger API `ed73ebc`
+remains live, and client `e3937ca` remains published.
+
+The Ledger arrival-fixture correction is committed as `b6ee8dd` and passes
+local Chromium and WebKit desktop/phone profiles with no failed requests.
+The final assertion block is verified byte-for-byte identical to `ed73ebc`;
+no production HUD or music implementation changed.
+[Complete exact-revision run 38141857525](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38141857525)
+is running. No client publication is claimed.

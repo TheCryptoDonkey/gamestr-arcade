@@ -1,0 +1,28 @@
+{
+  "actualMySignet": true,
+  "physicalDevice": false,
+  "origin": "https://gamestr.62-238-98-53.sslip.io",
+  "arcadeRevision": "e96baa931f30284578c6f0465b45588ff0804722",
+  "disposableIdentity": true,
+  "pubkey": "5983f4a2960f0bab863a10f18ce82bc10f59457fdbe83f52de6fdc63eb2a26da",
+  "realRelayAuthentication": true,
+  "realInitialAndRestoredSignaturesVerified": true,
+  "allSignerTabsClosed": true,
+  "unavailableMs": 15501,
+  "selectedIdentityPreserved": true,
+  "pairingPreservedDuringFailure": true,
+  "sameAccountReconnect": true,
+  "logoutClearedCredentials": true,
+  "publicSubmissionBlocked": true,
+  "gameplayPerformed": false,
+  "scoreClaimRequests": 0,
+  "lightningPaymentTest": false,
+  "temporarySdkRelayOverride": false,
+  "priorFailuresRetained": true,
+  "fixtureCorrections": [
+    "single SDK-opened approval tab",
+    "wait for live signer restoration after navigation",
+    "handle PIN overlay before approving",
+    "distinguish prior publication retry from a fresh signed event"
+  ]
+}
