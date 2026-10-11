@@ -169,12 +169,15 @@ also passes with explicit My Signet approval before each game. Published-game
 private fixtures verify independent login controls after reload and expired
 proofs in all four consumers, plus account-bound receipt retention and an arcade
 return after Pallasite's parent closes. These fixtures block external writes;
-they do not complete an independent provider login. Closure checks for Ledger and Neon Sentinel and physical checks remain open.
+they do not complete an independent provider login. Ledger also passes a private closed-parent fixture with external writes blocked. Neon Sentinel closure and physical checks remain open.
 
-Hang On Fren's deployed client `2c6716f` preserves the original account on
+Hang On Fren's deployed client `328540a` preserves the original account on
 personal signing failure; see [consumer PR 2](https://github.com/TheCryptoDonkey/hang-on-fren-public/pull/2).
-All 206 local and hosted tests and private browser recovery pass. A separate
-real My Signet run earned 4,331 points after the arcade parent closed. Its
+All 212 local and hosted tests pass. The new pending-submission browser check
+uses the exact public entry JavaScript, with external writes blocked. It prevents
+duplicate approval and bounds stalled claim responses; see
+[deployment proof](evidence/hangonfren-live-328540a.json). A separate
+real My Signet run on the earlier `2c6716f` client earned 4,331 points after the arcade parent closed. Its
 receipt survived the signing timeout, and explicit same-account approval and
 retry returned HTTP 200 with publication to six of seven relays. Independent
 event verification, both editions' displays and receipt clearing pass; see
@@ -297,7 +300,7 @@ symptoms, physical acceptance and the 600 DNS cutover remain open. See
 | 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Live desktop My Signet approval, signing, refresh and logout pass; physical checks pending | In progress |
 | 4 | Per-game score authorities and attribution provenance; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 5 | Dependency upgrades and high-severity audit gate; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 6 | Reviewed manifest capability and deployed Ledger consumer; PR #11 and PR #88 | 652 unit tests and 50 browser journeys passed; Ledger 98-check release gate and Pallasite seven browser, three queue and seven recovery checks pass | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; Ledger `e3937ca`; Pallasite `14e969f`; Hang On Fren `2c6716f`; DNS pending | All four games have real My Signet runs and attributed public scores at forced origin; same-account four-game matrix and saved-score retry pass in browser automation; physical checks pending | In progress |
+| 6 | Reviewed manifest capability and deployed Ledger consumer; PR #11 and PR #88 | 658 unit tests and 50 browser journeys passed; Hang On Fren 212 tests pass; published Ledger passed 98 release checks; newer Ledger retry correction gate pending | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; Ledger `e3937ca`; Pallasite `14e969f`; Hang On Fren `328540a`; DNS pending | All four games have real My Signet runs and attributed public scores at forced origin; same-account four-game matrix and saved-score retry pass in browser automation; physical checks pending | In progress |
 | 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |

@@ -1,0 +1,308 @@
+{
+  "stage": "second game Escape return",
+  "error": "page.waitForFunction: Timeout 30000ms exceeded.",
+  "pages": {
+    "shell": {
+      "closed": false,
+      "readyState": "complete",
+      "focused": true,
+      "visibility": "visible",
+      "activeElement": "BUTTON",
+      "activeElementId": "",
+      "activeElementClass": "cta",
+      "activeElementInert": false,
+      "readyOpen": false,
+      "focusHistory": [
+        {
+          "event": "focusin",
+          "id": "",
+          "className": "cta",
+          "at": 3468.899999999994,
+          "documentFocused": true,
+          "readyOpen": false
+        },
+        {
+          "event": "focusin",
+          "id": "app",
+          "className": "arcade",
+          "at": 3473,
+          "documentFocused": true,
+          "readyOpen": false
+        },
+        {
+          "event": "focusin",
+          "id": "",
+          "className": "cta",
+          "at": 3812.2000000000116,
+          "documentFocused": true,
+          "readyOpen": false
+        }
+      ],
+      "focusCalls": [
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 3167.899999999994,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at ReadyPanel.close (file:///tmp/appimage_extracted_0b5a37497fbe590cf244019c5dd225f3/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10652:103)",
+            "    at ReadyPanel.confirm (file:///tmp/appimage_extracted_0b5a37497fbe590cf244019c5dd225f3/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10639:10)",
+            "    at Object.onLaunch (file:///tmp/appimage_extracted_0b5a37497fbe590cf244019c5dd225f3/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11553:20)",
+            "    at onKeyDown (file:///tmp/appimage_extracted_0b5a37497fbe590cf244019c5dd225f3/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:4802:23)"
+          ]
+        },
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 3472.7000000000116,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at file:///tmp/appimage_extracted_0b5a37497fbe590cf244019c5dd225f3/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11624:12"
+          ]
+        },
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 3621.899999999994,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at ReadyPanel.close (file:///tmp/appimage_extracted_0b5a37497fbe590cf244019c5dd225f3/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10652:103)",
+            "    at ReadyPanel.confirm (file:///tmp/appimage_extracted_0b5a37497fbe590cf244019c5dd225f3/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10639:10)",
+            "    at Object.onLaunch (file:///tmp/appimage_extracted_0b5a37497fbe590cf244019c5dd225f3/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11553:20)",
+            "    at onKeyDown (file:///tmp/appimage_extracted_0b5a37497fbe590cf244019c5dd225f3/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:4802:23)"
+          ]
+        },
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 3810.399999999994,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at file:///tmp/appimage_extracted_0b5a37497fbe590cf244019c5dd225f3/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11624:12"
+          ]
+        }
+      ],
+      "keyHistory": [
+        {
+          "type": "keydown",
+          "key": "ArrowRight",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "ArrowRight",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keydown",
+          "key": "ArrowLeft",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "ArrowLeft",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keydown",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keydown",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "Escape",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keydown",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keydown",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "Escape",
+          "trusted": true,
+          "id": ""
+        }
+      ],
+      "keys": []
+    },
+    "game": {
+      "closed": true
+    }
+  },
+  "nativeFocus": [
+    {
+      "stage": "first game trusted ArrowUp",
+      "windows": [
+        {
+          "id": 1,
+          "focused": true,
+          "visible": true,
+          "bounds": {
+            "x": 240,
+            "y": 212,
+            "width": 800,
+            "height": 600
+          },
+          "children": [
+            {
+              "contentsId": 2,
+              "visible": true,
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 800,
+                "height": 600
+              }
+            }
+          ]
+        }
+      ],
+      "nativeInputEvents": [],
+      "contents": [
+        {
+          "id": 2,
+          "focused": true,
+          "loading": false,
+          "type": "window",
+          "role": "game"
+        },
+        {
+          "id": 1,
+          "focused": false,
+          "loading": false,
+          "type": "window",
+          "role": "shell"
+        }
+      ]
+    },
+    {
+      "stage": "second game Escape return",
+      "windows": [
+        {
+          "id": 1,
+          "focused": true,
+          "visible": true,
+          "bounds": {
+            "x": 240,
+            "y": 212,
+            "width": 800,
+            "height": 600
+          },
+          "children": [
+            {
+              "contentsId": 3,
+              "visible": true,
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 800,
+                "height": 600
+              }
+            }
+          ]
+        }
+      ],
+      "nativeInputEvents": [],
+      "contents": [
+        {
+          "id": 3,
+          "focused": true,
+          "loading": false,
+          "type": "window",
+          "role": "game"
+        },
+        {
+          "id": 1,
+          "focused": false,
+          "loading": false,
+          "type": "window",
+          "role": "shell"
+        }
+      ]
+    }
+  ],
+  "currentNativeFocus": {
+    "windows": [
+      {
+        "id": 1,
+        "focused": true,
+        "visible": true,
+        "bounds": {
+          "x": 240,
+          "y": 212,
+          "width": 800,
+          "height": 600
+        },
+        "children": []
+      }
+    ],
+    "nativeInputEvents": [],
+    "contents": [
+      {
+        "id": 1,
+        "focused": true,
+        "loading": false,
+        "type": "window",
+        "role": "shell"
+      }
+    ]
+  },
+  "systemInput": {
+    "attempted": false,
+    "reason": "unavailable"
+  },
+  "sourceRevision": "62dd9453646447487e92718971f18f099ad058eb",
+  "hostedRun": 38096250026,
+  "packagedRuntime": "failed",
+  "gameClosedBeforeFailure": true,
+  "failureClassification": "Shell DOM focus restoration after game closed; not proof of missing Escape delivery"
+}

@@ -17,6 +17,7 @@ let shellPage
 let gamePage
 let nativeInspector
 const nativeFocus = []
+const returnFocus = []
 const server = createServer((_request, response) => {
   response.writeHead(200, { 'content-type': 'text/html' })
   response.end(`<!doctype html><title>Isolated runtime game</title><h1>Runtime fixture</h1><script>
@@ -114,6 +115,21 @@ try {
     await game.waitForFunction(() => document.readyState === 'complete' && document.hasFocus())
     return game
   }
+  async function returnFromGame(game, label) {
+    stage = `${label} Escape close`
+    await game.keyboard.down('Escape')
+    await until(() => game.isClosed())
+    const snapshot = phase => shell.evaluate(phase => ({
+      phase, at: performance.now(), focused: document.hasFocus(),
+      activeElementId: document.activeElement?.id,
+      activeElementClass: document.activeElement?.className,
+    }), phase)
+    stage = `${label} shell focus after Escape`
+    returnFocus.push({ game: label, ...await snapshot('before key release') })
+    await shell.keyboard.up('Escape')
+    returnFocus.push({ game: label, ...await snapshot('after key release') })
+    await shell.waitForFunction(() => document.activeElement?.id === 'app')
+  }
   const first = await launch()
   stage = 'first game signing'
   const pubkey = await first.evaluate(() => window.nostr.getPublicKey())
@@ -131,11 +147,7 @@ try {
     return { wallet: typeof window.webln, node: typeof window.require, shellBridge: typeof window.arcade }
   })
   assert.deepEqual(authority, { wallet: 'undefined', node: 'undefined', shellBridge: 'undefined' })
-  stage = 'first game Escape return'
-  await first.keyboard.down('Escape')
-  await until(() => first.isClosed())
-  await shell.keyboard.up('Escape')
-  await shell.waitForFunction(() => document.activeElement?.id === 'app')
+  await returnFromGame(first, 'first game')
   stage = 'second game launch'
   const second = await launch()
   stage = 'second game isolation'
@@ -146,16 +158,13 @@ try {
   assert.equal(fresh.wallet, 'undefined')
   stage = 'second game Escape return'
   nativeFocus.push({ stage, ...await nativeInspector.read() })
-  await second.keyboard.down('Escape')
-  await until(() => second.isClosed())
-  await shell.keyboard.up('Escape')
-  await shell.waitForFunction(() => document.activeElement?.id === 'app')
+  await returnFromGame(second, 'second game')
   writeFileSync(`${root}/journeys.json`, JSON.stringify({
     keyboardCarouselNavigation: true, launchAndReturn: true, guestSignatureVerified: true,
     freshGuestOnRelaunch: true, gameStorageAndCookiesIsolated: true,
     trustedGameKeyboardInput: true, walletUnavailableWithoutConfiguration: true,
     noNodeOrShellBridgeInGame: true, physicalControllerAcceptance: 'pending',
-    nativeFocus,
+    nativeFocus, returnFocus,
     shellFocus: await shell.evaluate(() => ({
       history: window.runtimeFocusHistory ?? [],
       calls: window.runtimeFocusCalls ?? [],
@@ -180,11 +189,11 @@ try {
   // Keep the original failure. A separate OS-input probe helps distinguish
   // debugger injection from keyboard delivery without making the gate pass.
   const systemInput = nativeInspector && gamePage &&
-    (stage === 'first game trusted ArrowUp' || stage === 'first game Escape return' || stage === 'second game Escape return')
+    (stage === 'first game trusted ArrowUp' || stage === 'first game Escape close' || stage === 'second game Escape close')
     ? await probeSystemInput({ inspector: nativeInspector, page: gamePage,
       key: stage === 'first game trusted ArrowUp' ? 'Up' : 'Escape' })
     : { attempted: false };
-  const failure = { stage, error: error instanceof Error ? error.message : String(error), pages, nativeFocus, currentNativeFocus, systemInput }
+  const failure = { stage, error: error instanceof Error ? error.message : String(error), pages, nativeFocus, currentNativeFocus, returnFocus, systemInput }
   writeFileSync(`${root}/journeys-failure.json`, JSON.stringify(failure, null, 2))
   console.error('Packaged runtime failure diagnostics:', JSON.stringify(failure))
   throw error

@@ -689,7 +689,12 @@ or relay publication. Consumer candidate `23c817c` separately prevents a
 finished run being retried under a switched extension account and verifies the
 returned NIP-98 player/template. All 268 unit tests and the private browser
 regression pass. Six of seven new security regressions fail on unchanged source.
-Its complete player-promise release gate is running; deployment is pending.
+Its complete player-promise release gate initially failed an animal-audio probe.
+That unchanged probe also fails against the previously published client: it
+starts the game directly and skips the real opening preload. Test revision
+`d19869f` uses the actual Play/opening/pause journey and retains every original
+voice assertion; targeted Chromium and WebKit probes pass. The complete gate
+has restarted on that revision. Deployment remains pending.
 See [Ledger PR 88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88).
 
 ## Native view attachment diagnostics
@@ -724,14 +729,38 @@ regardless of its result. Six ownership/platform/key guards pass. The next
 Linux gate will report whether this independent keyboard path works; neither
 Linux input repair nor physical controller acceptance is claimed.
 
-Hang On Fren candidate `53113df` also fixes duplicate personal score approvals
+Hang On Fren's functional correction `53113df` also fixes duplicate personal score approvals
 and claims while an automatic submission is pending. All 212 unit tests and
 a private normal-play browser check pass, with bounded clock/claim/body timeouts
-and retained receipts. Its public client is still `2c6716f`; hosted qualification
-and deployment of the new correction are pending.
+and retained receipts. Client revision `328540a` passed hosted run `38095785090`
+and is now deployed on Hetzner. All six public entry/runtime files match that
+checked artifact, including the private browser-tested JavaScript. The existing
+API process and configuration were preserved; see
+[public proof](evidence/hangonfren-live-328540a.json). The earlier real My Signet
+recovery remains historical evidence for `2c6716f`, rather than a new physical
+or real-signing qualification of this release.
 
 Hosted run `38095743819` at `3bae6bf` failed the first Escape return. Its
 system-keyboard diagnostic initially covered ArrowUp and the second Escape,
 so no independent key was attempted in this run. The diagnostic now covers
 both Escape return stages, preserving the original assertions and ownership
 checks. See [first-return failure](evidence/gamestr-native-3bae6bf-failure.json).
+
+## Escape delivery and shell focus are separate failures
+
+Hosted run `38096250026` at `62dd945` failed after the second game had
+already closed. Its shell received the Escape release, but focus moved to the
+carousel CTA about two milliseconds after the return handler requested focus
+on `#app`. No stale Start focus call occurred. This run establishes a shell
+focus restoration failure, not lost Escape delivery; see
+[return-focus failure](evidence/gamestr-native-62dd945-failure.json).
+The earlier `3bae6bf` first-return trace likewise records a closed game.
+
+The diagnostic now separates game closure from shell focus and records the
+active element before and after the key release. It keeps both original
+assertions and does not send another Escape after a game has closed.
+The original local Mac journey passes with these snapshots and `#app` focused
+before and after each release; see
+[local boundary probe](evidence/gamestr-native-return-boundary-local.json).
+Physical controller qualification and the broader intermittent input issue
+remain open.
