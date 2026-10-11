@@ -1181,3 +1181,25 @@ prove presentation of the full-opacity state or explain earlier cancellation.
 No full gate or checked artifact is produced. No Ledger run remains live;
 publication stays `e3937ca`. See
 [instrumented proof](evidence/ledger-media-hosted-f57b7a5.json).
+
+
+## Ledger polling and lossless streaming correction
+
+A controlled private WebKit animation demonstrates RAF polling missing the
+required >0.95 opacity while 50-ms polling observes it within the same
+five-second deadline. The actual opening fixture now uses that cadence
+without changing its conditions or deadline. Its first corrected run
+reproduces music cancellation: WebKit abandons a large body, fetches end
+metadata/replacement ranges, then reaches readyState 4 and resolves playback.
+
+The track's M4A metadata was after its audio payload. Candidate `1f41ed8`
+moves metadata to the front with a lossless fast-start remux. Encoded packet
+and decoded PCM hashes remain identical and the file size is unchanged.
+Private corrected Chromium/WebKit arrivals and WebKit supply-drop pass with
+external writes blocked; their music requests finish without cancellation.
+Original UI, network and timing assertions remain intact. Earlier failures
+remain recorded and this does not establish every hosted timeout's cause.
+
+New full run `38126484713` is queued at `1f41ed8`; no candidate is published.
+Public Ledger remains `e3937ca`, and the API is unchanged. See
+[polling and streaming proof](evidence/ledger-arrival-polling-and-faststart-258c262.json).
