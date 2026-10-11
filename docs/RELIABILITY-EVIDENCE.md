@@ -1423,3 +1423,38 @@ cookies/storage, unavailable wallet without configuration and no Node/shell
 bridge. The ready-panel regression verifies explicit GUEST NOSTR SIGNING
 wording. This qualifies cabinet guest isolation, while physical controllers
 remain explicitly pending. See [downloaded artifact verification](evidence/linux-artifact-e96baa9.json).
+
+## Ledger owner removal and personal-selection correction: 56840dc
+
+[PR #89](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/89) now
+includes a saved-score dialog with original day/status, selected-owner
+confirmation/cancel, retained other runs/accounts and cancellation of late
+extension identity responses. Personal selection cannot fall back to guest
+after missing/rejected/invalid/timed-out NIP-07 identity; a cached guest cannot
+receive an unavailable personal run. Reconnect messages are surfaced. Three
+old-fallback regressions fail; thirty corrected focused tests and production
+build pass. The dialog's heading and Back remain visible on a landscape phone,
+controls meet 44px and horizontal overflow is zero in both engines.
+
+Local full-game controls passed before the layout adjustment; later checks
+failed during media boot twelve seconds after NEXT TIME, with no script error.
+These negative results remain recorded. The independent receipt source with
+production styles passes wrong-account rejection, removal/cancel, late
+response cancellation, other-run preservation and phone layout in both engines.
+This does not replace full-game startup or the original player release gate.
+
+Original run `38135981494` for `1300c88` is terminal failure: 276 units/types,
+thirteen service groups and both score-browser profiles passed; the full gate
+failed an existing developer-panel Backquote-collapse check (11/12 passed).
+The demo capture handler swallowed the developer toggle. The scoped source
+now lets the opted-in panel own that key, while held HUD/music changes remain
+preserved separately. No threshold or timeout was relaxed.
+
+Current exact revision `56840dc33dd8b8b2175ce88309b5997b1e90d83e` passes hosted
+283 units, client/server types, thirteen private compiled-service groups and
+both isolated and full-game saved-score browser engines in
+[run 38138295851](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38138295851).
+The checked API hash is
+`fa68f637eebe1581d3c03e0e910397febe2e9ec0942c5428bf18e31e8acc37b3`.
+The original complete player gate is running. No new client or timestamp API
+extension has been deployed; live remains client `e3937ca` / API `a6bcd26`.
