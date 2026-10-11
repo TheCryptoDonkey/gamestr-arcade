@@ -1,0 +1,331 @@
+{
+  "baselineFocusedRegressionsFailed": 3,
+  "fixedFocusedRegressionsPassed": 4,
+  "allUnitsPassed": 272,
+  "typecheckAndBuildPassed": true,
+  "originalCardDurationsAndBrowserLimitsPreserved": true,
+  "externalHttpAndWebSocketWritesBlocked": true,
+  "actualHostedCauseFullyEstablished": false,
+  "newFullHostedGateRequired": true,
+  "hudSha256": "fac76037d49a80cefdf94f86aebc67d1e5f10c86b2a26a652b025bae2f7ab02d",
+  "checks": {
+    "paint-webkit": [
+      {
+        "label": "desktop",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 0.951866,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": false,
+          "touchState": {
+            "hidden": true,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 980,
+            "height": 178,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "restored": {
+          "hudOpacity": 0.991816,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0.014371,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 0.986045,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "requestFailures": []
+      },
+      {
+        "label": "phone",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 0.955673,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": true,
+          "touchState": {
+            "hidden": false,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 843.984375,
+            "height": 118,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 844,
+            "height": 390
+          }
+        },
+        "restored": {
+          "hudOpacity": 0.988155,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0.009575,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 0.987473,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "requestFailures": []
+      }
+    ],
+    "paint-chromium": [
+      {
+        "label": "desktop",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 1,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": false,
+          "touchState": {
+            "hidden": true,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 980,
+            "height": 178,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "restored": {
+          "hudOpacity": 1,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 1,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "requestFailures": []
+      },
+      {
+        "label": "phone",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 1,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": true,
+          "touchState": {
+            "hidden": false,
+            "visibility": "visible",
+            "opacity": 0.996336,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 844,
+            "height": 118,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 844,
+            "height": 390
+          }
+        },
+        "restored": {
+          "hudOpacity": 0.99894,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 1,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "requestFailures": []
+      }
+    ],
+    "real-play-webkit": [
+      {
+        "label": "desktop",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 0.959879,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": false,
+          "touchState": {
+            "hidden": true,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 980,
+            "height": 178,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "restored": {
+          "hudOpacity": 0.996339,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0.00988,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 0.98677,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "requestFailures": []
+      },
+      {
+        "label": "phone",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 0.960459,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": true,
+          "touchState": {
+            "hidden": false,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 843.984375,
+            "height": 118,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 844,
+            "height": 390
+          }
+        },
+        "restored": {
+          "hudOpacity": 0.986045,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0.008656,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 0.988817,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "requestFailures": []
+      }
+    ]
+  }
+}

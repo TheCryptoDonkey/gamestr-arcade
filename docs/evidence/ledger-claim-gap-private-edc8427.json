@@ -1,0 +1,75 @@
+{
+  "privateCompiledApi": true,
+  "sourceRevision": "edc842783cff57587ba528dd47daaec8a0690365",
+  "externalHttpBlocked": true,
+  "allWebSocketsFake": true,
+  "ownerKeysUsed": false,
+  "liveServiceChanged": false,
+  "initial": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "score_event_id": "310a6e92c5c6cf6fdfa3c691d0f167696e623bbc95e4cbf95b20fc3f494a0f7c",
+      "status": "accepted",
+      "published": {
+        "ok": 0,
+        "total": 1
+      }
+    }
+  },
+  "retry": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "score_event_id": "310a6e92c5c6cf6fdfa3c691d0f167696e623bbc95e4cbf95b20fc3f494a0f7c",
+      "status": "accepted",
+      "published": {
+        "ok": 0,
+        "total": 1
+      }
+    }
+  },
+  "restart": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "score_event_id": "310a6e92c5c6cf6fdfa3c691d0f167696e623bbc95e4cbf95b20fc3f494a0f7c",
+      "status": "accepted",
+      "published": {
+        "ok": 0,
+        "total": 1
+      }
+    }
+  },
+  "changed": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "score_event_id": "310a6e92c5c6cf6fdfa3c691d0f167696e623bbc95e4cbf95b20fc3f494a0f7c",
+      "status": "accepted",
+      "published": {
+        "ok": 0,
+        "total": 1
+      }
+    }
+  },
+  "expired": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "score_event_id": "dd6697154fb0498871eb7ecba3fd7f36ea5e058bca041b3234b83489dcf5428d",
+      "status": "accepted",
+      "published": {
+        "ok": 0,
+        "total": 1
+      },
+      "reason": "below_best"
+    }
+  },
+  "scoreEventsBeforeRetry": 1,
+  "scoreEventsAfterRetry": 1,
+  "unconfirmedReplayRepublished": false,
+  "changedRunRejected": false,
+  "originalEventRetainedAfterThirtyMinutes": false,
+  "compiledApiSha256": "d26a9acbc5a70126f1b3abb0ea866cb15afe68ead8f83d0be8cedd3cff5a89dc"
+}

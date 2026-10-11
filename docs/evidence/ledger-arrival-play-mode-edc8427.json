@@ -1,0 +1,947 @@
+{
+  "privateBrowser": true,
+  "externalWritesBlocked": true,
+  "originalAssertionsAndLimitsPreserved": true,
+  "report": {
+    "browser": "webkit",
+    "startMode": "play",
+    "reports": [
+      {
+        "label": "desktop",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 0.999332,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": false,
+          "touchState": {
+            "hidden": true,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 980,
+            "height": 178,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "restored": {
+          "hudOpacity": 0.993375,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "scored": {
+          "dailyHidden": true,
+          "routeHidden": true,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "council": {
+          "routeHidden": false,
+          "dailyHidden": true
+        },
+        "secondWave": {
+          "hidden": false,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0.017903,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 0.9998,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "failures": [],
+        "requestTimeline": [],
+        "mediaDiagnostics": {
+          "network": [
+            {
+              "at": 1791710267908,
+              "id": 0,
+              "event": "request",
+              "path": "/music/saucer-theme.m4a",
+              "type": "other",
+              "range": "bytes=0-1"
+            },
+            {
+              "at": 1791710267924,
+              "id": 1,
+              "event": "request",
+              "path": "/music/600-billion-eyes.m4a",
+              "type": "other",
+              "range": "bytes=0-1"
+            },
+            {
+              "at": 1791710268069,
+              "id": 0,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-1/2366429",
+              "length": "2"
+            },
+            {
+              "at": 1791710268069,
+              "id": 0,
+              "event": "finished"
+            },
+            {
+              "at": 1791710268104,
+              "id": 1,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-1/5093604",
+              "length": "2"
+            },
+            {
+              "at": 1791710268104,
+              "id": 1,
+              "event": "finished"
+            },
+            {
+              "at": 1791710268106,
+              "id": 6,
+              "event": "request",
+              "path": "/music/saucer-theme.m4a",
+              "type": "other",
+              "range": "bytes=0-2366428"
+            },
+            {
+              "at": 1791710268133,
+              "id": 7,
+              "event": "request",
+              "path": "/music/600-billion-eyes.m4a",
+              "type": "other",
+              "range": "bytes=0-5093603"
+            },
+            {
+              "at": 1791710268944,
+              "id": 6,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-2366428/2366429",
+              "length": "2366429"
+            },
+            {
+              "at": 1791710268949,
+              "id": 6,
+              "event": "finished"
+            },
+            {
+              "at": 1791710269022,
+              "id": 7,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-5093603/5093604",
+              "length": "5093604"
+            },
+            {
+              "at": 1791710269047,
+              "id": 7,
+              "event": "finished"
+            }
+          ],
+          "elements": [
+            {
+              "id": 0,
+              "event": "play:call",
+              "at": 1791710267608,
+              "path": "/music/saucer-theme.m4a",
+              "paused": true,
+              "ready": 0,
+              "network": 3,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 1,
+              "event": "play:call",
+              "at": 1791710267625,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": true,
+              "ready": 0,
+              "network": 3,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 0,
+              "event": "loadstart",
+              "at": 1791710267805,
+              "path": "/music/saucer-theme.m4a",
+              "paused": false,
+              "ready": 0,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 1,
+              "event": "loadstart",
+              "at": 1791710267805,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 0,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 0,
+              "event": "loadedmetadata",
+              "at": 1791710268539,
+              "path": "/music/saucer-theme.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 112.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "canplay",
+              "at": 1791710268539,
+              "path": "/music/saucer-theme.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 112.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "playing",
+              "at": 1791710268539,
+              "path": "/music/saucer-theme.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 112.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "play:resolved",
+              "at": 1791710268540,
+              "path": "/music/saucer-theme.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 112.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "loadedmetadata",
+              "at": 1791710268754,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 1,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "canplay",
+              "at": 1791710268768,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "playing",
+              "at": 1791710268768,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "play:resolved",
+              "at": 1791710268768,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "pause:call",
+              "at": 1791710268768,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "pause",
+              "at": 1791710268806,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": true,
+              "ready": 4,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "play:call",
+              "at": 1791710269655,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": true,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "playing",
+              "at": 1791710269680,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "play:resolved",
+              "at": 1791710269680,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "pause:call",
+              "at": 1791710269681,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "pause",
+              "at": 1791710269736,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": true,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "play:call",
+              "at": 1791710270806,
+              "path": "/music/saucer-theme.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 1.9887587910189692,
+              "duration": 112.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "play:call",
+              "at": 1791710270811,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": true,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "play:resolved",
+              "at": 1791710270873,
+              "path": "/music/saucer-theme.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 2.0554870407368337,
+              "duration": 112.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "playing",
+              "at": 1791710270873,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "play:resolved",
+              "at": 1791710270873,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "pause:call",
+              "at": 1791710272299,
+              "path": "/music/saucer-theme.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 3.4813183753798347,
+              "duration": 112.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "pause",
+              "at": 1791710272336,
+              "path": "/music/saucer-theme.m4a",
+              "paused": true,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 3.4813519586390447,
+              "duration": 112.98866666666666
+            }
+          ]
+        }
+      },
+      {
+        "label": "phone",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 0.976059,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": true,
+          "touchState": {
+            "hidden": false,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 843.984375,
+            "height": 118,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 844,
+            "height": 390
+          }
+        },
+        "restored": {
+          "hudOpacity": 1,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "scored": {
+          "dailyHidden": true,
+          "routeHidden": true,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "council": {
+          "routeHidden": false,
+          "dailyHidden": true
+        },
+        "secondWave": {
+          "hidden": false,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 3.2e-05,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 0.98677,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "failures": [],
+        "requestTimeline": [],
+        "mediaDiagnostics": {
+          "network": [
+            {
+              "at": 1791710287074,
+              "id": 0,
+              "event": "request",
+              "path": "/music/600-billion-eyes.m4a",
+              "type": "other",
+              "range": "bytes=0-1"
+            },
+            {
+              "at": 1791710287074,
+              "id": 1,
+              "event": "request",
+              "path": "/music/saucer-theme.m4a",
+              "type": "other",
+              "range": "bytes=0-1"
+            },
+            {
+              "at": 1791710287138,
+              "id": 0,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-1/5093604",
+              "length": "2"
+            },
+            {
+              "at": 1791710287138,
+              "id": 0,
+              "event": "finished"
+            },
+            {
+              "at": 1791710287143,
+              "id": 1,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-1/2366429",
+              "length": "2"
+            },
+            {
+              "at": 1791710287143,
+              "id": 1,
+              "event": "finished"
+            },
+            {
+              "at": 1791710287360,
+              "id": 6,
+              "event": "request",
+              "path": "/music/600-billion-eyes.m4a",
+              "type": "other",
+              "range": "bytes=0-5093603"
+            },
+            {
+              "at": 1791710287360,
+              "id": 7,
+              "event": "request",
+              "path": "/music/saucer-theme.m4a",
+              "type": "other",
+              "range": "bytes=0-2366428"
+            },
+            {
+              "at": 1791710287382,
+              "id": 6,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-5093603/5093604",
+              "length": "5093604"
+            },
+            {
+              "at": 1791710287382,
+              "id": 7,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-2366428/2366429",
+              "length": "2366429"
+            },
+            {
+              "at": 1791710287581,
+              "id": 6,
+              "event": "finished"
+            },
+            {
+              "at": 1791710287581,
+              "id": 7,
+              "event": "finished"
+            }
+          ],
+          "elements": [
+            {
+              "id": 0,
+              "event": "play:call",
+              "at": 1791710287006,
+              "path": "/music/saucer-theme.m4a",
+              "paused": true,
+              "ready": 0,
+              "network": 3,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 1,
+              "event": "play:call",
+              "at": 1791710287011,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": true,
+              "ready": 0,
+              "network": 3,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 0,
+              "event": "loadstart",
+              "at": 1791710287028,
+              "path": "/music/saucer-theme.m4a",
+              "paused": false,
+              "ready": 0,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 1,
+              "event": "loadstart",
+              "at": 1791710287028,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 0,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 1,
+              "event": "loadedmetadata",
+              "at": 1791710287503,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.007035065367779851,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "loadedmetadata",
+              "at": 1791710287503,
+              "path": "/music/saucer-theme.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.0007575833005830646,
+              "duration": 112.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "canplay",
+              "at": 1791710287503,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.00707227368369621,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "playing",
+              "at": 1791710287503,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.00707752366546464,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "play:resolved",
+              "at": 1791710287503,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.007137773600368917,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "pause:call",
+              "at": 1791710287503,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.007182981977201223,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "canplay",
+              "at": 1791710287503,
+              "path": "/music/saucer-theme.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.0009661666117608547,
+              "duration": 112.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "playing",
+              "at": 1791710287503,
+              "path": "/music/saucer-theme.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.0009696666384115815,
+              "duration": 112.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "play:resolved",
+              "at": 1791710287503,
+              "path": "/music/saucer-theme.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.00097287492826581,
+              "duration": 112.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "pause",
+              "at": 1791710287536,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": true,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "play:call",
+              "at": 1791710287772,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": true,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "playing",
+              "at": 1791710287783,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "play:resolved",
+              "at": 1791710287783,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "pause:call",
+              "at": 1791710287783,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "pause",
+              "at": 1791710287792,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": true,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "play:call",
+              "at": 1791710288278,
+              "path": "/music/saucer-theme.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.7693246340003949,
+              "duration": 112.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "play:call",
+              "at": 1791710288282,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": true,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.057120808,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "play:resolved",
+              "at": 1791710288609,
+              "path": "/music/saucer-theme.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 1.1000170919555647,
+              "duration": 112.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "playing",
+              "at": 1791710288609,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.30802255374268245,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 1,
+              "event": "play:resolved",
+              "at": 1791710288609,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.3080275536643396,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "pause:call",
+              "at": 1791710289359,
+              "path": "/music/saucer-theme.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 1.849725508323337,
+              "duration": 112.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "pause",
+              "at": 1791710289374,
+              "path": "/music/saucer-theme.m4a",
+              "paused": true,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 1.8497720915651201,
+              "duration": 112.98866666666666
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

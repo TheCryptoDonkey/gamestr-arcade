@@ -1214,3 +1214,34 @@ fixture's direct start with real PLAY's preload/render warm-up. No full
 gate or checked artifact is produced, no Ledger gate remains live, and public
 source stays `e3937ca`. See
 [hosted result](evidence/ledger-arrival-hosted-1f41ed8.json).
+
+
+## Ledger reveal lifecycle and API baseline
+
+The HUD starts reading/expiry timers before the reveal frame and leaves queued
+callbacks alive after cancellation/replacement. Three focused regressions fail
+on the original source. `edc8427` starts the unchanged card durations in the
+reveal frame, cancels/invalidates obsolete callbacks and queues badges until
+the arrival yields the screen. Four focused regressions, all 272 units and
+type checks/build pass. Private Chromium/WebKit arrivals and actual WebKit
+PLAY/LATER/loader journeys pass at both viewports with external writes blocked.
+See [lifecycle proof](evidence/ledger-arrival-paint-ecc8899.json).
+
+Hosted `38127430741` is terminal failure at the original direct-start desktop
+opening condition. It records successful music playback, no request failures
+and one opacity-zero sample before timeout; the cause is unestablished. The
+complete gate is not exercised. New `ceb581a` adds an actual PLAY comparison
+mode before the unchanged direct fixture and full gate. Exact local comparison
+passes; hosted `38128029617` is queued. Publication stays `e3937ca`. See
+[hosted failure](evidence/ledger-arrival-hosted-edc8427.json) and
+[actual-route check](evidence/ledger-arrival-play-mode-edc8427.json).
+
+The private compiled API probe separately reproduces zero-acknowledgement
+replays without republication (including restart), accepted changed details
+under the same ID, and a regenerated event after 31-minute cache pruning.
+This is cache retention, not a demonstrated ten-minute run-age rejection:
+the API receives no absolute finish timestamp. It uses only disposable keys,
+loopback HTTP and fake WebSockets, with external HTTP blocked. No live API
+is changed. Durable exact-event recovery and semantic conflict checks must
+preserve the existing daily-best protection. See
+[backend baseline](evidence/ledger-claim-gap-private-edc8427.json).

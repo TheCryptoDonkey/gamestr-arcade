@@ -1,0 +1,22 @@
+{
+  "run": 38127430741,
+  "revision": "edc842783cff57587ba528dd47daaec8a0690365",
+  "conclusion": "failure",
+  "unitTestsPassed": 272,
+  "failedSection": "early direct desktop WebKit opening-ready",
+  "timeoutMs": 5000,
+  "startDurationMs": 61,
+  "openingSamples": [
+    {
+      "at": 4957,
+      "hidden": false,
+      "opacity": 0
+    }
+  ],
+  "currentCardHidden": true,
+  "requestFailures": [],
+  "musicPlaybackResolved": true,
+  "fullGateExercised": false,
+  "candidatePublished": false,
+  "causeEstablished": false
+}
