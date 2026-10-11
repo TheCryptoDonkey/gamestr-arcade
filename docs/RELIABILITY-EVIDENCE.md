@@ -60,6 +60,14 @@ Fresh GET-only checks display the previously earned Neon and Hang On Fren
 scores correctly on current arcade `c4b7929` in both editions. These four
 [display checks](evidence/gamestr-c4b7929-retained-neon-hof-score-ui.json) use
 separate earlier accounts and do not establish current four-game gameplay.
+Actual Meta-click from current 600 `c4b7929`, signed in with a disposable
+My Signet identity, opens current Hang On Fren `e4ec515`, Neon `046a822`
+and Pallasite `9813d13` independently. Each has no handoff fragment or opener,
+no copied arcade identity, and leaves the original arcade account intact;
+its main script matches the published hash. See [independent entry](evidence/gamestr-c4b7929-independent-entry.json).
+This does not qualify completion of independent login, physical input,
+proof expiry or the new Ledger client.
+
 Earlier releases and failed gates below remain historical evidence. Public 600
 DNS, physical provider checks and the unpaid 100-sat test remain open.
 
