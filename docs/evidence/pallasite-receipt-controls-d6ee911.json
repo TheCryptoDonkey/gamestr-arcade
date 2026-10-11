@@ -51,9 +51,17 @@
   ],
   "fullHostedQualification": {
     "run": 38158290331,
-    "status": "in_progress",
-    "notYetQualified": true
+    "status": "completed",
+    "notYetQualified": true,
+    "conclusion": "success",
+    "browserChecksPassed": 8
   },
   "actualPublicEarnedScoreRecovery": false,
-  "physicalDevice": false
+  "physicalDevice": false,
+  "publication": {
+    "revision": "9813d131985ae97d70cf7c2420c8089dd2cf82a4",
+    "deploymentRun": 38158625243,
+    "conclusion": "success",
+    "verifiedCriticalFiles": 14
+  }
 }

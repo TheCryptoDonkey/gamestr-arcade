@@ -5,9 +5,9 @@ automated results, hosted artifacts and actual user/device acceptance.
 
 Current arcade web revision is `c4b7929`, with exact hosted CI, served asset
 hashes and real desktop signer checks recorded below. Ledger client remains
-`e3937ca` while candidate `a1d3290` runs the complete release gate. Pallasite
-restoration PR #13 passed branch CI and is merged as `ee91c65`; its deployment passes and all 14 checked critical files match. Current actual
-earned-score acceptance and receipt-removal controls remain pending. Earlier releases and failed gates
+`e3937ca` while candidate `a1d3290` runs the complete release gate. Pallasite restoration and receipt controls are merged and published as
+`9813d13`: full hosted checks pass and all 14 checked critical served files
+match. Current actual earned-score acceptance remains pending. Earlier releases and failed gates
 below are retained as historical evidence. Public 600 DNS, physical provider
 checks and the unpaid 100-sat test remain open.
 
@@ -1911,3 +1911,21 @@ is running for `d6ee911113669af62aae1a98c060531aebbc2e0c`. Published restoration
 `ee91c65` remains unchanged. The new controls require a full hosted pass,
 publication verification and current earned-score acceptance. See
 [scoped receipt-control evidence](evidence/pallasite-receipt-controls-d6ee911.json).
+
+### Receipt controls published on current main: 9813d13
+
+Pallasite PR #14 is merged as `9813d131985ae97d70cf7c2420c8089dd2cf82a4`.
+Branch run `38158290331` passes all thirteen recovery/HTTP groups and all eight
+production-build browser journeys, including the new keyboard removal case.
+The earlier local full-browser failures remain recorded. Merged CI
+`38158625121` and deployment `38158625243` also pass. The branch and merged
+source trees are identical (`f3ee94aacc3240e9607420bac1d8a0593e38c12e`).
+
+All fourteen served entry/version/worker/SDK/scripts/styles match a local build
+of that exact tree with the merged revision metadata. Public version is
+`9813d13`; the worker cache is v235. The current graphics and council update
+remain intact. See [publication proof](evidence/pallasite-live-9813d13.json).
+This qualifies publication and automated receipt controls; current real earned
+recovery, the four-game shared-account matrix and physical acceptance remain
+open. Ledger's exact full release gate `38156400254` remains in progress; its
+published client is unchanged.
