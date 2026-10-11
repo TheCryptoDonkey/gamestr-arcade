@@ -1,0 +1,83 @@
+{
+  "revision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
+  "publicEventWritesBlocked": true,
+  "approvedIdentity": false,
+  "results": [
+    {
+      "origin": "https://gamestr.62-238-98-53.sslip.io",
+      "forcedHetznerOrigin": false,
+      "choice": "My Signet on another device (QR)",
+      "newRelayConnections": 1,
+      "relays": [
+        "wss://relay.trotters.cc"
+      ],
+      "allNewConnectionsClosed": true,
+      "closeAfterCancelMs": 118,
+      "loginReadyForRetry": true,
+      "physicalDevice": false,
+      "actualSdk": true,
+      "actualRetryOpenedNewLoginConnection": true,
+      "originalConnectionsRemainClosed": true,
+      "retryConnectionsClosed": true,
+      "retryCloseAfterCancelMs": 118
+    },
+    {
+      "origin": "https://gamestr.62-238-98-53.sslip.io",
+      "forcedHetznerOrigin": false,
+      "choice": "Connect a Nostr signer (NIP-46 QR)",
+      "newRelayConnections": 1,
+      "relays": [
+        "wss://relay.trotters.cc"
+      ],
+      "allNewConnectionsClosed": true,
+      "closeAfterCancelMs": 231,
+      "loginReadyForRetry": true,
+      "physicalDevice": false,
+      "actualSdk": true,
+      "actualRetryOpenedNewLoginConnection": true,
+      "originalConnectionsRemainClosed": true,
+      "retryConnectionsClosed": true,
+      "retryCloseAfterCancelMs": 198
+    },
+    {
+      "origin": "https://arcade.600.wtf",
+      "forcedHetznerOrigin": true,
+      "choice": "My Signet on another device (QR)",
+      "newRelayConnections": 1,
+      "relays": [
+        "wss://relay.trotters.cc"
+      ],
+      "allNewConnectionsClosed": true,
+      "closeAfterCancelMs": 207,
+      "loginReadyForRetry": true,
+      "physicalDevice": false,
+      "actualSdk": true,
+      "actualRetryOpenedNewLoginConnection": true,
+      "originalConnectionsRemainClosed": true,
+      "retryConnectionsClosed": true,
+      "retryCloseAfterCancelMs": 124
+    },
+    {
+      "origin": "https://arcade.600.wtf",
+      "forcedHetznerOrigin": true,
+      "choice": "Connect a Nostr signer (NIP-46 QR)",
+      "newRelayConnections": 1,
+      "relays": [
+        "wss://relay.trotters.cc"
+      ],
+      "allNewConnectionsClosed": true,
+      "closeAfterCancelMs": 171,
+      "loginReadyForRetry": true,
+      "physicalDevice": false,
+      "actualSdk": true,
+      "actualRetryOpenedNewLoginConnection": true,
+      "originalConnectionsRemainClosed": true,
+      "retryConnectionsClosed": true,
+      "retryCloseAfterCancelMs": 218
+    }
+  ],
+  "at": "2026-10-11T15:14:32.216Z",
+  "connectionScope": "New login subscriptions with kind 1059 or 24133; unrelated profile-feed sockets excluded",
+  "fixtureCorrection": "The initial all-new-sockets assertion counted asynchronous profile requests. Diagnostic evidence identified the actual login socket as closed; the qualified fixture waits for an active login subscription before cancellation.",
+  "priorFixtureFailureRetained": true
+}

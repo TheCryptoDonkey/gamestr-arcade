@@ -1708,3 +1708,23 @@ client manifest has a successful full release run; it will verify original
 receipt retention after reload and eleven minutes, same-account independent
 login, positive publication, original NIP-98 payload and both fresh arcade
 score displays. It has not been executed or qualified yet.
+
+### Actual QR cancellation and immediate retry on c4b7929
+
+The deployed SDK closes active My Signet remote-login (kind 1059) and generic
+NIP-46 pairing (kind 24133) connections when Cancel is selected. Both web editions
+pass a real relay check followed by an immediate retry in the same browser
+context: the original connection remains closed, the new attempt opens a fresh
+login connection, and cancelling the retry closes it too. Login is ready for
+another attempt. All eight cancellation observations complete within 231 ms.
+The 600 check uses forced resolution to Hetzner; it does not qualify public DNS.
+No identity is approved, no score is submitted, and public event writes are
+blocked. See [the exact proof](evidence/gamestr-c4b7929-login-cancellation-retry.json).
+
+The first fixture incorrectly included unrelated profile-feed connections
+created after its initial snapshot. Its retained diagnostic identifies those
+kind-0 profile requests and the closed login socket. The qualified fixture
+identifies login connections by their actual subscription kinds and waits for
+an active login subscription before cancellation. Its five-second closure
+assertion is unchanged. This does not substitute for physical phone/provider
+acceptance or prove every session-switching path.

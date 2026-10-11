@@ -157,6 +157,14 @@ reconnect and signer-state criteria are checked using these live journeys plus
 source regressions for auth-only restoration, failed relay and superseded
 sessions. The combined physical/provider acceptance criterion remains open.
 
+On current `c4b7929`, actual relay checks also verify cancellation and immediate
+retry of My Signet remote QR and generic NIP-46 QR in both editions. Each active
+login connection closes, retry opens a fresh connection, and cancelling it keeps
+the original closed and leaves login ready. All eight observations complete
+within 231 ms. Unrelated profile-feed connections are excluded by subscription
+kind. No identity is approved and public event writes are blocked. These checks
+do not qualify every session-switching path or physical phone/provider use.
+
 Start in [nostr-access.ts](../src/web/nostr-access.ts),
 [account-identity.ts](../src/web/account-identity.ts) and the package lockfile.
 Use the [SDK changelog](https://github.com/forgesworn/signet-login/blob/main/CHANGELOG.md)
