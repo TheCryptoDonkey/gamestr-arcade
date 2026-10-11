@@ -1152,3 +1152,32 @@ explicit same-account reconnect, then normally earned 4,732 points after parent
 closure. The original receipt remains saved with zero claim HTTP attempts while
 the eleven-minute delay elapses. Submission, subsequent reconnect and display
 qualification remain pending; this is progress evidence, not a completed gate.
+
+
+## Hang On Fren actual delayed recovery qualifies
+
+The fresh current `e4ec515` journey is complete: 4,732 points earned through
+normal play after parent closure, first receipt retained with zero claim HTTP
+attempts, and byte-for-byte preservation through a 662,518-ms delay. Explicit
+original-account My Signet reconnect and selected retry produce one canonical
+NIP-98 claim, HTTP 200 and six of seven relay acknowledgements. Positive
+publication clears the exact receipt; an independent relay read verifies
+reviewed authority, player and score. Both fresh edition displays pass.
+The 600 browser origin is forced to Hetzner; physical and DNS acceptance remain
+open. No game state or receipt is seeded and no payment is performed.
+The earlier failed attempts remain recorded without retrospective cause claims.
+See [earned proof](evidence/hangonfren-earned-delayed-recovery-e4ec515.json)
+and [display proof](evidence/hangonfren-earned-delayed-recovery-ui-e4ec515.json).
+
+## Ledger current instrumented result
+
+Run `38125547605` / `f57b7a5` is terminal failure after 268 unit passes.
+The early desktop WebKit opening-ready condition times out with no request
+failures and successful media playback (readyState 4, no media error).
+Bounded UI samples observe opacity 0, then 0.86988 after about one second,
+then hidden/0 nearly four seconds later; synchronous start takes 111 ms.
+This identifies sparse observation as an additional concern, but does not
+prove presentation of the full-opacity state or explain earlier cancellation.
+No full gate or checked artifact is produced. No Ledger run remains live;
+publication stays `e3937ca`. See
+[instrumented proof](evidence/ledger-media-hosted-f57b7a5.json).
