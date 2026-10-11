@@ -1305,3 +1305,31 @@ for inspection; rollback restores binaries only and preserves newer claims.
 The frontend remains `e3937ca`; no actual new-client provider recovery or
 physical acceptance is claimed. Original nine-goal criteria remain open.
 See [API delivery evidence](evidence/ledger-claim-api-deployed-a6bcd26.json).
+
+## 11 October: current arcade web delivery
+
+Revision `a45717181699e5dbcaaf98431a82d16301d27ba0` is deployed to both
+Hetzner web editions. Ledger remains in the catalogue at the owner's request;
+Beamward is separate. Android signer timeouts now give Cambium/Amber retry
+instructions, and connection messages apply to the selected provider.
+
+The required push gate passes 660 units, type checks and desktop/both web
+builds. One complete local Chrome run passes all 50 browser journeys, including
+both editions' callback validation, account revocation, launch handoff and
+wallet cancellation/amount checks. Earlier callback startup timing failure is
+historical; the current complete run passed unchanged assertions and timeouts.
+Hosted [CI 38132482332](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38132482332)
+on functional commit `6c3edc6` passes source/build, browser, audit and packaged
+Linux runtime gates. Runtime and build sources match `a457171`; their difference
+is the owner's catalogue-scope documentation. The exact deployed `a457171` also passes hosted
+[CI 38132920714](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38132920714),
+including all browser and Linux package runtime checks. This qualifies that
+checked run, while physical cabinet input and delivery remain separate.
+
+The [standard proof](evidence/gamestr-web-a457171.json) and
+[600 proof](evidence/gamestr-600-live-a457171.json) verify release metadata,
+eleven exact file hashes per edition, TLS, CSP, HSTS, MIME protection and frame
+protection. Checks include the catalogue and both Ledger/Pallasite deep links.
+The 600 proof uses forced resolution to `62.238.98.53`; public DNS still points
+to `95.217.39.110`. Both previous `4aa7661` release directories remain available.
+No payment was sent and no physical signer or cabinet acceptance is implied.
