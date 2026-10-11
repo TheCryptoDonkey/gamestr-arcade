@@ -352,6 +352,11 @@ Acceptance criteria:
 - [ ] Test WebLN and an actual mobile wallet route. A payment test uses a
   separately authorised recipient and amount and records the confirmation method.
 
+The owner checked the earlier authorised 100-sat Wallet of Satoshi attempt on
+11 October and reports that it was not paid. Wallet launch and invoice creation
+remain evidence of preparation only; Goal 9's real-payment acceptance is open.
+No second payment or invoice was attempted in response to this report.
+
 Start in [lightning-reward.ts](../src/web/lightning-reward.ts) and the reward dialog.
 
 ## Acceptance evidence

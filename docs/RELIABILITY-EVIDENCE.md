@@ -1361,3 +1361,11 @@ The Android callback outcomes and destination criteria are checked as source
 and automated evidence. Actual Cambium/Amber/iPhone round trips remain open in
 the separate physical criterion. No physical signer or payment result is inferred
 from SDK error simulations, hosted browser checks or static asset matching.
+
+## 11 October: owner reports the wallet test was unpaid
+
+Asked to check the earlier 100-sat Wallet of Satoshi test to
+`profusemeat89@walletofsatoshi.com`, without sending another payment, the owner
+answered: "It wasn't paid". This is the owner's physical-wallet status report,
+not a server-verified receipt. The test has no successful settlement evidence
+and Goal 9 remains open. No second invoice or payment was attempted.
