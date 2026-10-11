@@ -13,7 +13,8 @@
   "typecheck": "pass",
   "linuxBuild": "pass",
   "binarySha256": "a6a2d491fe8519a6cb66e5336c82f883828719550dad479a3583d3342d3ad049",
-  "activation": "pending",
+  "activation": "published from checked artifact",
   "actualEarnedRecovery": "pending",
-  "realPayments": 0
+  "realPayments": 0,
+  "liveProof": "pallasite-faucet-live-3173d18.json"
 }

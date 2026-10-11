@@ -1,0 +1,25 @@
+{
+  "revision": "3173d18a2876fcfb4e1ea062f6f8d16c03718c4b",
+  "checkedRun": 38170265130,
+  "binarySha256": "a6a2d491fe8519a6cb66e5336c82f883828719550dad479a3583d3342d3ad049",
+  "oldBinarySha256": "f49d9cbd1a592c7d3c7e5145bbb9fc0b7644ca70d4bc45a545f982be63237593",
+  "authority": "fa9291d038fd1d3e4439364f289f2e53a64a1d32776ee52c000da53ebc718cdc",
+  "relays": [
+    "wss://main.relay.gamestr.io",
+    "wss://relay.trotters.cc",
+    "wss://nos.lol",
+    "wss://relay.damus.io",
+    "wss://relay.nostr.band",
+    "wss://relay.primal.net",
+    "wss://relay.ditto.pub"
+  ],
+  "existingTablesPreservedDuringMigration": 12,
+  "configurationUnchanged": true,
+  "backupMode": "0600",
+  "oldBinaryRetained": true,
+  "databaseIntegrity": "ok",
+  "service": "active",
+  "activatedAt": "2026-10-11T20:07:58Z",
+  "publicAuthorityAndRelaysVerified": true,
+  "localHealth": "ready"
+}

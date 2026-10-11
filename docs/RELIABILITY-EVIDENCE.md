@@ -13,6 +13,7 @@ then failed the Chromium harvest report: image download and clipboard content
 passed, but its transient confirmation label had reset before the fixture read it.
 The fixture now records the real label mutation before its timed reset. Candidate
 `e6e2066` awaits the complete [hosted gate](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38170291018).
+See the [current fixture qualification](evidence/ledger-harvest-feedback-e6e2066.json).
 Its local WebKit harvest profile passes; local Chromium remains unqualified at
 an earlier game-over startup wait. Published Ledger client remains `e3937ca`.
 
@@ -26,7 +27,10 @@ runs. See [failure evidence](evidence/pallasite-earned-recovery-rejection-9813d1
 The API correction `3173d18` accepts both formats, preserves original dates and
 durably reuses the exact signed event. All 131 local tests, types, Linux build
 and [hosted qualification](evidence/pallasite-faucet-recovery-3173d18-ci.json) pass.
-Activation and actual earned recovery remain pending.
+The checked API binary is now [published](evidence/pallasite-faucet-live-3173d18.json):
+twelve existing tables remain unchanged through the additive migration; original
+authority, relays and configuration remain intact. The old binary and a private
+consistent database backup are retained. Actual earned recovery remains pending.
 
 Fresh GET-only checks display the previously earned Neon and Hang On Fren
 scores correctly on current arcade `c4b7929` in both editions. These four

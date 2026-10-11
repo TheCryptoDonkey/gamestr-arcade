@@ -1,0 +1,25 @@
+{
+  "revision": "e6e20663627c5403b6d642d35dac87f5ede09e67",
+  "fullReleaseGate": {
+    "run": 38170291018,
+    "status": "in_progress",
+    "qualified": false
+  },
+  "previousGate": {
+    "run": 38165987187,
+    "conclusion": "failure",
+    "passedChecks": 51,
+    "failedCheck": "Readable harvest report (Chromium)",
+    "imageAndClipboardPassed": true,
+    "transientConfirmationReadAfterReset": true
+  },
+  "correction": "Observe the actual confirmation label mutation in the browser before its timed reset; retain image, clipboard, dimensions, layout and retry checks.",
+  "localWebkitHarvestProfile": "pass",
+  "localChromiumHarvestProfile": {
+    "qualified": false,
+    "failure": "Earlier original game-over visibility wait, before share checks"
+  },
+  "productionSourceChanged": false,
+  "requiredOriginalReleaseChecks": 98,
+  "completeReleaseQualified": false
+}

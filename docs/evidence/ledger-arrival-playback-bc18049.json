@@ -606,7 +606,11 @@
   "fullReleaseGate": {
     "run": 38165987187,
     "headSha": "bc18049f490964fe19b78f38c34404433c191229",
-    "status": "in_progress",
-    "qualified": false
+    "status": "completed",
+    "qualified": false,
+    "conclusion": "failure",
+    "passedReleaseChecks": 51,
+    "failedCheck": "Readable harvest report (Chromium)",
+    "audioChecksReachedAndPassed": true
   }
 }
