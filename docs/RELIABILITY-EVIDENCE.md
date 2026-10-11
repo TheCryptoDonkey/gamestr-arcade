@@ -981,3 +981,57 @@ deduplication key and receives `below_best`. The client recalculates server
 clock offset for each retry, so the replacement policy must account for that
 transport correction while preserving the original accepted run and event.
 See [private API baseline](evidence/hangonfren-claim-gap-baseline-110262e.json).
+
+
+## Hang On Fren delayed-recovery candidate
+
+Source `e4ec515` corrects the private baseline failures. It accepts saved runs
+with fresh NIP-98, identifies retries by account/run, preserves the first
+accepted timestamps across coherent server-clock correction, durably records
+the full signed event before publication, and republishes that same event after
+restart. Changed run details conflict. Serial acceptance and later timestamps
+for improvements protect per-level addressable best scores; superseded pending
+runs cannot overwrite a newer best, and stone-tour addresses remain separate.
+
+All 219 local units, type checks and client/server builds pass. Its private
+compiled-API fixture verifies seven-day recovery, restart/same-event reuse,
+clock correction, fresh-auth rejection, concurrent deduplication, ordering,
+superseded-run protection, legacy confirmed records, missing legacy events and
+corrupt history. The client adds explicit owner-confirmed removal of only the
+selected retry copy, first-receipt immutability and preservation of malformed
+storage. Session changes and in-flight claims prevent removal. CI now archives
+the checked API and recovery proof alongside the checked client.
+
+This is a source candidate, not yet a published correction. The currently
+published `328540a` real My Signet recovery remains qualified separately;
+actual long-delay provider and physical qualification remain open. See
+[consumer PR 2](https://github.com/TheCryptoDonkey/hang-on-fren-public/pull/2)
+and its scoped evidence.
+
+
+## Checked Hang On Fren correction published
+
+Hosted branch run `38121444118` passes at `e4ec515`, as does the separate
+pull-request check. The exact checked client passes a private browser journey
+covering parent closure, reload, wrong-account protection, selected-run retry,
+44px controls at 390px, cancelled and confirmed removal, preservation of other
+accounts, and readable below-best, run-conflict and missing-legacy-event messages.
+Simulated claim responses and seeded public receipts remain explicitly private
+fixtures. Its entry JavaScript matches the now-public file byte for byte.
+
+The checked client and API are published on the new Hetzner box: all 149 static
+files and both API files match the checked artifacts. A read-only preflight loads
+the existing claim history with relay publication disabled. The intentional API
+restart preserves configuration metadata, game authority and all five original
+history rows; its private rollback backup remains available. API health and all
+six public startup/runtime files pass. No DNS configuration was changed.
+
+This supersedes the ten-minute expiry and cached-unconfirmed-replay gap described
+above. Actual long-delay My Signet journeys are now running against this release
+and Neon `046a822`; their outcome is still unqualified. The earlier real HOF
+`328540a` journey remains historical evidence. Physical signers, controllers and
+Lightning settlement remain open. See
+[public client verification](evidence/hangonfren-live-e4ec515.json),
+[API activation](evidence/hangonfren-api-live-e4ec515.json),
+[private checked client](evidence/hangonfren-recovery-checked-e4ec515.json) and
+[checked private API recovery](evidence/hangonfren-api-recovery-checked-e4ec515.json).

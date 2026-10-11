@@ -178,22 +178,23 @@ with explicit original-account reconnect, preserved reload receipt, positive
 publication to five of seven relays and both fresh edition displays.
 Physical checks remain open.
 
-Hang On Fren's deployed client `328540a` preserves the original account on
-personal signing failure; see [consumer PR 2](https://github.com/TheCryptoDonkey/hang-on-fren-public/pull/2).
-All 212 local and hosted tests pass. The new pending-submission browser check
-uses the exact public entry JavaScript, with external writes blocked. It prevents
-duplicate approval and bounds stalled claim responses; see
-[deployment proof](evidence/hangonfren-live-328540a.json). Current published `328540a` also passes a real
-My Signet run: 4,331 normally earned points after the parent closed, one
-canonical NIP-98 signature on explicit same-account reconnect/retry, HTTP 200
-and five of seven relay acknowledgements. The receipt clears and both fresh
-edition displays verify the game authority; see
-[earned recovery](evidence/hangonfren-earned-recovery-328540a.json) and
-[display checks](evidence/hangonfren-earned-recovery-ui-328540a.json).
-The separate API still expires runs after ten minutes and returns cached zero
-acknowledgements on an unconfirmed replay. Delayed recovery requires an API
-correction that preserves per-player/tour/level best-score protection. Physical
-checks and actual long-delay recovery remain open.
+Hang On Fren client/API `e4ec515` are now published from checked branch run
+`38121444118`. All 219 units, type checks, builds and private seven-day/restart
+API checks pass. Its checked browser fixture covers parent closure, reload,
+account isolation, selected retry/removal and readable permanent rejection.
+All 149 static files and two API files match; public startup and API health pass.
+The restart preserves authority, configuration and five existing history rows.
+See [consumer PR 2](https://github.com/TheCryptoDonkey/hang-on-fren-public/pull/2),
+[client verification](evidence/hangonfren-live-e4ec515.json) and
+[API activation](evidence/hangonfren-api-live-e4ec515.json).
+
+The earlier published `328540a` actual My Signet journey earned 4,331 points after
+parent closure and published through explicit same-account reconnect/retry with
+five of seven relay acknowledgements. This remains historical evidence for that
+client; see [earned recovery](evidence/hangonfren-earned-recovery-328540a.json) and
+[display checks](evidence/hangonfren-earned-recovery-ui-328540a.json). Current
+actual long-delay provider journeys for HOF `e4ec515` and Neon `046a822` are
+running. Their outcome and physical acceptance remain unqualified.
 
 Acceptance criteria:
 
@@ -326,7 +327,7 @@ symptoms, physical acceptance and the 600 DNS cutover remain open. See
 | 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Live desktop My Signet approval, signing, refresh and logout pass; physical checks pending | In progress |
 | 4 | Per-game score authorities and attribution provenance; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 5 | Dependency upgrades and high-severity audit gate; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 6 | Reviewed manifest capability and deployed Ledger consumer; PR #11 and PR #88 | 658 unit tests and 50 browser journeys passed; Hang On Fren 212 tests pass; published Ledger passed 98 release checks; newer Ledger retry correction gate pending; Neon 101 units, recovery and real SDK modal CI pass; current desktop My Signet earned recovery passes | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; Ledger `e3937ca`; Pallasite `14e969f`; Hang On Fren `328540a`; Neon `046a822` verified public client/API/SDK; DNS pending | Historical four-game My Signet matrix and saved-score retry pass at forced origin; current Neon and Hang On Fren earned recovery pass; Hang On Fren delayed API recovery and physical checks pending | In progress |
+| 6 | Reviewed manifest capability and deployed Ledger consumer; PR #11 and PR #88 | 658 unit tests and 50 browser journeys passed; Hang On Fren published correction passes 219 units, private API recovery and checked browser; published Ledger passed 98 release checks; newer Ledger retry correction gate pending; Neon 101 units, recovery and real SDK modal CI pass; current desktop My Signet earned recovery passes | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; Ledger `e3937ca`; Pallasite `14e969f`; Hang On Fren `e4ec515` client/API; Neon `046a822` verified public client/API/SDK; DNS pending | Historical four-game My Signet matrix and saved-score retry pass at forced origin; Neon earned recovery and historical Hang On Fren recovery pass; current real long-delay provider journeys running; physical checks pending | In progress |
 | 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
