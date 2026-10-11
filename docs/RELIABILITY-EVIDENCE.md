@@ -5,7 +5,9 @@ automated results, hosted artifacts and actual user/device acceptance.
 
 Current arcade web revision is `c4b7929`, with exact hosted CI, served asset
 hashes and real desktop signer checks recorded below. Ledger client remains
-`e3937ca` while candidate `a1d3290` runs the complete release gate. Pallasite restoration and receipt controls are merged and published as
+`e3937ca`. Candidate `a1d3290` failed after 46 checks on a WebKit supply
+stream cancellation; corrected fixture candidate `f6e810a` is now in the full
+release gate. Pallasite restoration and receipt controls are merged and published as
 `9813d13`: full hosted checks pass and all 14 checked critical served files
 match. Current actual earned-score acceptance remains pending. Earlier releases and failed gates
 below are retained as historical evidence. Public 600 DNS, physical provider
@@ -1929,3 +1931,29 @@ This qualifies publication and automated receipt controls; current real earned
 recovery, the four-game shared-account matrix and physical acceptance remain
 open. Ledger's exact full release gate `38156400254` remains in progress; its
 published client is unchanged.
+
+### Supply playback verification: f6e810a
+
+Exact candidate `a1d3290` run `38156400254` is terminal failure after 46
+release checks. WebKit supply interception reports one cancelled music request;
+all reported supply mechanics and visuals pass. This run stopped before the
+pickup-media check, so it does not qualify the earlier observer correction.
+
+A controlled 64KiB/30ms music stream reproduces the old fixture failure locally
+while both native tracks decode and resume. Candidate `f6e810a` records music
+stream cancellations and requires advancing gameplay playback, unmuted volume
+above 0.4, ready media, zero element errors and running audio contexts. Normal
+Chromium/WebKit and the controlled slow WebKit stream pass. Original supply
+visual/mechanics assertions and gameplay entry deadlines are unchanged.
+
+The negative control returns HTTP 404 for the gameplay bed. The old fixture
+incorrectly passes with media error 4 and zero playback progress; the corrected
+fixture fails its explicit twelve-second playback check. Thus the correction
+detects missing music while accepting recovered streaming cancellations. No
+production code, API, HUD or music assets change. See
+[playback and negative-control evidence](evidence/ledger-supply-playback-f6e810a.json).
+
+Full exact revision `f6e810ad62c43f87045bbbfbf19e5f2b204f5ba2` is in run
+[38161445947](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38161445947).
+All 98 original release checks remain required before client deployment and
+actual earned recovery. No new invoice or payment was attempted.

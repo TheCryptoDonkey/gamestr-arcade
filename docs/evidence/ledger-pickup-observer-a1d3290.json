@@ -43,7 +43,11 @@
   "completeReleaseQualified": false,
   "completeReleaseQualification": {
     "run": 38156400254,
-    "status": "in_progress",
-    "notYetQualified": true
+    "status": "completed",
+    "notYetQualified": true,
+    "conclusion": "failure",
+    "passedReleaseChecks": 46,
+    "failedCheck": "Parachute supply interception (WebKit)",
+    "pickupMediaCheckReached": false
   }
 }
