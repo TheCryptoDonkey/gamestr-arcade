@@ -1,0 +1,10 @@
+{
+  "actualMySignet": true,
+  "physicalDevice": false,
+  "arcadeRevision": "4aa7661d9d18887021c1b044747980dc091c2bf6",
+  "pubkey": "7243ba509ef89c74319a839adc5f00f2d703a4cbd03bc631d5ce03217bb013c0",
+  "initialAndExplicitReconnectPassed": true,
+  "gameplayPerformed": false,
+  "scoreClaimRequests": 0,
+  "lightningPaymentTest": false
+}

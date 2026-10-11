@@ -1102,3 +1102,38 @@ normal gameplay or a delayed receipt exists. This leaves current HOF delayed
 provider recovery unqualified; no live HOF test remains running. Its cause is
 unestablished and the API is not exercised by this attempt. See
 [initial approval timeout](evidence/hangonfren-initial-approval-timeout-e4ec515.json).
+
+
+## Ledger supply-drop fixture and current full gate
+
+Run `38122913408` at `e8fee80` is now terminal failure. Both full-gate arrivals
+and the early Linux WebKit arrival check pass. The gate reaches supply-drop
+interception: Chromium passes; WebKit reports a cancelled music request while
+all reported gameplay assertions pass. No checked client artifact is produced.
+
+The supply-drop fixture still returned whole, chunked HTTP 200 responses to
+byte-range probes. Candidate `f94a0e8` corrects that fixture with bounded HTTP
+206, Content-Length and HEAD handling. Private Mac WebKit and Chromium pass
+with external HTTP/WebSocket writes blocked. Original assertions and limits
+remain unchanged, and these local checks do not establish Linux's cause.
+New run `38124922090` checks both affected WebKit fixtures before the unchanged
+full gate. Public Ledger stays at `e3937ca` pending full qualification. See
+[supply transport proof](evidence/ledger-supply-range-e8fee80.json).
+
+
+## Real My Signet approval readiness
+
+The earlier driver unlocked a late PIN prompt but then only waited for arcade
+identity; it did not observe whether approval was needed after unlocking.
+A revised bounded driver observes PIN, approval and connected states throughout
+initial authentication and explicit reconnect. It permits a second approval
+only after a PIN transition, verifies the signed origin/account proof, and
+requires the visible account menu to say SIGNER CONNECTED. A real desktop
+My Signet check now passes initial authentication and explicit same-account
+reconnect at arcade `4aa7661`. It performs no gameplay, claim or payment.
+The earlier failures remain recorded and their full causes remain unknown.
+See [approval-readiness proof](evidence/signet-approval-readiness-4aa7661.json).
+
+A fresh Hang On Fren delayed earned-score journey now uses this qualified
+approval driver. Its result remains pending; this auth-only success does not
+qualify game submission or physical-device behaviour.
