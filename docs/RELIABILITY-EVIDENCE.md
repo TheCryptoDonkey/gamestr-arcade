@@ -1369,3 +1369,40 @@ Asked to check the earlier 100-sat Wallet of Satoshi test to
 answered: "It wasn't paid". This is the owner's physical-wallet status report,
 not a server-verified receipt. The test has no successful settlement evidence
 and Goal 9 remains open. No second invoice or payment was attempted.
+
+## Owner included Ledger saved-score reliability: 11 October 2026
+
+The owner explicitly answered “Include Ledger’s saved-score reliability fix.”
+Ledger remains in the catalogue; Beamward remains separate. This authorises the
+specific saved-score correction and supersedes the previous current-scope
+exclusion of Ledger development. Held HUD/music/developer changes remain
+preserved on the original Ledger branch.
+
+Draft [Ledger PR #89](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/89)
+starts at published client `e3937ca` in the isolated `ledger-saved-score-recovery`
+worktree. Commit `1300c8804a41e8d6f9fd88d60ba24965bb1c27e7` removes midnight
+expiry and silent twelve-receipt eviction, retains the original payload/account/
+finish time, verifies NIP-98 account/payload signatures, requires positive relay
+acknowledgements or an explicit higher best, and retains rejected receipts for
+manual retry. Automatic recovery skips rejected receipts. Malformed browser
+storage is preserved rather than silently overwritten. The API extension
+places a previously unaccepted delayed run on its original day, preserving
+existing accepted legacy events and the published durable journal.
+
+The three focused regressions fail against the published scoring module
+(payload mutation, midnight deletion, fifteen-receipt retention). The corrected
+source passes 23 focused tests; the earlier full candidate passed 276 units,
+client/server types and thirteen private compiled-service recovery groups.
+Those service groups include first submission after seven days, original day/
+time, restart, conflicting timestamp and invalid future timestamp. No live
+service or owner keys were used by those fixtures.
+
+Local browser checks did not qualify: the old direct-start fixture timed out
+before its report; the PLAY fixture then timed out waiting for network idle,
+and the private-traffic fixture timed out on PLAY. No layout assertion or time
+limit was relaxed. The score fixture now enters via PLAY with loopback-only
+HTTP and closed external WebSockets. The original 98-step full player gate
+from the published client remains unchanged. Hosted run
+[38135981494](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38135981494)
+is checking the exact commit. No saved-score client or timestamp extension has
+been deployed; production still serves Ledger client `e3937ca` and API `a6bcd26`.
