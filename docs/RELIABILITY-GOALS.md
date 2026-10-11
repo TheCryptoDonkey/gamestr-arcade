@@ -223,7 +223,11 @@ removing its saved-score outbox and restoring personal-to-guest retry. The six
 arcade commits are restored on current graphics in isolated branch
 `fix/arcade-recovery-current-main`; local and hosted checks pass. The restoration is merged and published as
 `ee91c65`, with all 14 critical served files matching. Current earned-score
-acceptance and owner-controlled receipt removal remain pending.
+acceptance remains pending. Owner-controlled receipt review/removal is in
+[Pallasite PR #14](https://github.com/TheCryptoDonkey/pallasite/pull/14): thirteen
+local recovery/HTTP groups and a focused 320px keyboard removal journey pass;
+two earlier full local browser checks failed in existing booth/start stages.
+Exact hosted qualification, publication and actual acceptance remain pending.
 
 Hang On Fren and Neon Sentinel have actual earned-score recovery evidence
 under the original account, including parent closure, reload and an eleven-minute

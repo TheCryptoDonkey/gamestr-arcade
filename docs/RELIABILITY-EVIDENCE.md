@@ -1886,3 +1886,28 @@ Fresh read-only checks also match all four critical scripts/styles each for
 Neon `046a822` and Hang On Fren `e4ec515`, including public revision metadata.
 External event writes and HTTP mutations were blocked, with no gameplay,
 score or payment. See [current consumer asset proof](evidence/gamestr-current-neon-hof-assets.json).
+
+### Pallasite owner-controlled receipt review: d6ee911
+
+[Pallasite PR #14](https://github.com/TheCryptoDonkey/pallasite/pull/14) adds
+individual original-date/status rows, selected owner removal with confirmation,
+malformed-storage preservation and a fifteen-second HTTP abort deadline with
+cleanup. Rejection persists with the original receipt. Removal cannot discard
+an active submission or another account's run; failed removal writes retain
+the receipt. Only a 64-character hex event id and a positive integer relay
+acknowledgement with a consistent total can clear a published receipt.
+
+Thirteen local recovery/HTTP groups pass, including the actual fifteen-second
+timeout followed by a successful retry. A focused production-build 320px
+browser journey passes keyboard cancellation/confirmation and preservation of
+other runs/accounts across relaunch. Two full local browser runs failed earlier
+in existing booth/start checks before reaching removal. Diagnostics record
+these failures; the original deadlines and graphics remain unchanged. The
+focused pass does not qualify the full browser gate.
+
+Exact hosted run
+[38158290331](https://github.com/TheCryptoDonkey/pallasite/actions/runs/38158290331)
+is running for `d6ee911113669af62aae1a98c060531aebbc2e0c`. Published restoration
+`ee91c65` remains unchanged. The new controls require a full hosted pass,
+publication verification and current earned-score acceptance. See
+[scoped receipt-control evidence](evidence/pallasite-receipt-controls-d6ee911.json).
