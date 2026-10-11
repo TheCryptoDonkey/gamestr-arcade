@@ -1,0 +1,19 @@
+{
+  "revision": "3173d18a2876fcfb4e1ea062f6f8d16c03718c4b",
+  "baseRevision": "b6d40f790cc63d41a39cae98a2a719b1b03b3c23",
+  "pullRequest": "https://github.com/TheCryptoDonkey/pallasite-faucet/pull/1",
+  "checkedRun": 38170265130,
+  "hostedConclusion": "success",
+  "localTests": {
+    "pass": 131,
+    "fail": 0,
+    "files": 13,
+    "assertions": 399
+  },
+  "typecheck": "pass",
+  "linuxBuild": "pass",
+  "binarySha256": "a6a2d491fe8519a6cb66e5336c82f883828719550dad479a3583d3342d3ad049",
+  "activation": "pending",
+  "actualEarnedRecovery": "pending",
+  "realPayments": 0
+}

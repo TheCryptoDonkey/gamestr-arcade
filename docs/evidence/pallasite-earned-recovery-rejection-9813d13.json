@@ -1,0 +1,85 @@
+{
+  "arcadeRevision": "c4b7929",
+  "gameRevision": "9813d13",
+  "complete": false,
+  "physicalDevice": false,
+  "parentClosedBeforeRun": true,
+  "reloadPreservedOriginalReceipt": true,
+  "actualDelayMinutes": 11,
+  "earnedReceipt": {
+    "pubkey": "c29a55f61a4e3494f86104d10e634699b95c403c1f6a55eec0267f86c88eccb1",
+    "input": {
+      "score": 22840,
+      "wave": 1,
+      "duration_ms": 51616,
+      "run_id": "1791746502475",
+      "started_at": 1791746502,
+      "finished_at": 1791746561,
+      "mode": "campaign",
+      "player_name": "C29A55F6\u2026CCB1",
+      "cheated": false
+    },
+    "lastError": "sign_failed",
+    "rejected": false
+  },
+  "receiptAfterRetry": {
+    "pubkey": "c29a55f61a4e3494f86104d10e634699b95c403c1f6a55eec0267f86c88eccb1",
+    "input": {
+      "score": 22840,
+      "wave": 1,
+      "duration_ms": 51616,
+      "run_id": "1791746502475",
+      "started_at": 1791746502,
+      "finished_at": 1791746561,
+      "mode": "campaign",
+      "player_name": "C29A55F6\u2026CCB1",
+      "cheated": false
+    },
+    "lastError": "stale_run",
+    "rejected": true
+  },
+  "scoreRequests": [
+    {
+      "auth": {
+        "kind": 27235,
+        "pubkey": "c29a55f61a4e3494f86104d10e634699b95c403c1f6a55eec0267f86c88eccb1",
+        "created_at": 1791747239,
+        "tags": [
+          [
+            "u",
+            "https://pallasite.app/api/score"
+          ],
+          [
+            "method",
+            "POST"
+          ],
+          [
+            "payload",
+            "f2db1826448308c8be1c089a28f4e313bd27e61a83bf934ccbf7e2dacef0d760"
+          ]
+        ],
+        "content": "",
+        "id": "a1e25511e8b2a76aba19e43abdda86393b909b136af967db4657c4148c11f04f",
+        "sig": "2c0f62fa13d19def69248064ef619da2c9c57cf3514682d05fc54bafca5f971d6433fe515fb487de64db4397fcbf63408d9b57f49b04ea96d7394b50f04a93b0"
+      },
+      "payload": {
+        "score": 22840,
+        "wave": 1,
+        "duration_ms": 51616,
+        "run_id": "1791746502475",
+        "started_at": 1791746502,
+        "finished_at": 1791746561,
+        "mode": "campaign",
+        "player_name": "C29A55F6\u2026CCB1",
+        "cheated": false
+      },
+      "bodySha256": "f2db1826448308c8be1c089a28f4e313bd27e61a83bf934ccbf7e2dacef0d760"
+    }
+  ],
+  "publicScoreConfirmed": false,
+  "observedRejection": "stale_run",
+  "responseStatusCaptured": false,
+  "diagnosticLimitation": "The fixture later reported a missing public score; the retained receipt records the preceding API rejection.",
+  "backendCause": "The old solo API treats Unix seconds as milliseconds and rejects runs older than five minutes.",
+  "newPaymentSent": false
+}

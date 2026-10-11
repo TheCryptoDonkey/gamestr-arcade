@@ -8,12 +8,32 @@ hashes and real desktop signer checks recorded below. Ledger client remains
 `e3937ca`. Candidate `a1d3290` failed after 46 checks on a WebKit supply
 stream cancellation. Candidate `f6e810a` failed after 38 release checks on
 WebKit arrival music cancellations, before supply or pickup-media qualification.
-Arrival playback candidate `bc18049` is now in the complete hosted gate.
-Its current WebKit checks pass; local Chromium startup remains unqualified. Pallasite restoration and receipt controls are merged and published as
-`9813d13`: full hosted checks pass and all 14 checked critical served files
-match. Current actual earned-score acceptance remains pending. Earlier releases and failed gates
-below are retained as historical evidence. Public 600 DNS, physical provider
-checks and the unpaid 100-sat test remain open.
+Ledger candidate `bc18049` passed the arrival, supply and pickup-media release checks,
+then failed the Chromium harvest report: image download and clipboard content
+passed, but its transient confirmation label had reset before the fixture read it.
+The fixture now records the real label mutation before its timed reset. Candidate
+`e6e2066` awaits the complete [hosted gate](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38170291018).
+Its local WebKit harvest profile passes; local Chromium remains unqualified at
+an earlier game-over startup wait. Published Ledger client remains `e3937ca`.
+
+Pallasite restoration and receipt controls are published as `9813d13`, with
+full hosted checks and fourteen critical served files verified. A normally
+finished 22,840-point run survives parent closure, reload and eleven minutes
+unchanged. Original-account reconnect produces a valid NIP-98 signature, but
+the old API rejects it with `stale_run` and retains the receipt. The API expects
+milliseconds while the client supplies Unix seconds, and also rejects delayed
+runs. See [failure evidence](evidence/pallasite-earned-recovery-rejection-9813d13.json).
+The API correction `3173d18` accepts both formats, preserves original dates and
+durably reuses the exact signed event. All 131 local tests, types, Linux build
+and [hosted qualification](evidence/pallasite-faucet-recovery-3173d18-ci.json) pass.
+Activation and actual earned recovery remain pending.
+
+Fresh GET-only checks display the previously earned Neon and Hang On Fren
+scores correctly on current arcade `c4b7929` in both editions. These four
+[display checks](evidence/gamestr-c4b7929-retained-neon-hof-score-ui.json) use
+separate earlier accounts and do not establish current four-game gameplay.
+Earlier releases and failed gates below remain historical evidence. Public 600
+DNS, physical provider checks and the unpaid 100-sat test remain open.
 
 ## Earlier live My Signet result: 4aa7661
 
@@ -2054,8 +2074,9 @@ retrying its score. It does not silently restore a previous booth user's signer.
 
 The fifth current run earns 22,840 points with its arcade parent closed. The
 receipt retains its original account, run ID, score and start/finish timestamps
-through a real reload. No game state, score, receipt or clock is injected. It is
-now waiting through the actual eleven-minute delay. See the
+through a real reload. No game state, score, receipt or clock is injected. It subsequently completed
+the actual eleven-minute delay, reconnected its original account and was rejected
+by the old API as `stale_run`, while retaining its original receipt. See the
 [incomplete receipt-stage proof](evidence/pallasite-earned-recovery-progress-9813d13.json).
 Reconnect, positive publication, receipt clearing and both fresh arcade displays
 remain unqualified. All original Goal 6 criteria remain in scope.
