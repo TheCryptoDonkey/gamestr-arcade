@@ -121,7 +121,7 @@ Acceptance criteria:
   retry action; transient failures preserve usable pairing credentials.
 - [x] Refresh reuses the paired client identity. Closing or suspending the
   signer produces an accurate state and a recoverable next action.
-- [ ] Cancellation, switching sessions and retries close superseded resources.
+- [x] Cancellation, switching sessions and retries close superseded resources.
   The app continues to exclude private-key paste.
 - [ ] Complete real local My Signet, phone QR, NIP-07 extension and NIP-46
   signer journeys, including refresh, sleep, reconnect and logout.
@@ -148,9 +148,14 @@ editions: all eight active login connections close within 231 ms, and original
 connections remain closed after retry. Current real nos2x NIP-07 login, refresh,
 signing, changed-account signature rejection and logout pass. The earlier local
 My Signet desktop journey on `e96baa9` remains recorded as historical evidence in the delivery evidence.
-The combined physical camera/phone, independent signer-application and remaining
-session-switching acceptance criteria stay open. The generic NIP-46 check uses
-My Signet and does not qualify another signer application.
+The combined physical camera/phone and independent signer-application acceptance criteria stay open. The generic NIP-46 check uses
+My Signet and does not qualify another signer application. An actual explicit-logout
+switch between two disposable My Signet accounts also proves the first session's
+seven observed login connections close before the second login and stay closed;
+the second session's connections and credentials clear on logout. Together with
+actual cancellation/retry and late-result generation regressions, this qualifies
+session cleanup while continuing to exclude private-key paste. See the
+[account-switch proof](evidence/gamestr-c4b7929-signet-account-switch.json).
 
 Start in [nostr-access.ts](../src/web/nostr-access.ts),
 [account-identity.ts](../src/web/account-identity.ts) and the package lockfile.

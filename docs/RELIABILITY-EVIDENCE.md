@@ -1792,3 +1792,30 @@ This replaces reliance on the earlier `e96baa9` local-flow proof for current
 desktop acceptance; the earlier evidence remains historical. Physical phone,
 camera and independent signer-application checks remain pending. See
 [the current local proof](evidence/gamestr-c4b7929-local-signet-refresh-live.json).
+
+### Actual selected-account switch and session connection cleanup
+
+Current public `c4b7929` passes an explicit logout followed by login to a second
+disposable published My Signet identity. The first account also completes the
+real refresh/sleep/reconnect journey before this switch. Instrumentation records
+native socket references and identifies login subscriptions by kinds 1059 and
+24133; it never closes them on behalf of the app. All seven first-session login
+connections are closed after logout and before the second login. They remain
+closed while the second account connects. Unrelated profile-feed sockets are
+excluded.
+
+The second account has a distinct public key and a valid signed authentication
+proof. Its active paired transport is observed before logout; every login
+connection then closes and its pairing credentials clear. Closure assertions
+retain the five-second limit. Public submissions are blocked, no game score is
+submitted and no payment is made. Both disposable contexts close at completion.
+The fixture's initial duplicate variable declaration failed syntax preflight
+before browser launch; corrected scoping passes the actual journey.
+
+Combined with the current eight QR cancellation/retry observations and source
+regressions that close late login/restore results after logout or account
+replacement, this qualifies Goal 3's session resource cleanup criterion. The
+configured login methods continue to exclude private-key paste. Physical phone
+and independent provider acceptance remain open. See
+[the exact account-switch proof](evidence/gamestr-c4b7929-signet-account-switch.json)
+and [QR cancellation/retry](evidence/gamestr-c4b7929-login-cancellation-retry.json).

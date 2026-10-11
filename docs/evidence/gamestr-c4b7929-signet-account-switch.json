@@ -1,0 +1,19 @@
+{
+  "origin": "https://gamestr.62-238-98-53.sslip.io",
+  "arcadeRevision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
+  "actualMySignet": true,
+  "physicalDevice": false,
+  "disposableIdentities": true,
+  "accountSwitchThroughExplicitLogout": true,
+  "firstAccount": "ebb008d5b60ef69d79cd993d23345f4a28cd80cd85516249e9869e82e4181912",
+  "secondAccount": "2ce05610ebff22ff2c9e764c12bf87b7b326016ecc6ff0987141a5058486deea",
+  "authProofsVerified": true,
+  "firstSessionTransportCount": 7,
+  "firstSessionConnectionsClosedBeforeSecondLogin": true,
+  "firstSessionConnectionsRemainClosedAfterSecondLogin": true,
+  "secondSessionConnectionsClosedOnLogout": true,
+  "secondLogoutClearedCredentials": true,
+  "publicSubmissionBlocked": true,
+  "scoreClaimRequests": 0,
+  "lightningPaymentTest": false
+}
