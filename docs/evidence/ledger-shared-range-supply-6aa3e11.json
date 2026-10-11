@@ -1,0 +1,95 @@
+{
+  "revision": "6aa3e11c6ff8a56acca4f16a940238ef575db87a",
+  "previousRun": 38147639272,
+  "previousConclusion": "failure",
+  "previousRevision": "2e01f063f2b179be970459ccf021bee99495e27e",
+  "previousPassedReleaseChecks": 46,
+  "failedCheck": "Parachute supply interception (WebKit)",
+  "failure": "Cancelled music request; every reported gameplay/mechanics assertion passed",
+  "localUnchangedBaselinePassed": true,
+  "productionProbe": {
+    "status": 206,
+    "range": "bytes 0-1/5093604",
+    "bodyBytes": 2
+  },
+  "sharedFixtureServers": 65,
+  "httpCasesPassed": 16,
+  "syntaxCheckedFiles": 67,
+  "supplyFinalAssertionsUnchanged": true,
+  "requestFailureChecksUnchanged": true,
+  "productionSourceChanged": false,
+  "apiChanged": false,
+  "completeReleaseQualification": {
+    "run": 38150978824,
+    "status": "in_progress",
+    "notYetQualified": true
+  },
+  "individualTestDeadlinesChanged": false,
+  "ciJobTimeAllowanceMinutes": 75,
+  "localSupplyProfiles": [
+    {
+      "browser": "webkit",
+      "visual": {
+        "chuteChildren": 3,
+        "stripe": [
+          "#c2d5e9",
+          "#5ab8ff",
+          "#d8d0c2"
+        ],
+        "expected": "#5ab8ff",
+        "badgeY": 4.65,
+        "drawables": 7,
+        "botTracksAirborne": true,
+        "supplyChunk": true
+      },
+      "mechanics": {
+        "chuteSpeed": 2.5999999999999996,
+        "airCatch": {
+          "removed": true,
+          "score": 300,
+          "canopyCut": true,
+          "stored": true
+        },
+        "groundCatch": {
+          "removed": true,
+          "score": 150,
+          "landedSafe": true,
+          "online": true
+        }
+      },
+      "failures": []
+    },
+    {
+      "browser": "chromium",
+      "visual": {
+        "chuteChildren": 3,
+        "stripe": [
+          "#c2d5e9",
+          "#5ab8ff",
+          "#d8d0c2"
+        ],
+        "expected": "#5ab8ff",
+        "badgeY": 4.65,
+        "drawables": 7,
+        "botTracksAirborne": true,
+        "supplyChunk": true
+      },
+      "mechanics": {
+        "chuteSpeed": 2.5999999999999996,
+        "airCatch": {
+          "removed": true,
+          "score": 300,
+          "canopyCut": true,
+          "stored": true
+        },
+        "groundCatch": {
+          "removed": true,
+          "score": 150,
+          "landedSafe": true,
+          "online": true
+        }
+      },
+      "failures": []
+    }
+  ]
+}

@@ -1702,8 +1702,10 @@ without another code change. No production code changed. See
 [reproduction and correction](evidence/ledger-warm-consent-race-2e01f06.json).
 
 [Complete exact run 38147639272](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38147639272)
-is running. Ledger client remains `e3937ca` and compatible API `ed73ebc` remains
-live. The prepared real earned-score journey refuses to run unless this exact
+completed with failure after 46 successful game checks. Both audio warm-up
+profiles passed; the later WebKit supply check failed only a cancelled music
+request. Ledger client remains `e3937ca` and compatible API `ed73ebc` remains
+live. The prepared real earned-score journey refuses to run unless its selected
 client manifest has a successful full release run; it will verify original
 receipt retention after reload and eleven minutes, same-account independent
 login, positive publication, original NIP-98 payload and both fresh arcade
@@ -1728,3 +1730,28 @@ identifies login connections by their actual subscription kinds and waits for
 an active login subscription before cancellation. Its five-second closure
 assertion is unchanged. This does not substitute for physical phone/provider
 acceptance or prove every session-switching path.
+
+### Shared fixture byte ranges and supply entry: 6aa3e11
+
+Exact run `38147639272` is terminal failure, not an observation timeout. It passed
+46 game checks before WebKit supply interception reported a cancelled music
+request. All reported supply visuals and mechanics passed. The unchanged local
+WebKit profile also passes; this is not claimed as a deterministic local failure.
+
+The production audio origin returns HTTP 206 with exactly two bytes for a
+`bytes=0-1` probe. Sixty-five fixture servers had instead ignored that request
+and returned the full file. `6aa3e11` gives those identical handlers one shared
+single-byte-range responder while preserving their MIME tables and error
+collectors. Sixteen actual HTTP cases cover full/partial/suffix/clamped responses,
+HEAD, empty files and invalid requests. All 67 helper/importing files pass syntax
+checks. The supply fixture now enters through PLAY, consent and real gameplay
+before preparing its controlled mechanics. Both browser profiles pass. Its final
+mechanics assertions and request-failure collector are unchanged; no production
+source, API, HUD or music asset changes are included.
+
+The full CI job now allows 75 minutes to finish all 98 checks: its previous run
+spent about 38 minutes reaching check 47. Individual test deadlines, performance
+limits, assertions and the required gate list are unchanged. New exact run
+[38150978824](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38150978824)
+is running. The candidate client and actual earned recovery remain unqualified
+until that whole run passes. See [the scoped correction proof](evidence/ledger-shared-range-supply-6aa3e11.json).
