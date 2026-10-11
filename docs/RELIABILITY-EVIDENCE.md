@@ -1777,3 +1777,18 @@ criterion on the exercised paths. They do not qualify physical camera/phone
 use, another NIP-46 application or every session-switching path. The original
 combined acceptance criteria remain open. See [current remote QR](evidence/gamestr-c4b7929-remote-qr-refresh-live.json)
 and [current generic NIP-46](evidence/gamestr-c4b7929-nip46-qr-refresh-live.json).
+
+### Current local My Signet refresh qualification
+
+The actual “My Signet on this device” route now also passes on `c4b7929`, using
+the SDK-opened approval tab and a disposable published My Signet identity. Exact
+pairing credentials remain unchanged through navigation and explicit browser
+refresh. Real signatures verify before refresh, after refresh and after closing
+all signer tabs then reconnecting the original account. The unavailable state
+appears after 15,438 ms; pairing remains intact during that failure and logout
+clears it. Public submissions are blocked and no gameplay or payment occurs.
+
+This replaces reliance on the earlier `e96baa9` local-flow proof for current
+desktop acceptance; the earlier evidence remains historical. Physical phone,
+camera and independent signer-application checks remain pending. See
+[the current local proof](evidence/gamestr-c4b7929-local-signet-refresh-live.json).

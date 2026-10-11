@@ -132,21 +132,22 @@ errors from superseded sessions. Current `c4b7929` passes 670 units, 54 browser
 journeys, hosted CI and packaged Linux smoke, and is served by both Hetzner
 editions. The public 600 DNS cutover remains pending.
 
-Actual current My Signet remote QR and generic NIP-46 QR journeys using published
-My Signet pass authentication, signing after navigation, an explicit browser
+Actual current local My Signet, remote QR and generic NIP-46 QR journeys using
+published My Signet pass authentication, signing after navigation, an explicit browser
 refresh, sleeping-signer detection, same-account reconnect and logout. Both
 navigation and refresh retain the exact paired client credentials. A fresh
 signature verifies after refresh. Closing every signer tab produces an accurate
-unavailable state in 15,431 ms and 15,409 ms respectively, preserves identity and
-pairing, and offers a successful same-account reconnect. No public submission
-or payment is made. See the [remote QR proof](evidence/gamestr-c4b7929-remote-qr-refresh-live.json)
+unavailable state in 15,438 ms, 15,431 ms and 15,409 ms respectively, preserves
+identity and pairing, and offers a successful same-account reconnect. No public submission
+or payment is made. See the [local My Signet proof](evidence/gamestr-c4b7929-local-signet-refresh-live.json),
+[remote QR proof](evidence/gamestr-c4b7929-remote-qr-refresh-live.json)
 and [generic NIP-46 proof](evidence/gamestr-c4b7929-nip46-qr-refresh-live.json).
 
 Actual cancellation and immediate retry also pass for both QR methods in both
 editions: all eight active login connections close within 231 ms, and original
 connections remain closed after retry. Current real nos2x NIP-07 login, refresh,
 signing, changed-account signature rejection and logout pass. The earlier local
-My Signet desktop journey on `e96baa9` remains recorded in the delivery evidence.
+My Signet desktop journey on `e96baa9` remains recorded as historical evidence in the delivery evidence.
 The combined physical camera/phone, independent signer-application and remaining
 session-switching acceptance criteria stay open. The generic NIP-46 check uses
 My Signet and does not qualify another signer application.
@@ -409,7 +410,7 @@ symptoms, physical acceptance and the 600 DNS cutover remain open. See
 | --- | --- | --- | --- | --- | --- |
 | 1 | Selected-session verification, synchronous port revocation and generation guards; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; 600 `c4b7929` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 2 | Responsive controls, validated SDK callback and generic Cambium/Amber NIP-55 request; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; 600 `c4b7929` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; 600 `c4b7929` on Hetzner; DNS pending | Current c4b7929 My Signet remote and generic NIP-46 QR approval/signing/explicit refresh/sleep/reconnect/logout pass, with exact paired-client retention across navigation and refresh. Current live QR cancellation/retry pass in both editions; Real nos2x NIP-07 login/refresh/signing, changed-account signature rejection and logout pass on current standard c4b7929; physical and remaining provider checks pending | In progress |
+| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; 600 `c4b7929` on Hetzner; DNS pending | Current c4b7929 local My Signet, remote QR and generic NIP-46 QR approval/signing/explicit refresh/sleep/reconnect/logout pass, with exact paired-client retention across navigation and refresh. Current live QR cancellation/retry pass in both editions; Real nos2x NIP-07 login/refresh/signing, changed-account signature rejection and logout pass on current standard c4b7929; physical and remaining provider checks pending | In progress |
 | 4 | Per-game score authorities and attribution provenance; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; 600 `c4b7929` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 5 | Dependency upgrades and high-severity audit gate; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; 600 `c4b7929` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 6 | Reviewed game handoff in PR #11; owner retains Ledger; saved-score fix in PR #89; held PR #88 preserved; Beamward separate | Arcade: 670 units and 54 browser journeys pass. Ledger: 287 units/types and thirteen private durable recovery groups; saved-score profiles pass in both engines. Full candidate `6aa3e11` run `38150978824` is running with shared byte-range fixture servers and real-PLAY supply entry. Prior `2e01f06` passed 46 game checks, including both audio warm-up profiles, then failed only a WebKit supply-fixture music request; local corrected supply profiles pass in both engines. Prior failed gates remain in the delivery evidence. Hang On Fren: 219 units and API recovery; Neon: 101 units and real SDK modal/recovery checks | Standard/600 web `c4b7929` on Hetzner; public 600 DNS pending. Ledger client `e3937ca` / API `ed73ebc`; Pallasite `14e969f`; Hang On Fren `e4ec515`; Neon `046a822` | Earlier four-game shared-account matrix is historical. Pallasite, Neon and Hang On Fren actual earned recovery pass; Neon/HOF delayed recovery and both fresh displays pass. Ledger candidate actual recovery and current four-game qualification remain pending. Physical checks pending | In progress |
