@@ -863,4 +863,19 @@ all opening fields in one callback, preserving the original 5-second wait
 and every threshold. It retains cancelled requests as failures and records
 whether they occur during teardown. Chromium and WebKit pass locally. Full
 [run 38108876547](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38108876547)
-is running; Ledger's new score correction is still not published.
+failed at WebKit first-flight voice warm-up; Ledger's new score correction is
+still not published. Failure diagnostics show an idle game with the contribution
+prompt visible. A private 700-ms delay of its lazy-loaded module reproduces the
+same failure: the test's 100-ms conditional check skips the later prompt.
+
+## Neon delayed recovery policy gap
+
+Read-only inspection of `/opt/neonsentinel/current/server/index.js` on the new
+Hetzner box confirms `STALE_RUN_MS = 10 * 60 * 1e3` and `stale_run` rejection.
+Source validation rejects age before checking the accepted-claim cache and
+prunes that cache after thirty minutes. Neither preserving a receipt nor
+reconnecting its original signer proves publication after the ten-minute
+window. No API code, configuration, process or receipt timestamps were changed.
+Goal 6 now requires delayed recovery with durable idempotency and explicit
+handling of permanently rejected receipts. The published client remains
+qualified for the checked recent-run fixtures only.

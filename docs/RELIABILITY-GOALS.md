@@ -206,6 +206,16 @@ Acceptance criteria:
   switch. Record both arcade and game revisions.
 - [ ] Keep cabinet guest identity explicit; personal login must not retain one
   booth visitor's signing authority for the next visitor.
+- [ ] Recover saved personal runs after a later reload, including beyond the
+  API's current ten-minute submission window. Preserve original run timestamps,
+  account ownership and durable idempotency; do not make old runs appear fresh.
+  Surface permanent rejection clearly and provide an explicit owner-controlled
+  way to remove an unrecoverable receipt without silently evicting other runs.
+
+Neon's deployed API was inspected read-only on 11 October: its compiled
+`STALE_RUN_MS` is `10 * 60 * 1e3` and it rejects `stale_run`. Current client
+fixtures establish recent-run recovery only. Persistent storage alone does
+not establish delayed publication; this server/client mismatch remains open.
 
 Update [the handoff contract](nostr-game-handoff.md) and
 [platform documentation](WEB-PLATFORM.md) alongside the implementation.
