@@ -126,6 +126,15 @@ Acceptance criteria:
 - [ ] Complete real local My Signet, phone QR, NIP-07 extension and NIP-46
   signer journeys, including refresh, sleep, reconnect and logout.
 
+Signer status audit: SDK 0.17.3 can report `nip46-sign_event-timeout` after
+fifteen seconds, before the arcade's forty-five-second deadline. The arcade now
+recognises that error, SDK closed-signer/handshake failures and auth-only
+fallback, revokes signing ports and shows an actionable reconnect error while
+retaining the identity and pairing credentials. User denial keeps the signer
+connected. Regression checks also cover same-account reconnect and a late
+failure from a superseded session. This implementation still needs its current
+release qualification and does not complete physical signer acceptance.
+
 Start in [nostr-access.ts](../src/web/nostr-access.ts),
 [account-identity.ts](../src/web/account-identity.ts) and the package lockfile.
 Use the [SDK changelog](https://github.com/forgesworn/signet-login/blob/main/CHANGELOG.md)

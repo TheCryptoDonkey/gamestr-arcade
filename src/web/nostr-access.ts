@@ -129,11 +129,18 @@ export function currentNostrSigner(): ArcadeNostrSigner | undefined {
         return signed
         })
       } catch (error) {
+        // The SDK can fail before our outer deadline. Approval denial does not
+        // mean the connection is unavailable, so recognise transport errors only.
+        const sdkUnavailable = session.method === 'bunker' && error instanceof Error
+          && (/^(nip46-sign_event-timeout|bunker-closed|bunker-connect-timeout)$/.test(error.message)
+            || error.message === 'this signer is not open anymore, create a new one'
+            || error.message.startsWith('signer-auth-only:'))
         if (generation === epoch && activeSession === session && error instanceof Error
-          && /did not respond|account changed|different account or request/.test(error.message)) {
+          && (sdkUnavailable || /did not respond|account changed|different account or request/.test(error.message))) {
           signerUnavailable = true
           revokeNostrGameBridges()
           window.dispatchEvent(new CustomEvent<NostrAccess>(NOSTR_SESSION_EVENT, { detail: accessFor(session) }))
+          if (sdkUnavailable) throw new Error('Signer unavailable. Wake your signer and reconnect; pairing credentials were retained.', { cause: error })
         }
         throw error
       }

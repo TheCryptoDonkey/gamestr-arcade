@@ -47,6 +47,53 @@ describe('selected Nostr session', () => {
     expect(await access.currentNostrSigner()!.signEvent(template)).toMatchObject({ pubkey: PUBKEY })
   })
 
+  for (const message of ['nip46-sign_event-timeout', 'bunker-closed', 'bunker-connect-timeout', 'this signer is not open anymore, create a new one', 'signer-auth-only: reconnect required']) {
+    it(`preserves the selected account but revokes signing after SDK failure: ${message}`, async () => {
+      const selected = session()
+      selected.signer.signEvent.mockRejectedValue(new Error(message))
+      mocks.login.mockResolvedValue(selected)
+      const access = await import('../src/web/nostr-access')
+      await access.connectNostrAccess({ appName: 'Arcade', relays: [] })
+      localStorage.setItem('signet:login.bunkerUri', 'retained-pairing')
+      const signer = access.currentNostrSigner()!
+      await expect(signer.signEvent(template)).rejects.toThrow('Wake your signer and reconnect')
+      expect(access.currentNostrAccess()).toMatchObject({ pubkey: PUBKEY, canSignEvents: false, signerStatus: 'unavailable' })
+      expect(access.currentNostrSigner()).toBeUndefined()
+      expect(localStorage.getItem('signet:login.bunkerUri')).toBe('retained-pairing')
+      await expect(signer.signEvent(template)).rejects.toThrow('unavailable')
+      mocks.login.mockResolvedValue(session())
+      await access.connectNostrAccess({ appName: 'Arcade', relays: [], signingRequired: true })
+      expect(access.currentNostrAccess()).toMatchObject({ pubkey: PUBKEY, canSignEvents: true, signerStatus: 'connected' })
+    })
+  }
+
+  it('does not mark a replacement session unavailable after an old SDK request fails', async () => {
+    const selected = session()
+    let reject!: (error: Error) => void
+    selected.signer.signEvent.mockReturnValue(new Promise((_, fail) => { reject = fail }))
+    mocks.login.mockResolvedValue(selected)
+    const access = await import('../src/web/nostr-access')
+    await access.connectNostrAccess({ appName: 'Arcade', relays: [] })
+    const pending = access.currentNostrSigner()!.signEvent(template)
+    const rejected = expect(pending).rejects.toThrow('nip46-sign_event-timeout')
+    mocks.login.mockResolvedValue(session())
+    await access.connectNostrAccess({ appName: 'Arcade', relays: [] })
+    reject(new Error('nip46-sign_event-timeout'))
+    await rejected
+    expect(access.currentNostrAccess()).toMatchObject({ pubkey: PUBKEY, canSignEvents: true, signerStatus: 'connected' })
+    await expect(access.currentNostrSigner()!.signEvent(template)).resolves.toMatchObject({ pubkey: PUBKEY })
+  })
+
+  it('keeps a signer connected when the owner declines an event', async () => {
+    const selected = session()
+    selected.signer.signEvent.mockRejectedValue(new Error('User denied signing request'))
+    mocks.login.mockResolvedValue(selected)
+    const access = await import('../src/web/nostr-access')
+    await access.connectNostrAccess({ appName: 'Arcade', relays: [] })
+    await expect(access.currentNostrSigner()!.signEvent(template)).rejects.toThrow('User denied')
+    expect(access.currentNostrAccess()).toMatchObject({ pubkey: PUBKEY, canSignEvents: true, signerStatus: 'connected' })
+  })
+
   it('never signs through an ambient extension and revokes before cleanup completes', async () => {
     const extension = { getPublicKey: vi.fn(), signEvent: vi.fn() }
     Object.assign(window, { nostr: extension })
