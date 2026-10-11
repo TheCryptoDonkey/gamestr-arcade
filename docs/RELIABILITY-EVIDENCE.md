@@ -1285,3 +1285,23 @@ No live Ledger client/API changes or new actual provider acceptance. Seven-day
 private API retry preserves an already accepted event's original board day;
 client receipts still expire at midnight UTC. The full nine-goal scope remains
 open. See [candidate recovery evidence](evidence/ledger-claim-recovery-a6bcd26.json).
+
+
+`38130450803` is now terminal. The service job passes 275 units, both type
+checks and twelve recovery/durability groups, and produces the checked two-file
+artifact. Downloaded hashes match the exact local Node 22 build. The client
+job passes 275 units and both opening snapshots, then fails the original phone
+tour-reveal HUD-opacity threshold: 0.055888 against less than 0.05. No request
+failures are recorded. The full player gate is not exercised and no client
+artifact is produced; previous music failures remain recorded.
+
+The checked Ledger API `a6bcd26` is now published on Hetzner. A private,
+network-blocked preflight on its actual Node 22.23.2 loads all four original
+score and badge records without the game secret or a live change. Intentional
+API restart preserves environment, authority, relay configuration and both
+history prefixes. Both files match the hosted manifest and public health
+passes with all four records/badges loaded. Private 0600 history backups remain
+for inspection; rollback restores binaries only and preserves newer claims.
+The frontend remains `e3937ca`; no actual new-client provider recovery or
+physical acceptance is claimed. Original nine-goal criteria remain open.
+See [API delivery evidence](evidence/ledger-claim-api-deployed-a6bcd26.json).
