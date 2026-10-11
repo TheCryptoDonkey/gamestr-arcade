@@ -58,6 +58,8 @@ An available device listing alone does not qualify any of the steps above.
 After Ledger's complete gate passes and its checked client is published, perform
 its actual normally earned run, parent closure, reload, eleven-minute delay,
 original-account reconnect, positive publication and fresh score displays.
+Require a fresh NIP-98 signature bound to the actual POST URL/body, while the
+first score event keeps its original finish second and original UTC-day address.
 Then repeat the current four-game shared-account journey using the exact
 published revisions. Independently check same-account HTTP signatures, unchanged
 recovered receipts, positive acknowledgements and reviewed game authority.
