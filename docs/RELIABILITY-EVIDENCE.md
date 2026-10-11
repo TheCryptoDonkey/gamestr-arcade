@@ -1450,11 +1450,26 @@ The demo capture handler swallowed the developer toggle. The scoped source
 now lets the opted-in panel own that key, while held HUD/music changes remain
 preserved separately. No threshold or timeout was relaxed.
 
-Current exact revision `56840dc33dd8b8b2175ce88309b5997b1e90d83e` passes hosted
+Previous exact revision `56840dc33dd8b8b2175ce88309b5997b1e90d83e` passed hosted
 283 units, client/server types, thirteen private compiled-service groups and
 both isolated and full-game saved-score browser engines in
 [run 38138295851](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38138295851).
 The checked API hash is
 `fa68f637eebe1581d3c03e0e910397febe2e9ec0942c5428bf18e31e8acc37b3`.
-The original complete player gate is running. No new client or timestamp API
-extension has been deployed; live remains client `e3937ca` / API `a6bcd26`.
+That original complete player gate ended in failure: WebKit first-flight voice
+warm-up timed out waiting thirty seconds for gameplay. The developer toggle
+check now passes. Startup and audio criteria remain unchanged.
+
+Final compatibility revision `ed73ebcece1c40033064432e8f1fd4700275b799` preserves
+the stored owner before a restored run can be queued under a cached guest key.
+Legacy retries may omit the optional timestamp without replacing the stored
+event or day; explicitly changed timestamps still conflict. Finish time is
+captured at the game-over event before animation, HTTP submissions abort after
+fifteen seconds and NIP-07 approval expires after thirty. Logout/provider
+replacement invalidates late approvals. All 287 local units, both type checks,
+thirteen private compiled API groups and production build pass. The WebKit
+audio profile passes locally with six background decodes, maximum concurrency
+six and no script errors; it does not clear the hosted failure.
+[Exact revision qualification](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38139937880)
+is running. No new client or timestamp API extension has been deployed; live
+remains client `e3937ca` / API `a6bcd26`.
