@@ -139,7 +139,13 @@ authentication, signing after page navigation, all signer tabs closed, unavailab
 status after 15,501 ms, unchanged selected identity/pairing, same-account
 reconnect, a fresh verified signature and logout cleanup. Public submission
 was blocked and no payment was sent. SDK 0.17.3 is confirmed published in npm.
-This does not complete remote/physical signer acceptance.
+This does not complete remote/physical signer acceptance. A subsequent remote
+QR check found that the published canvas did not decode. The Gamestr display
+adapter now preserves the SDK payload/correction while providing whole-pixel
+cells, a complete quiet zone and narrow-screen fitting. Both My Signet and
+NIP-46 screenshot payloads decode at desktop, 390px and 320px in both editions;
+54 local browser checks and all 667 units/source builds pass. Hosted checking,
+publication and actual remote approval of that correction remain required.
 
 Start in [nostr-access.ts](../src/web/nostr-access.ts),
 [account-identity.ts](../src/web/account-identity.ts) and the package lockfile.

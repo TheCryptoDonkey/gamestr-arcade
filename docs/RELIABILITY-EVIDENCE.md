@@ -1543,3 +1543,29 @@ The final assertion block is verified byte-for-byte identical to `ed73ebc`;
 no production HUD or music implementation changed.
 [Complete exact-revision run 38141857525](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38141857525)
 is running. No client publication is claimed.
+
+## Login QR display correction
+
+A remote My Signet fixture stopped before approval because the published
+standard edition's 360px canvas did not decode to its displayed approval link.
+A controlled comparison encodes the exact same 373-character URL: integer
+cells with a four-cell quiet zone decode both in raw pixels and the displayed
+360px screenshot; the SDK's one-cell border does not. At 320px the nested QR
+panel padding additionally compresses the image to 192px.
+
+The scoped Gamestr adapter regenerates only the displayed QR from the SDK's
+existing link/URI. It preserves the exact payload and H correction for My
+Signet, L correction for NIP-46, uses integer pixel cells and a four-cell quiet
+zone, reclaims QR-panel padding and fits whole cells on resize. The observer
+and queued resize frame are removed when login settles. Generation is checked
+after lazy loading before any login modal opens. No signer, challenge or
+authentication protocol changes.
+
+Four new browser journeys decode actual screenshot PNGs back to the exact SDK
+payload at 1280px, 390px and 320px in both editions, for My Signet and NIP-46.
+They check bounds, cancellation recovery and no script errors. All 54 local
+browser journeys, 667 units, types/config/manifests, desktop and both web builds
+pass. See [local QR correction evidence](evidence/login-qr-local-correction.json).
+This corrects software-decoded display output; a physical camera and actual
+remote signer approval remain separate gates. Published web remains `e96baa9`
+until the committed candidate completes hosted checks and deployment.

@@ -169,7 +169,11 @@ export async function connectNostrAccess(options: ConnectNostrOptions): Promise<
   if (method === 'android-signer') return startAndroidSignerLogin(options.appName, persistence.storage)
   const methods: LoginPickerMethod[] = ['local-signet', 'remote-signet', 'nip07', 'nostrconnect', 'bunker']
   const { login } = await import('signet-login')
-  const session = await login({
+  const stopQr = ['local-signet', 'remote-signet', 'nostrconnect'].includes(method)
+    ? await (await import('./login-qr')).observeLoginQr() : undefined
+  if (generation !== epoch) { stopQr?.(); return null }
+  let session: SignetSession | null
+  try { session = await login({
     appName: options.appName,
     storage: persistence.storage,
     methods,
@@ -182,7 +186,7 @@ export async function connectNostrAccess(options: ConnectNostrOptions): Promise<
     redirectCallback: window.location.href,
     nostrConnectPerms: ['sign_event'],
     theme: document.documentElement.dataset.webEdition === '600' ? 'light' : 'dark',
-  })
+  }) } finally { stopQr?.() }
   if (!session) return null
   if (generation !== epoch || (expectedPubkey && session.pubkey !== expectedPubkey)) {
     closeSession(session)

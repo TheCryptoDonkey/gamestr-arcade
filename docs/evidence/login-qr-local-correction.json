@@ -1,0 +1,31 @@
+{
+  "testedSource": "working tree based on 6b3e11e",
+  "deployed": false,
+  "publishedBaselineOrigin": "https://gamestr.62-238-98-53.sslip.io",
+  "publishedBaselineCanvasDecoded": false,
+  "publishedBaselineCanvasWidth": 360,
+  "fix": "Preserve exact SDK payload and H/L correction; render integer cells with four-cell quiet zone; fit whole cells to available panel width",
+  "localBrowserChecks": 4,
+  "editions": [
+    "gamestr",
+    "600"
+  ],
+  "methods": [
+    "remote My Signet QR",
+    "NIP-46 QR"
+  ],
+  "viewportWidths": [
+    1280,
+    390,
+    320
+  ],
+  "screenPngDecodedToExactPayload": true,
+  "qrStayedInViewport": true,
+  "cancelRestoredLoginControl": true,
+  "pageErrors": 0,
+  "fullLocalBrowserChecks": 54,
+  "fullLocalUnitTests": 667,
+  "sourceBuildManifestTypesPassed": true,
+  "physicalCameraUsed": false,
+  "actualRemoteSignerAcceptance": false
+}
