@@ -28,7 +28,14 @@ pass; a controlled reveal reproduces the old 57.9px failure and passes at 60px
 after waiting, while a 50px negative still fails. See
 [fixture qualification](evidence/ledger-draft-reveal-4ecadcb.json). The new
 [full gate](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38177444455)
-is queued. No new client is published.
+failed after 59 checks at the WebKit Valley loading-indicator snapshot.
+Candidate `ebcd6a5` observes the required indicator while the real GLB remains held;
+original assertions and production code are unchanged. Normal WebKit and a
+controlled 1.2-second timer pass; forced-hidden loading still fails. Local
+Chromium remains unqualified at earlier startup/resource waits. See
+[fixture evidence](evidence/ledger-loading-observation-ebcd6a5.json). The
+[new full gate](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38181311659)
+is pending. No new client is published.
 See the [current fixture qualification](evidence/ledger-harvest-feedback-e6e2066.json).
 Its local WebKit harvest profile passes; local Chromium remains unqualified at
 an earlier game-over startup wait. Published Ledger client remains `e3937ca`.
@@ -2159,3 +2166,5 @@ editions display the exact score/player with reviewed authority. See
 [both displays](evidence/pallasite-earned-recovery-ui-9813d13.json). This uses
 browser automation and forced 600 DNS; current four-game and physical
 acceptance remain open.
+
+Current expired-launch checks pass for Hang On Fren `e4ec515`, Neon `0435e93` and Pallasite `9813d13`: real 65-second delays reject the stale bridge without copying the arcade account, consume the fragment, remove the opener and preserve the parent account. Fresh ordinary launches then succeed. Each case uses a separate disposable My Signet account. Pallasite passes after explicit same-account signer reconnect. Earlier navigation without a live signer and two initial approval readiness timeouts remain recorded; the successful diagnostic retry does not establish their cause. Ledger awaits its checked client. No physical or independent-login acceptance follows from these checks. See [current expiry evidence](evidence/gamestr-c4b7929-pending-expiry-current.json).
