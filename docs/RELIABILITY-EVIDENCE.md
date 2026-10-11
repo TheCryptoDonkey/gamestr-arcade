@@ -1333,3 +1333,31 @@ protection. Checks include the catalogue and both Ledger/Pallasite deep links.
 The 600 proof uses forced resolution to `62.238.98.53`; public DNS still points
 to `95.217.39.110`. Both previous `4aa7661` release directories remain available.
 No payment was sent and no physical signer or cabinet acceptance is implied.
+
+## 11 October: SDK failure status correction deployed
+
+Release `e96baa931f30284578c6f0465b45588ff0804722` is activated on both
+Hetzner web routes. The installed SDK's fifteen-second NIP-46 request timeout
+could bypass the arcade's forty-five-second timeout handling and leave signing
+labelled connected. The arcade now recognises SDK signing timeout, closed
+connection, failed handshake and auth-only errors, revokes signing access and
+provides reconnect guidance while preserving the selected account and pairing.
+User denial leaves the connection usable; a late failed request cannot disable
+its replacement session. Five failure variants, denial and session replacement
+are covered by seven new regressions. Four initial failure variants failed on
+unchanged source before the fix; the final identity/handoff suite passes 22
+checks. The complete source/build gate passes 667 units and both web builds.
+
+[CI 38133934854](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38133934854)
+passes all source/build, fifty browser journeys, audit, packaging and Linux
+runtime stages for this revision. The [standard proof](evidence/gamestr-web-e96baa9.json)
+and [600 proof](evidence/gamestr-600-live-e96baa9.json) match eleven exact files
+per edition, release metadata, TLS and security headers, including the retained
+Ledger catalogue entry and Ledger/Pallasite deep links. The 600 proof uses
+forced Hetzner resolution; public DNS is still pending. Earlier release proofs
+remain historical and rollback release directories are retained.
+
+The Android callback outcomes and destination criteria are checked as source
+and automated evidence. Actual Cambium/Amber/iPhone round trips remain open in
+the separate physical criterion. No physical signer or payment result is inferred
+from SDK error simulations, hosted browser checks or static asset matching.
