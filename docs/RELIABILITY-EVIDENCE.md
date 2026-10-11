@@ -1755,3 +1755,25 @@ limits, assertions and the required gate list are unchanged. New exact run
 [38150978824](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38150978824)
 is running. The candidate client and actual earned recovery remain unqualified
 until that whole run passes. See [the scoped correction proof](evidence/ledger-shared-range-supply-6aa3e11.json).
+
+### Exact pairing across browser refresh on current c4b7929
+
+New live My Signet remote QR and generic NIP-46 QR checks use the current
+standard public edition, a disposable identity and separate signer/browser
+contexts. They compare the paired-client public key, bunker URI and client
+credential exactly before navigation, after navigation and after an explicit
+browser reload. Credentials stay in ephemeral memory and are not recorded in
+these evidence files. A new real signature verifies after reload.
+
+Closing every signer tab then produces SIGNER UNAVAILABLE after 15,431 ms for
+remote QR and 15,409 ms for generic NIP-46. The identity and pairing remain
+unchanged; explicit same-account reconnect produces another verified signature,
+and logout clears the pairing. Public submissions are blocked, no game is
+played and no payment is made. Both journeys terminate successfully and close
+their temporary browsers.
+
+These results prove Goal 3's paired-client refresh and closed-signer recovery
+criterion on the exercised paths. They do not qualify physical camera/phone
+use, another NIP-46 application or every session-switching path. The original
+combined acceptance criteria remain open. See [current remote QR](evidence/gamestr-c4b7929-remote-qr-refresh-live.json)
+and [current generic NIP-46](evidence/gamestr-c4b7929-nip46-qr-refresh-live.json).
