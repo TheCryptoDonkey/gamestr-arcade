@@ -1,0 +1,27 @@
+{
+  "revision": "8bcc49bc95e742d31998a8085cf59eeece3087b5",
+  "checkedRun": 38143388796,
+  "ciConclusion": "success",
+  "ciMergeRevision": "4a58c5e4698823de80f2b90f8967d325315ba945",
+  "candidateAndMergeTree": "4cd4643c76c3f949ec9369f8bd0be8614943d12f",
+  "webAssetsMatchCheckedArtifact": {
+    "gamestr": 8,
+    "600": 8
+  },
+  "browserJourneys": 54,
+  "localUnitTests": 667,
+  "appImageSha256": "a78df7a03d80fad4cc9cf677d830a73cd613c449ac6a325412e02823c20ba50f",
+  "downloadMatchesManifestAndRuntime": true,
+  "runtimeJourneys": {
+    "keyboardCarouselNavigation": true,
+    "launchAndReturn": true,
+    "guestSignatureVerified": true,
+    "freshGuestOnRelaunch": true,
+    "gameStorageAndCookiesIsolated": true,
+    "trustedGameKeyboardInput": true,
+    "walletUnavailableWithoutConfiguration": true,
+    "noNodeOrShellBridgeInGame": true,
+    "physicalControllerAcceptance": "pending"
+  },
+  "physicalAcceptance": false
+}

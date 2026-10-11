@@ -1569,3 +1569,30 @@ pass. See [local QR correction evidence](evidence/login-qr-local-correction.json
 This corrects software-decoded display output; a physical camera and actual
 remote signer approval remain separate gates. Published web remains `e96baa9`
 until the committed candidate completes hosted checks and deployment.
+
+
+## Published QR correction and actual remote My Signet approval
+
+Functional revision `8bcc49b` passes exact hosted run
+[38143388796](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38143388796),
+including 54 browser journeys and packaged Linux smoke. The CI merge tree
+matches the candidate tree; all eight script/style hashes per edition match
+its downloaded artifact. The AppImage hash matches both manifest and runtime
+report. Physical controller acceptance remains pending. See
+[CI/package proof](evidence/gamestr-8bcc49b-ci.json).
+
+Both editions are deployed on Hetzner and each matches twelve served files
+with TLS/security headers: [standard](evidence/gamestr-web-8bcc49b.json) and
+[600](evidence/gamestr-600-live-8bcc49b.json). Standard is publicly reachable;
+600 is verified with forced resolution and public DNS remains on the retired
+server. This supersedes the publication-pending statement above.
+
+The published standard QR decodes to the exact SDK approval link. A disposable
+account on real My Signet in an independent browser context approves it and
+produces verified initial and restored signatures. Closing all signer tabs
+reports unavailable after 15,424 ms, retaining the selected account and pairing.
+Explicit remote QR reconnect restores the same account and logout clears
+credentials. Public event submission is blocked; no game score or payment is
+sent. See [actual remote result](evidence/gamestr-8bcc49b-remote-qr-live.json).
+This qualifies the remote protocol in browser contexts, not a physical camera,
+phone, Cambium/Amber or independent NIP-07/NIP-46 application acceptance.

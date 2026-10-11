@@ -144,8 +144,12 @@ QR check found that the published canvas did not decode. The Gamestr display
 adapter now preserves the SDK payload/correction while providing whole-pixel
 cells, a complete quiet zone and narrow-screen fitting. Both My Signet and
 NIP-46 screenshot payloads decode at desktop, 390px and 320px in both editions;
-54 local browser checks and all 667 units/source builds pass. Hosted checking,
-publication and actual remote approval of that correction remain required.
+54 browser checks and all 667 local units/source builds pass. Exact hosted CI
+and packaged Linux smoke pass. Both web editions now serve `8bcc49b`. Actual
+remote My Signet approval using the decoded QR in separate browser contexts
+passes authentication, signing, sleep detection in 15,424 ms, pairing
+preservation, same-account reconnect and logout. Public submission is blocked.
+This does not qualify a physical camera, phone or other external signers.
 
 Start in [nostr-access.ts](../src/web/nostr-access.ts),
 [account-identity.ts](../src/web/account-identity.ts) and the package lockfile.
@@ -380,16 +384,17 @@ device or deployed behaviour.
 
 Arcade changes are in [PR #11](https://github.com/TheCryptoDonkey/gamestr-arcade/pull/11);
 Historical Ledger work is in [PR #88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88).
-Both web editions now serve functional revision `e96baa9` on the new Hetzner
-box. Current local verification passes all 667 units, type checks, desktop and
-both web builds. Exact-release hosted CI passes all 50 browser journeys and
-the packaged Linux runtime gate; the earlier local fifty-journey run remains
-historical for `a457171`. Each hosted edition
-matches eleven checked files, including its catalogue, Ledger/Pallasite deep
-links and all scripts/styles, with TLS and security headers. Standard is public;
-600 was verified through forced Hetzner resolution and public DNS is pending.
-See [standard proof](evidence/gamestr-web-e96baa9.json) and
-[600 proof](evidence/gamestr-600-live-e96baa9.json).
+Both web editions now serve functional revision `8bcc49b` on the new Hetzner
+box. All 667 local units, type checks, desktop and both web builds pass.
+Exact hosted CI passes all 54 browser journeys and the packaged Linux runtime
+gate. Each served edition matches twelve checked files, with TLS and security
+headers; each edition's eight script/style files also match the checked CI
+artifact. Standard is public; 600 uses forced Hetzner resolution and public DNS
+is pending. See [standard proof](evidence/gamestr-web-8bcc49b.json),
+[600 proof](evidence/gamestr-600-live-8bcc49b.json),
+[checked package](evidence/gamestr-8bcc49b-ci.json) and
+[actual remote approval](evidence/gamestr-8bcc49b-remote-qr-live.json).
+Earlier `e96baa9` deployment and desktop-signing evidence remains historical.
 The newer native ReadyPanel repair `8c3ed43` passes the full hosted gate,
 including 652 unit tests, 50 browser journeys and the original Linux AppImage
 journeys. Its downloaded package matches the manifest and runtime hash; see
@@ -400,15 +405,15 @@ symptoms, physical acceptance and the 600 DNS cutover remain open. See
 
 | Goal | Implementation and PR | Automated checks | Deployed or packaged revision | Live acceptance | Status |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Selected-session verification, synchronous port revocation and generation guards; PR #11 | 667 unit tests and 50 browser journeys passed | Standard web `e96baa9`; 600 `e96baa9` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 2 | Responsive controls, validated SDK callback and generic Cambium/Amber NIP-55 request; PR #11 | 667 unit tests and 50 browser journeys passed | Standard web `e96baa9`; 600 `e96baa9` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 667 unit tests and 50 browser journeys passed | Standard web `e96baa9`; 600 `e96baa9` on Hetzner; DNS pending | Current standard desktop My Signet approval, page-navigation restoration, real signing, 15.5-second sleeping-signer detection, pairing preservation, same-account reconnect and logout pass; remote/physical checks pending | In progress |
-| 4 | Per-game score authorities and attribution provenance; PR #11 | 667 unit tests and 50 browser journeys passed | Standard web `e96baa9`; 600 `e96baa9` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 5 | Dependency upgrades and high-severity audit gate; PR #11 | 667 unit tests and 50 browser journeys passed | Standard web `e96baa9`; 600 `e96baa9` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 6 | Reviewed handoff capability; PR #11; owner retains Ledger catalogue entry; Beamward remains separate; Ledger PR #88 preserves held work; saved-score fix explicitly authorised in PR #89 | 667 unit tests and 50 browser journeys passed; Hang On Fren published correction passes 219 units, private API recovery and checked browser; published Ledger passed 98 release checks; Ledger corrected transport remains unqualified; Ledger 272 units and local real PLAY pass; edc direct hosted opening still fails; ceb hosted real-route UI thresholds pass but music cancellation fails gate; Ledger API a6bcd26 published from checked artifact; 275 units/twelve recovery groups and existing-history preflight pass; latest client gate fails phone tour HUD opacity; scoped receipt/day fix b6ee8dd is in draft PR #89, including explicit owner removal and NIP-07 personal-account safeguards; 283 hosted units/types and thirteen private groups pass; both isolated controls and full-game saved-score engines pass; original 1300c88 full gate failed developer Backquote, corrected in 56840dc; hosted run 38138295851 failed WebKit audio startup after passing both score-recovery engines; ed73ebc adds restored-owner and legacy-client compatibility, event-time capture and bounded requests; 287 local units/types and thirteen private groups pass; exact full client qualification 38139937880 failed WebKit arrival/media fixture; corrected real-PLAY and atomic-animation fixture passes locally in Chromium/WebKit with unchanged assertions; exact b6ee8dd full qualification 38141857525 is running; checked API ed73ebc is deployed with production-history preflight and hash/health verification; actual candidate recovery remains; Neon 101 units, recovery and real SDK modal CI pass; current desktop My Signet earned recovery passes | Standard web `e96baa9`; 600 `e96baa9` on Hetzner; Ledger client `e3937ca` / API `ed73ebc`; Pallasite `14e969f`; Hang On Fren `e4ec515` client/API; Neon `046a822` verified public client/API/SDK; DNS pending | Historical four-game My Signet matrix and saved-score retry pass at forced origin; Neon earned recovery and historical Hang On Fren recovery pass; Neon real delayed recovery passes; HOF actual eleven-minute delayed recovery and both fresh displays pass; physical checks pending | In progress |
-| 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | 667 unit tests and 50 browser journeys passed | Standard web `e96baa9`; 600 `e96baa9` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | 667 unit tests and 50 browser journeys passed | Standard web `e96baa9`; 600 `e96baa9` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | 667 unit tests and 50 browser journeys passed | Standard web `e96baa9`; 600 `e96baa9` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 1 | Selected-session verification, synchronous port revocation and generation guards; PR #11 | 667 local unit tests and 54 hosted browser journeys passed | Standard web `8bcc49b`; 600 `8bcc49b` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 2 | Responsive controls, validated SDK callback and generic Cambium/Amber NIP-55 request; PR #11 | 667 local unit tests and 54 hosted browser journeys passed | Standard web `8bcc49b`; 600 `8bcc49b` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 667 local unit tests and 54 hosted browser journeys passed | Standard web `8bcc49b`; 600 `8bcc49b` on Hetzner; DNS pending | Current standard desktop My Signet approval, page-navigation restoration, real signing, 15.5-second sleeping-signer detection, pairing preservation, same-account reconnect and logout pass; Actual remote QR approval/signing/sleep/reconnect/logout pass in separate browser contexts; physical checks pending | In progress |
+| 4 | Per-game score authorities and attribution provenance; PR #11 | 667 local unit tests and 54 hosted browser journeys passed | Standard web `8bcc49b`; 600 `8bcc49b` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 5 | Dependency upgrades and high-severity audit gate; PR #11 | 667 local unit tests and 54 hosted browser journeys passed | Standard web `8bcc49b`; 600 `8bcc49b` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 6 | Reviewed handoff capability; PR #11; owner retains Ledger catalogue entry; Beamward remains separate; Ledger PR #88 preserves held work; saved-score fix explicitly authorised in PR #89 | 667 local unit tests and 54 hosted browser journeys passed; Hang On Fren published correction passes 219 units, private API recovery and checked browser; published Ledger passed 98 release checks; Ledger corrected transport remains unqualified; Ledger 272 units and local real PLAY pass; edc direct hosted opening still fails; ceb hosted real-route UI thresholds pass but music cancellation fails gate; Ledger API a6bcd26 published from checked artifact; 275 units/twelve recovery groups and existing-history preflight pass; latest client gate fails phone tour HUD opacity; scoped receipt/day fix b6ee8dd is in draft PR #89, including explicit owner removal and NIP-07 personal-account safeguards; 283 hosted units/types and thirteen private groups pass; both isolated controls and full-game saved-score engines pass; original 1300c88 full gate failed developer Backquote, corrected in 56840dc; hosted run 38138295851 failed WebKit audio startup after passing both score-recovery engines; ed73ebc adds restored-owner and legacy-client compatibility, event-time capture and bounded requests; 287 local units/types and thirteen private groups pass; exact full client qualification 38139937880 failed WebKit arrival/media fixture; corrected real-PLAY and atomic-animation fixture passes locally in Chromium/WebKit with unchanged assertions; exact b6ee8dd full qualification 38141857525 is running; checked API ed73ebc is deployed with production-history preflight and hash/health verification; actual candidate recovery remains; Neon 101 units, recovery and real SDK modal CI pass; current desktop My Signet earned recovery passes | Standard web `8bcc49b`; 600 `8bcc49b` on Hetzner; Ledger client `e3937ca` / API `ed73ebc`; Pallasite `14e969f`; Hang On Fren `e4ec515` client/API; Neon `046a822` verified public client/API/SDK; DNS pending | Historical four-game My Signet matrix and saved-score retry pass at forced origin; Neon earned recovery and historical Hang On Fren recovery pass; Neon real delayed recovery passes; HOF actual eleven-minute delayed recovery and both fresh displays pass; physical checks pending | In progress |
+| 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | 667 local unit tests and 54 hosted browser journeys passed | Standard web `8bcc49b`; 600 `8bcc49b` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | 667 local unit tests and 54 hosted browser journeys passed | Standard web `8bcc49b`; 600 `8bcc49b` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | 667 local unit tests and 54 hosted browser journeys passed | Standard web `8bcc49b`; 600 `8bcc49b` on Hetzner; DNS pending | Physical checks pending | In progress |
 
 For live runs, record the browser/device, signer or wallet, date, exact revisions,
 steps exercised and result. Cover both editions; local and cross-device My
