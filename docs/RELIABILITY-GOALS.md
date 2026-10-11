@@ -169,8 +169,11 @@ also passes with explicit My Signet approval before each game. Published-game
 private fixtures verify independent login controls after reload and expired
 proofs in all four consumers, plus account-bound receipt retention and an arcade
 return after Pallasite's parent closes. These fixtures block external writes;
-they do not complete an independent provider login. Ledger also passes a private closed-parent fixture with external writes blocked. The Neon Sentinel closed-parent fixture exposes automatic guest substitution in
-the published client; its correction and complete recovery remain pending.
+they do not complete an independent provider login. Ledger also passes a private closed-parent fixture with external writes blocked. A Neon Sentinel closed-parent fixture exposed automatic guest substitution in
+the older client. Published `046a822` removes that substitution, preserves
+original-account receipts, and adds explicit reconnect/retry/removal controls.
+The checked client/API pass hosted recent and seven-day delayed private recovery
+gates; current real provider recovery remains unqualified.
 Physical checks remain open.
 
 Hang On Fren's deployed client `328540a` preserves the original account on
@@ -212,10 +215,15 @@ Acceptance criteria:
   Surface permanent rejection clearly and provide an explicit owner-controlled
   way to remove an unrecoverable receipt without silently evicting other runs.
 
-Neon's deployed API was inspected read-only on 11 October: its compiled
-`STALE_RUN_MS` is `10 * 60 * 1e3` and it rejects `stale_run`. Current client
-fixtures establish recent-run recovery only. Persistent storage alone does
-not establish delayed publication; this server/client mismatch remains open.
+Neon's former API rejected runs older than ten minutes. Published `046a822`
+removes that limit while requiring fresh NIP-98 and durably retaining original
+account/run acceptance. The checked API passes a seven-day-old private run,
+restart and same-event retry, concurrent deduplication and changed-run rejection.
+The client adds explicit confirmed removal of selected retry copies. Deployment
+preserves the game authority and two existing records, with a history backup.
+Current live provider reconnect/publication remains unqualified; see
+[API deployment](evidence/neon-api-live-046a822.json) and
+[public client verification](evidence/neon-live-046a822.json).
 
 Update [the handoff contract](nostr-game-handoff.md) and
 [platform documentation](WEB-PLATFORM.md) alongside the implementation.
@@ -312,7 +320,7 @@ symptoms, physical acceptance and the 600 DNS cutover remain open. See
 | 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Live desktop My Signet approval, signing, refresh and logout pass; physical checks pending | In progress |
 | 4 | Per-game score authorities and attribution provenance; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 5 | Dependency upgrades and high-severity audit gate; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 6 | Reviewed manifest capability and deployed Ledger consumer; PR #11 and PR #88 | 658 unit tests and 50 browser journeys passed; Hang On Fren 212 tests pass; published Ledger passed 98 release checks; newer Ledger retry correction gate pending; Neon 101 units, recovery and real SDK modal CI pass; current real provider recovery pending | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; Ledger `e3937ca`; Pallasite `14e969f`; Hang On Fren `328540a`; Neon `59f6452` verified public client/SDK; DNS pending | Historical four-game My Signet matrix and saved-score retry pass at forced origin; current Neon/Hang On Fren recovery and physical checks pending | In progress |
+| 6 | Reviewed manifest capability and deployed Ledger consumer; PR #11 and PR #88 | 658 unit tests and 50 browser journeys passed; Hang On Fren 212 tests pass; published Ledger passed 98 release checks; newer Ledger retry correction gate pending; Neon 101 units, recovery and real SDK modal CI pass; current real provider recovery pending | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; Ledger `e3937ca`; Pallasite `14e969f`; Hang On Fren `328540a`; Neon `046a822` verified public client/API/SDK; DNS pending | Historical four-game My Signet matrix and saved-score retry pass at forced origin; current Neon/Hang On Fren recovery and physical checks pending | In progress |
 | 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
 | 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | 658 unit tests and 50 browser journeys passed | Standard web `4aa7661`; 600 `4aa7661` on Hetzner; DNS pending | Physical checks pending | In progress |
