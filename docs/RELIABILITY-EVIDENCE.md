@@ -2009,3 +2009,33 @@ checking the recovery controls. It is running with a new disposable account;
 no score state or receipt is injected. Eleven-minute retention, reconnect,
 positive publication and both fresh arcade displays remain unqualified.
 No payment or new invoice is attempted.
+
+
+### Acceptance continuation: natural finishes and device reachability
+
+The corrected Pallasite reload fixture subsequently stops with phase
+`deathreplay`, no receipt and no score HTTP attempt. A further attempt with a
+normal Enter replay-skip action remains alive in `playing` at the observation
+limit, displaying 21,445 points; it also has no finished receipt or score HTTP
+attempt. These are incomplete player journeys, not proof of lost saved scores.
+The current fixture fires and moves for twenty seconds using ordinary keys,
+then observes a natural finish for up to ten minutes, reporting the actual
+phase and displayed score. It retains the normal reload start gesture,
+original receipt checks, eleven-minute real delay and original-account retry.
+No game state, receipt, score or clock is injected.
+
+The prepared current four-game acceptance script now captures and verifies the
+NIP-98 request body hash and player signature. If normal publication cannot
+complete, it reads the game's actual earned receipt, checks ownership, explicitly
+reconnects the original arcade account, relaunches the publisher and retries
+through its normal controls. It checks the original run/score and positive
+publication before accepting recovery. This script is syntax checked but has
+not run; Ledger's complete exact release gate remains a prerequisite.
+
+Donkeyfarm briefly appears connected on the development device list. A default
+app query succeeds but lists only developer-installed apps; it does not establish
+Wallet of Satoshi or signer availability. Two bounded full app-inventory queries
+fail with an invalidated control channel and an unreachable peer. No wallet is
+opened, invoice created or payment sent. Physical acceptance remains open; the
+owner's earlier report that the authorised hundred-sat attempt was unpaid is
+unchanged.
