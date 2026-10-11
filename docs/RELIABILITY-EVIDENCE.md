@@ -1245,3 +1245,14 @@ loopback HTTP and fake WebSockets, with external HTTP blocked. No live API
 is changed. Durable exact-event recovery and semantic conflict checks must
 preserve the existing daily-best protection. See
 [backend baseline](evidence/ledger-claim-gap-private-edc8427.json).
+
+
+Hosted Ledger real-route comparison `38128029617` / `ceb581a` is now terminal
+failure after all 272 units pass. Actual PLAY/LATER/loader reaches opacity 1
+and every reported opening/HUD/accessibility threshold in both viewports.
+A desktop music cancellation before teardown fails the original network
+assertion. The native media trace records pauses/restarts and resolved playback;
+that evidence does not turn the failed gate into a pass. Direct/full gates are
+not exercised and no checked artifact is produced. No Ledger gate remains
+running, publication stays `e3937ca` and backend retry gaps remain open. See
+[hosted real-route evidence](evidence/ledger-arrival-real-play-hosted-ceb581a.json).
