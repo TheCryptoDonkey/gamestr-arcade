@@ -879,3 +879,21 @@ window. No API code, configuration, process or receipt timestamps were changed.
 Goal 6 now requires delayed recovery with durable idempotency and explicit
 handling of permanently rejected receipts. The published client remains
 qualified for the checked recent-run fixtures only.
+
+## Neon delayed acceptance candidate
+
+Neon source `723b087` now accepts old runs with fresh canonical NIP-98 and
+retains account/run deduplication across restarts. It durably writes the signed
+event before external publication and retries the same event after an
+unconfirmed write, without changing original run timestamps. Accepted payload
+changes return 409. Corrupt history fails closed; legacy unconfirmed rows
+without their signed event are rejected explicitly. Private compiled-API
+checks pass seven-day-old recovery, process restart, exact event identity,
+concurrent duplicates, altered-run and future-clock rejection, expired NIP-98
+refusal and corrupt/legacy history handling. All 101 units and typechecks pass.
+No live API process or configuration changed. Hosted
+[run 38118195811](https://github.com/TheCryptoDonkey/neon-sentinel-public/actions/runs/38118195811)
+is pending; deployment, live recovery and owner-controlled receipt removal
+remain open. The workflow archives a checked API and source/hash manifest.
+Ledger [run 38117971629](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38117971629)
+is confirmed in progress at `f792c8c`.
