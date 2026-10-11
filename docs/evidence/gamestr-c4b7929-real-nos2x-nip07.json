@@ -1,0 +1,33 @@
+{
+  "localCandidate": false,
+  "origin": "https://gamestr.62-238-98-53.sslip.io",
+  "arcadeRevision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
+  "actualNip07Extension": true,
+  "extension": "nos2x",
+  "extensionVersion": "2.5.2",
+  "extensionSource": "https://github.com/fiatjaf/nos2x",
+  "extensionRevision": "014493f9602d0a3826ef3eab2bdd4901ee315cce",
+  "unmodifiedExtensionSource": true,
+  "extensionBuiltLocally": true,
+  "extensionDependencies": {
+    "nostrTools": "2.12.0",
+    "nobleHashes": "1.8.0"
+  },
+  "disposableIdentity": true,
+  "pubkey": "38196a1a92ef0f39cb6cfabb91653cfe5b636d76408e0a3befb32f88503263b6",
+  "realLoginSignatureVerified": true,
+  "refreshPreservedAccount": true,
+  "realStudioSignatureVerified": true,
+  "extensionAccountChangeRejected": true,
+  "providerCachedPreviousAccount": true,
+  "replacementSignatureVerifiedAndRejected": true,
+  "noReplacementEventPublished": true,
+  "selectedAccountPreservedOnMismatch": true,
+  "replacementPubkey": "2f94d06e48891adbcc7c5749c78bd39fd21403a7de680abf04406efe44cfbff9",
+  "logoutClearedIdentity": true,
+  "publicSubmissionBlocked": true,
+  "scoreClaims": 0,
+  "paymentTest": false,
+  "physicalDevice": false,
+  "approvals": 7
+}

@@ -1633,3 +1633,53 @@ parameter. Correcting that fixture check requires no application change. This
 is actual generic NIP-46 protocol acceptance with My Signet, not qualification
 of another signer application or a physical camera/phone. Donkeyfarm remains
 unavailable in the current paired-device listing.
+
+
+## Published NIP-07 refresh correction and real extension acceptance
+
+A real nos2x extension on published `8bcc49b` authenticated successfully but
+refresh left only a recognised identity: the SDK restored before document-end
+extension injection. Candidate `c4b7929` gives saved NIP-07 sessions up to three
+seconds for injection before SDK restoration. The SDK still verifies the saved
+account; a generation change cancels the wait before invoking the provider.
+Delayed injection, no provider and logout during the wait have focused
+regressions. All 670 units/source checks and 54 browser journeys pass.
+
+[Hosted run 38145800995](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38145800995)
+and the Linux runtime smoke pass. Downloaded AppImage hash matches the manifest
+and runtime report; candidate and CI merge trees match, as do all eight
+script/style hashes per web edition. Both editions are deployed with twelve
+served files, TLS and security headers verified. See [CI/package](evidence/gamestr-c4b7929-ci.json),
+[standard](evidence/gamestr-web-c4b7929.json) and [600](evidence/gamestr-600-live-c4b7929.json).
+Public 600 DNS and physical controller acceptance remain pending.
+
+The extension is built from unmodified
+[nos2x source](https://github.com/fiatjaf/nos2x) revision `014493f`, version 2.5.2,
+with recorded compatible dependencies. A temporary Chromium profile generates
+its own disposable key using the extension UI; no owner profile/key is read.
+Actual local candidate and public standard login, refresh, Studio signing,
+account change and logout pass. Nos2x caches its previous public key after the
+key changes: its new valid signature is observed, verified and rejected by
+Gamestr before publication. The selected original account remains recognised
+and the UI reports SIGNER UNAVAILABLE. Explicit extension requests verify that
+the replacement public key differs. See [local candidate](evidence/gamestr-c4b7929-local-nos2x-nip07.json)
+and [public real-extension proof](evidence/gamestr-c4b7929-real-nos2x-nip07.json).
+All public event writes are blocked; no score or payment is sent. The temporary
+profile and its fixture keys are removed on completion. This does not qualify
+a store-distributed extension binary or a physical device.
+
+## Ledger audio-mixer fixture and current complete gate
+
+Run `38144669741` is terminal failure at WebKit audio mixer on an opening
+member-voice fetch during reload. The direct-start fixture passes locally, so
+the hosted failure is retained. Correction `9b1f654` enters through real PLAY
+and its voice-loading path before inspecting pause and reloading. Local
+Chromium and WebKit profiles pass; every assertion and page-error check is
+unchanged. No production audio/HUD change is included. See
+[fixture evidence](evidence/ledger-audio-mix-real-play-9b1f654.json).
+
+[Complete exact run 38145996437](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38145996437)
+is running against `9b1f654`. Client publication remains held at `e3937ca`;
+compatible API `ed73ebc` remains live. The earlier range fixture and this audio
+fixture do not by themselves clear the complete release gate or actual
+earned-score recovery requirement.
