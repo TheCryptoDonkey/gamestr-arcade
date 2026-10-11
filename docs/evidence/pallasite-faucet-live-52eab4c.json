@@ -1,0 +1,39 @@
+{
+  "revision": "52eab4c06c067d9af5e54b6c15a7db1e3a4e5e41",
+  "deploymentRun": 38172409621,
+  "qualifiedBranchRun": 38172321745,
+  "binarySha256": "a6a2d491fe8519a6cb66e5336c82f883828719550dad479a3583d3342d3ad049",
+  "originalAcceptedPayloadPreserved": true,
+  "exactAcceptedEventPreserved": true,
+  "eventId": "1086672b0f1e3522804d729d66b334e1e5dacc5fd49e61db7a3704e0de602e4a",
+  "authority": "fa9291d038fd1d3e4439364f289f2e53a64a1d32776ee52c000da53ebc718cdc",
+  "relays": [
+    "wss://main.relay.gamestr.io",
+    "wss://relay.trotters.cc",
+    "wss://nos.lol",
+    "wss://relay.damus.io",
+    "wss://relay.nostr.band",
+    "wss://relay.primal.net",
+    "wss://relay.ditto.pub"
+  ],
+  "service": "active",
+  "db": "ready",
+  "mergedPullRequest": "https://github.com/TheCryptoDonkey/pallasite-faucet/pull/1",
+  "deploymentConclusion": "success",
+  "functionalSourceMatchesQualifiedRevision": "3173d18a2876fcfb4e1ea062f6f8d16c03718c4b",
+  "binaryMatchesActualRecovery": true,
+  "installerChecks": [
+    {
+      "case": "same-filesystem atomic replacement retains old inode",
+      "result": "pass"
+    },
+    {
+      "case": "identical checked bytes do not duplicate rollback storage",
+      "result": "pass"
+    },
+    {
+      "case": "missing staged candidate cannot replace the live binary",
+      "result": "pass"
+    }
+  ]
+}

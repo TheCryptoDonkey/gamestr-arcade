@@ -41,6 +41,13 @@ editions display the exact score/player with reviewed authority. See
 browser automation and forced 600 DNS; current four-game and physical
 acceptance remain open.
 
+API PR #1 is merged as `52eab4c`. Its [automatic deployment](evidence/pallasite-faucet-live-52eab4c.json)
+passes all API tests and health readiness. The live binary is byte-identical
+to the actual-recovery binary; its original accepted payload and exact event
+remain stored unchanged after deployment. Staging uses /opt to avoid the
+deployment user's tmpfs quota. Atomic replacement, identical-byte reuse and
+missing-candidate rejection pass in an isolated Hetzner fixture.
+
 Fresh GET-only checks display the previously earned Neon and Hang On Fren
 scores correctly on current arcade `c4b7929` in both editions. These four
 [display checks](evidence/gamestr-c4b7929-retained-neon-hof-score-ui.json) use
