@@ -2039,3 +2039,23 @@ fail with an invalidated control channel and an unreachable peer. No wallet is
 opened, invoice created or payment sent. Physical acceptance remains open; the
 owner's earlier report that the authorised hundred-sat attempt was unpaid is
 unchanged.
+
+
+### Current Pallasite receipt survives real reload
+
+A fourth current 9813d13 run naturally earns 19,955 points. Its original receipt
+survives reload unchanged, with no score HTTP request. The normal start gesture
+returns to the shared booth picker, which deliberately has no restored personal
+session. Waiting there for account-owned saved-score controls is an incorrect
+fixture expectation, not evidence that storage lost the receipt. The corrected
+journey checks the retained receipt at that picker, then explicitly returns to
+the arcade, reconnects the original account and relaunches before reviewing or
+retrying its score. It does not silently restore a previous booth user's signer.
+
+The fifth current run earns 22,840 points with its arcade parent closed. The
+receipt retains its original account, run ID, score and start/finish timestamps
+through a real reload. No game state, score, receipt or clock is injected. It is
+now waiting through the actual eleven-minute delay. See the
+[incomplete receipt-stage proof](evidence/pallasite-earned-recovery-progress-9813d13.json).
+Reconnect, positive publication, receipt clearing and both fresh arcade displays
+remain unqualified. All original Goal 6 criteria remain in scope.

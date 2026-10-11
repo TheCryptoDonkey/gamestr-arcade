@@ -1,0 +1,36 @@
+{
+  "phase": "retain-current-pallasite-receipt-beyond-ten-minutes",
+  "complete": false,
+  "gameRevision": "9813d131985ae97d70cf7c2420c8089dd2cf82a4",
+  "arcadeRevision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
+  "pubkey": "c29a55f61a4e3494f86104d10e634699b95c403c1f6a55eec0267f86c88eccb1",
+  "earnedReceipt": {
+    "pubkey": "c29a55f61a4e3494f86104d10e634699b95c403c1f6a55eec0267f86c88eccb1",
+    "input": {
+      "score": 22840,
+      "wave": 1,
+      "duration_ms": 51616,
+      "run_id": "1791746502475",
+      "started_at": 1791746502,
+      "finished_at": 1791746561,
+      "mode": "campaign",
+      "player_name": "C29A55F6\u2026CCB1",
+      "cheated": false
+    },
+    "lastError": "sign_failed",
+    "rejected": false
+  },
+  "claimRequests": 0,
+  "at": "2026-10-11T19:23:13.367Z",
+  "scope": "current actual earned receipt retained after parent closure and reload; delayed publication pending",
+  "parentClosedBeforeRun": true,
+  "reloadPreservedOriginalReceipt": true,
+  "reloadReturnsToSharedBoothPicker": true,
+  "receiptNotSeeded": true,
+  "gameOrScoreStateInjected": false,
+  "clockInjected": false,
+  "forcedHetznerArcadeDns": true,
+  "physicalDevice": false,
+  "lightningPaymentTest": false,
+  "fixtureSha256": "2010eae26e037ba2bc08af28ca44f06ae173ce16a9e60e07838923054e23e4d5"
+}
