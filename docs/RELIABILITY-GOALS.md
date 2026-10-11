@@ -169,7 +169,9 @@ also passes with explicit My Signet approval before each game. Published-game
 private fixtures verify independent login controls after reload and expired
 proofs in all four consumers, plus account-bound receipt retention and an arcade
 return after Pallasite's parent closes. These fixtures block external writes;
-they do not complete an independent provider login. Ledger also passes a private closed-parent fixture with external writes blocked. Neon Sentinel closure and physical checks remain open.
+they do not complete an independent provider login. Ledger also passes a private closed-parent fixture with external writes blocked. The Neon Sentinel closed-parent fixture exposes automatic guest substitution in
+the published client; its correction and complete recovery remain pending.
+Physical checks remain open.
 
 Hang On Fren's deployed client `328540a` preserves the original account on
 personal signing failure; see [consumer PR 2](https://github.com/TheCryptoDonkey/hang-on-fren-public/pull/2).

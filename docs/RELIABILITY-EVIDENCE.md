@@ -693,8 +693,11 @@ Its complete player-promise release gate initially failed an animal-audio probe.
 That unchanged probe also fails against the previously published client: it
 starts the game directly and skips the real opening preload. Test revision
 `d19869f` uses the actual Play/opening/pause journey and retains every original
-voice assertion; targeted Chromium and WebKit probes pass. The complete gate
-has restarted on that revision. Deployment remains pending.
+voice assertion; targeted Chromium and WebKit probes pass. The complete gate at `d19869f` then failed the developer-panel Space-key
+assertion. An unchanged targeted rerun passes all 12 developer checks. Test
+revision `a99f5f8` adds passive key/focus/game-state failure evidence and starts
+another full gate, retaining the original assertion and failure. Deployment
+remains pending.
 See [Ledger PR 88](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/88).
 
 ## Native view attachment diagnostics
@@ -764,3 +767,25 @@ before and after each release; see
 [local boundary probe](evidence/gamestr-native-return-boundary-local.json).
 Physical controller qualification and the broader intermittent input issue
 remain open.
+
+## Independent Linux keyboard result and Neon ownership failure
+
+Run `38097262500` at `ecb229d` failed the original debugger-injected second
+Escape closure assertion. A separately sent X11 XTEST Escape, after checking
+the isolated window and process, closed that game. The original gate stays
+failed. Its first-return snapshots also show the CTA focused before the key
+release, excluding that release as the cause of the initial focus change.
+See [independent input result](evidence/gamestr-native-ecb229d-system-input.json).
+This narrows debugger delivery versus application input; it does not prove
+a general product repair or physical controller acceptance.
+
+A private published Neon Sentinel journey earned 6,326 points normally after
+the parent closed. On signing timeout, the published client attempted two
+NIP-98 claims under another guest key and changed player mode to guest. Both
+requests were blocked; no score was published. See
+[published guest substitution](evidence/neon-published-guest-substitution.json).
+Its public entry hash still matches `index-CejSwacQ.js`. The matching source
+is in `neon-sentinel-public`, rather than the older similarly named checkout.
+The new candidate removes guest fallback and guards original-account/template
+ownership; browser recovery, persisted retry UI and deployment remain pending.
+The historical successful four-game matrix does not qualify this failure path.
