@@ -12,8 +12,7 @@ Pallasite client `9813d13` / API `52eab4c`, Hang On Fren `e4ec515` and
 Neon Sentinel API recovery have published evidence. Neon’s current graphics
 client is now `0435e93`; its current CI recovery/SDK and served-code checks pass,
 and actual 7,214-point earned recovery after reload and eleven minutes now passes, including both fresh arcade displays. Ledger's requested
-saved-score correction still needs its complete release gate, deployment and
-actual earned recovery. Use the current revisions from the evidence log when
+saved-score correction is published as `ebcd6a5` after all 98 original release checks, 228 local/server hashes and 36 critical served hashes passed; actual earned recovery remains pending. Use the current revisions from the evidence log when
 performing these checks.
 
 ## Public 600 DNS

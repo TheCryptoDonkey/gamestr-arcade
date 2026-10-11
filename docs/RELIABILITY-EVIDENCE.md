@@ -4,8 +4,7 @@ Work in progress on 12 October 2026. This file separates implemented changes,
 automated results, hosted artifacts and actual user/device acceptance.
 
 Current arcade web revision is `c4b7929`, with exact hosted CI, served asset
-hashes and real desktop signer checks recorded below. Ledger client remains
-`e3937ca`. Candidate `a1d3290` failed after 46 checks on a WebKit supply
+hashes and real desktop signer checks recorded below. Ledger client is now `ebcd6a5`; the earlier baseline was `e3937ca`. Candidate `a1d3290` failed after 46 checks on a WebKit supply
 stream cancellation. Candidate `f6e810a` failed after 38 release checks on
 WebKit arrival music cancellations, before supply or pickup-media qualification.
 Ledger candidate `bc18049` passed the arrival, supply and pickup-media release checks,
@@ -35,10 +34,10 @@ controlled 1.2-second timer pass; forced-hidden loading still fails. Local
 Chromium remains unqualified at earlier startup/resource waits. See
 [fixture evidence](evidence/ledger-loading-observation-ebcd6a5.json). The
 [new full gate](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38181311659)
-is pending. No new client is published.
+passes all 98 original checks. The checked client `ebcd6a5` is now published on Hetzner, with 228 local/server files and 36 critical served files matching its CI manifest; original API `ed73ebc`, authority and history are preserved. One public `.well-known/nostr.json` file omitted by the archive was recovered from the exact checked Git revision and matched against the CI hash. Provenance, atomic entry swap, unchanged-asset hardlinks and rollback entry are recorded in [deployment proof](evidence/ledger-live-ebcd6a5.json). Actual earned recovery and the current four-game matrix remain pending.
 See the [current fixture qualification](evidence/ledger-harvest-feedback-e6e2066.json).
 Its local WebKit harvest profile passes; local Chromium remains unqualified at
-an earlier game-over startup wait. Published Ledger client remains `e3937ca`.
+an earlier game-over startup wait. Published Ledger client is now `ebcd6a5`; prior `e3937ca` evidence remains historical.
 
 All fourteen original later WebKit release checks pass locally on `052b2c4`,
 covering the seven-biome bed through altitude/placards. See
