@@ -71,6 +71,20 @@ remain stored unchanged after deployment. Staging uses /opt to avoid the
 deployment user's tmpfs quota. Atomic replacement, identical-byte reuse and
 missing-candidate rejection pass in an isolated Hetzner fixture.
 
+Neon Sentinel now publicly serves `0435e93`: the recovery PR #1 merged,
+followed by graphics PR #2. Current hosted CI `38177726376` passes types,
+units, durable API acceptance, account-bound browser recovery and actual SDK
+keyboard checks. Recovery source files and server source are unchanged.
+[Current served-code proof](evidence/neon-live-0435e93.json) validates all sixteen
+checked local code files, eleven served files byte-for-byte and two legal pages
+after reversing only verified [Cloudflare email protection](https://developers.cloudflare.com/waf/tools/scrape-shield/email-address-obfuscation/)
+markup/script; the restored bytes exactly match CI. Claim health and the original
+authority remain intact. Graphics binary hashes and current actual earned-score
+recovery are outside this proof. Older `046a822` actual journeys remain historical;
+current four-game qualification must use `0435e93`. An expiry fixture detected
+this release change and stopped at its old asset guard; that incomplete attempt
+is not a current Neon pass. No publisher release was rolled back.
+
 Fresh GET-only checks display the previously earned Neon and Hang On Fren
 scores correctly on current arcade `c4b7929` in both editions. These four
 [display checks](evidence/gamestr-c4b7929-retained-neon-hof-score-ui.json) use

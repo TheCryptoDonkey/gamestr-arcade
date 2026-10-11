@@ -9,7 +9,9 @@ Current public standard edition:
 https://gamestr.62-238-98-53.sslip.io/.
 The canonical 600 edition is https://arcade.600.wtf/.
 Pallasite client `9813d13` / API `52eab4c`, Hang On Fren `e4ec515` and
-Neon Sentinel `046a822` have published recovery evidence. Ledger's requested
+Neon Sentinel API recovery have published evidence. Neon’s current graphics
+client is now `0435e93`; its current CI recovery/SDK and served-code checks pass,
+while actual earned recovery on that release remains pending. Ledger's requested
 saved-score correction still needs its complete release gate, deployment and
 actual earned recovery. Use the current revisions from the evidence log when
 performing these checks.
