@@ -1,6 +1,6 @@
 # Reliability delivery evidence
 
-Work in progress on 11 October 2026. This file separates implemented changes,
+Work in progress on 12 October 2026. This file separates implemented changes,
 automated results, hosted artifacts and actual user/device acceptance.
 
 Current arcade web revision is `c4b7929`, with exact hosted CI, served asset
@@ -88,7 +88,7 @@ after reversing only verified [Cloudflare email protection](https://developers.c
 markup/script; the restored bytes exactly match CI. Claim health and the original
 authority remain intact. Graphics binary hashes and current actual earned-score
 recovery are outside this proof. Older `046a822` actual journeys remain historical;
-current four-game qualification must use `0435e93`. An expiry fixture detected
+current four-game qualification must use `0435e93`. Current actual earned recovery now passes on that revision: a normally earned 7,214-point run survives arcade closure and reload, retains its original receipt through 663,636 ms, reconnects the original My Signet account and submits one fresh URL/method/body-bound NIP-98 claim. HTTP 200 with six of seven relay acknowledgements clears the receipt; the independently verified authority event retains the original run bounds in its content. Fresh pages in both editions show the exact score/player and reviewed authority. See [earned recovery](evidence/neon-earned-recovery-0435e93.json) and [both fresh displays](evidence/neon-earned-recovery-ui-0435e93.json). Earlier local reconnect and initial fixture errors remain retained; no physical or four-game shared-account qualification follows from this separate-account journey. An expiry fixture detected
 this release change and stopped at its old asset guard; that incomplete attempt
 is not a current Neon pass. No publisher release was rolled back.
 

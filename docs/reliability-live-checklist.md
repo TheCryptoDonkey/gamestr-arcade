@@ -11,7 +11,7 @@ The canonical 600 edition is https://arcade.600.wtf/.
 Pallasite client `9813d13` / API `52eab4c`, Hang On Fren `e4ec515` and
 Neon Sentinel API recovery have published evidence. Neon’s current graphics
 client is now `0435e93`; its current CI recovery/SDK and served-code checks pass,
-while actual earned recovery on that release remains pending. Ledger's requested
+and actual 7,214-point earned recovery after reload and eleven minutes now passes, including both fresh arcade displays. Ledger's requested
 saved-score correction still needs its complete release gate, deployment and
 actual earned recovery. Use the current revisions from the evidence log when
 performing these checks.
