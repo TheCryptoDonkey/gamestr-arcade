@@ -25,6 +25,13 @@ See the [current fixture qualification](evidence/ledger-harvest-feedback-e6e2066
 Its local WebKit harvest profile passes; local Chromium remains unqualified at
 an earlier game-over startup wait. Published Ledger client remains `e3937ca`.
 
+All fourteen original later WebKit release checks pass locally on `052b2c4`,
+covering the seven-biome bed through altitude/placards. See
+[local subset evidence](evidence/ledger-later-webkit-052b2c4.json). The original
+98-check dispatcher is unchanged. Local Chromium stops at opening-resource or
+earlier startup waits and remains unqualified; no production or assertion
+change follows from those observations. The complete hosted gate is still required.
+
 Pallasite restoration and receipt controls are published as `9813d13`, with
 full hosted checks and fourteen critical served files verified. A normally
 finished 22,840-point run survives parent closure, reload and eleven minutes

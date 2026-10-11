@@ -49,9 +49,12 @@ Forced DNS resolution used in automated checks does not qualify this cutover.
 6. Check that an interrupted update preserves a typed draft, focus and personal
    preferences. Check an older score link and the player's retained best score.
 
-Donkeyfarm is the identified iPhone 13 Pro Max; the owner confirms Wallet of
-Satoshi is installed. Its latest device query reports paired but disconnected.
-An available device listing alone does not qualify any of the steps above.
+Donkeyfarm is the identified iPhone 13 Pro Max. A read-only installed-app
+query now confirms Wallet of Satoshi (`com.livingroomofsatoshi.wallet`).
+The earlier disconnected listing did not prevent this later query. No existing
+Safari/device UI-control tool was found; physical login, camera and wallet
+journeys remain unqualified. App availability alone does not qualify those steps.
+See [device availability](evidence/gamestr-donkeyfarm-wallet-availability.json).
 
 ## Current games and cabinet
 
