@@ -1,0 +1,28 @@
+{
+  "failedRevision": "9b1f6540a4914453ad0e990ce0fb710febf45de6",
+  "failedRun": 38145996437,
+  "failedStage": "First-flight voice warm-up (WebKit)",
+  "failure": "Gameplay did not start within the 30-second deadline",
+  "reproducedLocally": true,
+  "controlledModuleDelayMs": 750,
+  "originalConsentProbeMs": 100,
+  "baselineResult": {
+    "phase": "idle",
+    "consentDialogVisible": true,
+    "loadingVisible": false,
+    "deadlineExceeded": true
+  },
+  "candidateRevision": "2e01f063f2b179be970459ccf021bee99495e27e",
+  "candidateRun": 38147639272,
+  "changedFile": "tests/audio-warm-profile.mjs",
+  "correction": "Wait for lazy consent dialog and click NEXT TIME before measuring real first-flight warm-up",
+  "gameplayDeadlineMs": 30000,
+  "realGameplayRequired": true,
+  "audioAssertionsUnchanged": true,
+  "pageErrorChecksUnchanged": true,
+  "productionCodeChanged": false,
+  "controlledDelayWebKitPassed": true,
+  "controlledDelayChromiumDiagnosticPassed": true,
+  "firstControlledChromiumAttempt": "PLAY click failed on canvas interception; diagnostic rerun passed without another code change",
+  "candidateClientPublished": false
+}

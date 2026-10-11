@@ -1683,3 +1683,28 @@ is running against `9b1f654`. Client publication remains held at `e3937ca`;
 compatible API `ed73ebc` remains live. The earlier range fixture and this audio
 fixture do not by themselves clear the complete release gate or actual
 earned-score recovery requirement.
+
+
+## Reproduced Ledger first-flight consent race
+
+Run `38145996437` is terminal failure at the WebKit audio warm-up profile's
+30-second gameplay deadline. The fixture checked for NEXT TIME after a fixed
+100 ms; PLAY loads that dialog asynchronously. A controlled 750 ms delay of
+its real module reproduces the failure locally: the game remains idle with
+consent visible and the loading overlay hidden.
+
+Correction `2e01f06` waits for the consent dialog, clicks NEXT TIME and requires
+real gameplay instead of attract mode. The gameplay deadline remains 30 seconds;
+all audio count, gap, concurrency and error assertions are unchanged. Corrected
+WebKit and Chromium profiles pass with the controlled delay. The first delayed
+Chromium attempt failed on PLAY canvas interception; a diagnostic rerun passed
+without another code change. No production code changed. See
+[reproduction and correction](evidence/ledger-warm-consent-race-2e01f06.json).
+
+[Complete exact run 38147639272](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/actions/runs/38147639272)
+is running. Ledger client remains `e3937ca` and compatible API `ed73ebc` remains
+live. The prepared real earned-score journey refuses to run unless this exact
+client manifest has a successful full release run; it will verify original
+receipt retention after reload and eleven minutes, same-account independent
+login, positive publication, original NIP-98 payload and both fresh arcade
+score displays. It has not been executed or qualified yet.
