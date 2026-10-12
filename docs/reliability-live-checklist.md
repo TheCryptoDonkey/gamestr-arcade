@@ -12,7 +12,7 @@ Pallasite client `9813d13` / API `52eab4c`, Hang On Fren `e4ec515` and
 Neon Sentinel API recovery have published evidence. Neon’s current graphics
 client is now `0435e93`; its current CI recovery/SDK and served-code checks pass,
 and actual 7,214-point earned recovery after reload and eleven minutes now passes, including both fresh arcade displays. Ledger's requested
-saved-score correction is published as `ebcd6a5` after all 98 original release checks, 228 local/server hashes and 36 critical served hashes passed; actual earned recovery remains pending. Use the current revisions from the evidence log when
+saved-score correction is published as `ebcd6a5` after all 98 original release checks, 228 local/server hashes and 36 critical served hashes passed; actual 100-point earned recovery after reload and 664,140 ms, original-account reconnect, positive publication and both fresh displays now pass. Use the current revisions from the evidence log when
 performing these checks.
 
 ## Public 600 DNS
@@ -59,12 +59,12 @@ See [device availability](evidence/gamestr-donkeyfarm-wallet-availability.json).
 
 ## Current games and cabinet
 
-After Ledger's complete gate passes and its checked client is published, perform
-its actual normally earned run, parent closure, reload, eleven-minute delay,
-original-account reconnect, positive publication and fresh score displays.
-Require a fresh NIP-98 signature bound to the actual POST URL/body, while the
-first score event keeps its original finish second and original UTC-day address.
-Then repeat the current four-game shared-account journey using the exact
+Ledger's complete gate, checked deployment and actual 100-point earned recovery
+after parent closure, reload and 664,140 ms now pass, including original-account
+reconnect, positive publication and both fresh score displays. Fresh NIP-98 binds
+the actual POST URL/body; the event keeps its original finish second and UTC-day
+address. See [actual Ledger evidence](evidence/ledger-earned-recovery-ebcd6a5.json).
+Repeat the current four-game shared-account journey using the exact
 published revisions. Independently check same-account HTTP signatures, unchanged
 recovered receipts, positive acknowledgements and reviewed game authority.
 

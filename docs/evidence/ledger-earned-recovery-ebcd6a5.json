@@ -1,0 +1,241 @@
+{
+  "complete": true,
+  "origin": "https://arcade.600.wtf",
+  "arcadeRevision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
+  "gameOrigin": "https://ledger.playechoseven.com",
+  "gameRevision": "ebcd6a584a341e6aaa0f23ed8a5be0726a8c9ad5",
+  "checkedRun": 38181311659,
+  "assetFingerprints": [
+    {
+      "path": "/assets/index-Tv5iMwTO.js",
+      "sha256": "367a1eb8e8eb4b63e37e4e48851268e9e0c8652bb9533179e2c0466654dec60a"
+    }
+  ],
+  "actualMySignet": true,
+  "physicalDevice": false,
+  "forcedHetznerArcadeDns": true,
+  "gameOrScoreStateInjected": false,
+  "receiptNotSeeded": true,
+  "parentClosedBeforeRun": true,
+  "reloadPreservedOriginalReceipt": true,
+  "delayedRunAgeMs": 664140,
+  "receiptUnchangedAfterDelay": true,
+  "originalAccountIndependentLogin": true,
+  "receiptClearedOnlyAfterPositivePublication": true,
+  "pubkey": "e13e08ad821ef01231fb48cd64e21e0e209f2959d31d895a6208ddfdba24464f",
+  "score": 100,
+  "earnedReceipt": {
+    "run": {
+      "score": 100,
+      "finishedAt": 1791763870930,
+      "wave": 1,
+      "cows": 1,
+      "cultists": 0,
+      "groupies": 0,
+      "drones": 0,
+      "normies": 0,
+      "cropBonus": 0,
+      "bestCombo": 1,
+      "council": false,
+      "durationMs": 25133.333333333187,
+      "runId": "45a47c11-3767",
+      "awards": [
+        "first-beam"
+      ],
+      "stage": 1,
+      "land": "valley"
+    },
+    "pubkey": "e13e08ad821ef01231fb48cd64e21e0e209f2959d31d895a6208ddfdba24464f",
+    "day": "20261012",
+    "queuedAt": 1791763870930
+  },
+  "claims": [
+    {
+      "auth": {
+        "id": "06e2b4e7c87be1fe402ace5bdb6bb03dbffc82d474a64122178fb1857d2135d4",
+        "pubkey": "e13e08ad821ef01231fb48cd64e21e0e209f2959d31d895a6208ddfdba24464f",
+        "sig": "aba69716b0f3f60270b56f4fef2af1182002930c5781a57e13bb41238f880e2bac3e6b7bfc213318478f5b90b3b9ae484c5705883edb52260c73843678c8e269",
+        "kind": 27235,
+        "created_at": 1791764546,
+        "content": "",
+        "tags": [
+          [
+            "u",
+            "https://ledger.playechoseven.com/api/claim"
+          ],
+          [
+            "method",
+            "POST"
+          ],
+          [
+            "payload",
+            "2a93ee8ca3967d0307181bd43e24b81a054d4bb4b934fca4171e25e57804c33a"
+          ]
+        ]
+      },
+      "payload": {
+        "run_id": "45a47c11-3767",
+        "finished_at": 1791763870930,
+        "score": 100,
+        "wave": 1,
+        "cows": 1,
+        "cultists": 0,
+        "groupies": 0,
+        "drones": 0,
+        "normies": 0,
+        "crop_bonus": 0,
+        "combo": 1,
+        "duration_ms": 25133,
+        "stage": 1,
+        "land": "valley",
+        "player_name": "Gamestr compatibility fi",
+        "awards": [
+          "first-beam"
+        ]
+      },
+      "bodySha256": "2a93ee8ca3967d0307181bd43e24b81a054d4bb4b934fca4171e25e57804c33a"
+    }
+  ],
+  "claimResponses": [
+    {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "score_event_id": "f671ae0143f5a7a5e49729cdb71f5da2f96227082ad4fcc5e8743eaabe6fced1",
+        "status": "published",
+        "published": {
+          "ok": 6,
+          "total": 7
+        }
+      }
+    }
+  ],
+  "event": {
+    "content": "Abducted 1 animals, 0 cult members, 0 groupies and 0 normies across 1 lands and 1 waves \u2014 100 points. No leaders. Only the ledger. We are NOT a cult. https://ledger.playechoseven.com/",
+    "created_at": 1791763870,
+    "id": "f671ae0143f5a7a5e49729cdb71f5da2f96227082ad4fcc5e8743eaabe6fced1",
+    "kind": 30762,
+    "pubkey": "6f0baf0c26e68afa787ff8c6e34e41f0395fb53fde4152e2c7bcb5f4674080c2",
+    "sig": "2dc1aa44e451fe3e12993a33ed317aba83972137e6217a64337dc412ec8167e5d954833843c0d48b102c075179040e6a523cdc1ef8a5b8ddbf22cd5a8203a2f1",
+    "tags": [
+      [
+        "d",
+        "takemetoyourledger:e13e08ad821ef01231fb48cd64e21e0e209f2959d31d895a6208ddfdba24464f:20261012"
+      ],
+      [
+        "game",
+        "takemetoyourledger"
+      ],
+      [
+        "score",
+        "100"
+      ],
+      [
+        "p",
+        "e13e08ad821ef01231fb48cd64e21e0e209f2959d31d895a6208ddfdba24464f"
+      ],
+      [
+        "state",
+        "final"
+      ],
+      [
+        "wave",
+        "1"
+      ],
+      [
+        "level",
+        "1"
+      ],
+      [
+        "stage",
+        "1"
+      ],
+      [
+        "lands",
+        "1"
+      ],
+      [
+        "land",
+        "valley"
+      ],
+      [
+        "build",
+        "ed73ebc"
+      ],
+      [
+        "cows",
+        "1"
+      ],
+      [
+        "cultists",
+        "0"
+      ],
+      [
+        "groupies",
+        "0"
+      ],
+      [
+        "drones",
+        "0"
+      ],
+      [
+        "normies",
+        "0"
+      ],
+      [
+        "crop_bonus",
+        "0"
+      ],
+      [
+        "combo",
+        "1"
+      ],
+      [
+        "duration",
+        "25"
+      ],
+      [
+        "run_id",
+        "45a47c11-3767"
+      ],
+      [
+        "title",
+        "Take Me To Your Ledger"
+      ],
+      [
+        "r",
+        "https://ledger.playechoseven.com/"
+      ],
+      [
+        "source",
+        "https://ledger.playechoseven.com/"
+      ],
+      [
+        "platform",
+        "web"
+      ],
+      [
+        "t",
+        "takemetoyourledger"
+      ],
+      [
+        "t",
+        "arcade"
+      ],
+      [
+        "t",
+        "abduction"
+      ],
+      [
+        "player",
+        "Gamestr compatibility fi"
+      ],
+      [
+        "playerName",
+        "Gamestr compatibility fi"
+      ]
+    ]
+  },
+  "lightningPaymentTest": false,
+  "at": "2026-10-12T00:22:32.623Z"
+}
