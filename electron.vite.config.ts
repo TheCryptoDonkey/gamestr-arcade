@@ -23,6 +23,8 @@ export default defineConfig({
           index: resolve(__dirname, 'src/preload/index.ts'),
           webgame: resolve(__dirname, 'src/preload/webgame.ts'),
         },
+        // Sandboxed game views cannot load ESM preloads. Bundle each entry as CJS.
+        output: { format: 'cjs', entryFileNames: '[name].cjs' },
       },
     },
   },

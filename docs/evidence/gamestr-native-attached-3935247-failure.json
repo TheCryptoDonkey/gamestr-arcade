@@ -1,0 +1,307 @@
+{
+  "stage": "second game Escape return",
+  "error": "Packaged runtime condition did not become ready",
+  "pages": {
+    "shell": {
+      "closed": false,
+      "readyState": "complete",
+      "focused": true,
+      "visibility": "visible",
+      "activeElement": "MAIN",
+      "activeElementId": "app",
+      "activeElementClass": "arcade",
+      "activeElementInert": false,
+      "readyOpen": false,
+      "focusHistory": [
+        {
+          "event": "focusin",
+          "id": "",
+          "className": "cta",
+          "at": 1641.1000000000058,
+          "documentFocused": true,
+          "readyOpen": false
+        },
+        {
+          "event": "focusin",
+          "id": "app",
+          "className": "arcade",
+          "at": 2851.5,
+          "documentFocused": true,
+          "readyOpen": false
+        }
+      ],
+      "focusCalls": [
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 1191.2000000000116,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at ReadyPanel.close (file:///tmp/appimage_extracted_ed2a62c5a62e234e213fc69fefb6fe9a/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10652:103)",
+            "    at ReadyPanel.confirm (file:///tmp/appimage_extracted_ed2a62c5a62e234e213fc69fefb6fe9a/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10639:10)",
+            "    at Object.onLaunch (file:///tmp/appimage_extracted_ed2a62c5a62e234e213fc69fefb6fe9a/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11553:20)",
+            "    at onKeyDown (file:///tmp/appimage_extracted_ed2a62c5a62e234e213fc69fefb6fe9a/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:4802:23)"
+          ]
+        },
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 2850.899999999994,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at file:///tmp/appimage_extracted_ed2a62c5a62e234e213fc69fefb6fe9a/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11624:12"
+          ]
+        },
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 2948.2999999999884,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at ReadyPanel.close (file:///tmp/appimage_extracted_ed2a62c5a62e234e213fc69fefb6fe9a/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10652:103)",
+            "    at ReadyPanel.confirm (file:///tmp/appimage_extracted_ed2a62c5a62e234e213fc69fefb6fe9a/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10639:10)",
+            "    at Object.onLaunch (file:///tmp/appimage_extracted_ed2a62c5a62e234e213fc69fefb6fe9a/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11553:20)",
+            "    at onKeyDown (file:///tmp/appimage_extracted_ed2a62c5a62e234e213fc69fefb6fe9a/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:4802:23)"
+          ]
+        }
+      ],
+      "keyHistory": [
+        {
+          "type": "keydown",
+          "key": "ArrowRight",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "ArrowRight",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keydown",
+          "key": "ArrowLeft",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "ArrowLeft",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keydown",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keydown",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "Escape",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keydown",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keydown",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        }
+      ],
+      "keys": []
+    },
+    "game": {
+      "closed": false,
+      "readyState": "complete",
+      "focused": true,
+      "visibility": "visible",
+      "activeElement": "BODY",
+      "activeElementId": "",
+      "activeElementClass": "",
+      "activeElementInert": false,
+      "readyOpen": false,
+      "focusHistory": [],
+      "focusCalls": [],
+      "keyHistory": [],
+      "keys": []
+    }
+  },
+  "nativeFocus": [
+    {
+      "stage": "first game trusted ArrowUp",
+      "windows": [
+        {
+          "id": 1,
+          "focused": true,
+          "visible": true,
+          "bounds": {
+            "x": 240,
+            "y": 212,
+            "width": 800,
+            "height": 600
+          },
+          "children": [
+            {
+              "contentsId": 2,
+              "visible": true,
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 800,
+                "height": 600
+              }
+            }
+          ]
+        }
+      ],
+      "contents": [
+        {
+          "id": 2,
+          "focused": true,
+          "loading": false,
+          "type": "window",
+          "role": "game"
+        },
+        {
+          "id": 1,
+          "focused": false,
+          "loading": false,
+          "type": "window",
+          "role": "shell"
+        }
+      ]
+    },
+    {
+      "stage": "second game Escape return",
+      "windows": [
+        {
+          "id": 1,
+          "focused": true,
+          "visible": true,
+          "bounds": {
+            "x": 240,
+            "y": 212,
+            "width": 800,
+            "height": 600
+          },
+          "children": [
+            {
+              "contentsId": 3,
+              "visible": true,
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 800,
+                "height": 600
+              }
+            }
+          ]
+        }
+      ],
+      "contents": [
+        {
+          "id": 3,
+          "focused": true,
+          "loading": false,
+          "type": "window",
+          "role": "game"
+        },
+        {
+          "id": 1,
+          "focused": false,
+          "loading": false,
+          "type": "window",
+          "role": "shell"
+        }
+      ]
+    }
+  ],
+  "currentNativeFocus": {
+    "windows": [
+      {
+        "id": 1,
+        "focused": true,
+        "visible": true,
+        "bounds": {
+          "x": 240,
+          "y": 212,
+          "width": 800,
+          "height": 600
+        },
+        "children": [
+          {
+            "contentsId": 3,
+            "visible": true,
+            "bounds": {
+              "x": 0,
+              "y": 0,
+              "width": 800,
+              "height": 600
+            }
+          }
+        ]
+      }
+    ],
+    "contents": [
+      {
+        "id": 3,
+        "focused": true,
+        "loading": false,
+        "type": "window",
+        "role": "game"
+      },
+      {
+        "id": 1,
+        "focused": false,
+        "loading": false,
+        "type": "window",
+        "role": "shell"
+      }
+    ]
+  },
+  "sourceRevision": "3935247632dad3b20b2bded8514faf2d3f7df905",
+  "hostedRun": 38094979678,
+  "packagedRuntime": "failed",
+  "gameAttachedVisibleLoadedAndFocusedAtFailure": true,
+  "physicalControllerAcceptance": "pending"
+}

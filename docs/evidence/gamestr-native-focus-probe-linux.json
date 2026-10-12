@@ -1,0 +1,74 @@
+{
+  "sourceRevision": "0ba5a242dfc85b1492d00d2c67dd13832eccbecc",
+  "testedMergeRevision": "0ba5a242dfc85b1492d00d2c67dd13832eccbecc",
+  "runUrl": "https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38086645044",
+  "attempt": 1,
+  "conclusion": "success",
+  "platform": "linux",
+  "runtime": {
+    "pid": 5136,
+    "version": "0.1.1",
+    "readyAt": "2026-10-10T21:13:38.945Z",
+    "artifact": "/home/runner/work/gamestr-arcade/gamestr-arcade/release/gamestr-arcade-0.1.1-x86_64.AppImage",
+    "sha256": "e97247aab313ede59ef486575b1aacc3d11be2cc368fd0dfb97ca8d8f9f1f7e4",
+    "platform": "linux",
+    "arch": "x64",
+    "rendererReady": true,
+    "journeys": {
+      "keyboardCarouselNavigation": true,
+      "launchAndReturn": true,
+      "guestSignatureVerified": true,
+      "freshGuestOnRelaunch": true,
+      "gameStorageAndCookiesIsolated": true,
+      "trustedGameKeyboardInput": true,
+      "walletUnavailableWithoutConfiguration": true,
+      "noNodeOrShellBridgeInGame": true,
+      "physicalControllerAcceptance": "pending",
+      "nativeFocus": [
+        {
+          "stage": "first game trusted ArrowUp",
+          "windows": [
+            {
+              "focused": true,
+              "visible": true
+            }
+          ],
+          "contents": [
+            {
+              "id": 2,
+              "focused": true,
+              "role": "game"
+            },
+            {
+              "id": 1,
+              "focused": false,
+              "role": "shell"
+            }
+          ]
+        },
+        {
+          "stage": "second game Escape return",
+          "windows": [
+            {
+              "focused": true,
+              "visible": true
+            }
+          ],
+          "contents": [
+            {
+              "id": 3,
+              "focused": true,
+              "role": "game"
+            },
+            {
+              "id": 1,
+              "focused": false,
+              "role": "shell"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "scope": "The packaged Linux journeys and native focus diagnostics pass. This successful run does not establish a repair for intermittent native input or physical controller acceptance."
+}

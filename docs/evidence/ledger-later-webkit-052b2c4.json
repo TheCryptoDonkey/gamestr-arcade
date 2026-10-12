@@ -1,0 +1,83 @@
+{
+  "originalGateChecks": 98,
+  "start": 58,
+  "fullGate": false,
+  "selectedBrowser": "webkit",
+  "releaseSourceSha256": "f31cc4571e4a6b8bf3015b6bf57fd0d7cd5b44553268b309b055f0db1b89b317",
+  "results": [
+    {
+      "label": "Seven biome music beds (WebKit)",
+      "code": 0,
+      "elapsedMs": 22632
+    },
+    {
+      "label": "Hillside crash and retry cleanup (WebKit)",
+      "code": 0,
+      "elapsedMs": 14652
+    },
+    {
+      "label": "Chain meter and 600B reward (WebKit)",
+      "code": 0,
+      "elapsedMs": 25220
+    },
+    {
+      "label": "Live personal-best chase (WebKit)",
+      "code": 0,
+      "elapsedMs": 31937
+    },
+    {
+      "label": "Tour progress and land unlocks (WebKit)",
+      "code": 0,
+      "elapsedMs": 16329
+    },
+    {
+      "label": "Saucer handling and flight voice (WebKit)",
+      "code": 0,
+      "elapsedMs": 15119
+    },
+    {
+      "label": "Persistent flight records (WebKit)",
+      "code": 0,
+      "elapsedMs": 22648
+    },
+    {
+      "label": "Local land objectives (WebKit)",
+      "code": 0,
+      "elapsedMs": 22695
+    },
+    {
+      "label": "Taxman warnings, volleys and reachability (WebKit)",
+      "code": 0,
+      "elapsedMs": 15011
+    },
+    {
+      "label": "Award toasts (WebKit)",
+      "code": 0,
+      "elapsedMs": 18721
+    },
+    {
+      "label": "Level-aware drafts and pause build (WebKit)",
+      "code": 0,
+      "elapsedMs": 32499
+    },
+    {
+      "label": "Ordered special reserve (WebKit)",
+      "code": 0,
+      "elapsedMs": 33712
+    },
+    {
+      "label": "Field defence and combine routes (WebKit)",
+      "code": 0,
+      "elapsedMs": 13316
+    },
+    {
+      "label": "Load-driven altitude and placards (WebKit)",
+      "code": 0,
+      "elapsedMs": 12381
+    }
+  ],
+  "revision": "052b2c484eb956be317f30ca81715225a45b68e5",
+  "complete": true,
+  "scope": "14 original later WebKit checks only; full hosted 98-check gate still required",
+  "chromium": "unqualified at opening-resource/startup waits; no fixture change"
+}

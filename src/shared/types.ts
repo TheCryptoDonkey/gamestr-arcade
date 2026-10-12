@@ -113,6 +113,7 @@ export interface Game {
   // is better). Other Stuff games (word5, unicornvssnakes) score via kind 5555
   // with a game-specific field (e.g. `streak`); these tell the board how to read
   // and rank them. See gamestr's bundle `Si` config.
+  scoreAuthorities?: string[]     // reviewed per-game event signers
   scoreKind?: number              // 30762 (default) or 5555
   scoreField?: string             // tag holding the score (5555 only; default 'score')
   scoreDir?: 'asc' | 'desc'       // ranking direction (default 'desc' = higher wins)
@@ -126,6 +127,8 @@ export interface Game {
 }
 
 export interface LeaderboardEntry {
+  eventSigner?: string   // public key that signed the score
+  attribution?: 'player' | 'game-authority'
   eventId?: string       // verified Nostr event id, when sourced from a relay
   pubkey: string        // hex (player)
   name?: string         // legacy/pre-filled kind-0 display name
@@ -141,6 +144,7 @@ export interface LeaderboardEntry {
 
 /** How to read + rank a game's scores. Omitted → kind-30762 `score`, higher wins. */
 export interface ScoreScoring {
+  authorityPubkeys?: readonly string[]
   kind?: number              // 30762 (default) or 5555
   field?: string             // tag holding the score (5555 only; default 'score')
   dir?: 'asc' | 'desc'       // ranking direction (default 'desc' = higher wins)

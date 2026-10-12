@@ -1,0 +1,234 @@
+{
+  "headRevision": "4aa7661d9d18887021c1b044747980dc091c2bf6",
+  "sourceTree": "6cfb39392f6b1ca1bb9d383c7f071ec31cbd7b26",
+  "testedPullRequestMergeRevision": "83ac1d1c877f625fb0913deee411205688ffa264",
+  "testedMergeTreeMatchesHead": true,
+  "runUrl": "https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38084519014",
+  "successfulAttempt": 2,
+  "conclusion": "success",
+  "firstAttemptNativeFailure": {
+    "stage": "first game trusted ArrowUp",
+    "error": "page.waitForFunction: Timeout 30000ms exceeded.",
+    "pages": {
+      "shell": {
+        "closed": false,
+        "readyState": "complete",
+        "focused": true,
+        "visibility": "visible",
+        "activeElement": "MAIN",
+        "activeElementId": "app",
+        "activeElementClass": "arcade",
+        "activeElementInert": false,
+        "readyOpen": false,
+        "focusHistory": [],
+        "keyHistory": [
+          {
+            "type": "keydown",
+            "key": "ArrowRight",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "ArrowRight",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keydown",
+            "key": "ArrowLeft",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "ArrowLeft",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keydown",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keydown",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          }
+        ],
+        "keys": []
+      },
+      "game": {
+        "closed": false,
+        "readyState": "complete",
+        "focused": true,
+        "visibility": "visible",
+        "activeElement": "BODY",
+        "activeElementId": "",
+        "activeElementClass": "",
+        "activeElementInert": false,
+        "readyOpen": false,
+        "focusHistory": [],
+        "keyHistory": [],
+        "keys": []
+      }
+    }
+  },
+  "scope": "The unchanged rerun passes the complete gate. This is not a demonstrated repair for intermittent native input.",
+  "jobs": [
+    {
+      "completedAt": "2026-10-10T20:44:47Z",
+      "conclusion": "success",
+      "databaseId": 114308903934,
+      "name": "quality",
+      "startedAt": "2026-10-10T20:42:16Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-10-10T20:42:17Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-10T20:42:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T20:42:19Z",
+          "conclusion": "success",
+          "name": "Check out repository",
+          "number": 2,
+          "startedAt": "2026-10-10T20:42:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T20:42:25Z",
+          "conclusion": "success",
+          "name": "Set up Node.js",
+          "number": 3,
+          "startedAt": "2026-10-10T20:42:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T20:42:31Z",
+          "conclusion": "success",
+          "name": "Install dependencies",
+          "number": 4,
+          "startedAt": "2026-10-10T20:42:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T20:42:53Z",
+          "conclusion": "success",
+          "name": "Run complete source and build gate",
+          "number": 5,
+          "startedAt": "2026-10-10T20:42:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T20:43:12Z",
+          "conclusion": "success",
+          "name": "Install browser for user journey checks",
+          "number": 6,
+          "startedAt": "2026-10-10T20:42:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T20:44:09Z",
+          "conclusion": "success",
+          "name": "Verify both web editions in the browser",
+          "number": 7,
+          "startedAt": "2026-10-10T20:43:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T20:44:10Z",
+          "conclusion": "success",
+          "name": "Audit full dependency tree",
+          "number": 8,
+          "startedAt": "2026-10-10T20:44:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T20:44:10Z",
+          "conclusion": "success",
+          "name": "Generate CycloneDX SBOM",
+          "number": 9,
+          "startedAt": "2026-10-10T20:44:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T20:44:32Z",
+          "conclusion": "success",
+          "name": "Package Linux AppImage",
+          "number": 10,
+          "startedAt": "2026-10-10T20:44:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T20:44:39Z",
+          "conclusion": "success",
+          "name": "Boot the packaged Linux renderer",
+          "number": 11,
+          "startedAt": "2026-10-10T20:44:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T20:44:39Z",
+          "conclusion": "success",
+          "name": "Record release checksums",
+          "number": 12,
+          "startedAt": "2026-10-10T20:44:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T20:44:45Z",
+          "conclusion": "success",
+          "name": "Upload release evidence",
+          "number": 13,
+          "startedAt": "2026-10-10T20:44:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T20:44:45Z",
+          "conclusion": "success",
+          "name": "Post Set up Node.js",
+          "number": 25,
+          "startedAt": "2026-10-10T20:44:45Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T20:44:45Z",
+          "conclusion": "success",
+          "name": "Post Check out repository",
+          "number": 26,
+          "startedAt": "2026-10-10T20:44:45Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-10T20:44:45Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 27,
+          "startedAt": "2026-10-10T20:44:45Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38084519014/job/114308903934"
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "deployedRevision": "a6bcd2662ee0532a6b182d7102a5aeccaa8062e2",
+  "checkedRun": 38130450803,
+  "apiOnly": true,
+  "frontendChanged": false,
+  "beforePid": 480694,
+  "afterPid": 1259715,
+  "environmentUnchanged": true,
+  "gameAuthorityUnchanged": true,
+  "writeRelaysUnchanged": true,
+  "claimHistoryPrefixPreserved": true,
+  "badgeHistoryPrefixPreserved": true,
+  "priorClaims": 4,
+  "priorBadges": 4,
+  "privateHistoryBackupModes": [
+    "0600",
+    "0600"
+  ],
+  "rollbackRestoresBinaryOnly": true,
+  "liveHealth": {
+    "ok": true,
+    "service": "take-me-to-your-ledger-claim",
+    "game": "takemetoyourledger",
+    "score_kind": 30762,
+    "signer_configured": true,
+    "publish_enabled": true,
+    "game_pubkey": "6f0baf0c26e68afa787ff8c6e34e41f0395fb53fde4152e2c7bcb5f4674080c2",
+    "max_grabs_per_s": 3,
+    "write_relays": [
+      "wss://main.relay.gamestr.io",
+      "wss://relay.trotters.cc",
+      "wss://nos.lol",
+      "wss://relay.damus.io",
+      "wss://relay.nostr.band",
+      "wss://relay.primal.net",
+      "wss://relay.ditto.pub"
+    ],
+    "claims_seen": 4,
+    "best_scores_tracked": 4,
+    "badges_issued": 4
+  },
+  "files": {
+    "index.js": "aa7a21b402b1f25b10f2e827a059020b639046c25793911b90c21dfcd6930589",
+    "index.js.map": "98c23448f4b53be337a088eafbe74767bff44fbdf9f7765aaff8bf5b2a8e1671"
+  },
+  "existingHistoryPreflight": {
+    "privateExistingHistoryPreflight": true,
+    "liveServiceChanged": false,
+    "ownerSigningKeyUsed": false,
+    "externalHttpBlocked": true,
+    "externalWebSocketsBlocked": true,
+    "nodeVersion": "v22.23.2",
+    "claimsSeen": 4,
+    "bestScoresTracked": 4,
+    "issuedBadges": 4,
+    "historyHashes": {
+      "claims": "be49d715576d5aad44386182af7d7e9ab35d066a7eb8e2ecab05012cd8172969",
+      "badges": "105a91d48e8ddf7bb74b33909af080ce099ea4332af8d7dcf2f1169321d49f34"
+    },
+    "originalHistoryUnchanged": true,
+    "compiledApiSha256": "aa7a21b402b1f25b10f2e827a059020b639046c25793911b90c21dfcd6930589"
+  },
+  "hostedServiceJob": {
+    "run": 38130450803,
+    "job": 114443484620,
+    "status": "completed",
+    "conclusion": "success",
+    "units": 275,
+    "recoveryGroups": 12,
+    "checkedArtifactHashesVerified": true
+  },
+  "hostedClientJob": {
+    "run": 38130450803,
+    "job": 114443611990,
+    "status": "completed",
+    "conclusion": "failure",
+    "units": 275,
+    "startMode": "play",
+    "criterion": "phone tourReveal.hudOpacity < 0.05",
+    "measured": 0.055888,
+    "unchangedThreshold": 0.05,
+    "requestFailures": [],
+    "fullPlayerGateExercised": false,
+    "clientArtifactProduced": false
+  },
+  "clientRevision": "e3937ca0152d0f07bf67d25e5f80b827dba87f36",
+  "realProviderRecoveryAtCandidate": "not yet qualified",
+  "physicalAcceptance": "pending",
+  "publicHealthVerified": {
+    "ok": true,
+    "service": "take-me-to-your-ledger-claim",
+    "game": "takemetoyourledger",
+    "score_kind": 30762,
+    "signer_configured": true,
+    "publish_enabled": true,
+    "game_pubkey": "6f0baf0c26e68afa787ff8c6e34e41f0395fb53fde4152e2c7bcb5f4674080c2",
+    "max_grabs_per_s": 3,
+    "write_relays": [
+      "wss://main.relay.gamestr.io",
+      "wss://relay.trotters.cc",
+      "wss://nos.lol",
+      "wss://relay.damus.io",
+      "wss://relay.nostr.band",
+      "wss://relay.primal.net",
+      "wss://relay.ditto.pub"
+    ],
+    "claims_seen": 4,
+    "best_scores_tracked": 4,
+    "badges_issued": 4
+  }
+}

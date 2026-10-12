@@ -1,0 +1,64 @@
+{
+  "revision": "ebcd6a584a341e6aaa0f23ed8a5be0726a8c9ad5",
+  "previousFullGate": {
+    "run": 38177444455,
+    "revision": "4ecadcbf837742cae4f717bcd4fb76c5abf100e6",
+    "conclusion": "failure",
+    "passedChecks": 59,
+    "failure": "WebKit held GLB preload sampled before deferred loading indicator became visible",
+    "held": {
+      "phase": "idle",
+      "loadingVisible": false,
+      "world": "valley"
+    }
+  },
+  "productionChanged": false,
+  "originalAssertionsByteIdentical": true,
+  "originalAssertionSha256": "0dd6f417eb30a2f4b41740192dff3326a68af85f6fa45692890f3c835920f83e",
+  "boundedLoadingObservationMs": 2000,
+  "normalWebkit": {
+    "result": "pass",
+    "held": {
+      "phase": "idle",
+      "loadingVisible": true,
+      "world": "valley"
+    },
+    "allBiomeMusicChecksPassed": true
+  },
+  "controlled1200msLoadingTimer": {
+    "old": {
+      "result": "fail",
+      "held": {
+        "phase": "idle",
+        "loadingVisible": false,
+        "world": "valley"
+      },
+      "allBiomeMusicChecksPassed": true
+    },
+    "corrected": {
+      "result": "pass",
+      "held": {
+        "phase": "idle",
+        "loadingVisible": true,
+        "world": "valley"
+      },
+      "allBiomeMusicChecksPassed": true
+    }
+  },
+  "forcedHiddenLoadingNegative": {
+    "result": "fail",
+    "failure": "original required loading visibility still absent at bounded 2000ms observation"
+  },
+  "localChromium": {
+    "qualified": false,
+    "attempts": [
+      "original game startup observation timed out before changed observation",
+      "original Valley voice resource observation timed out before changed observation"
+    ]
+  },
+  "fullGate": {
+    "run": 38181311659,
+    "status": "queued at dispatch; authoritative GitHub status required"
+  },
+  "at": "2026-10-11T22:41:06.058126+00:00"
+}

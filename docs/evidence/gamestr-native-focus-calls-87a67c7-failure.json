@@ -1,0 +1,153 @@
+{
+  "stage": "first game trusted ArrowUp",
+  "error": "page.waitForFunction: Timeout 30000ms exceeded.",
+  "pages": {
+    "shell": {
+      "closed": false,
+      "readyState": "complete",
+      "focused": true,
+      "visibility": "visible",
+      "activeElement": "MAIN",
+      "activeElementId": "app",
+      "activeElementClass": "arcade",
+      "activeElementInert": false,
+      "readyOpen": false,
+      "focusHistory": [],
+      "focusCalls": [
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 2720.9000000000233,
+          "documentFocused": true,
+          "stack": [
+            "    at ReadyPanel.close (file:///tmp/appimage_extracted_a9593b78f33e985aac9f068e26f98b54/resources/app.asar/out/renderer/assets/index-BwcT1SsG.js:10639:25)",
+            "    at ReadyPanel.confirm (file:///tmp/appimage_extracted_a9593b78f33e985aac9f068e26f98b54/resources/app.asar/out/renderer/assets/index-BwcT1SsG.js:10627:10)",
+            "    at Object.onLaunch (file:///tmp/appimage_extracted_a9593b78f33e985aac9f068e26f98b54/resources/app.asar/out/renderer/assets/index-BwcT1SsG.js:11535:20)",
+            "    at onKeyDown (file:///tmp/appimage_extracted_a9593b78f33e985aac9f068e26f98b54/resources/app.asar/out/renderer/assets/index-BwcT1SsG.js:4802:23)"
+          ]
+        },
+        {
+          "id": "",
+          "className": "ready-start",
+          "at": 3008,
+          "documentFocused": true,
+          "stack": [
+            "    at file:///tmp/appimage_extracted_a9593b78f33e985aac9f068e26f98b54/resources/app.asar/out/renderer/assets/index-BwcT1SsG.js:10622:87"
+          ]
+        }
+      ],
+      "keyHistory": [
+        {
+          "type": "keydown",
+          "key": "ArrowRight",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "ArrowRight",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keydown",
+          "key": "ArrowLeft",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "ArrowLeft",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keydown",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keydown",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        },
+        {
+          "type": "keyup",
+          "key": "Enter",
+          "trusted": true,
+          "id": "app"
+        }
+      ],
+      "keys": []
+    },
+    "game": {
+      "closed": false,
+      "readyState": "complete",
+      "focused": true,
+      "visibility": "visible",
+      "activeElement": "BODY",
+      "activeElementId": "",
+      "activeElementClass": "",
+      "activeElementInert": false,
+      "readyOpen": false,
+      "focusHistory": [],
+      "focusCalls": [],
+      "keyHistory": [],
+      "keys": []
+    }
+  },
+  "nativeFocus": [
+    {
+      "stage": "first game trusted ArrowUp",
+      "windows": [
+        {
+          "focused": true,
+          "visible": true
+        }
+      ],
+      "contents": [
+        {
+          "id": 2,
+          "focused": true,
+          "role": "game"
+        },
+        {
+          "id": 1,
+          "focused": false,
+          "role": "shell"
+        }
+      ]
+    }
+  ],
+  "currentNativeFocus": {
+    "windows": [
+      {
+        "focused": true,
+        "visible": true
+      }
+    ],
+    "contents": [
+      {
+        "id": 2,
+        "focused": true,
+        "role": "game"
+      },
+      {
+        "id": 1,
+        "focused": false,
+        "role": "shell"
+      }
+    ]
+  },
+  "runId": 38092267756,
+  "revision": "87a67c771db8f620d27c322cb556dced94f48ef5",
+  "notes": "The first trusted ArrowUp failed despite native game focus. The shell focus-call trace includes ReadyPanel Start focus after confirmation closed the panel. This proves the stale call occurred in the failing run; it does not prove that call caused every native input failure."
+}

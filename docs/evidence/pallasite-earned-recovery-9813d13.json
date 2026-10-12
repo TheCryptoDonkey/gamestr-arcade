@@ -1,0 +1,176 @@
+{
+  "origin": "https://arcade.600.wtf",
+  "arcadeRevision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
+  "pubkey": "50919470b7da1496fe1a56876bef300797c2a3769f3f6a60732c75f29d4f27a7",
+  "actualMySignet": true,
+  "physicalDevice": false,
+  "forcedHetznerOrigin": true,
+  "complete": true,
+  "qualificationScope": "current Pallasite earned delayed recovery; other games remain independently qualified",
+  "approvalBeforeEachGame": true,
+  "gameOrScoreStateInjected": false,
+  "lightningPaymentTest": false,
+  "runs": [
+    {
+      "delayedRunAgeMs": 666960,
+      "originalReceiptUnchangedAfterDelay": true,
+      "reloadPreservedOriginalReceipt": true,
+      "reloadReturnsToBoothPicker": true,
+      "explicitBrowserNavigationBackToOriginalArcade": true,
+      "replaySkipUsesNormalKey": true,
+      "parentClosedBeforeRun": true,
+      "receiptNotSeeded": true,
+      "earnedReceipt": {
+        "pubkey": "50919470b7da1496fe1a56876bef300797c2a3769f3f6a60732c75f29d4f27a7",
+        "input": {
+          "score": 20820,
+          "wave": 1,
+          "duration_ms": 29000,
+          "run_id": "1791749381220",
+          "started_at": 1791749381,
+          "finished_at": 1791749418,
+          "mode": "campaign",
+          "player_name": "50919470\u202627A7",
+          "cheated": false
+        },
+        "lastError": "sign_failed",
+        "rejected": false
+      },
+      "claims": [
+        {
+          "auth": {
+            "kind": 27235,
+            "pubkey": "50919470b7da1496fe1a56876bef300797c2a3769f3f6a60732c75f29d4f27a7",
+            "created_at": 1791750103,
+            "tags": [
+              [
+                "u",
+                "https://pallasite.app/api/score"
+              ],
+              [
+                "method",
+                "POST"
+              ],
+              [
+                "payload",
+                "521c87fd201cb0ac70d4bd2b997daceab389aebf5d8c149b6f7ebdcfacbfdf03"
+              ]
+            ],
+            "content": "",
+            "id": "c6787aa1d843056c9d4c2f51d711d8ed4ac78003615eabb02274b01ab1238610",
+            "sig": "2de9eba956e676e57e0a8c0d4102dcd0a80533a0ef12cb864e5d100cdc2ce7ada7f2bd7469c71ec7611834e336d3a2ce2c890aa1122a1694830876985970ec1e"
+          },
+          "payload": {
+            "score": 20820,
+            "wave": 1,
+            "duration_ms": 29000,
+            "run_id": "1791749381220",
+            "started_at": 1791749381,
+            "finished_at": 1791749418,
+            "mode": "campaign",
+            "player_name": "50919470\u202627A7",
+            "cheated": false
+          },
+          "bodySha256": "521c87fd201cb0ac70d4bd2b997daceab389aebf5d8c149b6f7ebdcfacbfdf03"
+        }
+      ],
+      "receiptClearedAfterPositivePublication": true,
+      "game": "pallasite",
+      "gameOrigin": "https://pallasite.app",
+      "gameRevision": "9813d131985ae97d70cf7c2420c8089dd2cf82a4",
+      "gameRevisionProven": true,
+      "assetFingerprints": [
+        {
+          "path": "/assets/index-BAqRJXX5.js",
+          "sha256": "f0e5f8270ab1edbfc180d65b9c04a13e0fbf3e3ac6c593a952d7b33537a5fe8f"
+        }
+      ],
+      "playerPubkey": "50919470b7da1496fe1a56876bef300797c2a3769f3f6a60732c75f29d4f27a7",
+      "score": 20820,
+      "eventId": "1086672b0f1e3522804d729d66b334e1e5dacc5fd49e61db7a3704e0de602e4a",
+      "reviewedAuthority": "fa9291d038fd1d3e4439364f289f2e53a64a1d32776ee52c000da53ebc718cdc",
+      "canonicalNip98Signatures": 1,
+      "fragmentRemoved": true,
+      "openerRemoved": true,
+      "responseProof": [
+        {
+          "status": 200,
+          "ok": true,
+          "eventId": "1086672b0f1e3522804d729d66b334e1e5dacc5fd49e61db7a3704e0de602e4a",
+          "published": {
+            "ok": 7,
+            "total": 7
+          }
+        }
+      ],
+      "signatureVerified": true,
+      "event": {
+        "content": "",
+        "created_at": 1791749418,
+        "id": "1086672b0f1e3522804d729d66b334e1e5dacc5fd49e61db7a3704e0de602e4a",
+        "kind": 30762,
+        "pubkey": "fa9291d038fd1d3e4439364f289f2e53a64a1d32776ee52c000da53ebc718cdc",
+        "sig": "aadbcd5dc5f21f6fb08c3eb015367f7b48e76e05b1f5e4ef01c055c531453fa53e57f5ecd449c8fa8197a7802ec73931283b9ed2109f6d17827c585c7487be0b",
+        "tags": [
+          [
+            "d",
+            "pallasite:50919470b7da1496fe1a56876bef300797c2a3769f3f6a60732c75f29d4f27a7:wave-1:daily-1791749381220"
+          ],
+          [
+            "game",
+            "pallasite"
+          ],
+          [
+            "score",
+            "20820"
+          ],
+          [
+            "p",
+            "50919470b7da1496fe1a56876bef300797c2a3769f3f6a60732c75f29d4f27a7"
+          ],
+          [
+            "sats",
+            "0"
+          ],
+          [
+            "state",
+            "final"
+          ],
+          [
+            "wave",
+            "1"
+          ],
+          [
+            "duration",
+            "29"
+          ],
+          [
+            "playerName",
+            "50919470\u202627A7"
+          ],
+          [
+            "t",
+            "arcade"
+          ],
+          [
+            "t",
+            "asteroids"
+          ],
+          [
+            "t",
+            "lightning"
+          ],
+          [
+            "run_started_at",
+            "1791749381"
+          ],
+          [
+            "run_finished_at",
+            "1791749418"
+          ]
+        ]
+      }
+    }
+  ],
+  "apiFunctionalRevision": "3173d18a2876fcfb4e1ea062f6f8d16c03718c4b"
+}

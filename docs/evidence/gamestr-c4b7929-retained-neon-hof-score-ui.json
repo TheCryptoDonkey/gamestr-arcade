@@ -1,0 +1,48 @@
+{
+  "arcadeRevision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
+  "separatePreviouslyQualifiedAccounts": true,
+  "newGameplays": false,
+  "physicalDevice": false,
+  "results": [
+    {
+      "origin": "https://arcade.600.wtf",
+      "forcedHetznerOrigin": true,
+      "game": "neon-sentinel",
+      "eventId": "04c959e686a6ef45de3a2f5e7d00710658df57f1334bd0f82eb8a96be467aa27",
+      "playerPubkey": "f4ff4ad435185798531cab948331edee9b00ffe5f60e7653f0ce399e0b88c0c2",
+      "score": 5566,
+      "attribution": "REVIEWED GAME AUTHORITY",
+      "actualRelayRead": true
+    },
+    {
+      "origin": "https://arcade.600.wtf",
+      "forcedHetznerOrigin": true,
+      "game": "hang-on-fren",
+      "eventId": "fdd9060438969ff418898f0b045dd36a308fa051f345acf28ff94ff90e176603",
+      "playerPubkey": "e6baf3becc95c6242713f8b15e35ba33aa8c007b65bf9f1464eff51898b905bb",
+      "score": 4732,
+      "attribution": "REVIEWED GAME AUTHORITY",
+      "actualRelayRead": true
+    },
+    {
+      "origin": "https://gamestr.62-238-98-53.sslip.io",
+      "forcedHetznerOrigin": false,
+      "game": "neon-sentinel",
+      "eventId": "04c959e686a6ef45de3a2f5e7d00710658df57f1334bd0f82eb8a96be467aa27",
+      "playerPubkey": "f4ff4ad435185798531cab948331edee9b00ffe5f60e7653f0ce399e0b88c0c2",
+      "score": 5566,
+      "attribution": "REVIEWED GAME AUTHORITY",
+      "actualRelayRead": true
+    },
+    {
+      "origin": "https://gamestr.62-238-98-53.sslip.io",
+      "forcedHetznerOrigin": false,
+      "game": "hang-on-fren",
+      "eventId": "fdd9060438969ff418898f0b045dd36a308fa051f345acf28ff94ff90e176603",
+      "playerPubkey": "e6baf3becc95c6242713f8b15e35ba33aa8c007b65bf9f1464eff51898b905bb",
+      "score": 4732,
+      "attribution": "REVIEWED GAME AUTHORITY",
+      "actualRelayRead": true
+    }
+  ]
+}

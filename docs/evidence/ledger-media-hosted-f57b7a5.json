@@ -1,0 +1,228 @@
+{
+  "run": 38125547605,
+  "revision": "f57b7a56362eb34d6077ff77b3608ce4721df44d",
+  "conclusion": "failure",
+  "unitTestsPassed": 268,
+  "fullGateExercised": false,
+  "diagnosticReport": {
+    "browser": "webkit",
+    "label": "desktop",
+    "failedCondition": "opening-ready",
+    "timeoutMs": 5000,
+    "failures": [],
+    "requestTimeline": [],
+    "mediaDiagnostics": {
+      "network": [
+        {
+          "at": 1791708061707,
+          "id": 0,
+          "event": "request",
+          "path": "/music/600-billion-eyes.m4a",
+          "type": "other",
+          "range": null
+        },
+        {
+          "at": 1791708061708,
+          "id": 0,
+          "event": "response",
+          "status": 0,
+          "range": null,
+          "length": null
+        },
+        {
+          "at": 1791708061709,
+          "id": 0,
+          "event": "finished"
+        },
+        {
+          "at": 1791708062033,
+          "id": 3,
+          "event": "request",
+          "path": "/music/600-billion-eyes.m4a",
+          "type": "other",
+          "range": null
+        },
+        {
+          "at": 1791708064799,
+          "id": 3,
+          "event": "response",
+          "status": 200,
+          "range": null,
+          "length": "5093604"
+        },
+        {
+          "at": 1791708064804,
+          "id": 3,
+          "event": "finished"
+        },
+        {
+          "at": 1791708064909,
+          "id": 6,
+          "event": "request",
+          "path": "/music/600-billion-eyes.m4a",
+          "type": "other",
+          "range": "bytes=5000797-"
+        },
+        {
+          "at": 1791708064918,
+          "id": 6,
+          "event": "response",
+          "status": 206,
+          "range": "bytes 5000797-5093603/5093604",
+          "length": "92807"
+        },
+        {
+          "at": 1791708064918,
+          "id": 6,
+          "event": "finished"
+        },
+        {
+          "at": 1791708065085,
+          "id": 9,
+          "event": "request",
+          "path": "/music/600-billion-eyes.m4a",
+          "type": "other",
+          "range": "bytes=36-"
+        },
+        {
+          "at": 1791708065106,
+          "id": 9,
+          "event": "response",
+          "status": 206,
+          "range": "bytes 36-5093603/5093604",
+          "length": "5093568"
+        },
+        {
+          "at": 1791708065161,
+          "id": 9,
+          "event": "finished"
+        }
+      ],
+      "elements": [
+        {
+          "id": 0,
+          "event": "play:call",
+          "at": 1791708061588,
+          "path": "/music/600-billion-eyes.m4a",
+          "paused": true,
+          "ready": 0,
+          "network": 3,
+          "error": null,
+          "time": 0,
+          "duration": null
+        },
+        {
+          "id": 0,
+          "event": "loadstart",
+          "at": 1791708064829,
+          "path": "/music/600-billion-eyes.m4a",
+          "paused": false,
+          "ready": 0,
+          "network": 2,
+          "error": null,
+          "time": 0,
+          "duration": null
+        },
+        {
+          "id": 0,
+          "event": "loadedmetadata",
+          "at": 1791708065281,
+          "path": "/music/600-billion-eyes.m4a",
+          "paused": false,
+          "ready": 4,
+          "network": 1,
+          "error": null,
+          "time": 0.098332417,
+          "duration": 245
+        },
+        {
+          "id": 0,
+          "event": "canplay",
+          "at": 1791708065281,
+          "path": "/music/600-billion-eyes.m4a",
+          "paused": false,
+          "ready": 4,
+          "network": 1,
+          "error": null,
+          "time": 0.098332417,
+          "duration": 245
+        },
+        {
+          "id": 0,
+          "event": "playing",
+          "at": 1791708065281,
+          "path": "/music/600-billion-eyes.m4a",
+          "paused": false,
+          "ready": 4,
+          "network": 1,
+          "error": null,
+          "time": 0.098332417,
+          "duration": 245
+        },
+        {
+          "id": 0,
+          "event": "play:resolved",
+          "at": 1791708065281,
+          "path": "/music/600-billion-eyes.m4a",
+          "paused": false,
+          "ready": 4,
+          "network": 1,
+          "error": null,
+          "time": 0.098332417,
+          "duration": 245
+        }
+      ]
+    },
+    "diagnostics": {
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "startDurationMs": 111,
+      "samples": [
+        {
+          "at": 4147,
+          "hidden": false,
+          "opacity": 0,
+          "touchHidden": true,
+          "touchVisibility": "visible",
+          "touchOpacity": 1,
+          "gameplay": "1",
+          "ritual": "",
+          "crash": null
+        },
+        {
+          "at": 5179,
+          "hidden": false,
+          "opacity": 0.86988,
+          "touchHidden": true,
+          "touchVisibility": "visible",
+          "touchOpacity": 1,
+          "gameplay": "1",
+          "ritual": "",
+          "crash": null
+        },
+        {
+          "at": 9142,
+          "hidden": true,
+          "opacity": 0,
+          "touchHidden": true,
+          "touchVisibility": "visible",
+          "touchOpacity": 1,
+          "gameplay": "1",
+          "ritual": "",
+          "crash": null
+        }
+      ],
+      "current": {
+        "cardHidden": true,
+        "cardOpacity": 0,
+        "touchHidden": true,
+        "touchVisibility": "visible",
+        "touchOpacity": 1
+      }
+    }
+  },
+  "originalAssertionsAndLimitsPreserved": true,
+  "cancellationCauseEstablished": false
+}

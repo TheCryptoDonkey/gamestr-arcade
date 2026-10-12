@@ -1,0 +1,27 @@
+{
+  "arcadeRevision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
+  "playerPubkey": "e13e08ad821ef01231fb48cd64e21e0e209f2959d31d895a6208ddfdba24464f",
+  "physicalDevice": false,
+  "results": [
+    {
+      "origin": "https://arcade.600.wtf",
+      "forcedHetznerOrigin": true,
+      "game": "takemetoyourledger",
+      "eventId": "f671ae0143f5a7a5e49729cdb71f5da2f96227082ad4fcc5e8743eaabe6fced1",
+      "playerPubkey": "e13e08ad821ef01231fb48cd64e21e0e209f2959d31d895a6208ddfdba24464f",
+      "score": 100,
+      "attribution": "REVIEWED GAME AUTHORITY",
+      "actualRelayRead": true
+    },
+    {
+      "origin": "https://gamestr.62-238-98-53.sslip.io",
+      "forcedHetznerOrigin": false,
+      "game": "takemetoyourledger",
+      "eventId": "f671ae0143f5a7a5e49729cdb71f5da2f96227082ad4fcc5e8743eaabe6fced1",
+      "playerPubkey": "e13e08ad821ef01231fb48cd64e21e0e209f2959d31d895a6208ddfdba24464f",
+      "score": 100,
+      "attribution": "REVIEWED GAME AUTHORITY",
+      "actualRelayRead": true
+    }
+  ]
+}

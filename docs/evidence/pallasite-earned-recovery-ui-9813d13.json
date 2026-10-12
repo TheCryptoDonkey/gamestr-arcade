@@ -1,0 +1,30 @@
+{
+  "arcadeRevision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
+  "playerPubkey": "50919470b7da1496fe1a56876bef300797c2a3769f3f6a60732c75f29d4f27a7",
+  "physicalDevice": false,
+  "originalEventDatesVerified": true,
+  "apiRevision": "3173d18a2876fcfb4e1ea062f6f8d16c03718c4b",
+  "results": [
+    {
+      "origin": "https://arcade.600.wtf",
+      "forcedHetznerOrigin": true,
+      "game": "pallasite",
+      "eventId": "1086672b0f1e3522804d729d66b334e1e5dacc5fd49e61db7a3704e0de602e4a",
+      "playerPubkey": "50919470b7da1496fe1a56876bef300797c2a3769f3f6a60732c75f29d4f27a7",
+      "score": 20820,
+      "attribution": "REVIEWED GAME AUTHORITY",
+      "actualRelayRead": true
+    },
+    {
+      "origin": "https://gamestr.62-238-98-53.sslip.io",
+      "forcedHetznerOrigin": false,
+      "game": "pallasite",
+      "eventId": "1086672b0f1e3522804d729d66b334e1e5dacc5fd49e61db7a3704e0de602e4a",
+      "playerPubkey": "50919470b7da1496fe1a56876bef300797c2a3769f3f6a60732c75f29d4f27a7",
+      "score": 20820,
+      "attribution": "REVIEWED GAME AUTHORITY",
+      "actualRelayRead": true
+    }
+  ],
+  "apiFunctionalRevision": "3173d18a2876fcfb4e1ea062f6f8d16c03718c4b"
+}

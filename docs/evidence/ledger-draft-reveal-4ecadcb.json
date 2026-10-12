@@ -1,0 +1,42 @@
+{
+  "revision": "4ecadcbf837742cae4f717bcd4fb76c5abf100e6",
+  "previousRun": 38174397091,
+  "previousConclusion": "failure",
+  "previousReleaseChecksPassed": 90,
+  "failure": "WebKit landscape upgrade targets sampled at 0.965 opening scale: 60px became 57.9px, below unchanged 59px assertion",
+  "change": "Bounded two-second interval observation of finite draft reveal before geometry measurement",
+  "productionCodeChanged": false,
+  "originalAssertionsByteIdentical": true,
+  "localCases": [
+    {
+      "case": "Original controlled 1200ms reveal",
+      "result": "failure",
+      "landscapeTargetHeightPx": 57.9
+    },
+    {
+      "case": "Corrected controlled reveal",
+      "result": "pass",
+      "landscapeTargetHeightPx": 60
+    },
+    {
+      "case": "Corrected normal Chromium",
+      "result": "pass"
+    },
+    {
+      "case": "Corrected normal WebKit",
+      "result": "pass"
+    },
+    {
+      "case": "Corrected undersized-target negative",
+      "result": "failure",
+      "landscapeTargetHeightPx": 50
+    }
+  ],
+  "discardedAttempt": "RAF polling timed out locally after animation ended; interval polling passes",
+  "fullGate": {
+    "run": 38177444455,
+    "status": "queued"
+  },
+  "publishedClient": "e3937ca0152d0f07bf67d25e5f80b827dba87f36",
+  "physicalAcceptance": false
+}

@@ -1,0 +1,1348 @@
+{
+  "controlledPollingExperiment": {
+    "controlledPrivateBrowser": true,
+    "externalRequestsBlocked": true,
+    "actualHostedCauseEstablished": false,
+    "originalOpacityThresholdAndDeadlinePreserved": true,
+    "reports": [
+      {
+        "polling": "raf",
+        "deadlineMs": 5000,
+        "sparseFrameDelayMs": 1200,
+        "cardVisibleMs": 900,
+        "observed": false,
+        "errorType": "TimeoutError",
+        "elapsedMs": 5082
+      },
+      {
+        "polling": 50,
+        "deadlineMs": 5000,
+        "sparseFrameDelayMs": 1200,
+        "cardVisibleMs": 900,
+        "observed": {
+          "opacity": 1,
+          "hidden": false
+        },
+        "elapsedMs": 192
+      }
+    ]
+  },
+  "audioContainer": {
+    "audioPacketsSha256": "SHA256=cb41986d6768120962984262949975bb2fd8168018f657eb8c64843ebbc1b3cb",
+    "encodedAudioPacketsUnchanged": true,
+    "beforeSha256": "35ca5204fe8b5d155588544e3d5a0a119f97f3f279371b39a27895d2c6d65575",
+    "afterSha256": "d6813a39ee71bcf52cc9c45a95515791f31d733ff2f388a6193f9fa9bbcc3f4f",
+    "afterBytes": 5093604,
+    "afterAtoms": [
+      {
+        "type": "ftyp",
+        "offset": 0,
+        "bytes": 28
+      },
+      {
+        "type": "moov",
+        "offset": 28,
+        "bytes": 92807
+      },
+      {
+        "type": "free",
+        "offset": 92835,
+        "bytes": 8
+      },
+      {
+        "type": "mdat",
+        "offset": 92843,
+        "bytes": 5000761
+      }
+    ],
+    "decodedPcmSha256": "SHA256=21b4ff0cb989a972b918e990fb5453a2c959d932b0bf1f978fe57e5d99368d4e",
+    "decodedAudioUnchanged": true
+  },
+  "beforeFaststartWebKit": {
+    "browser": "webkit",
+    "reports": [
+      {
+        "label": "desktop",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 0.982041,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": false,
+          "touchState": {
+            "hidden": true,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 980,
+            "height": 178,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "restored": {
+          "hudOpacity": 0.996339,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "scored": {
+          "dailyHidden": true,
+          "routeHidden": true,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "council": {
+          "routeHidden": false,
+          "dailyHidden": true
+        },
+        "secondWave": {
+          "hidden": false,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0.003661,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 0.999192,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "failures": [
+          "request: http://localhost:57552/music/600-billion-eyes.m4a cancelled"
+        ],
+        "requestTimeline": [
+          {
+            "url": "http://localhost:57552/music/600-billion-eyes.m4a",
+            "type": "other",
+            "error": "cancelled",
+            "tearingDown": false
+          }
+        ],
+        "mediaDiagnostics": {
+          "network": [
+            {
+              "at": 1791708545818,
+              "id": 0,
+              "event": "request",
+              "path": "/music/600-billion-eyes.m4a",
+              "type": "other",
+              "range": "bytes=0-1"
+            },
+            {
+              "at": 1791708546133,
+              "id": 0,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-1/5093604",
+              "length": "2"
+            },
+            {
+              "at": 1791708546133,
+              "id": 0,
+              "event": "finished"
+            },
+            {
+              "at": 1791708546175,
+              "id": 3,
+              "event": "request",
+              "path": "/music/600-billion-eyes.m4a",
+              "type": "other",
+              "range": "bytes=0-5093603"
+            },
+            {
+              "at": 1791708546323,
+              "id": 3,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-5093603/5093604",
+              "length": "5093604"
+            },
+            {
+              "at": 1791708546324,
+              "id": 5,
+              "event": "request",
+              "path": "/music/600-billion-eyes.m4a",
+              "type": "other",
+              "range": "bytes=4997120-5093603"
+            },
+            {
+              "at": 1791708546325,
+              "id": 3,
+              "event": "failed",
+              "error": "cancelled"
+            },
+            {
+              "at": 1791708546389,
+              "id": 5,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 4997120-5093603/5093604",
+              "length": "96484"
+            },
+            {
+              "at": 1791708546389,
+              "id": 5,
+              "event": "finished"
+            },
+            {
+              "at": 1791708546428,
+              "id": 9,
+              "event": "request",
+              "path": "/music/600-billion-eyes.m4a",
+              "type": "other",
+              "range": "bytes=1543596-4997119"
+            },
+            {
+              "at": 1791708546584,
+              "id": 9,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 1543596-4997119/5093604",
+              "length": "3453524"
+            },
+            {
+              "at": 1791708546591,
+              "id": 9,
+              "event": "finished"
+            }
+          ],
+          "elements": [
+            {
+              "id": 0,
+              "event": "play:call",
+              "at": 1791708545527,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": true,
+              "ready": 0,
+              "network": 3,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 0,
+              "event": "loadstart",
+              "at": 1791708545764,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 0,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 0,
+              "event": "loadedmetadata",
+              "at": 1791708546418,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 1,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "canplay",
+              "at": 1791708546745,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.15079760933453534,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "playing",
+              "at": 1791708546745,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.15082681758953576,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "play:resolved",
+              "at": 1791708546745,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.1509105675869653,
+              "duration": 244.98866666666666
+            }
+          ]
+        }
+      },
+      {
+        "label": "phone",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 0.982405,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": true,
+          "touchState": {
+            "hidden": false,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 843.984375,
+            "height": 118,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 844,
+            "height": 390
+          }
+        },
+        "restored": {
+          "hudOpacity": 0.999873,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "scored": {
+          "dailyHidden": true,
+          "routeHidden": true,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "council": {
+          "routeHidden": false,
+          "dailyHidden": true
+        },
+        "secondWave": {
+          "hidden": false,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0.011845,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 0.989457,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "failures": [],
+        "requestTimeline": [],
+        "mediaDiagnostics": {
+          "network": [
+            {
+              "at": 1791708562661,
+              "id": 0,
+              "event": "request",
+              "path": "/music/600-billion-eyes.m4a",
+              "type": "other",
+              "range": "bytes=0-1"
+            },
+            {
+              "at": 1791708562869,
+              "id": 0,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-1/5093604",
+              "length": "2"
+            },
+            {
+              "at": 1791708562869,
+              "id": 0,
+              "event": "finished"
+            },
+            {
+              "at": 1791708562938,
+              "id": 3,
+              "event": "request",
+              "path": "/music/600-billion-eyes.m4a",
+              "type": "other",
+              "range": "bytes=0-5093603"
+            },
+            {
+              "at": 1791708563498,
+              "id": 3,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-5093603/5093604",
+              "length": "5093604"
+            },
+            {
+              "at": 1791708563499,
+              "id": 3,
+              "event": "finished"
+            }
+          ],
+          "elements": [
+            {
+              "id": 0,
+              "event": "play:call",
+              "at": 1791708562325,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": true,
+              "ready": 0,
+              "network": 3,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 0,
+              "event": "loadstart",
+              "at": 1791708562755,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 0,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 0,
+              "event": "loadedmetadata",
+              "at": 1791708563033,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 1,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "canplay",
+              "at": 1791708563068,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "playing",
+              "at": 1791708563068,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "play:resolved",
+              "at": 1791708563068,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "afterFaststartWebKit": {
+    "browser": "webkit",
+    "reports": [
+      {
+        "label": "desktop",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 0.98054,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": false,
+          "touchState": {
+            "hidden": true,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 980,
+            "height": 178,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "restored": {
+          "hudOpacity": 0.984532,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "scored": {
+          "dailyHidden": true,
+          "routeHidden": true,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "council": {
+          "routeHidden": false,
+          "dailyHidden": true
+        },
+        "secondWave": {
+          "hidden": false,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0.014588,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 0.988155,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "failures": [],
+        "requestTimeline": [],
+        "mediaDiagnostics": {
+          "network": [
+            {
+              "at": 1791708693409,
+              "id": 0,
+              "event": "request",
+              "path": "/music/600-billion-eyes.m4a",
+              "type": "other",
+              "range": "bytes=0-1"
+            },
+            {
+              "at": 1791708693587,
+              "id": 0,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-1/5093604",
+              "length": "2"
+            },
+            {
+              "at": 1791708693590,
+              "id": 0,
+              "event": "finished"
+            },
+            {
+              "at": 1791708693644,
+              "id": 3,
+              "event": "request",
+              "path": "/music/600-billion-eyes.m4a",
+              "type": "other",
+              "range": "bytes=0-5093603"
+            },
+            {
+              "at": 1791708693743,
+              "id": 3,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-5093603/5093604",
+              "length": "5093604"
+            },
+            {
+              "at": 1791708693760,
+              "id": 3,
+              "event": "finished"
+            }
+          ],
+          "elements": [
+            {
+              "id": 0,
+              "event": "play:call",
+              "at": 1791708693321,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": true,
+              "ready": 0,
+              "network": 3,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 0,
+              "event": "loadstart",
+              "at": 1791708693408,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 0,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 0,
+              "event": "loadedmetadata",
+              "at": 1791708694125,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.12197127338569105,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "canplay",
+              "at": 1791708694125,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.12203302344843239,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "playing",
+              "at": 1791708694125,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.12204048171244056,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "play:resolved",
+              "at": 1791708694125,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.12209327338333667,
+              "duration": 244.98866666666666
+            }
+          ]
+        }
+      },
+      {
+        "label": "phone",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 0.950555,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": true,
+          "touchState": {
+            "hidden": false,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 843.984375,
+            "height": 118,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 844,
+            "height": 390
+          }
+        },
+        "restored": {
+          "hudOpacity": 0.98677,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "scored": {
+          "dailyHidden": true,
+          "routeHidden": true,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "council": {
+          "routeHidden": false,
+          "dailyHidden": true
+        },
+        "secondWave": {
+          "hidden": false,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0.011599,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 0.984532,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "failures": [],
+        "requestTimeline": [],
+        "mediaDiagnostics": {
+          "network": [
+            {
+              "at": 1791708704977,
+              "id": 0,
+              "event": "request",
+              "path": "/music/600-billion-eyes.m4a",
+              "type": "other",
+              "range": "bytes=0-1"
+            },
+            {
+              "at": 1791708705045,
+              "id": 0,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-1/5093604",
+              "length": "2"
+            },
+            {
+              "at": 1791708705048,
+              "id": 0,
+              "event": "finished"
+            },
+            {
+              "at": 1791708705126,
+              "id": 3,
+              "event": "request",
+              "path": "/music/600-billion-eyes.m4a",
+              "type": "other",
+              "range": "bytes=0-5093603"
+            },
+            {
+              "at": 1791708705209,
+              "id": 3,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-5093603/5093604",
+              "length": "5093604"
+            },
+            {
+              "at": 1791708705209,
+              "id": 3,
+              "event": "finished"
+            }
+          ],
+          "elements": [
+            {
+              "id": 0,
+              "event": "play:call",
+              "at": 1791708704913,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": true,
+              "ready": 0,
+              "network": 3,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 0,
+              "event": "loadstart",
+              "at": 1791708705040,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 0,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 0,
+              "event": "loadedmetadata",
+              "at": 1791708705283,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "canplay",
+              "at": 1791708705283,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "playing",
+              "at": 1791708705283,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            },
+            {
+              "id": 0,
+              "event": "play:resolved",
+              "at": 1791708705283,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0,
+              "duration": 244.98866666666666
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "afterFaststartChromium": {
+    "browser": "chromium",
+    "reports": [
+      {
+        "label": "desktop",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 1,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": false,
+          "touchState": {
+            "hidden": true,
+            "visibility": "visible",
+            "opacity": 1,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 980,
+            "height": 178,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 1280,
+            "height": 720
+          }
+        },
+        "restored": {
+          "hudOpacity": 1,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "scored": {
+          "dailyHidden": true,
+          "routeHidden": true,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "council": {
+          "routeHidden": false,
+          "dailyHidden": true
+        },
+        "secondWave": {
+          "hidden": false,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 1,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "failures": [],
+        "requestTimeline": [],
+        "mediaDiagnostics": {
+          "network": [
+            {
+              "at": 1791708745499,
+              "id": 0,
+              "event": "request",
+              "path": "/music/600-billion-eyes.m4a",
+              "type": "media",
+              "range": "bytes=0-"
+            },
+            {
+              "at": 1791708745964,
+              "id": 0,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-5093603/5093604",
+              "length": "5093604"
+            }
+          ],
+          "elements": [
+            {
+              "id": 0,
+              "event": "play:call",
+              "at": 1791708744414,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": true,
+              "ready": 0,
+              "network": 3,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 0,
+              "event": "loadstart",
+              "at": 1791708745945,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 0,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 0,
+              "event": "loadedmetadata",
+              "at": 1791708751604,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.516234,
+              "duration": 245
+            },
+            {
+              "id": 0,
+              "event": "canplay",
+              "at": 1791708751604,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.516256,
+              "duration": 245
+            },
+            {
+              "id": 0,
+              "event": "playing",
+              "at": 1791708751604,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.516262,
+              "duration": 245
+            },
+            {
+              "id": 0,
+              "event": "play:resolved",
+              "at": 1791708751604,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.516298,
+              "duration": 245
+            }
+          ]
+        }
+      },
+      {
+        "label": "phone",
+        "opening": {
+          "cardHidden": false,
+          "cardOpacity": 1,
+          "title": "THE MOONLIT VALLEY",
+          "kicker": "\ud83d\udc04 COWS IN RANGE",
+          "role": "status",
+          "live": "polite",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "hudAriaHidden": "true",
+          "dailyHidden": true,
+          "touchVisible": true,
+          "touchState": {
+            "hidden": false,
+            "visibility": "visible",
+            "opacity": 0.932684,
+            "gameplay": "1",
+            "ritual": "",
+            "crash": null
+          },
+          "backdrop": {
+            "width": 844,
+            "height": 118,
+            "image": "linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(8, 9, 13, 0.72) 22%, rgba(8, 9, 13, 0.82) 50%, rgba(8, 9, 13, 0.72) 78%, rgba(0, 0, 0, 0))"
+          },
+          "viewport": {
+            "width": 844,
+            "height": 390
+          }
+        },
+        "restored": {
+          "hudOpacity": 1,
+          "hudInert": false,
+          "hudAriaHidden": null,
+          "dailyHidden": true
+        },
+        "scored": {
+          "dailyHidden": true,
+          "routeHidden": true,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "council": {
+          "routeHidden": false,
+          "dailyHidden": true
+        },
+        "secondWave": {
+          "hidden": false,
+          "text": "\ud83d\udce1 DAILY DONKEYS 0/7"
+        },
+        "tourReveal": {
+          "title": "DESERT MESA",
+          "kicker": "THE TOUR CONTINUES \u00b7 \ud83d\udc10 GOATS",
+          "hudOpacity": 0,
+          "hudInert": true,
+          "dailyStillArmed": true
+        },
+        "tourRestored": {
+          "hudOpacity": 1,
+          "hudInert": false,
+          "dailyVisible": true
+        },
+        "failures": [],
+        "requestTimeline": [],
+        "mediaDiagnostics": {
+          "network": [
+            {
+              "at": 1791708765490,
+              "id": 0,
+              "event": "request",
+              "path": "/music/600-billion-eyes.m4a",
+              "type": "media",
+              "range": "bytes=0-"
+            },
+            {
+              "at": 1791708765639,
+              "id": 0,
+              "event": "response",
+              "status": 206,
+              "range": "bytes 0-5093603/5093604",
+              "length": "5093604"
+            }
+          ],
+          "elements": [
+            {
+              "id": 0,
+              "event": "play:call",
+              "at": 1791708765282,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": true,
+              "ready": 0,
+              "network": 3,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 0,
+              "event": "loadstart",
+              "at": 1791708765633,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 0,
+              "network": 2,
+              "error": null,
+              "time": 0,
+              "duration": null
+            },
+            {
+              "id": 0,
+              "event": "loadedmetadata",
+              "at": 1791708766861,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.231645,
+              "duration": 245
+            },
+            {
+              "id": 0,
+              "event": "canplay",
+              "at": 1791708766861,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.231678,
+              "duration": 245
+            },
+            {
+              "id": 0,
+              "event": "playing",
+              "at": 1791708766861,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.231684,
+              "duration": 245
+            },
+            {
+              "id": 0,
+              "event": "play:resolved",
+              "at": 1791708766861,
+              "path": "/music/600-billion-eyes.m4a",
+              "paused": false,
+              "ready": 4,
+              "network": 1,
+              "error": null,
+              "time": 0.231747,
+              "duration": 245
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "externalHttpAndWebSocketWritesBlocked": true,
+  "allOriginalAssertionsAndLimitsPreserved": true,
+  "newHostedFullGateRequired": true,
+  "noNewPublication": true,
+  "afterFaststartSupplyWebKit": {
+    "browser": "webkit",
+    "visual": {
+      "chuteChildren": 3,
+      "stripe": [
+        "#c2d5e9",
+        "#5ab8ff",
+        "#d8d0c2"
+      ],
+      "expected": "#5ab8ff",
+      "badgeY": 4.65,
+      "drawables": 7,
+      "botTracksAirborne": true,
+      "supplyChunk": true
+    },
+    "mechanics": {
+      "chuteSpeed": 2.5999999999999996,
+      "airCatch": {
+        "removed": true,
+        "score": 300,
+        "canopyCut": true,
+        "stored": true
+      },
+      "groundCatch": {
+        "removed": true,
+        "score": 150,
+        "landedSafe": true,
+        "online": true
+      }
+    },
+    "failures": [],
+    "mediaDiagnostics": {
+      "network": [
+        {
+          "at": 1791708825832,
+          "id": 0,
+          "event": "request",
+          "path": "/music/600-billion-eyes.m4a",
+          "type": "other",
+          "range": "bytes=0-1"
+        },
+        {
+          "at": 1791708826008,
+          "id": 0,
+          "event": "response",
+          "status": 206,
+          "range": "bytes 0-1/5093604",
+          "length": "2"
+        },
+        {
+          "at": 1791708826008,
+          "id": 0,
+          "event": "finished"
+        },
+        {
+          "at": 1791708826035,
+          "id": 3,
+          "event": "request",
+          "path": "/music/600-billion-eyes.m4a",
+          "type": "other",
+          "range": "bytes=0-5093603"
+        },
+        {
+          "at": 1791708826100,
+          "id": 3,
+          "event": "response",
+          "status": 206,
+          "range": "bytes 0-5093603/5093604",
+          "length": "5093604"
+        },
+        {
+          "at": 1791708826117,
+          "id": 3,
+          "event": "finished"
+        }
+      ],
+      "elements": [
+        {
+          "id": 0,
+          "event": "play:call",
+          "at": 1791708825253,
+          "path": "/music/600-billion-eyes.m4a",
+          "paused": true,
+          "ready": 0,
+          "network": 3,
+          "error": null,
+          "time": 0,
+          "duration": null
+        },
+        {
+          "id": 0,
+          "event": "loadstart",
+          "at": 1791708825862,
+          "path": "/music/600-billion-eyes.m4a",
+          "paused": false,
+          "ready": 0,
+          "network": 2,
+          "error": null,
+          "time": 0,
+          "duration": null
+        },
+        {
+          "id": 0,
+          "event": "loadedmetadata",
+          "at": 1791708826157,
+          "path": "/music/600-billion-eyes.m4a",
+          "paused": false,
+          "ready": 1,
+          "network": 2,
+          "error": null,
+          "time": 0,
+          "duration": 244.98866666666666
+        },
+        {
+          "id": 0,
+          "event": "canplay",
+          "at": 1791708826217,
+          "path": "/music/600-billion-eyes.m4a",
+          "paused": false,
+          "ready": 4,
+          "network": 1,
+          "error": null,
+          "time": 0,
+          "duration": 244.98866666666666
+        },
+        {
+          "id": 0,
+          "event": "playing",
+          "at": 1791708826217,
+          "path": "/music/600-billion-eyes.m4a",
+          "paused": false,
+          "ready": 4,
+          "network": 1,
+          "error": null,
+          "time": 0,
+          "duration": 244.98866666666666
+        },
+        {
+          "id": 0,
+          "event": "play:resolved",
+          "at": 1791708826217,
+          "path": "/music/600-billion-eyes.m4a",
+          "paused": false,
+          "ready": 4,
+          "network": 1,
+          "error": null,
+          "time": 0,
+          "duration": 244.98866666666666
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "failedRevision": "0d06073b57669ecc0a5160c9a62f6fc963df091e",
+  "failedRun": 38144669741,
+  "failedStage": "Persistent phone audio mixer (WebKit)",
+  "failure": "opening-member voice fetch during reload: access-control error",
+  "baselinePassesLocally": true,
+  "candidateRevision": "9b1f6540a4914453ad0e990ce0fb710febf45de6",
+  "candidateRun": 38145996437,
+  "changedFile": "tests/audio-mix-profile.mjs",
+  "correction": "Use real PLAY loading path before paused mixer and reload",
+  "productionAudioChanged": false,
+  "allAssertionsAndErrorChecksUnchanged": true,
+  "localChromiumPass": true,
+  "localWebKitPass": true,
+  "candidateClientPublished": false,
+  "clientPublishedRevision": "e3937ca0152d0f07bf67d25e5f80b827dba87f36",
+  "apiPublishedRevision": "ed73ebcece1c40033064432e8f1fd4700275b799"
+}

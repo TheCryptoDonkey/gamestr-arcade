@@ -29,6 +29,14 @@ jobs:
       - name: Run complete source and build gate
         run: npm run check
 
+      - name: Install browser for user journey checks
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y xdotool
+
+      - name: Verify both web editions in the browser
+        run: npm run test:browser
+
       - name: Audit full dependency tree
         run: npm audit --audit-level=high
 
@@ -37,6 +45,9 @@ jobs:
 
       - name: Package Linux AppImage
         run: npm run dist
+
+      - name: Boot the packaged Linux renderer
+        run: bash scripts/smoke-appimage.sh release/*.AppImage release/linux-runtime-smoke.json
 
       - name: Record release checksums
         run: cd release && sha256sum *.AppImage > SHA256SUMS
@@ -48,6 +59,7 @@ jobs:
           path: |
             release/*.AppImage
             release/SHA256SUMS
+            release/linux-runtime-smoke.json
             gamestr-arcade.cdx.json
             dist-web/**
             dist-web-600/**

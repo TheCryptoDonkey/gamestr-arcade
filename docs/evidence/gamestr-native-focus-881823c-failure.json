@@ -1,0 +1,217 @@
+{
+  "revision": "881823ca53dda8a853c1cb78bfb31fe73bf0821f",
+  "runId": 38091007766,
+  "conclusion": "failure",
+  "failedStep": "Boot the packaged Linux renderer",
+  "diagnostics": {
+    "stage": "second game Escape return",
+    "error": "page.waitForFunction: Timeout 30000ms exceeded.",
+    "pages": {
+      "shell": {
+        "closed": false,
+        "readyState": "complete",
+        "focused": true,
+        "visibility": "visible",
+        "activeElement": "BUTTON",
+        "activeElementId": "",
+        "activeElementClass": "cta",
+        "activeElementInert": false,
+        "readyOpen": false,
+        "focusHistory": [
+          {
+            "event": "focusin",
+            "id": "",
+            "className": "ready-start",
+            "readyOpen": true
+          },
+          {
+            "event": "focusin",
+            "id": "app",
+            "className": "arcade",
+            "readyOpen": false
+          },
+          {
+            "event": "focusin",
+            "id": "",
+            "className": "cta",
+            "readyOpen": false
+          },
+          {
+            "event": "focusin",
+            "id": "app",
+            "className": "arcade",
+            "readyOpen": false
+          },
+          {
+            "event": "focusin",
+            "id": "",
+            "className": "ready-start",
+            "readyOpen": true
+          },
+          {
+            "event": "focusin",
+            "id": "app",
+            "className": "arcade",
+            "readyOpen": false
+          },
+          {
+            "event": "focusin",
+            "id": "",
+            "className": "cta",
+            "readyOpen": false
+          }
+        ],
+        "keyHistory": [
+          {
+            "type": "keydown",
+            "key": "ArrowRight",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "ArrowRight",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keydown",
+            "key": "ArrowLeft",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "ArrowLeft",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keydown",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keydown",
+            "key": "Enter",
+            "trusted": true,
+            "id": ""
+          },
+          {
+            "type": "keyup",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "Escape",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keydown",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keydown",
+            "key": "Enter",
+            "trusted": true,
+            "id": ""
+          },
+          {
+            "type": "keyup",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "Escape",
+            "trusted": true,
+            "id": ""
+          }
+        ],
+        "keys": []
+      },
+      "game": {
+        "closed": true
+      }
+    },
+    "nativeFocus": [
+      {
+        "stage": "first game trusted ArrowUp",
+        "windows": [
+          {
+            "focused": true,
+            "visible": true
+          }
+        ],
+        "contents": [
+          {
+            "id": 2,
+            "focused": true,
+            "role": "game"
+          },
+          {
+            "id": 1,
+            "focused": false,
+            "role": "shell"
+          }
+        ]
+      },
+      {
+        "stage": "second game Escape return",
+        "windows": [
+          {
+            "focused": true,
+            "visible": true
+          }
+        ],
+        "contents": [
+          {
+            "id": 3,
+            "focused": true,
+            "role": "game"
+          },
+          {
+            "id": 1,
+            "focused": false,
+            "role": "shell"
+          }
+        ]
+      }
+    ],
+    "currentNativeFocus": {
+      "windows": [
+        {
+          "focused": true,
+          "visible": true
+        }
+      ],
+      "contents": [
+        {
+          "id": 1,
+          "focused": true,
+          "role": "shell"
+        }
+      ]
+    }
+  },
+  "notes": "The game closed on the second Escape, but the original shell-container focus assertion timed out. Native focus probes show the game focused before Escape and the shell focused afterwards. The remaining focused element was a CTA button. This diagnoses the observed state, without proving a cause or a repair."
+}

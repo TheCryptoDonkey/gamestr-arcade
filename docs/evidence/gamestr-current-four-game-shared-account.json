@@ -1,0 +1,919 @@
+{
+  "origin": "https://arcade.600.wtf",
+  "arcadeRevision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
+  "pubkey": "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621",
+  "actualMySignet": true,
+  "physicalDevice": false,
+  "forcedHetznerOrigin": true,
+  "complete": true,
+  "approvalBeforeEachGame": true,
+  "gameOrScoreStateInjected": false,
+  "lightningPaymentTest": false,
+  "runs": [
+    {
+      "explicitOriginalAccountRecovery": true,
+      "recoveredReceipt": {
+        "run": {
+          "score": 100,
+          "finishedAt": 1791765031793,
+          "wave": 1,
+          "cows": 1,
+          "cultists": 0,
+          "groupies": 0,
+          "drones": 0,
+          "normies": 0,
+          "cropBonus": 0,
+          "bestCombo": 1,
+          "council": false,
+          "durationMs": 25183.333333333183,
+          "runId": "66270c1e-5349",
+          "awards": [
+            "first-beam"
+          ],
+          "stage": 1,
+          "land": "valley"
+        },
+        "pubkey": "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621",
+        "day": "20261012",
+        "queuedAt": 1791765031793
+      },
+      "requestProof": [
+        {
+          "url": "https://ledger.playechoseven.com/api/claim",
+          "method": "POST",
+          "observedAt": 1791765048148,
+          "auth": {
+            "id": "26439b6f17f25071247c07570383a3878286a39651e3664e5143fef1828e0c61",
+            "pubkey": "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621",
+            "sig": "f0b4fb7b0f0fbecdbb78eb8fc708255d458d264fdc0309d57fd8c20bcd99996e0f5c2b48f9fc93a81ae1faf6815f1495628c3db9034b75751ee593f2e9b5aaef",
+            "kind": 27235,
+            "created_at": 1791765042,
+            "content": "",
+            "tags": [
+              [
+                "u",
+                "https://ledger.playechoseven.com/api/claim"
+              ],
+              [
+                "method",
+                "POST"
+              ],
+              [
+                "payload",
+                "3ff2022f6141d92172117906243b92de0969f0ceca4fd781668de45d210e804f"
+              ]
+            ]
+          },
+          "payload": {
+            "run_id": "66270c1e-5349",
+            "finished_at": 1791765031793,
+            "score": 100,
+            "wave": 1,
+            "cows": 1,
+            "cultists": 0,
+            "groupies": 0,
+            "drones": 0,
+            "normies": 0,
+            "crop_bonus": 0,
+            "combo": 1,
+            "duration_ms": 25183,
+            "stage": 1,
+            "land": "valley",
+            "awards": [
+              "first-beam"
+            ]
+          },
+          "bodySha256": "3ff2022f6141d92172117906243b92de0969f0ceca4fd781668de45d210e804f"
+        }
+      ],
+      "game": "takemetoyourledger",
+      "gameOrigin": "https://ledger.playechoseven.com",
+      "gameRevision": "ebcd6a584a341e6aaa0f23ed8a5be0726a8c9ad5",
+      "gameRevisionProven": true,
+      "assetFingerprints": [
+        {
+          "path": "/assets/index-Tv5iMwTO.js",
+          "sha256": "367a1eb8e8eb4b63e37e4e48851268e9e0c8652bb9533179e2c0466654dec60a"
+        }
+      ],
+      "playerPubkey": "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621",
+      "score": 100,
+      "eventId": "005989206260d2692354b5e5f767b9fe29317e260ef0911a62073f66aa8f4996",
+      "reviewedAuthority": "6f0baf0c26e68afa787ff8c6e34e41f0395fb53fde4152e2c7bcb5f4674080c2",
+      "canonicalNip98Signatures": 1,
+      "observedParentBridgeSignatures": 1,
+      "signatureEvidence": "actual submitted NIP-98 header with URL/method/body binding",
+      "fragmentRemoved": true,
+      "openerRemoved": true,
+      "responseProof": [
+        {
+          "status": 200,
+          "ok": true,
+          "eventId": "005989206260d2692354b5e5f767b9fe29317e260ef0911a62073f66aa8f4996",
+          "published": {
+            "ok": 5,
+            "total": 7
+          }
+        }
+      ],
+      "signatureVerified": true,
+      "event": {
+        "content": "Abducted 1 animals, 0 cult members, 0 groupies and 0 normies across 1 lands and 1 waves \u2014 100 points. No leaders. Only the ledger. We are NOT a cult. https://ledger.playechoseven.com/",
+        "created_at": 1791765031,
+        "id": "005989206260d2692354b5e5f767b9fe29317e260ef0911a62073f66aa8f4996",
+        "kind": 30762,
+        "pubkey": "6f0baf0c26e68afa787ff8c6e34e41f0395fb53fde4152e2c7bcb5f4674080c2",
+        "sig": "043c79827a056b0205579d46eb572202232d9023fbbbcaece59f1ea67009d6fe26c56970f61c0865981a1b9f2f67ef765a531cdb1254625a83db4c3b87644a96",
+        "tags": [
+          [
+            "d",
+            "takemetoyourledger:b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621:20261012"
+          ],
+          [
+            "game",
+            "takemetoyourledger"
+          ],
+          [
+            "score",
+            "100"
+          ],
+          [
+            "p",
+            "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621"
+          ],
+          [
+            "state",
+            "final"
+          ],
+          [
+            "wave",
+            "1"
+          ],
+          [
+            "level",
+            "1"
+          ],
+          [
+            "stage",
+            "1"
+          ],
+          [
+            "lands",
+            "1"
+          ],
+          [
+            "land",
+            "valley"
+          ],
+          [
+            "build",
+            "ed73ebc"
+          ],
+          [
+            "cows",
+            "1"
+          ],
+          [
+            "cultists",
+            "0"
+          ],
+          [
+            "groupies",
+            "0"
+          ],
+          [
+            "drones",
+            "0"
+          ],
+          [
+            "normies",
+            "0"
+          ],
+          [
+            "crop_bonus",
+            "0"
+          ],
+          [
+            "combo",
+            "1"
+          ],
+          [
+            "duration",
+            "25"
+          ],
+          [
+            "run_id",
+            "66270c1e-5349"
+          ],
+          [
+            "title",
+            "Take Me To Your Ledger"
+          ],
+          [
+            "r",
+            "https://ledger.playechoseven.com/"
+          ],
+          [
+            "source",
+            "https://ledger.playechoseven.com/"
+          ],
+          [
+            "platform",
+            "web"
+          ],
+          [
+            "t",
+            "takemetoyourledger"
+          ],
+          [
+            "t",
+            "arcade"
+          ],
+          [
+            "t",
+            "abduction"
+          ]
+        ]
+      }
+    },
+    {
+      "explicitOriginalAccountRecovery": true,
+      "recoveredReceipt": {
+        "pubkey": "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621",
+        "summary": {
+          "score": 4292,
+          "distanceM": 2397,
+          "fuel": 0,
+          "roses": 0,
+          "overtakes": 5,
+          "nearMisses": 2,
+          "crashes": 4,
+          "bestRoseStreak": 0,
+          "topSpeedKph": 260,
+          "drifts": 0,
+          "bestDriftS": 0,
+          "durationS": 42,
+          "endedBy": "time"
+        },
+        "options": {
+          "runId": "dbfad0b4-d2e0-41c0-a636-0c8cc6f284f4",
+          "level": 1,
+          "startedAt": 1791765065847,
+          "finishedAt": 1791765107838,
+          "endedBy": "time",
+          "playerName": "TESTFREN",
+          "tour": "grand",
+          "btcBlock": 971013,
+          "btcUsdCents": 8375600
+        },
+        "arcade": true
+      },
+      "requestProof": [
+        {
+          "url": "https://hang-on-fren.playechoseven.com/api/claim",
+          "method": "POST",
+          "observedAt": 1791765124361,
+          "auth": {
+            "kind": 27235,
+            "created_at": 1791765118,
+            "tags": [
+              [
+                "u",
+                "https://hang-on-fren.playechoseven.com/api/claim"
+              ],
+              [
+                "method",
+                "POST"
+              ],
+              [
+                "payload",
+                "fa7ab1d06c573000b6295d3db32f55c6f52d30df6d8a80dc50bdfd7e3638c901"
+              ]
+            ],
+            "content": "",
+            "pubkey": "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621",
+            "id": "a706bbc3e02239008e168bed6485b15dd889b13bdc25b1df5e17cb60a44b723f",
+            "sig": "cbf043a6bd8111a75b8dd733ae164daf96b002448e04323705dda4e78807c8e010bb9a8e2c9beb01401f5b6f037fa4be4279590fc4ed26bf7ab7771a908b84cf"
+          },
+          "payload": {
+            "game": "hangonfren",
+            "score": 4292,
+            "distance_m": 2397,
+            "duration_s": 42,
+            "started_at": 1791765065063,
+            "finished_at": 1791765107054,
+            "run_id": "dbfad0b4-d2e0-41c0-a636-0c8cc6f284f4",
+            "roses": 0,
+            "overtakes": 5,
+            "crashes": 4,
+            "top_speed_kph": 260,
+            "drifts": 0,
+            "level": 1,
+            "ended_by": "time",
+            "tour": "grand",
+            "player_name": "TESTFREN",
+            "btc_block": 971013,
+            "btc_usd_cents": 8375600,
+            "player_mode": "nostr"
+          },
+          "bodySha256": "fa7ab1d06c573000b6295d3db32f55c6f52d30df6d8a80dc50bdfd7e3638c901"
+        }
+      ],
+      "game": "hang-on-fren",
+      "gameOrigin": "https://hang-on-fren.playechoseven.com",
+      "gameRevision": "e4ec515c37cac48cb114f0314fc53bf9b2948211",
+      "gameRevisionProven": true,
+      "assetFingerprints": [
+        {
+          "path": "/assets/index-C22w-CIe.js",
+          "sha256": "894b596836af817a1c092dbae26aad46e016643a9649f8aeaef4ae844256b591"
+        }
+      ],
+      "playerPubkey": "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621",
+      "score": 4292,
+      "eventId": "93c1497c9736c70d8b359d53b75f95dae3e695630cbc1a573ea117b14b36f797",
+      "reviewedAuthority": "51312d91ac6fc6e35005c23656b0effa159c89e4b21e56e054d5af52adc7c272",
+      "canonicalNip98Signatures": 1,
+      "observedParentBridgeSignatures": 1,
+      "signatureEvidence": "actual submitted NIP-98 header with URL/method/body binding",
+      "fragmentRemoved": true,
+      "openerRemoved": true,
+      "responseProof": [
+        {
+          "status": 200,
+          "ok": true,
+          "eventId": "93c1497c9736c70d8b359d53b75f95dae3e695630cbc1a573ea117b14b36f797",
+          "published": {
+            "ok": 5,
+            "total": 7
+          }
+        }
+      ],
+      "signatureVerified": true,
+      "event": {
+        "content": "TESTFREN scored 4292 points over 2.4 km on Hang On, Fren (level 1).",
+        "created_at": 1791765119,
+        "id": "93c1497c9736c70d8b359d53b75f95dae3e695630cbc1a573ea117b14b36f797",
+        "kind": 30762,
+        "pubkey": "51312d91ac6fc6e35005c23656b0effa159c89e4b21e56e054d5af52adc7c272",
+        "sig": "a2bf742229cbbcb753dcc6e707a3c1746bfb1dd4178eeec19628819f9987a65f204f5cee0a741a868276e4b595ba389d79a6cb014112eb9fb7d8ca4884015f64",
+        "tags": [
+          [
+            "d",
+            "hangonfren:b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621:1"
+          ],
+          [
+            "game",
+            "hangonfren"
+          ],
+          [
+            "score",
+            "4292"
+          ],
+          [
+            "p",
+            "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621"
+          ],
+          [
+            "state",
+            "final"
+          ],
+          [
+            "distance",
+            "2397"
+          ],
+          [
+            "roses",
+            "0"
+          ],
+          [
+            "overtakes",
+            "5"
+          ],
+          [
+            "drifts",
+            "0"
+          ],
+          [
+            "crashes",
+            "4"
+          ],
+          [
+            "duration",
+            "42"
+          ],
+          [
+            "top_speed_kph",
+            "260"
+          ],
+          [
+            "ended_by",
+            "time"
+          ],
+          [
+            "title",
+            "Hang On, Fren"
+          ],
+          [
+            "level",
+            "1"
+          ],
+          [
+            "r",
+            "https://hang-on-fren.playechoseven.com/"
+          ],
+          [
+            "source",
+            "hang-on-fren.playechoseven.com"
+          ],
+          [
+            "platform",
+            "web"
+          ],
+          [
+            "t",
+            "arcade"
+          ],
+          [
+            "t",
+            "racer"
+          ],
+          [
+            "t",
+            "hangonfren"
+          ],
+          [
+            "run_id",
+            "dbfad0b4-d2e0-41c0-a636-0c8cc6f284f4"
+          ],
+          [
+            "player",
+            "TESTFREN"
+          ],
+          [
+            "playerName",
+            "TESTFREN"
+          ],
+          [
+            "playerMode",
+            "nostr"
+          ],
+          [
+            "btc_block",
+            "971013"
+          ],
+          [
+            "btc_usd_cents",
+            "8375600"
+          ],
+          [
+            "tour",
+            "grand"
+          ]
+        ]
+      }
+    },
+    {
+      "explicitOriginalAccountRecovery": true,
+      "recoveredReceipt": {
+        "pubkey": "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621",
+        "summary": {
+          "runId": "run-cmqdlx-3hb4o8",
+          "playerName": "npub b0d8c7",
+          "playerMode": "nostr",
+          "playerPubkey": "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621",
+          "score": 10677,
+          "wave": 2,
+          "sats": 0,
+          "startedAt": 1791765138789,
+          "finishedAt": 1791765185910,
+          "durationMs": 47121,
+          "rescues": 1,
+          "knownRescues": 1,
+          "lost": 5,
+          "maxCombo": 5,
+          "metrics": {
+            "deaths": 6,
+            "damageEvents": 6,
+            "shotHitRate": 0.05460750853242321,
+            "shotsFired": 293,
+            "shotsHit": 16,
+            "rescueAverageSeconds": 1.72333333333329,
+            "rescueSlowestSeconds": 1.72333333333329,
+            "lowCampSeconds": 0,
+            "lowCampRatio": 0,
+            "contactsLifted": 6,
+            "contactsDropped": 0,
+            "contactsForged": 5,
+            "topDamageSource": "dart:6",
+            "waveDurations": [
+              {
+                "wave": 1,
+                "seconds": 28.7326666666675,
+                "cleared": true
+              },
+              {
+                "wave": 2,
+                "seconds": 12.282666666667748,
+                "cleared": false
+              }
+            ]
+          }
+        }
+      },
+      "requestProof": [
+        {
+          "url": "https://neonsentinel.com/api/claim",
+          "method": "POST",
+          "observedAt": 1791765207249,
+          "auth": {
+            "id": "1c7f006be2da3ea45c34b8d52847f161e9c9f33b7ac2d79a0b323c04ddf53bfa",
+            "pubkey": "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621",
+            "sig": "0a5c74fda1627339044da5803d5fa8add0d59a83cab4e66509dcbc32bde444089edd66819ef95fdfc99ec24dabca24a75e5010cfb5107cbc7f79d4de0b2b9baf",
+            "kind": 27235,
+            "created_at": 1791765200,
+            "content": "",
+            "tags": [
+              [
+                "u",
+                "https://neonsentinel.com/api/claim"
+              ],
+              [
+                "method",
+                "POST"
+              ],
+              [
+                "payload",
+                "a58b61d88b789e2edde03ec228586ed578f09ad07997810452ddf1c4d8059b9c"
+              ]
+            ]
+          },
+          "payload": {
+            "game": "neonsentinel",
+            "score": 10677,
+            "wave": 2,
+            "duration_ms": 47121,
+            "started_at": 1791765138789,
+            "finished_at": 1791765185910,
+            "credits": 0,
+            "sats_claimed": 0,
+            "run_id": "run-cmqdlx-3hb4o8",
+            "rescues": 1,
+            "known_rescues": 1,
+            "lost": 5,
+            "max_combo": 5,
+            "player_name": "npub b0d8c7",
+            "player_mode": "nostr",
+            "metrics": {
+              "deaths": 6,
+              "damageEvents": 6,
+              "shotHitRate": 0.05460750853242321,
+              "shotsFired": 293,
+              "shotsHit": 16,
+              "rescueAverageSeconds": 1.72333333333329,
+              "rescueSlowestSeconds": 1.72333333333329,
+              "lowCampSeconds": 0,
+              "lowCampRatio": 0,
+              "contactsLifted": 6,
+              "contactsDropped": 0,
+              "contactsForged": 5,
+              "topDamageSource": "dart:6",
+              "waveDurations": [
+                {
+                  "wave": 1,
+                  "seconds": 28.7326666666675,
+                  "cleared": true
+                },
+                {
+                  "wave": 2,
+                  "seconds": 12.282666666667748,
+                  "cleared": false
+                }
+              ]
+            },
+            "telemetry": {
+              "scoring_kind": 30762,
+              "sentinel_variant": "nostr",
+              "write_relays": [
+                "wss://main.relay.gamestr.io",
+                "wss://relay.trotters.cc",
+                "wss://nos.lol",
+                "wss://relay.damus.io",
+                "wss://relay.nostr.band",
+                "wss://relay.primal.net",
+                "wss://relay.ditto.pub"
+              ],
+              "profile_read_relays": [
+                "wss://relay.trotters.cc",
+                "wss://nos.lol",
+                "wss://relay.damus.io",
+                "wss://relay.nostr.band",
+                "wss://relay.primal.net",
+                "wss://relay.ditto.pub",
+                "wss://nostr.wine"
+              ]
+            }
+          },
+          "bodySha256": "a58b61d88b789e2edde03ec228586ed578f09ad07997810452ddf1c4d8059b9c"
+        }
+      ],
+      "game": "neon-sentinel",
+      "gameOrigin": "https://neonsentinel.com",
+      "gameRevision": "0435e9341cc5e34f6512e36c8f3c5047b744cc32",
+      "gameRevisionProven": true,
+      "assetFingerprints": [
+        {
+          "path": "/assets/index-DWsw73O2.js",
+          "sha256": "672fe4d010dca7c446a8ab5de39445e95bf79678fc18a321bcebc9aa14795074"
+        }
+      ],
+      "playerPubkey": "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621",
+      "score": 10677,
+      "eventId": "612505f5af1a1f41b210ca2d6b8ae6f2f223b51f3994384591b55023f429f745",
+      "reviewedAuthority": "370148bb752fee753c8dd436752e801f02913dbc7ac6330828d13d5540c4ca21",
+      "canonicalNip98Signatures": 1,
+      "observedParentBridgeSignatures": 1,
+      "signatureEvidence": "actual submitted NIP-98 header with URL/method/body binding",
+      "fragmentRemoved": true,
+      "openerRemoved": true,
+      "responseProof": [
+        {
+          "status": 200,
+          "ok": true,
+          "eventId": "612505f5af1a1f41b210ca2d6b8ae6f2f223b51f3994384591b55023f429f745",
+          "published": {
+            "ok": 5,
+            "total": 7
+          }
+        }
+      ],
+      "signatureVerified": true,
+      "event": {
+        "content": "{\"game\":\"neonsentinel\",\"run_id\":\"run-cmqdlx-3hb4o8\",\"player\":\"b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621\",\"started_at\":1791765138789,\"finished_at\":1791765185910,\"score\":10677,\"wave\":2,\"credits\":0,\"payout_sats\":0,\"playerName\":\"npub b0d8c7\",\"playerMode\":\"nostr\",\"player_name\":\"npub b0d8c7\",\"player_mode\":\"nostr\",\"nip05\":null,\"metrics\":{\"deaths\":6,\"damageEvents\":6,\"shotHitRate\":0.05460750853242321,\"shotsFired\":293,\"shotsHit\":16,\"rescueAverageSeconds\":1.72333333333329,\"rescueSlowestSeconds\":1.72333333333329,\"lowCampSeconds\":0,\"lowCampRatio\":0,\"contactsLifted\":6,\"contactsDropped\":0,\"contactsForged\":5,\"topDamageSource\":\"dart:6\",\"waveDurations\":[{\"wave\":1,\"seconds\":28.7326666666675,\"cleared\":true},{\"wave\":2,\"seconds\":12.282666666667748,\"cleared\":false}]}}",
+        "created_at": 1791765202,
+        "id": "612505f5af1a1f41b210ca2d6b8ae6f2f223b51f3994384591b55023f429f745",
+        "kind": 30762,
+        "pubkey": "370148bb752fee753c8dd436752e801f02913dbc7ac6330828d13d5540c4ca21",
+        "sig": "4a30dd9e283b671ba275593d2bb1caa50a1baac46a70c41ff6b797e1b4659109f9894f0d0f6a8726c15f47d0026f2b777af6ba922bb2302410cf22649db6bc2c",
+        "tags": [
+          [
+            "d",
+            "neonsentinel:b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621:run-cmqdlx-3hb4o8"
+          ],
+          [
+            "game",
+            "neonsentinel"
+          ],
+          [
+            "score",
+            "10677"
+          ],
+          [
+            "p",
+            "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621"
+          ],
+          [
+            "sats",
+            "0"
+          ],
+          [
+            "state",
+            "final"
+          ],
+          [
+            "wave",
+            "2"
+          ],
+          [
+            "duration",
+            "47"
+          ],
+          [
+            "rescues",
+            "1"
+          ],
+          [
+            "known_rescues",
+            "1"
+          ],
+          [
+            "lost",
+            "5"
+          ],
+          [
+            "credits",
+            "0"
+          ],
+          [
+            "max_combo",
+            "5"
+          ],
+          [
+            "title",
+            "Neon Sentinel"
+          ],
+          [
+            "level",
+            "2"
+          ],
+          [
+            "r",
+            "https://neonsentinel.com/"
+          ],
+          [
+            "source",
+            "neonsentinel.com"
+          ],
+          [
+            "platform",
+            "web"
+          ],
+          [
+            "image",
+            "https://neonsentinel.com/brand/icon-512.png"
+          ],
+          [
+            "r",
+            "https://neonsentinel.com/brand/icon-512.png"
+          ],
+          [
+            "imeta",
+            "url https://neonsentinel.com/brand/icon-512.png",
+            "m image/png",
+            "alt Neon Sentinel icon"
+          ],
+          [
+            "t",
+            "arcade"
+          ],
+          [
+            "t",
+            "rescue-shooter"
+          ],
+          [
+            "t",
+            "nostr"
+          ],
+          [
+            "t",
+            "neonsentinel"
+          ],
+          [
+            "player",
+            "npub b0d8c7"
+          ],
+          [
+            "playerName",
+            "npub b0d8c7"
+          ],
+          [
+            "playerMode",
+            "nostr"
+          ]
+        ]
+      }
+    },
+    {
+      "explicitOriginalAccountRecovery": false,
+      "recoveredReceipt": null,
+      "requestProof": [
+        {
+          "url": "https://pallasite.app/api/score",
+          "method": "POST",
+          "observedAt": 1791765317410,
+          "auth": {
+            "kind": 27235,
+            "pubkey": "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621",
+            "created_at": 1791765313,
+            "tags": [
+              [
+                "u",
+                "https://pallasite.app/api/score"
+              ],
+              [
+                "method",
+                "POST"
+              ],
+              [
+                "payload",
+                "8b55f798a2c43f789f360a09e7220b12fe5f6852f61226c7f9b1de3534f2be09"
+              ]
+            ],
+            "content": "",
+            "id": "e585d2eb4e57122d01d55e52078bd76eed5a11eb3262f1158ee5da97ac29e5c8",
+            "sig": "94046bd64bd27e7e5347af8635bc67632372c21795e140f910aa6936227956f13c98d6c041e10c11508306b47fb21ada129907c24528adac041c95050942b653"
+          },
+          "payload": {
+            "score": 17780,
+            "wave": 1,
+            "duration_ms": 86166,
+            "run_id": "1791765219772",
+            "started_at": 1791765219,
+            "finished_at": 1791765313,
+            "mode": "campaign",
+            "player_name": "B0D8C7AF\u20264621",
+            "cheated": false
+          },
+          "bodySha256": "8b55f798a2c43f789f360a09e7220b12fe5f6852f61226c7f9b1de3534f2be09"
+        }
+      ],
+      "game": "pallasite",
+      "gameOrigin": "https://pallasite.app",
+      "gameRevision": "9813d131985ae97d70cf7c2420c8089dd2cf82a4",
+      "gameRevisionProven": true,
+      "assetFingerprints": [
+        {
+          "path": "/assets/index-BAqRJXX5.js",
+          "sha256": "f0e5f8270ab1edbfc180d65b9c04a13e0fbf3e3ac6c593a952d7b33537a5fe8f"
+        }
+      ],
+      "playerPubkey": "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621",
+      "score": 17780,
+      "eventId": "061f37e89e53c3ce0fff8320e6555a829a0a97a7a0fbac9022e0b887db244f9e",
+      "reviewedAuthority": "fa9291d038fd1d3e4439364f289f2e53a64a1d32776ee52c000da53ebc718cdc",
+      "canonicalNip98Signatures": 1,
+      "observedParentBridgeSignatures": 1,
+      "signatureEvidence": "actual submitted NIP-98 header with URL/method/body binding",
+      "fragmentRemoved": true,
+      "openerRemoved": true,
+      "responseProof": [
+        {
+          "status": 200,
+          "ok": true,
+          "eventId": "061f37e89e53c3ce0fff8320e6555a829a0a97a7a0fbac9022e0b887db244f9e",
+          "published": {
+            "ok": 7,
+            "total": 7
+          }
+        }
+      ],
+      "signatureVerified": true,
+      "event": {
+        "content": "",
+        "created_at": 1791765313,
+        "id": "061f37e89e53c3ce0fff8320e6555a829a0a97a7a0fbac9022e0b887db244f9e",
+        "kind": 30762,
+        "pubkey": "fa9291d038fd1d3e4439364f289f2e53a64a1d32776ee52c000da53ebc718cdc",
+        "sig": "ae3043cbfcdc0cd6f3c2082d510c9455a18d5619f1e4190bae4f5f69fd5481985a17dd27580e5a78e2a992402d2942910d9f5b54fb5157ec885fd825d4c9ab69",
+        "tags": [
+          [
+            "d",
+            "pallasite:b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621:wave-1:daily-1791765219772"
+          ],
+          [
+            "game",
+            "pallasite"
+          ],
+          [
+            "score",
+            "17780"
+          ],
+          [
+            "p",
+            "b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621"
+          ],
+          [
+            "sats",
+            "0"
+          ],
+          [
+            "state",
+            "final"
+          ],
+          [
+            "wave",
+            "1"
+          ],
+          [
+            "duration",
+            "86"
+          ],
+          [
+            "playerName",
+            "B0D8C7AF\u20264621"
+          ],
+          [
+            "t",
+            "arcade"
+          ],
+          [
+            "t",
+            "asteroids"
+          ],
+          [
+            "t",
+            "lightning"
+          ],
+          [
+            "run_started_at",
+            "1791765219"
+          ],
+          [
+            "run_finished_at",
+            "1791765313"
+          ]
+        ]
+      }
+    }
+  ]
+}

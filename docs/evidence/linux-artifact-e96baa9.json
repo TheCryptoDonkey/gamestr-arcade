@@ -1,0 +1,31 @@
+{
+  "run": 38133934854,
+  "headRevision": "e96baa931f30284578c6f0465b45588ff0804722",
+  "integrationRevision": "c55aa49848c8e2780af9766ea1de89dcc1e04fa6",
+  "sourceTreesIdentical": true,
+  "artifactId": 11699809630,
+  "artifactName": "gamestr-arcade-0.1.1-x86_64.AppImage",
+  "downloadedArtifactSha256": "45c8bef63f45421e87cfdd33661df24f5ce830a904fc694521e4ca47537ccf77",
+  "checksumFileMatched": true,
+  "runtimeReportedSameArtifact": true,
+  "rendererReady": true,
+  "checks": {
+    "keyboardCarouselNavigation": true,
+    "launchAndReturn": true,
+    "guestSignatureVerified": true,
+    "freshGuestOnRelaunch": true,
+    "gameStorageAndCookiesIsolated": true,
+    "trustedGameKeyboardInput": true,
+    "walletUnavailableWithoutConfiguration": true,
+    "noNodeOrShellBridgeInGame": true,
+    "physicalControllerAcceptance": "pending"
+  },
+  "electronComponents": [
+    {
+      "name": "electron",
+      "version": "44.7.0"
+    }
+  ],
+  "newRuntimeTestPerformed": false,
+  "physicalControllerAcceptance": "pending"
+}

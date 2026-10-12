@@ -1,0 +1,105 @@
+{
+  "sourceRevision": "a6bcd2662ee0532a6b182d7102a5aeccaa8062e2",
+  "publishedClientRevision": "e3937ca0152d0f07bf67d25e5f80b827dba87f36",
+  "liveClientChanged": false,
+  "liveApiChanged": false,
+  "compiledServiceNodeVersion": "22.19.0",
+  "compiledService": {
+    "privateCompiledApi": true,
+    "externalHttpBlocked": true,
+    "allWebSocketsFake": true,
+    "ownerKeysUsed": false,
+    "liveServiceChanged": false,
+    "gamePubkey": "229e0f0f4fd9ff61ff262c0231d7d7dd8ba156f85d3d54ce47e9597870997e4b",
+    "compiledApiSha256": "aa7a21b402b1f25b10f2e827a059020b639046c25793911b90c21dfcd6930589",
+    "checks": [
+      "zero-ack recovery and restart reuse exact event; confirmed retry does not republish",
+      "changed run conflicts; another player owns a separate run namespace",
+      "concurrent duplicate approvals share one score and badge publication; improvement timestamp increases",
+      "lower unconfirmed retry cannot replace daily best; ordering survives restart",
+      "first event survives former thirty-minute prune trigger",
+      "seven-day retry retains original event/day; new day has independent best",
+      "failed durable acceptance publishes nothing; acceptance holds until repaired history is reloaded",
+      "legacy confirmed ID and midnight-crossing day preserved; missing unconfirmed event fails explicitly",
+      "malformed journal fails startup closed",
+      "invalid signed history fails startup closed",
+      "invalid acknowledgement history fails startup closed",
+      "invalid calendar day fails startup closed"
+    ],
+    "passed": 12
+  },
+  "serviceManifest": {
+    "revision": "a6bcd2662ee0532a6b182d7102a5aeccaa8062e2",
+    "files": {
+      "index.js": "aa7a21b402b1f25b10f2e827a059020b639046c25793911b90c21dfcd6930589",
+      "index.js.map": "98c23448f4b53be337a088eafbe74767bff44fbdf9f7765aaff8bf5b2a8e1671"
+    }
+  },
+  "clientRegressions": {
+    "beforeFix": {
+      "failed": 2,
+      "passed": 7,
+      "cause": "HTTP 200 cleared zero-ack and malformed-response receipts"
+    },
+    "afterFix": {
+      "passed": 10
+    },
+    "hostedUnitsAt3230b22": 275,
+    "clientBuildAndTypecheck": "passed",
+    "serverTypecheck": "passed",
+    "browserFixtures": {
+      "chromium": {
+        "zeroAckStatus": "Score queued until midnight UTC",
+        "zeroAckReceiptCount": 1,
+        "positivelyConfirmedRetry": true,
+        "externalHttpBlocked": true,
+        "publicWebSocketsBlocked": true,
+        "simulatedRun": true
+      },
+      "webkit": {
+        "zeroAckStatus": "Score queued until midnight UTC",
+        "zeroAckReceiptCount": 1,
+        "positivelyConfirmedRetry": true,
+        "externalHttpBlocked": true,
+        "publicWebSocketsBlocked": true,
+        "simulatedRun": true
+      }
+    },
+    "identityFixture": {
+      "status": "failed_before_claim",
+      "failures": [
+        "30-second game-hook startup timeout",
+        "30-second network-idle navigation timeout"
+      ],
+      "cause": "unestablished",
+      "originalDeadlinesRetained": true
+    }
+  },
+  "legacyMidnightRegression": {
+    "candidate3230b22": "fails startup with valid midnight-crossing legacy history",
+    "candidateA6bcd26": "passes while rejecting invalid calendar days"
+  },
+  "hostedRun38129812716": {
+    "status": "completed",
+    "conclusion": "failure",
+    "units": 275,
+    "serviceRecoveryGroups": 11,
+    "failure": "server artifact unexpectedly included public static assets",
+    "playerPromises": "skipped",
+    "artifactProduced": false
+  },
+  "currentHostedRun": {
+    "id": 38130450803,
+    "revision": "a6bcd2662ee0532a6b182d7102a5aeccaa8062e2",
+    "statusAtRecord": "dispatched",
+    "result": "pending"
+  },
+  "remaining": [
+    "Full client release gate and hosted checked artifact",
+    "Live history/configuration preflight and deployment",
+    "Actual earned-score/provider recovery at candidate",
+    "Client midnight expiry and legacy-error experience",
+    "Physical signer/controller and payment acceptance",
+    "Public 600 DNS cutover"
+  ]
+}

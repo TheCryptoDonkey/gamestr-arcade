@@ -1,0 +1,128 @@
+{
+  "relay": "wss://relay.trotters.cc",
+  "signatureVerified": true,
+  "playerPubkey": "d6fd7cc780274f446e151fec56477845fad091d5b285809e0f2a588c487dd0fb",
+  "reviewedAuthority": "51312d91ac6fc6e35005c23656b0effa159c89e4b21e56e054d5af52adc7c272",
+  "event": {
+    "content": "TESTFREN scored 4214 points over 2.3 km on Hang On, Fren (level 1).",
+    "created_at": 1791655751,
+    "id": "10c9e28a8de03ff3c097cfd7f5beeb35a90c04ddbd7d4807e8844ae717c32955",
+    "kind": 30762,
+    "pubkey": "51312d91ac6fc6e35005c23656b0effa159c89e4b21e56e054d5af52adc7c272",
+    "sig": "546a2559d70d67b5cc411b11024135fb114d26cd85280568e7c01bbdd001d1e9c6acc6f05bbb3d29edbb9c8ac1eac874a15dc511b6c438a32593faffbc6547b2",
+    "tags": [
+      [
+        "d",
+        "hangonfren:d6fd7cc780274f446e151fec56477845fad091d5b285809e0f2a588c487dd0fb:1"
+      ],
+      [
+        "game",
+        "hangonfren"
+      ],
+      [
+        "score",
+        "4214"
+      ],
+      [
+        "p",
+        "d6fd7cc780274f446e151fec56477845fad091d5b285809e0f2a588c487dd0fb"
+      ],
+      [
+        "state",
+        "final"
+      ],
+      [
+        "distance",
+        "2312"
+      ],
+      [
+        "roses",
+        "0"
+      ],
+      [
+        "overtakes",
+        "5"
+      ],
+      [
+        "drifts",
+        "0"
+      ],
+      [
+        "crashes",
+        "5"
+      ],
+      [
+        "duration",
+        "42"
+      ],
+      [
+        "top_speed_kph",
+        "260"
+      ],
+      [
+        "ended_by",
+        "time"
+      ],
+      [
+        "title",
+        "Hang On, Fren"
+      ],
+      [
+        "level",
+        "1"
+      ],
+      [
+        "r",
+        "https://hang-on-fren.playechoseven.com/"
+      ],
+      [
+        "source",
+        "hang-on-fren.playechoseven.com"
+      ],
+      [
+        "platform",
+        "web"
+      ],
+      [
+        "t",
+        "arcade"
+      ],
+      [
+        "t",
+        "racer"
+      ],
+      [
+        "t",
+        "hangonfren"
+      ],
+      [
+        "run_id",
+        "09d5aaa3-a3b0-4865-9780-f00b1a5c1455"
+      ],
+      [
+        "player",
+        "TESTFREN"
+      ],
+      [
+        "playerName",
+        "TESTFREN"
+      ],
+      [
+        "playerMode",
+        "nostr"
+      ],
+      [
+        "btc_block",
+        "970803"
+      ],
+      [
+        "btc_usd_cents",
+        "8303400"
+      ],
+      [
+        "tour",
+        "grand"
+      ]
+    ]
+  }
+}

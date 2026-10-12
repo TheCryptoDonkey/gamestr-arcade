@@ -1,0 +1,86 @@
+{
+  "previousFullGate": {
+    "run": 38122913408,
+    "revision": "e8fee80ec78cd35c9e8e52ab9e5e86b7f204b8fb",
+    "conclusion": "failure",
+    "webKitArrivalPassed": true,
+    "failedSection": "Parachute supply interception (WebKit)",
+    "failure": "Load request cancelled for /music/600-billion-eyes.m4a",
+    "allReportedGameplayAssertionsPassed": true
+  },
+  "fixtureCorrection": {
+    "rangeRequests": "206 with bounded body and Content-Range",
+    "wholeResponses": "200 with Content-Length",
+    "headResponses": "headers without body",
+    "originalAssertionsAndLimitsPreserved": true,
+    "productSourceChanged": false
+  },
+  "privateMacWebKit": {
+    "browser": "webkit",
+    "visual": {
+      "chuteChildren": 3,
+      "stripe": [
+        "#c2d5e9",
+        "#5ab8ff",
+        "#d8d0c2"
+      ],
+      "expected": "#5ab8ff",
+      "badgeY": 4.65,
+      "drawables": 7,
+      "botTracksAirborne": true,
+      "supplyChunk": true
+    },
+    "mechanics": {
+      "chuteSpeed": 2.5999999999999996,
+      "airCatch": {
+        "removed": true,
+        "score": 300,
+        "canopyCut": true,
+        "stored": true
+      },
+      "groundCatch": {
+        "removed": true,
+        "score": 150,
+        "landedSafe": true,
+        "online": true
+      }
+    },
+    "failures": []
+  },
+  "privateMacChromium": {
+    "browser": "chromium",
+    "visual": {
+      "chuteChildren": 3,
+      "stripe": [
+        "#c2d5e9",
+        "#5ab8ff",
+        "#d8d0c2"
+      ],
+      "expected": "#5ab8ff",
+      "badgeY": 4.65,
+      "drawables": 7,
+      "botTracksAirborne": true,
+      "supplyChunk": true
+    },
+    "mechanics": {
+      "chuteSpeed": 2.5999999999999996,
+      "airCatch": {
+        "removed": true,
+        "score": 300,
+        "canopyCut": true,
+        "stored": true
+      },
+      "groundCatch": {
+        "removed": true,
+        "score": 150,
+        "landedSafe": true,
+        "online": true
+      }
+    },
+    "failures": []
+  },
+  "externalHttpAndWebSocketWritesBlocked": true,
+  "actualLinuxCauseEstablished": false,
+  "newFullGateRequired": true,
+  "fixtureSha256": "b8afaeccd0b15f37bb9e856d48947ce7cebb83a7eb47b266efe7c2747ce1a824"
+}

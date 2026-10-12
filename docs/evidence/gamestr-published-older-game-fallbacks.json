@@ -1,0 +1,86 @@
+{
+  "fixture": "Disposable canonical signature fixture against published Hang On Fren and Neon Sentinel. All non-GET HTTP and public relay sockets blocked; no real Signet, physical acceptance or score publication claim.",
+  "results": [
+    {
+      "game": "hangonfren",
+      "case": "reload",
+      "origin": "https://hang-on-fren.playechoseven.com",
+      "playerPubkey": "86d3579be0afda394028ecf08dc794d541621daa19d0f8dc138b10fe9a6fc559",
+      "independentLoginAvailable": true,
+      "fragmentRemoved": true,
+      "status": [
+        "RIDING AS  GUEST \u00b7 FREN   \u2014   N / TAP FOR NOSTR"
+      ],
+      "signedRequests": 0,
+      "physicalDevice": false,
+      "actualMySignet": false,
+      "externalWritesBlocked": true
+    },
+    {
+      "game": "hangonfren",
+      "case": "expired",
+      "origin": "https://hang-on-fren.playechoseven.com",
+      "playerPubkey": "86d3579be0afda394028ecf08dc794d541621daa19d0f8dc138b10fe9a6fc559",
+      "independentLoginAvailable": true,
+      "fragmentRemoved": true,
+      "status": [
+        "RIDING AS  GUEST \u00b7 FREN   \u2014   N / TAP FOR NOSTR"
+      ],
+      "signedRequests": 0,
+      "physicalDevice": false,
+      "actualMySignet": false,
+      "externalWritesBlocked": true
+    },
+    {
+      "game": "neonsentinel",
+      "case": "reload",
+      "origin": "https://neonsentinel.com",
+      "playerPubkey": "86d3579be0afda394028ecf08dc794d541621daa19d0f8dc138b10fe9a6fc559",
+      "independentLoginAvailable": true,
+      "fragmentRemoved": true,
+      "status": [
+        "GUEST",
+        "NOSTR",
+        "GUEST RUN",
+        "GUEST READY \u00b7 QUICK PLAY"
+      ],
+      "signedRequests": 0,
+      "physicalDevice": false,
+      "actualMySignet": false,
+      "externalWritesBlocked": true
+    },
+    {
+      "game": "neonsentinel",
+      "case": "expired",
+      "origin": "https://neonsentinel.com",
+      "playerPubkey": "86d3579be0afda394028ecf08dc794d541621daa19d0f8dc138b10fe9a6fc559",
+      "independentLoginAvailable": true,
+      "fragmentRemoved": true,
+      "status": [
+        "GUEST",
+        "NOSTR",
+        "GUEST RUN",
+        "GUEST READY \u00b7 QUICK PLAY"
+      ],
+      "signedRequests": 0,
+      "physicalDevice": false,
+      "actualMySignet": false,
+      "externalWritesBlocked": true
+    }
+  ],
+  "assetFingerprints": [
+    {
+      "game": "hangonfren",
+      "path": "/assets/index-DmrMN_y4.js",
+      "sha256": "651a54716eb6fbba50020d73fdeda2866e0fd05f0cd1606f2715cc6b1fe61ed6",
+      "build": "20260722211910"
+    },
+    {
+      "game": "neonsentinel",
+      "path": "/assets/index-CejSwacQ.js",
+      "sha256": "95f68e940141f8bacce21531d4cf993ab4cfa6487899f166ae0d55d529d1fa89",
+      "build": "20260722205954"
+    }
+  ],
+  "notes": "Published canvas labels identify guest status and an available independent Nostr login action. These checks do not complete an independent provider login."
+}

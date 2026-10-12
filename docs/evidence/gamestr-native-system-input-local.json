@@ -1,0 +1,195 @@
+{
+  "platform": "darwin",
+  "sourceBaseRevision": "3935247632dad3b20b2bded8514faf2d3f7df905",
+  "testOnlyInputObservation": true,
+  "originalAssertionsRetained": true,
+  "cdpKeysReachedPageWithoutBeforeInputEvents": true,
+  "linuxSystemInputProbe": "pending",
+  "physicalControllerAcceptance": "pending",
+  "sourceFingerprints": {
+    "scripts/runtime-native-focus.mjs": "1f7fb9c7081aa51ac54a69d07255e34f8c1dd606fccc4154ed292e5d77a763ee",
+    "scripts/runtime-system-input.mjs": "baef2b14f48ef42e5b74702617239ef0e5ab4e9940c23da49fc98139cc6b6b62",
+    "scripts/appimage-journeys.mjs": "9963aed9ed51c68250411d2e38ac881be56b71682d0b4fc2a8b338ed7e670eef"
+  },
+  "journeys": {
+    "keyboardCarouselNavigation": true,
+    "launchAndReturn": true,
+    "guestSignatureVerified": true,
+    "freshGuestOnRelaunch": true,
+    "gameStorageAndCookiesIsolated": true,
+    "trustedGameKeyboardInput": true,
+    "walletUnavailableWithoutConfiguration": true,
+    "noNodeOrShellBridgeInGame": true,
+    "physicalControllerAcceptance": "pending",
+    "nativeFocus": [
+      {
+        "stage": "first game trusted ArrowUp",
+        "windows": [
+          {
+            "id": 1,
+            "focused": false,
+            "visible": true,
+            "bounds": {
+              "x": 1320,
+              "y": 420,
+              "width": 800,
+              "height": 600
+            },
+            "children": [
+              {
+                "contentsId": 2,
+                "visible": true,
+                "bounds": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 800,
+                  "height": 572
+                }
+              }
+            ]
+          }
+        ],
+        "nativeInputEvents": [],
+        "contents": [
+          {
+            "id": 2,
+            "focused": false,
+            "loading": false,
+            "type": "window",
+            "role": "game"
+          },
+          {
+            "id": 1,
+            "focused": false,
+            "loading": false,
+            "type": "window",
+            "role": "shell"
+          }
+        ]
+      },
+      {
+        "stage": "second game Escape return",
+        "windows": [
+          {
+            "id": 1,
+            "focused": false,
+            "visible": true,
+            "bounds": {
+              "x": 1320,
+              "y": 420,
+              "width": 800,
+              "height": 600
+            },
+            "children": [
+              {
+                "contentsId": 3,
+                "visible": true,
+                "bounds": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 800,
+                  "height": 572
+                }
+              }
+            ]
+          }
+        ],
+        "nativeInputEvents": [],
+        "contents": [
+          {
+            "id": 3,
+            "focused": false,
+            "loading": false,
+            "type": "window",
+            "role": "game"
+          },
+          {
+            "id": 1,
+            "focused": false,
+            "loading": false,
+            "type": "window",
+            "role": "shell"
+          }
+        ]
+      }
+    ],
+    "shellFocus": {
+      "history": [
+        {
+          "event": "focusin",
+          "id": "",
+          "className": "ready-start",
+          "at": 1402.3000000715256,
+          "documentFocused": true,
+          "readyOpen": true
+        },
+        {
+          "event": "focusin",
+          "id": "app",
+          "className": "arcade",
+          "at": 1763.3999999761581,
+          "documentFocused": true,
+          "readyOpen": false
+        }
+      ],
+      "calls": [
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 1028.7000000476837,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at ReadyPanel.close (file://<checkout>/out/renderer/assets/index-wFBff1o8.js:10652:103)",
+            "    at ReadyPanel.confirm (file://<checkout>/out/renderer/assets/index-wFBff1o8.js:10639:10)",
+            "    at Object.onLaunch (file://<checkout>/out/renderer/assets/index-wFBff1o8.js:11553:20)",
+            "    at onKeyDown (file://<checkout>/out/renderer/assets/index-wFBff1o8.js:4802:23)"
+          ]
+        },
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 1371.1000000238419,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at file://<checkout>/out/renderer/assets/index-wFBff1o8.js:11624:12"
+          ]
+        },
+        {
+          "id": "",
+          "className": "ready-start",
+          "at": 1401.8000000715256,
+          "documentFocused": true,
+          "readyOpen": true,
+          "stack": [
+            "    at file://<checkout>/out/renderer/assets/index-wFBff1o8.js:10633:65"
+          ]
+        },
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 1762,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at ReadyPanel.close (file://<checkout>/out/renderer/assets/index-wFBff1o8.js:10652:103)",
+            "    at ReadyPanel.confirm (file://<checkout>/out/renderer/assets/index-wFBff1o8.js:10639:10)",
+            "    at Object.onLaunch (file://<checkout>/out/renderer/assets/index-wFBff1o8.js:11553:20)",
+            "    at onKeyDown (file://<checkout>/out/renderer/assets/index-wFBff1o8.js:4802:23)"
+          ]
+        },
+        {
+          "id": "app",
+          "className": "arcade",
+          "at": 2424,
+          "documentFocused": true,
+          "readyOpen": false,
+          "stack": [
+            "    at file://<checkout>/out/renderer/assets/index-wFBff1o8.js:11624:12"
+          ]
+        }
+      ]
+    }
+  }
+}

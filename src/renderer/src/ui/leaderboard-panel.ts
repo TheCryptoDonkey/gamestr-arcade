@@ -132,6 +132,7 @@ export class LeaderboardPanel {
           </div>
         </header>
         <ol class="lb-list"></ol>
+        <p class="lb-history-note">Synced scores only · history may be incomplete.</p>
       </div>
     `
     host.appendChild(this.root)

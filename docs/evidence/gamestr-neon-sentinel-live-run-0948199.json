@@ -1,0 +1,21 @@
+{
+  "origin": "https://arcade.600.wtf",
+  "gameOrigin": "https://neonsentinel.com",
+  "arcadeRevision": "0948199",
+  "gameAsset": "index-CejSwacQ.js",
+  "pubkey": "2f35aa9cefec18938e2e5b671f9e3452b69f8149d8865936f00f8cb56f538faf",
+  "actualMySignet": true,
+  "physicalDevice": false,
+  "forcedHetznerOrigin": true,
+  "runComplete": true,
+  "canonicalNip98Signatures": 1,
+  "claims": [
+    {
+      "status": 200,
+      "ok": true,
+      "eventId": "499c15ff0a8d3dca9857bd2256a7950c624a314ea112940eb4b795dc6fbb8b7e",
+      "result": "published"
+    }
+  ],
+  "gameAssetSha256": "95f68e940141f8bacce21531d4cf993ab4cfa6487899f166ae0d55d529d1fa89"
+}

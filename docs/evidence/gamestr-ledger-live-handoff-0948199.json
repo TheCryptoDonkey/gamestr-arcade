@@ -1,0 +1,17 @@
+{
+  "origin": "https://arcade.600.wtf",
+  "gameOrigin": "https://ledger.playechoseven.com",
+  "pubkey": "c7bb7df10d5f5dc7e81e2d6701a04fc207b14ec9895d154690d1dafd5d42b877",
+  "identity": "Signed in as c7bb7df1\u2026 \u2014 scores publish under your npub",
+  "actualMySignet": true,
+  "physicalDevice": false,
+  "forcedHetznerOrigin": true,
+  "arcadeRevision": "0948199",
+  "gameRevision": "e3937ca",
+  "fragmentRemoved": true,
+  "openerRemoved": true,
+  "runComplete": true,
+  "score": "100",
+  "canonicalNip98Signatures": 1,
+  "claimResponses": []
+}

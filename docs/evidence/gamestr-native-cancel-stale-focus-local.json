@@ -1,0 +1,142 @@
+{
+  "keyboardCarouselNavigation": true,
+  "launchAndReturn": true,
+  "guestSignatureVerified": true,
+  "freshGuestOnRelaunch": true,
+  "gameStorageAndCookiesIsolated": true,
+  "trustedGameKeyboardInput": true,
+  "walletUnavailableWithoutConfiguration": true,
+  "noNodeOrShellBridgeInGame": true,
+  "physicalControllerAcceptance": "pending",
+  "nativeFocus": [
+    {
+      "stage": "first game trusted ArrowUp",
+      "windows": [
+        {
+          "focused": false,
+          "visible": true
+        }
+      ],
+      "contents": [
+        {
+          "id": 2,
+          "focused": false,
+          "role": "game"
+        },
+        {
+          "id": 1,
+          "focused": false,
+          "role": "shell"
+        }
+      ]
+    },
+    {
+      "stage": "second game Escape return",
+      "windows": [
+        {
+          "focused": false,
+          "visible": true
+        }
+      ],
+      "contents": [
+        {
+          "id": 3,
+          "focused": false,
+          "role": "game"
+        },
+        {
+          "id": 1,
+          "focused": false,
+          "role": "shell"
+        }
+      ]
+    }
+  ],
+  "shellFocus": {
+    "history": [
+      {
+        "event": "focusin",
+        "id": "",
+        "className": "ready-start",
+        "at": 3393,
+        "documentFocused": true,
+        "readyOpen": true
+      },
+      {
+        "event": "focusin",
+        "id": "app",
+        "className": "arcade",
+        "at": 3398.5999999046326,
+        "documentFocused": true,
+        "readyOpen": false
+      }
+    ],
+    "calls": [
+      {
+        "id": "app",
+        "className": "arcade",
+        "at": 1248.6999999284744,
+        "documentFocused": true,
+        "stack": [
+          "    at ReadyPanel.close (<checkout>/out/renderer/assets/index-wFBff1o8.js:10652:103)",
+          "    at ReadyPanel.confirm (<checkout>/out/renderer/assets/index-wFBff1o8.js:10639:10)",
+          "    at Object.onLaunch (<checkout>/out/renderer/assets/index-wFBff1o8.js:11553:20)",
+          "    at onKeyDown (<checkout>/out/renderer/assets/index-wFBff1o8.js:4802:23)"
+        ]
+      },
+      {
+        "id": "app",
+        "className": "arcade",
+        "at": 2261.399999976158,
+        "documentFocused": true,
+        "stack": [
+          "    at <checkout>/out/renderer/assets/index-wFBff1o8.js:11624:12"
+        ]
+      },
+      {
+        "id": "",
+        "className": "ready-start",
+        "at": 3392.399999976158,
+        "documentFocused": true,
+        "stack": [
+          "    at <checkout>/out/renderer/assets/index-wFBff1o8.js:10633:65"
+        ]
+      },
+      {
+        "id": "app",
+        "className": "arcade",
+        "at": 3397.399999976158,
+        "documentFocused": true,
+        "stack": [
+          "    at ReadyPanel.close (<checkout>/out/renderer/assets/index-wFBff1o8.js:10652:103)",
+          "    at ReadyPanel.confirm (<checkout>/out/renderer/assets/index-wFBff1o8.js:10639:10)",
+          "    at Object.onLaunch (<checkout>/out/renderer/assets/index-wFBff1o8.js:11553:20)",
+          "    at onKeyDown (<checkout>/out/renderer/assets/index-wFBff1o8.js:4802:23)"
+        ]
+      },
+      {
+        "id": "app",
+        "className": "arcade",
+        "at": 3680.5,
+        "documentFocused": true,
+        "stack": [
+          "    at <checkout>/out/renderer/assets/index-wFBff1o8.js:11624:12"
+        ]
+      }
+    ]
+  },
+  "platform": "darwin",
+  "sourceFile": "src/renderer/src/ui/ready-panel.ts",
+  "sourceFileSha256": "66bbe3b8f1f66ffa11c6964e6a729e2ae9a48c31ff9a2de84b64883b93257a4a",
+  "regression": {
+    "unchangedSource": {
+      "passed": 7,
+      "failed": 2
+    },
+    "candidate": {
+      "passed": 9,
+      "failed": 0
+    }
+  },
+  "notes": "Original native launch/input/signing/return assertions pass locally. The two new tests detect focus attempts after closing and from replaced openings, which the previous source fails. This establishes the timer-lifetime repair, without proving all intermittent Linux input symptoms share its cause."
+}

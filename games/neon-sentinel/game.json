@@ -19,7 +19,9 @@
     "keyboard",
     "touch"
   ],
-  "controller": { "adapter": "native" },
+  "controller": {
+    "adapter": "native"
+  },
   "controlHints": [
     "LEFT STICK / D-PAD = MOVE",
     "A / SPACE = FIRE",
@@ -41,5 +43,18 @@
     "https://neonsentinel.com"
   ],
   "developer": "The Crypto Donkey",
-  "tips": "profusemeat89@walletofsatoshi.com"
+  "tips": "profusemeat89@walletofsatoshi.com",
+  "nostrHandoff": {
+    "protocol": "gamestr-auth-v1",
+    "editions": [
+      "600"
+    ],
+    "signKinds": [
+      30762,
+      27235
+    ]
+  },
+  "scoreAuthorities": [
+    "370148bb752fee753c8dd436752e801f02913dbc7ac6330828d13d5540c4ca21"
+  ]
 }

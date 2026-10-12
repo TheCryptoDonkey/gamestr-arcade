@@ -1,0 +1,65 @@
+{
+  "complete": true,
+  "arcadeRevision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
+  "pubkey": "2d9766e0a7b4275bba692d55e20691af17178efbd376082a5386e73b7beebbcb",
+  "actualMySignet": true,
+  "forcedHetznerArcadeDns": true,
+  "publicWritesBlocked": true,
+  "gameplayTest": false,
+  "independentLoginCompleted": false,
+  "physicalDevice": false,
+  "results": [
+    {
+      "game": "hang-on-fren",
+      "revision": "e4ec515c37cac48cb114f0314fc53bf9b2948211",
+      "origin": "https://hang-on-fren.playechoseven.com",
+      "modifierClick": true,
+      "fragmentAbsent": true,
+      "openerAbsent": true,
+      "arcadeAccountNotCopied": true,
+      "arcadeAccountPreserved": true,
+      "assets": [
+        {
+          "path": "/assets/index-C22w-CIe.js",
+          "sha256": "894b596836af817a1c092dbae26aad46e016643a9649f8aeaef4ae844256b591"
+        }
+      ],
+      "physicalDevice": false
+    },
+    {
+      "game": "neon-sentinel",
+      "revision": "046a822da97b059ee048f5240add89eaf58871a1",
+      "origin": "https://neonsentinel.com",
+      "modifierClick": true,
+      "fragmentAbsent": true,
+      "openerAbsent": true,
+      "arcadeAccountNotCopied": true,
+      "arcadeAccountPreserved": true,
+      "assets": [
+        {
+          "path": "/assets/index-V3pMRgTx.js",
+          "sha256": "b22b39055447cb6ff795c75dfce39b04ec7c2fd15f81f5bdc3cdee01dea971e5"
+        }
+      ],
+      "physicalDevice": false
+    },
+    {
+      "game": "pallasite",
+      "revision": "9813d131985ae97d70cf7c2420c8089dd2cf82a4",
+      "origin": "https://pallasite.app",
+      "modifierClick": true,
+      "fragmentAbsent": true,
+      "openerAbsent": true,
+      "arcadeAccountNotCopied": true,
+      "arcadeAccountPreserved": true,
+      "assets": [
+        {
+          "path": "/assets/index-BAqRJXX5.js",
+          "sha256": "f0e5f8270ab1edbfc180d65b9c04a13e0fbf3e3ac6c593a952d7b33537a5fe8f"
+        }
+      ],
+      "physicalDevice": false
+    }
+  ],
+  "at": "2026-10-11T21:10:29.612Z"
+}

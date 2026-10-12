@@ -1,0 +1,27 @@
+{
+  "origin": "https://arcade.600.wtf",
+  "gameOrigin": "https://pallasite.app",
+  "arcadeRevision": "0948199",
+  "gameRevision": "14e969f0bdd100b3c49340c906d9552d1ebfc3da",
+  "actualMySignet": true,
+  "physicalDevice": false,
+  "forcedHetznerOrigin": true,
+  "normalGameplay": true,
+  "publicScorePublicationVerified": false,
+  "pendingBeforeArcadeNavigation": [
+    {
+      "pubkey": "33d2eb7b8d4114ba848b3ab40f72acfb5027b1b7c2f7ba31fe77c955efbaa1f4",
+      "score": 13403,
+      "runId": "1791663564221"
+    }
+  ],
+  "observedSigningError": "sign_failed",
+  "observedSigningDetailFlags": [
+    "timeout"
+  ],
+  "reconnectInArcadeNavigationVerified": true,
+  "reconnectionFailedStage": "waiting for restored arcade identity control",
+  "reconnectionWaitMs": 60000,
+  "scoreResponses": [],
+  "scope": "Saved receipt observed on the game origin before navigation. Session restoration timed out on the arcade origin; this does not prove loss of the separately stored game receipt."
+}

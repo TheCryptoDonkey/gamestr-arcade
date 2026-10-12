@@ -100,6 +100,7 @@ export class ReadyPanel {
   private previousFocus: HTMLElement | null = null
   private inerted: HTMLElement[] = []
   private _open = false
+  private focusTimer: number | null = null
 
   constructor(host: HTMLElement, opts: ReadyPanelOptions) {
     this.opts = opts
@@ -180,8 +181,13 @@ export class ReadyPanel {
   get isOpen(): boolean { return this._open }
 
   open(game: Game): void {
+    this.cancelPendingFocus()
+    const wasOpen = this._open
     this.game = game
-    this.previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    if (!wasOpen) {
+      const active = document.activeElement
+      this.previousFocus = active instanceof HTMLElement && !this.overlay.contains(active) ? active : null
+    }
     this.overlay.style.setProperty('--accent', game.accent || '#7cf3ff')
     this.nameEl.textContent = game.name
     this.manifestEl.textContent = `MANIFEST V${game.manifestVersion ?? 1}`
@@ -204,13 +210,19 @@ export class ReadyPanel {
     this.renderList(this.capabilitiesEl, capabilitiesFor(game))
 
     this._open = true
-    this.inerted = Array.from(this.overlay.parentElement?.children ?? [])
-      .filter((element): element is HTMLElement => element instanceof HTMLElement && element !== this.overlay && !element.inert)
+    if (!wasOpen) {
+      this.inerted = Array.from(this.overlay.parentElement?.children ?? [])
+        .filter((element): element is HTMLElement => element instanceof HTMLElement && element !== this.overlay && !element.inert)
+    }
     for (const element of this.inerted) element.inert = true
     this.overlay.inert = false
     this.overlay.classList.add('is-open')
     this.overlay.setAttribute('aria-hidden', 'false')
-    window.setTimeout(() => (this.startBtn.disabled ? this.cancelBtn : this.startBtn).focus(), 0)
+    this.focusTimer = window.setTimeout(() => {
+      this.focusTimer = null
+      if (!this._open || !this.overlay.isConnected || this.overlay.inert) return
+      ;(this.startBtn.disabled ? this.cancelBtn : this.startBtn).focus()
+    }, 0)
   }
 
   confirm(): void {
@@ -221,6 +233,7 @@ export class ReadyPanel {
   }
 
   close(notify = true): void {
+    this.cancelPendingFocus()
     if (!this._open) return
     this._open = false
     this.overlay.classList.remove('is-open')
@@ -229,9 +242,15 @@ export class ReadyPanel {
     for (const element of this.inerted) element.inert = false
     this.inerted = []
     this.game = null
-    this.previousFocus?.focus()
+    if (this.previousFocus?.isConnected && !this.previousFocus.closest('[inert]')) this.previousFocus.focus()
     this.previousFocus = null
     if (notify) this.opts.onCancel?.()
+  }
+
+  private cancelPendingFocus(): void {
+    if (this.focusTimer === null) return
+    window.clearTimeout(this.focusTimer)
+    this.focusTimer = null
   }
 
   private chip(value: string): HTMLElement {

@@ -110,6 +110,43 @@
       "uniqueItems": true,
       "maxItems": 12
     },
+    "nostrHandoff": {
+      "type": "object",
+      "required": [
+        "protocol",
+        "editions",
+        "signKinds"
+      ],
+      "properties": {
+        "protocol": {
+          "const": "gamestr-auth-v1"
+        },
+        "editions": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "600",
+              "gamestr"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "signKinds": {
+          "type": "array",
+          "items": {
+            "enum": [
+              30762,
+              5555,
+              27235
+            ]
+          },
+          "maxItems": 3,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
     "capabilities": {
       "type": "object",
       "properties": {
@@ -130,6 +167,7 @@
       "additionalProperties": false
     },
     "tHints": { "type": "array", "items": { "type": "string" } },
+    "scoreAuthorities": { "type": "array", "items": { "type": "string", "pattern": "^[0-9a-f]{64}$" }, "maxItems": 8, "uniqueItems": true },
     "scoreKind": { "type": "integer" },
     "scoreField": { "type": "string" },
     "scoreDir": { "enum": ["asc", "desc"] },

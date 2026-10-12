@@ -1,0 +1,53 @@
+{
+  "revision": "a1d32905eee8d309926bd0c2aec4e4490aebcfc3",
+  "previousRun": 38150978824,
+  "previousConclusion": "failure",
+  "previousPickupMusicBusGain": 0.3858509957790375,
+  "requiredPickupGainRange": [
+    0.27,
+    0.35
+  ],
+  "controlledLateObserverDelayMs": 3600,
+  "baselinePickupMusicBusGain": 0.9994277954101562,
+  "baselineFailsOriginalAssertion": true,
+  "profiles": [
+    {
+      "log": "ledger-media-current-observer-chromium.log",
+      "browser": "chromium",
+      "pickupMusicBusGain": 0.28003576397895813,
+      "decodeFailed": 0,
+      "failures": []
+    },
+    {
+      "log": "ledger-media-current-observer-webkit.log",
+      "browser": "webkit",
+      "pickupMusicBusGain": 0.2800000011920929,
+      "decodeFailed": 0,
+      "failures": []
+    },
+    {
+      "log": "ledger-media-late-observer-corrected-sequential.log",
+      "browser": "chromium",
+      "pickupMusicBusGain": 0.2800000011920929,
+      "decodeFailed": 0,
+      "failures": []
+    }
+  ],
+  "observerStartedBeforePlayback": true,
+  "voiceStartDeadlineMs": 5000,
+  "duckDeadlineMs": 2500,
+  "finalAssertionsUnchanged": true,
+  "productionSourceChanged": false,
+  "apiChanged": false,
+  "initialCorrectedAttempt": "PLAY visibility timeout before pickup observation; subsequent isolated run passed",
+  "completeReleaseQualified": false,
+  "completeReleaseQualification": {
+    "run": 38156400254,
+    "status": "completed",
+    "notYetQualified": true,
+    "conclusion": "failure",
+    "passedReleaseChecks": 46,
+    "failedCheck": "Parachute supply interception (WebKit)",
+    "pickupMediaCheckReached": false
+  }
+}

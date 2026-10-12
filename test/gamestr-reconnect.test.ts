@@ -12,7 +12,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { finalizeEvent } from 'nostr-tools/pure'
+import { finalizeEvent, getPublicKey } from 'nostr-tools/pure'
 import { createGamestrProvider } from '../src/renderer/src/leaderboard/gamestr'
 import type { LeaderboardEntry } from '../src/shared/types'
 
@@ -108,9 +108,10 @@ function makeMockWsFactory() {
 // ── Test helpers ──────────────────────────────────────────────────────────────
 
 // Valid 64-char hex pubkeys for test players.
-const ALICE = 'a'.repeat(64)
-const BOB   = 'b'.repeat(64)
 const SCORE_KEY = new Uint8Array(32).fill(9)
+const BOB_KEY = new Uint8Array(32).fill(10)
+const ALICE = getPublicKey(SCORE_KEY)
+const BOB = getPublicKey(BOB_KEY)
 const NOW = Math.floor(Date.now() / 1000)
 
 /** A cryptographically valid score event for the requested game/schema. */
@@ -133,7 +134,7 @@ function makeScoreEvent(
       [field, String(score)],
     ],
     content: '',
-  }, SCORE_KEY)
+  }, playerPubkey === BOB ? BOB_KEY : SCORE_KEY)
   return JSON.stringify([
     'EVENT',
     subId,

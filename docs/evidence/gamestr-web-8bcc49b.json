@@ -1,0 +1,57 @@
+{
+  "origin": "https://gamestr.62-238-98-53.sslip.io",
+  "revision": "8bcc49bc95e742d31998a8085cf59eeece3087b5",
+  "edition": "gamestr",
+  "verifiedAt": "2026-10-11T13:37:39.760Z",
+  "assets": [
+    {
+      "path": "index.html",
+      "sha256": "7a3e82daebac9adc8ad3a1f103a372653d836ce69e4cebbfd653d43f176e6009"
+    },
+    {
+      "path": "catalogue.json",
+      "sha256": "d184bc193b668050a0150284f801aa4cb62ae63ed68a5d2d2380487b6ead3783"
+    },
+    {
+      "path": "game/pallasite/index.html",
+      "sha256": "cf628f5e94678b5951521442c6631703f0bcb8842b2f09a157198915bc0f3781"
+    },
+    {
+      "path": "game/takemetoyourledger/index.html",
+      "sha256": "86d8ca159101f1d392cf358a6c30170d4e85a3e0ad4682cda8f0a9c4ac418596"
+    },
+    {
+      "path": "assets/_commonjsHelpers-CqkleIqs.js",
+      "sha256": "84de5b1724808f6a399a33d5fa7887ba0f752bbb73fbb26cc100fbec111abf63"
+    },
+    {
+      "path": "assets/developer-studio-nWr-mTky.js",
+      "sha256": "69dfad4e6473443279cf59f360494339d70fb1c76b6dba8184f16461c6fda87e"
+    },
+    {
+      "path": "assets/index-CE6SpJ9L.css",
+      "sha256": "0f4bd1555b2cfbbff99b75f8d419957dab30ebb9d4963c0e68f84795c3b1322c"
+    },
+    {
+      "path": "assets/index-D7QatgsL.js",
+      "sha256": "fc6a786c1e50ef84afa942591280c069977cc5db71959866160823d21e83e5f4"
+    },
+    {
+      "path": "assets/login-qr-By7399Cm.js",
+      "sha256": "a13013de7304b9ac6ab3bef989a81e5ecb15dd27d69351b55ae63cbebee01b9f"
+    },
+    {
+      "path": "assets/preference-sync-CdYeZwIv.js",
+      "sha256": "3149eb76bdd5970e41c298769f5962fe0df6e21561a92e095661d0acec9f3e86"
+    },
+    {
+      "path": "assets/qrcode-CtOU1MHs.js",
+      "sha256": "75066dc9670886c2b7913df72578587f8b75e64afea7a637f162501af79c6ce3"
+    },
+    {
+      "path": "assets/signet-login-Ci-kV6MS.js",
+      "sha256": "d6ea7890b2d5aa865c64813d7ed33cbeea3a1df6098405054df6718af97aa44c"
+    }
+  ],
+  "securityHeaders": true
+}

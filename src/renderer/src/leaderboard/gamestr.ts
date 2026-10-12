@@ -1,16 +1,19 @@
 import type { LeaderboardEntry, LeaderboardProvider, ScoreScoring } from '../../../shared/types'
+import { readScoreCache, writeScoreCache, type ScoreCacheStorage } from './score-cache'
 import { verifyEvent } from 'nostr-tools/pure'
 import {
   isScoreEvent,
   parseAnyScoreEvent,
   parse5555Event,
   scoreGameId,
+  type ScoreAuthorities,
   type ScoreEvent,
   type SupportedScoreKind,
 } from './gamestr-reduce'
 
 /** Optional callbacks for external status monitoring. */
 export interface GamestrProviderOptions {
+  scoreAuthorities?: ScoreAuthorities
   /**
    * Called with `'down'` when ALL relay sockets have dropped and with `'up'`
    * when at least one socket reconnects.
@@ -21,6 +24,9 @@ export interface GamestrProviderOptions {
 }
 
 export interface GamestrCatalogueOptions {
+  cacheStorage?: ScoreCacheStorage
+  onCached?: (count: number) => void
+  scoreAuthorities?: ScoreAuthorities
   onStatus?: (state: 'up' | 'down') => void
   /** Maximum verified events retained for any one game. */
   maxEventsPerGame?: number
@@ -107,11 +113,14 @@ export function createGamestrCatalogue(
   interface Subscriber {
     onUpdate: (entries: LeaderboardEntry[]) => void
     scoring?: ScoreScoring
+    records: Map<string, LeaderboardEntry>
+    recordEvents: Map<string, ScoreEvent>
   }
   const subscribers = new Map<string, Set<Subscriber>>()
   const maxEventsPerGame = positiveInt(opts.maxEventsPerGame, DEFAULT_MAX_CATALOGUE_EVENTS_PER_GAME)
   const maxGames = positiveInt(opts.maxGames, DEFAULT_MAX_CATALOGUE_GAMES, DEFAULT_MAX_CATALOGUE_GAMES)
 
+  let cacheTimer: ReturnType<typeof setTimeout> | undefined
   let disposed = false
   const connected = new Set<string>()
   const synced = new Set<string>()
@@ -131,11 +140,38 @@ export function createGamestrCatalogue(
     for (const event of bucket.values()) {
       if (event.kind !== kind) continue
       const entry = kind === 5555
-        ? parse5555Event(event, gameId, field)
-        : parseAnyScoreEvent(event)?.entry ?? null
+        ? parse5555Event(event, gameId, field, opts.scoreAuthorities)
+        : parseAnyScoreEvent(event, opts.scoreAuthorities)?.entry ?? null
       if (entry) out.push(entry)
     }
     return out
+  }
+
+  function updateRecord(subscriber: Subscriber, entry: LeaderboardEntry, raw?: ScoreEvent): void {
+    const previous = subscriber.records.get(entry.pubkey)
+    const better = subscriber.scoring?.dir === 'asc' ? entry.score < (previous?.score ?? Infinity) : entry.score > (previous?.score ?? -Infinity)
+    if (!previous || better) {
+      subscriber.records.set(entry.pubkey, entry)
+      const event = raw
+      if (event) subscriber.recordEvents.set(entry.pubkey, event)
+    }
+    // Record retention is independent of recent activity and still bounded.
+    if (subscriber.records.size > maxEventsPerGame) {
+      const worst = [...subscriber.records.values()].reduce((candidate, entry) => {
+        const lowerRank = subscriber.scoring?.dir === 'asc' ? entry.score > candidate.score : entry.score < candidate.score
+        return lowerRank || (entry.score === candidate.score && entry.at < candidate.at) ? entry : candidate
+      })
+      subscriber.records.delete(worst.pubkey)
+      subscriber.recordEvents.delete(worst.pubkey)
+    }
+  }
+
+  function subscriberEntries(gameId: string, subscriber: Subscriber): LeaderboardEntry[] {
+    const recent = entriesFor(gameId, subscriber.scoring)
+    for (const entry of recent) updateRecord(subscriber, entry, entry.eventId ? index.get(gameId)?.get(entry.eventId) : undefined)
+    const combined = new Map(recent.map(entry => [entry.eventId, entry]))
+    for (const entry of subscriber.records.values()) combined.set(entry.eventId, entry)
+    return [...combined.values()]
   }
 
   function emitGame(gameId: string): void {
@@ -147,7 +183,7 @@ export function createGamestrCatalogue(
       const subs = subscribers.get(gameId)
       if (!subs || subs.size === 0) return
       for (const subscriber of subs) {
-        subscriber.onUpdate(entriesFor(gameId, subscriber.scoring))
+        subscriber.onUpdate(subscriberEntries(gameId, subscriber))
       }
     }, 200)
     pending.set(gameId, t)
@@ -156,6 +192,12 @@ export function createGamestrCatalogue(
   function consider(e: ScoreEvent): void {
     const gameId = scoreGameId(e)
     if (!gameId) return
+    for (const subscriber of subscribers.get(gameId) ?? []) {
+      const kind = subscriber.scoring?.kind ?? 30762
+      const entry = kind === 5555 ? parse5555Event(e, gameId, subscriber.scoring?.field ?? 'score', opts.scoreAuthorities)
+        : e.kind === kind ? parseAnyScoreEvent(e, opts.scoreAuthorities)?.entry : null
+      if (entry) updateRecord(subscriber, entry, e)
+    }
     // Store every event (keyed by id) - do NOT collapse to best-per-pubkey here,
     // or the Today board (period-filtered downstream) would only ever show players
     // whose all-time best happens to be today. boardFor() does period reduction.
@@ -185,9 +227,16 @@ export function createGamestrCatalogue(
         }
       }
       if (oldestId !== undefined) bucket.delete(oldestId)
-      if (oldestId === e.id) return
+      // Even an older event can improve the independently retained player record.
     }
     emitGame(gameId)
+    if (!cacheTimer) cacheTimer = setTimeout(() => { cacheTimer = undefined; persistCache() }, 500)
+  }
+
+  function persistCache(): void {
+    const records = [...subscribers.values()].flatMap(subs => [...subs].flatMap(sub => [...sub.recordEvents.values()]))
+    const recent = [...index.values()].flatMap(bucket => [...bucket.values()]).sort((a, b) => b.created_at - a.created_at)
+    writeScoreCache(opts.cacheStorage, [...records, ...recent])
   }
 
   function connectRelay(url: string, attempt: number): void {
@@ -241,6 +290,10 @@ export function createGamestrCatalogue(
     }
   }
 
+  const cached = readScoreCache(opts.cacheStorage)
+  for (const event of cached) consider(event)
+  if (cached.length) opts.onCached?.(cached.length)
+
   if (relays.length > 0) {
     for (const url of relays) connectRelay(url, 0)
   }
@@ -249,10 +302,10 @@ export function createGamestrCatalogue(
     subscribe(gameId, onUpdate, scoring) {
       let subs = subscribers.get(gameId)
       if (!subs) { subs = new Set(); subscribers.set(gameId, subs) }
-      const subscriber: Subscriber = { onUpdate, scoring }
+      const subscriber: Subscriber = { onUpdate, scoring, records: new Map(), recordEvents: new Map() }
       subs.add(subscriber)
       // Emit current entries immediately (async so caller can set up state first).
-      const t = setTimeout(() => { if (!disposed) onUpdate(entriesFor(gameId, scoring)) }, 0)
+      const t = setTimeout(() => { if (!disposed) onUpdate(subscriberEntries(gameId, subscriber)) }, 0)
       return () => {
         clearTimeout(t)
         const s = subscribers.get(gameId)
@@ -261,6 +314,8 @@ export function createGamestrCatalogue(
     },
 
     dispose() {
+      clearTimeout(cacheTimer)
+      persistCache()
       disposed = true
       for (const t of pending.values()) clearTimeout(t)
       pending.clear()
@@ -291,6 +346,7 @@ export function createGamestrProvider(
         setTimeout(() => onUpdate([]), 0)
         return () => {}
       }
+      const authorities = scoring?.authorityPubkeys ? { [gameId]: scoring.authorityPubkeys } : opts.scoreAuthorities
       const expectedKind: SupportedScoreKind = scoreKind
       // 5555 (Other Stuff) games carry the score in a game-specific tag.
       const scoreField = scoring?.field ?? 'score'
@@ -325,9 +381,9 @@ export function createGamestrProvider(
         // The configured kind selects exactly one schema for this game.
         const entry =
           expectedKind === 5555
-            ? parse5555Event(e, gameId, scoreField)
+            ? parse5555Event(e, gameId, scoreField, authorities)
             : (() => {
-                const p = parseAnyScoreEvent(e)
+                const p = parseAnyScoreEvent(e, authorities)
                 return p && p.gameId === gameId ? p.entry : null
               })()
         if (!entry) return

@@ -1,0 +1,57 @@
+{
+  "keyboardCarouselNavigation": true,
+  "launchAndReturn": true,
+  "guestSignatureVerified": true,
+  "freshGuestOnRelaunch": true,
+  "gameStorageAndCookiesIsolated": true,
+  "trustedGameKeyboardInput": true,
+  "walletUnavailableWithoutConfiguration": true,
+  "noNodeOrShellBridgeInGame": true,
+  "physicalControllerAcceptance": "pending",
+  "nativeFocus": [
+    {
+      "stage": "first game trusted ArrowUp",
+      "windows": [
+        {
+          "focused": false,
+          "visible": true
+        }
+      ],
+      "contents": [
+        {
+          "id": 2,
+          "focused": false,
+          "role": "game"
+        },
+        {
+          "id": 1,
+          "focused": false,
+          "role": "shell"
+        }
+      ]
+    },
+    {
+      "stage": "second game Escape return",
+      "windows": [
+        {
+          "focused": false,
+          "visible": true
+        }
+      ],
+      "contents": [
+        {
+          "id": 3,
+          "focused": false,
+          "role": "game"
+        },
+        {
+          "id": 1,
+          "focused": false,
+          "role": "shell"
+        }
+      ]
+    }
+  ],
+  "platform": "darwin",
+  "scope": "Isolated local Electron journey with passive DOM logging and read-only native inspector. This is not Linux or physical controller qualification."
+}

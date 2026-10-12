@@ -57,7 +57,9 @@ interface WebGame {
   trending: boolean
   newRelease: boolean
   walletPay: boolean
+  nostrHandoff?: { protocol: 'gamestr-auth-v1'; editions: string[]; signKinds: number[] }
   players?: { min: number; max: number }
+  scoreAuthorities?: string[]
   scoreKind?: number
   scoreField?: string
   scoreDir?: 'asc' | 'desc'
@@ -101,7 +103,9 @@ async function catalogue(): Promise<WebGame[]> {
       trending: (edition.trending ?? editorial.trending)?.includes(entry.name) ?? false,
       newRelease: (edition.newReleases ?? editorial.new)?.includes(entry.name) ?? false,
       walletPay: manifest.capabilities?.walletPay === true,
+      nostrHandoff: manifest.capabilities?.nostrSign === true ? manifest.nostrHandoff : undefined,
       players: manifest.players,
+      scoreAuthorities: manifest.scoreAuthorities,
       scoreKind: manifest.scoreKind,
       scoreField: manifest.scoreField,
       scoreDir: manifest.scoreDir,
@@ -253,6 +257,7 @@ function manifestValidator(): Plugin {
 }
 
 export default defineConfig({
+  cacheDir: `node_modules/.vite-web-${editionKey}`,
   root: webRoot,
   publicDir: join(webRoot, 'public'),
   plugins: [manifestValidator(), webData()],

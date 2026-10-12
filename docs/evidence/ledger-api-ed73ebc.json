@@ -1,0 +1,67 @@
+{
+  "deployedRevision": "ed73ebcece1c40033064432e8f1fd4700275b799",
+  "checkedRun": 38139937880,
+  "apiOnly": true,
+  "frontendChanged": false,
+  "beforePid": 1259715,
+  "afterPid": 1344881,
+  "environmentUnchanged": true,
+  "gameAuthorityUnchanged": true,
+  "writeRelaysUnchanged": true,
+  "claimHistoryPrefixPreserved": true,
+  "badgeHistoryPrefixPreserved": true,
+  "priorClaims": 4,
+  "priorBadges": 4,
+  "privateHistoryBackupModes": [
+    "0600",
+    "0600"
+  ],
+  "rollbackRestoresBinaryOnly": true,
+  "liveHealth": {
+    "ok": true,
+    "service": "take-me-to-your-ledger-claim",
+    "game": "takemetoyourledger",
+    "score_kind": 30762,
+    "signer_configured": true,
+    "publish_enabled": true,
+    "game_pubkey": "6f0baf0c26e68afa787ff8c6e34e41f0395fb53fde4152e2c7bcb5f4674080c2",
+    "max_grabs_per_s": 3,
+    "write_relays": [
+      "wss://main.relay.gamestr.io",
+      "wss://relay.trotters.cc",
+      "wss://nos.lol",
+      "wss://relay.damus.io",
+      "wss://relay.nostr.band",
+      "wss://relay.primal.net",
+      "wss://relay.ditto.pub"
+    ],
+    "claims_seen": 4,
+    "best_scores_tracked": 4,
+    "badges_issued": 4
+  },
+  "files": {
+    "index.js": "60805c86517a2dfe7c07f6149aae96156f3a79acb4e5dffdce6f115978ded98c",
+    "index.js.map": "b6e5543bd88b7b8b6ab9443b7181a7daf4f320daf8999c612b813e31a6e1587d"
+  },
+  "existingHistoryPreflight": {
+    "privateExistingHistoryPreflight": true,
+    "liveServiceChanged": false,
+    "ownerSigningKeyUsed": false,
+    "externalHttpBlocked": true,
+    "externalWebSocketsBlocked": true,
+    "nodeVersion": "v22.23.2",
+    "claimsSeen": 4,
+    "bestScoresTracked": 4,
+    "issuedBadges": 4,
+    "historyHashes": {
+      "claims": "be49d715576d5aad44386182af7d7e9ab35d066a7eb8e2ecab05012cd8172969",
+      "badges": "105a91d48e8ddf7bb74b33909af080ce099ea4332af8d7dcf2f1169321d49f34"
+    },
+    "originalHistoryUnchanged": true,
+    "compiledApiSha256": "60805c86517a2dfe7c07f6149aae96156f3a79acb4e5dffdce6f115978ded98c"
+  },
+  "publicHealthVerified": true,
+  "deployedFileHashesVerified": true,
+  "observedAt": "2026-10-11",
+  "clientReleaseGateComplete": false
+}

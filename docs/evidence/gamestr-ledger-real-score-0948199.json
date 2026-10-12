@@ -1,0 +1,124 @@
+{
+  "relay": "wss://relay.trotters.cc",
+  "signatureVerified": true,
+  "playerPubkey": "c7bb7df10d5f5dc7e81e2d6701a04fc207b14ec9895d154690d1dafd5d42b877",
+  "reviewedAuthority": "6f0baf0c26e68afa787ff8c6e34e41f0395fb53fde4152e2c7bcb5f4674080c2",
+  "event": {
+    "content": "Abducted 1 animals, 0 cult members, 0 groupies and 0 normies across 1 lands and 1 waves \u2014 100 points. No leaders. Only the ledger. We are NOT a cult. https://ledger.playechoseven.com/",
+    "created_at": 1791655215,
+    "id": "564172d9bdb0bc8eab0238ba3a75ab246e535718121b2118fc904eff404af8c6",
+    "kind": 30762,
+    "pubkey": "6f0baf0c26e68afa787ff8c6e34e41f0395fb53fde4152e2c7bcb5f4674080c2",
+    "sig": "ca9c0c8821e5d73434bbe9ac27fd0dd4acda920735e738c97db29e9085426598d2dfd23fedd94661d44ce53442b8eb6e8def9eb9a7c81e40daf051a006d16176",
+    "tags": [
+      [
+        "d",
+        "takemetoyourledger:c7bb7df10d5f5dc7e81e2d6701a04fc207b14ec9895d154690d1dafd5d42b877:20261010"
+      ],
+      [
+        "game",
+        "takemetoyourledger"
+      ],
+      [
+        "score",
+        "100"
+      ],
+      [
+        "p",
+        "c7bb7df10d5f5dc7e81e2d6701a04fc207b14ec9895d154690d1dafd5d42b877"
+      ],
+      [
+        "state",
+        "final"
+      ],
+      [
+        "wave",
+        "1"
+      ],
+      [
+        "level",
+        "1"
+      ],
+      [
+        "stage",
+        "1"
+      ],
+      [
+        "lands",
+        "1"
+      ],
+      [
+        "land",
+        "valley"
+      ],
+      [
+        "build",
+        "df69b52"
+      ],
+      [
+        "cows",
+        "1"
+      ],
+      [
+        "cultists",
+        "0"
+      ],
+      [
+        "groupies",
+        "0"
+      ],
+      [
+        "drones",
+        "0"
+      ],
+      [
+        "normies",
+        "0"
+      ],
+      [
+        "crop_bonus",
+        "0"
+      ],
+      [
+        "combo",
+        "1"
+      ],
+      [
+        "duration",
+        "25"
+      ],
+      [
+        "run_id",
+        "8fc6af74-5238"
+      ],
+      [
+        "title",
+        "Take Me To Your Ledger"
+      ],
+      [
+        "r",
+        "https://ledger.playechoseven.com/"
+      ],
+      [
+        "source",
+        "https://ledger.playechoseven.com/"
+      ],
+      [
+        "platform",
+        "web"
+      ],
+      [
+        "t",
+        "takemetoyourledger"
+      ],
+      [
+        "t",
+        "arcade"
+      ],
+      [
+        "t",
+        "abduction"
+      ]
+    ]
+  }
+}

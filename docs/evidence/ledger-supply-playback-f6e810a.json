@@ -1,0 +1,217 @@
+{
+  "revision": "f6e810ad62c43f87045bbbfbf19e5f2b204f5ba2",
+  "previousRun": 38156400254,
+  "previousConclusion": "failure",
+  "previousPassedReleaseChecks": 46,
+  "previousFailedCheck": "Parachute supply interception (WebKit)",
+  "previousFailure": "Cancelled music request; reported supply mechanics and visuals passed",
+  "pickupMediaCheckReachedInPreviousRun": false,
+  "controlledStreaming": {
+    "chunkBytes": 65536,
+    "intervalMs": 30,
+    "originalFixtureConclusion": "failure",
+    "originalFailures": [
+      "request: http://localhost:57507/music/600-billion-eyes.m4a cancelled",
+      "request: http://localhost:57507/music/saucer-theme.m4a cancelled"
+    ],
+    "correctedFixtureConclusion": "success"
+  },
+  "missingMusic": {
+    "path": "/music/600-billion-eyes.m4a",
+    "httpStatus": 404,
+    "originalFixtureConclusion": "success",
+    "originalErrorCodes": [
+      0,
+      4
+    ],
+    "correctedFixtureConclusion": "failure",
+    "correctedPlaybackFailed": true,
+    "correctedErrorCodes": [
+      0,
+      4
+    ]
+  },
+  "localProfiles": [
+    {
+      "browser": "chromium",
+      "visual": {
+        "chuteChildren": 3,
+        "stripe": [
+          "#c2d5e9",
+          "#5ab8ff",
+          "#d8d0c2"
+        ],
+        "expected": "#5ab8ff",
+        "badgeY": 4.65,
+        "drawables": 7,
+        "botTracksAirborne": true,
+        "supplyChunk": true
+      },
+      "mechanics": {
+        "chuteSpeed": 2.5999999999999996,
+        "airCatch": {
+          "removed": true,
+          "score": 300,
+          "canopyCut": true,
+          "stored": true
+        },
+        "groundCatch": {
+          "removed": true,
+          "score": 150,
+          "landedSafe": true,
+          "online": true
+        }
+      },
+      "music": {
+        "paused": false,
+        "muted": false,
+        "volume": 0.45,
+        "readyState": 4,
+        "currentTime": 5.168,
+        "error": 0,
+        "elementErrors": [
+          0,
+          0
+        ],
+        "contexts": [
+          "running"
+        ]
+      },
+      "musicProgress": 0.6133329999999999,
+      "streamingCancellations": [
+        {
+          "path": "/music/600-billion-eyes.m4a",
+          "type": "media",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "failures": []
+    },
+    {
+      "browser": "webkit",
+      "visual": {
+        "chuteChildren": 3,
+        "stripe": [
+          "#c2d5e9",
+          "#5ab8ff",
+          "#d8d0c2"
+        ],
+        "expected": "#5ab8ff",
+        "badgeY": 4.65,
+        "drawables": 7,
+        "botTracksAirborne": true,
+        "supplyChunk": true
+      },
+      "mechanics": {
+        "chuteSpeed": 2.5999999999999996,
+        "airCatch": {
+          "removed": true,
+          "score": 300,
+          "canopyCut": true,
+          "stored": true
+        },
+        "groundCatch": {
+          "removed": true,
+          "score": 150,
+          "landedSafe": true,
+          "online": true
+        }
+      },
+      "music": {
+        "paused": false,
+        "muted": false,
+        "volume": 0.45,
+        "readyState": 4,
+        "currentTime": 2.1151548154408255,
+        "error": 0,
+        "elementErrors": [
+          0,
+          0
+        ],
+        "contexts": [
+          "running"
+        ]
+      },
+      "musicProgress": 0.5141508342436192,
+      "streamingCancellations": [],
+      "failures": []
+    },
+    {
+      "browser": "webkit",
+      "visual": {
+        "chuteChildren": 3,
+        "stripe": [
+          "#c2d5e9",
+          "#5ab8ff",
+          "#d8d0c2"
+        ],
+        "expected": "#5ab8ff",
+        "badgeY": 4.65,
+        "drawables": 7,
+        "botTracksAirborne": true,
+        "supplyChunk": true
+      },
+      "mechanics": {
+        "chuteSpeed": 2.5999999999999996,
+        "airCatch": {
+          "removed": true,
+          "score": 300,
+          "canopyCut": true,
+          "stored": true
+        },
+        "groundCatch": {
+          "removed": true,
+          "score": 150,
+          "landedSafe": true,
+          "online": true
+        }
+      },
+      "music": {
+        "paused": false,
+        "muted": false,
+        "volume": 0.45,
+        "readyState": 4,
+        "currentTime": 1.3750812741000016,
+        "error": 0,
+        "elementErrors": [
+          0,
+          0
+        ],
+        "contexts": [
+          "running"
+        ]
+      },
+      "musicProgress": 0.5127173755159717,
+      "streamingCancellations": [
+        {
+          "path": "/music/saucer-theme.m4a",
+          "type": "other",
+          "error": "cancelled"
+        },
+        {
+          "path": "/music/600-billion-eyes.m4a",
+          "type": "other",
+          "error": "cancelled"
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "originalVisualAndMechanicAssertionsUnchanged": true,
+  "productionSourceChanged": false,
+  "apiChanged": false,
+  "playbackDeadlineMs": 12000,
+  "requiredOriginalReleaseChecks": 98,
+  "completeReleaseQualified": false,
+  "completeReleaseQualification": {
+    "run": 38161445947,
+    "status": "completed",
+    "conclusion": "failure",
+    "passedReleaseChecks": 38,
+    "failedCheck": "Cinematic arrivals and progressive HUD (WebKit)",
+    "failure": "Two cancelled gameplay music requests per viewport; reported arrival/HUD assertions pass",
+    "supplyPlaybackCheckReached": false,
+    "pickupMediaCheckReached": false,
+    "notYetQualified": true
+  }
+}

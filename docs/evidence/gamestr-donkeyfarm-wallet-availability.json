@@ -1,0 +1,18 @@
+{
+  "device": "Donkeyfarm",
+  "model": "iPhone 13 Pro Max",
+  "observedAt": "2026-10-11T21:30:32.001513+00:00",
+  "method": "Read-only devicectl apps query including all app types; relevance-filtered",
+  "querySucceeded": true,
+  "relevantApps": [
+    {
+      "name": "Wallet of Satoshi",
+      "bundleIdentifier": "com.livingroomofsatoshi.wallet"
+    }
+  ],
+  "physicalLoginQualified": false,
+  "physicalWalletRouteQualified": false,
+  "paymentConfirmed": false,
+  "ownerEarlierPaymentStatus": "unpaid",
+  "newInvoiceOrPaymentAttempted": false
+}

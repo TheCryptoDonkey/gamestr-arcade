@@ -34,3 +34,26 @@ A future game should:
 3. Verify the signed proof against the production arcade origin and app name.
 4. Require a live bridge port before accepting the identity, and expose signing only when the arcade session says it can sign.
 5. Keep its existing interactive Signet login as the fallback.
+
+## Reviewed capabilities and revocation
+
+The curated manifest must additionally declare `nostrHandoff.protocol`, the
+supported `editions`, and allowed `signKinds`. A generic `nostrSign` permission
+alone does not advertise a consumer. Currently the reviewed contract is the
+600 edition; the standard edition opens the game's own login. Ledger consumer
+`e3937ca` passed all 98 release checks and is deployed with verified assets and
+claim-service health. Real same-player runs through all four games remain a
+separate acceptance gate.
+
+Only declared kinds 30762, 5555 and 27235 may pass the bridge. Score events must
+name the launched game; NIP-98 `u` tags must name the target origin. Event times
+must be within ten minutes, with existing content/tag size bounds. Each port
+allows one in-flight request, with at most eight active ports and sixteen
+pending launches. Pending launches expire after sixty seconds.
+
+Logout, account replacement and signer failure revoke pending launches and all
+issued ports synchronously. An old port stays revoked after re-login, even to
+the same key. Late signatures are discarded. Modifier clicks use normal game
+login. A blocked popup produces a recovery message; copied fragments, expired
+launches, a closed arcade or a game reload must use the game's own fallback.
+Visitor signing does not grant access to the cabinet wallet.

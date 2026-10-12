@@ -1,0 +1,192 @@
+{
+  "origin": "https://ledger.playechoseven.com",
+  "revision": "ebcd6a584a341e6aaa0f23ed8a5be0726a8c9ad5",
+  "verifiedAt": "2026-10-11T23:52:03.311Z",
+  "releaseGate": {
+    "checks": 98,
+    "run": 38181311659,
+    "conclusion": "success"
+  },
+  "checkedLocalFiles": 228,
+  "assets": [
+    {
+      "path": "assets/arcade-handoff-DVgXr76p.js",
+      "sha256": "c1ac718e773d5c55036b71d52be9fd59e27d7992499945a03cbe8967b0acf465"
+    },
+    {
+      "path": "assets/audio-mixer-BjOKwbR-.js",
+      "sha256": "328710e16fdb9335b85cc966153c68327a05a6d1bb72524b5b678fc46284925a"
+    },
+    {
+      "path": "assets/auth-CmuqfsNT.js",
+      "sha256": "c4fde8da67f0703d572b55bf218f3f1f493fb0fb94eb997138508c50eb64eacd"
+    },
+    {
+      "path": "assets/auth-gdmbTCxm.js",
+      "sha256": "169986c82fcf2748bcafb6ca1af140fa433a887d923f95aca5a2c792a94788e3"
+    },
+    {
+      "path": "assets/challenges-DNaMQjSJ.js",
+      "sha256": "0f27d63a1471f1b5ea7b3750bed0d67d1e75fcb5b33f25378b76422782949fa7"
+    },
+    {
+      "path": "assets/combine-D3ghyqRM.js",
+      "sha256": "bfd954cecb303abcc7ee3a7e1f10796f35e7e597bd427375d580c8bec4a9fd16"
+    },
+    {
+      "path": "assets/crash-dDAjfesX.js",
+      "sha256": "c0ff8676ff7d8e0fc3ea001811c4c4196d1eb8fa1d8ce72e68253b895f1b1d91"
+    },
+    {
+      "path": "assets/cult3d-CAn_EFcD.js",
+      "sha256": "df8b675090127b1b5abedec18ae55ad7017afa76db732661702438125fb9ee27"
+    },
+    {
+      "path": "assets/daily-B7qxBd8M.js",
+      "sha256": "03b5a8f58b6882473efffa2c0713bfc302823d162e34088bee3c4dca47b53772"
+    },
+    {
+      "path": "assets/debrief-0dBERiY6.js",
+      "sha256": "5552220dbd4ac7c16a569c31f1c87bede6e46956b3344cc184ea2472dde25746"
+    },
+    {
+      "path": "assets/dev-DCNeE72Q.js",
+      "sha256": "c81e955b5941313130ceb5ea49f1cbe6e09a6974b344281bc44ac82607f9adfa"
+    },
+    {
+      "path": "assets/flight-audio-BBWZuArq.js",
+      "sha256": "a52d48451722ca6ec227d634a66a70e99d676c1129f379d3f2fc16eb0ebd08fd"
+    },
+    {
+      "path": "assets/flight-card-BwHEISAy.js",
+      "sha256": "b0840f392eab1fe1f42277291a477d0517b1654f7451942d7ca79b7f442ca796"
+    },
+    {
+      "path": "assets/glyph-marks-BMXJfTg8.js",
+      "sha256": "b11b3164ad386b9192c6007ceb0b5db59e7ec4a937eed91309b79106a02277fb"
+    },
+    {
+      "path": "assets/groupies-DyWkVVYE.js",
+      "sha256": "db92029e92e8deb7bb7b83098900277328d425c12f328a92a41e3156e43a5c93"
+    },
+    {
+      "path": "assets/haptics-D-451Gpf.js",
+      "sha256": "8af2b3bbd16b11fe399bf30c46829cece03fc2a6c8d182e856fbda9e8cba7e27"
+    },
+    {
+      "path": "assets/index-DoZ79fkM.css",
+      "sha256": "bf25d299eb4cb32e325849555c1ee747655f4b4947253eb16bf4acbddfccddc6"
+    },
+    {
+      "path": "assets/index-Tv5iMwTO.js",
+      "sha256": "367a1eb8e8eb4b63e37e4e48851268e9e0c8652bb9533179e2c0466654dec60a"
+    },
+    {
+      "path": "assets/keypad-CZaK8b92.js",
+      "sha256": "d04e994d0a9d787381e263ab86b4199d6d0d22db40351c34fc54013d2f1bbcf8"
+    },
+    {
+      "path": "assets/late-world-BBy3rOKV.js",
+      "sha256": "15ba737865b682bd7dba3793b705e1058d4a05f0b7d1ff2fd15d93582f85945b"
+    },
+    {
+      "path": "assets/nostr-D-wVoJ7V.js",
+      "sha256": "92e9d57b2928fa38f4c4e1384109c022e8f011bd22a4b24a79caa79639ad9abd"
+    },
+    {
+      "path": "assets/perks-CWsDOvTZ.js",
+      "sha256": "0517ddfaf03eb59d308740a2201eeccc634a78f83e9fc2bf86fbf38c2473c672"
+    },
+    {
+      "path": "assets/preload-9jRZRGNS.js",
+      "sha256": "2711a6930cb14af9b66a35dfae9bac1fac8cf56cd219e5fef956c5eb729bd276"
+    },
+    {
+      "path": "assets/prophecy-C1hl6s46.js",
+      "sha256": "0a978232b58ef7cfdfd6d0d72b2c12311e5de40ebdc154aa2333c9e364bd6a8d"
+    },
+    {
+      "path": "assets/qrcode-DJw-22Yv.js",
+      "sha256": "ca0b639f6919b0628fb50ff882e265681bcda9fa5bbb0fa183281af7c464e589"
+    },
+    {
+      "path": "assets/saved-scores-BWSgDYQP.js",
+      "sha256": "803a967a632e32ee48f5bf5fa8e61e54b1bc61386d3bac66c8992dcaf4f58a05"
+    },
+    {
+      "path": "assets/scoring-CzQvlHiy.js",
+      "sha256": "b5a8d39f340710c3be58e4f2a434506dc86790dcf5b43c2d0f47082b3a5cc35b"
+    },
+    {
+      "path": "assets/scoring-PwfyDKNf.js",
+      "sha256": "bf522e398d85a736cd2d1e880cb77f8e1a77ce10382620467d47df1029d73434"
+    },
+    {
+      "path": "assets/supply-Dt2XmP57.js",
+      "sha256": "0ce2bbdb42a6a60de1f009456be0d44cefd91fadc05feb1230f9b96c18e784a5"
+    },
+    {
+      "path": "assets/taxman-BiQnfu1I.js",
+      "sha256": "a1cc5dc46f7bdbf8624219854a2f9ce1647c941fbb4c482333e115bb14afa033"
+    },
+    {
+      "path": "assets/three-DTzggPaG.js",
+      "sha256": "f4871f75711d0c526c5c6953e271cf500214e57963ddcdb81dc2bc8d7b08aaeb"
+    },
+    {
+      "path": "assets/v4v-DuY1Cjzm.js",
+      "sha256": "cc0815dce3f8206938461adab759265b5fca89fa50e52b2314ffe8392332e8b3"
+    },
+    {
+      "path": "assets/voice-lab-bAPS1MFo.js",
+      "sha256": "ea3f008c7ac0c065f7a32cb51290e76a859749bf50247686f399589fb2181347"
+    },
+    {
+      "path": "assets/water-detail-DE0VipDj.js",
+      "sha256": "36c9771c99b0de93e7b53c9cab96d2d3e3d9dabd07aea1e25945b081afda9017"
+    },
+    {
+      "path": "index.html",
+      "sha256": "b6e57ccc256b629f9b2cae7f72216d56cd708a6dc6e6a13ac75d94d1828bc306"
+    },
+    {
+      "path": ".well-known/nostr.json",
+      "sha256": "8bc5c0f062dba81a1851ec730b6e6c72434b4090054e93585a110bb8e0efa75c"
+    }
+  ],
+  "claimHealth": {
+    "ok": true,
+    "signerConfigured": true,
+    "publishEnabled": true,
+    "gamePubkey": "6f0baf0c26e68afa787ff8c6e34e41f0395fb53fde4152e2c7bcb5f4674080c2"
+  },
+  "artifactReconstruction": {
+    "checkedRun": 38181311659,
+    "revision": "ebcd6a584a341e6aaa0f23ed8a5be0726a8c9ad5",
+    "artifactFiles": 227,
+    "sourceMatchedFiles": [
+      {
+        "path": ".well-known/nostr.json",
+        "sourcePath": "public/.well-known/nostr.json",
+        "sha256": "8bc5c0f062dba81a1851ec730b6e6c72434b4090054e93585a110bb8e0efa75c",
+        "matchesCiManifest": true
+      }
+    ],
+    "reason": "Checked archive omits hidden files; the exact revision source matches the checked manifest",
+    "documentation": "https://github.com/actions/upload-artifact#uploading-hidden-files"
+  },
+  "deployment": {
+    "deployedRevision": "ebcd6a584a341e6aaa0f23ed8a5be0726a8c9ad5",
+    "checkedRun": 38181311659,
+    "clientOnly": true,
+    "apiChanged": false,
+    "checkedFiles": 228,
+    "previousIndexSha256": "483f67fd3db9afd3e59e907755252f5ac96d67528f8bb5a35643c747f304c1a6",
+    "indexSha256": "b6e57ccc256b629f9b2cae7f72216d56cd708a6dc6e6a13ac75d94d1828bc306",
+    "oldAssetsRetained": true,
+    "entrySwappedLast": true,
+    "allArtifactFilesMatch": true,
+    "unchangedAssetsHardlinked": true,
+    "rollbackIndex": "/opt/take-me-to-your-ledger/client-releases/arcade-ebcd6a5-38181311659/previous-index.html"
+  }
+}

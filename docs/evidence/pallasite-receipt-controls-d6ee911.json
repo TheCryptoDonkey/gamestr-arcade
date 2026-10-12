@@ -1,0 +1,67 @@
+{
+  "revision": "d6ee911113669af62aae1a98c060531aebbc2e0c",
+  "pullRequest": 14,
+  "publishedRevisionUnchanged": "ee91c654eafe6686c72a3626406d523f5418317b",
+  "unitGroups": [
+    "another account, a mismatched signer and auth-only identity cannot submit the receipt",
+    "signer failure and reload preserve the earned snapshot and account",
+    "an unconfirmed relay publication remains available for retry",
+    "overlapping retry clicks publish once and clear only confirmed receipts",
+    "blocked storage retains the run for this visit and exposes its durability limit",
+    "malformed persisted receipts are rejected without losing another account receipt",
+    "a provider returning another account signature cannot reach the score endpoint",
+    "permanent rejection and original dates survive reload; selected owner removal preserves other runs and accounts",
+    "a receipt cannot be removed during its active submission",
+    "malformed existing storage is preserved byte for byte, with new runs retained for this visit",
+    "a failed removal write retains the original receipt",
+    "HTTP rejection status is retained and an error-status success body cannot confirm publication",
+    "a stalled HTTP submission times out, retains its receipt and releases a successful retry"
+  ],
+  "unitGroupsPassed": 13,
+  "realHttpTimeoutMs": 15000,
+  "timeoutReleasesSuccessfulRetry": true,
+  "malformedStoragePreserved": true,
+  "selectedOwnerRemoval": true,
+  "originalRunDatesRetained": true,
+  "publicationResponseChecks": [
+    "positive integer relay acknowledgement",
+    "consistent integer total",
+    "64 lowercase hex event id"
+  ],
+  "focusedBrowser": {
+    "viewportWidth": 320,
+    "keyboardCancellationPreservesAllReceipts": true,
+    "confirmedRemovalAffectsOnlySelectedRun": true,
+    "otherAccountPreserved": true,
+    "relaunchPreservesRemainingReceipts": true,
+    "targetMinimumHeight": 44,
+    "externalWritesBlocked": true
+  },
+  "fullLocalBrowserAttempts": [
+    {
+      "result": "failure",
+      "stage": "existing booth gameplay phase",
+      "observation": "playing phase not observed within unchanged 30-second deadline"
+    },
+    {
+      "result": "failure",
+      "stage": "existing TAP TO START click",
+      "observation": "click timed out while diagnostic page shows the booth selection screen"
+    }
+  ],
+  "fullHostedQualification": {
+    "run": 38158290331,
+    "status": "completed",
+    "notYetQualified": true,
+    "conclusion": "success",
+    "browserChecksPassed": 8
+  },
+  "actualPublicEarnedScoreRecovery": false,
+  "physicalDevice": false,
+  "publication": {
+    "revision": "9813d131985ae97d70cf7c2420c8089dd2cf82a4",
+    "deploymentRun": 38158625243,
+    "conclusion": "success",
+    "verifiedCriticalFiles": 14
+  }
+}

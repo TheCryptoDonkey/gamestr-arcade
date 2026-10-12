@@ -1,0 +1,156 @@
+{
+  "origin": "https://neonsentinel.com",
+  "revision": "0435e9341cc5e34f6512e36c8f3c5047b744cc32",
+  "version": {
+    "build": "20261011214623",
+    "revision": "0435e9341cc5e34f6512e36c8f3c5047b744cc32"
+  },
+  "checkedWorkflowRun": 38177726376,
+  "checkedWorkflowConclusion": "success",
+  "checkedLocalCodeFiles": 16,
+  "files": [
+    {
+      "matches": true,
+      "rawBytesMatch": true,
+      "expectedSha256": "672fe4d010dca7c446a8ab5de39445e95bf79678fc18a321bcebc9aa14795074",
+      "path": "/assets/index-DWsw73O2.js",
+      "sha256": "672fe4d010dca7c446a8ab5de39445e95bf79678fc18a321bcebc9aa14795074",
+      "status": 200,
+      "cacheControl": "public, max-age=31536000, immutable"
+    },
+    {
+      "matches": true,
+      "rawBytesMatch": true,
+      "expectedSha256": "af11b3225bbe6854cff00e9094cdddba77e852f4e27e76be2c33f07296bda338",
+      "path": "/assets/index-DqCSlrae.css",
+      "sha256": "af11b3225bbe6854cff00e9094cdddba77e852f4e27e76be2c33f07296bda338",
+      "status": 200,
+      "cacheControl": "public, max-age=31536000, immutable"
+    },
+    {
+      "matches": true,
+      "rawBytesMatch": true,
+      "expectedSha256": "ca70df025cffbc41969741291cc9d521cabc903260b897111896060db243f034",
+      "path": "/assets/mesh-overlay-DjhUp0Y3.js",
+      "sha256": "ca70df025cffbc41969741291cc9d521cabc903260b897111896060db243f034",
+      "status": 200,
+      "cacheControl": "public, max-age=31536000, immutable"
+    },
+    {
+      "matches": true,
+      "rawBytesMatch": true,
+      "expectedSha256": "15858c7e1fb75d9eccabd55fde50a9706350f84a5ccb20f9810dd13970c50f69",
+      "path": "/assets/three-wH-wNnfL.js",
+      "sha256": "15858c7e1fb75d9eccabd55fde50a9706350f84a5ccb20f9810dd13970c50f69",
+      "status": 200,
+      "cacheControl": "public, max-age=31536000, immutable"
+    },
+    {
+      "matches": true,
+      "rawBytesMatch": true,
+      "expectedSha256": "892922e9e4aaa11b3cf8eb0eca7089c39ff842f0b2c493e10580a860dccd9919",
+      "path": "/index.html",
+      "sha256": "892922e9e4aaa11b3cf8eb0eca7089c39ff842f0b2c493e10580a860dccd9919",
+      "status": 200,
+      "cacheControl": "no-cache"
+    },
+    {
+      "matches": true,
+      "rawBytesMatch": true,
+      "expectedSha256": "e2381c995a1d695f71b86fd900829baf272a54a6b22ae3a5539ef5c4c4310add",
+      "path": "/manifest.webmanifest",
+      "sha256": "e2381c995a1d695f71b86fd900829baf272a54a6b22ae3a5539ef5c4c4310add",
+      "status": 200,
+      "cacheControl": "no-cache, must-revalidate"
+    },
+    {
+      "matches": true,
+      "rawBytesMatch": false,
+      "normalizedSha256": "1da32ccd0f3117904ad3a903b5794630663337e031a2f85e728bdcb80836239e",
+      "cloudflareEmailProtection": {
+        "links": 1,
+        "spans": 0,
+        "scripts": 1
+      },
+      "expectedSha256": "1da32ccd0f3117904ad3a903b5794630663337e031a2f85e728bdcb80836239e",
+      "path": "/privacy.html",
+      "sha256": "890314037595404b56a614b3a65b7f83c7702d8bc8c882d55932045bf82aaca1",
+      "status": 200,
+      "cacheControl": null
+    },
+    {
+      "matches": true,
+      "rawBytesMatch": true,
+      "expectedSha256": "d689b4e72aa562b3fe3272504057d7b1b474a89f19bc1c4ec03c20c4245fb1be",
+      "path": "/signet/signet-login-0.17.3.iife.js",
+      "sha256": "d689b4e72aa562b3fe3272504057d7b1b474a89f19bc1c4ec03c20c4245fb1be",
+      "status": 200,
+      "cacheControl": "max-age=14400"
+    },
+    {
+      "matches": true,
+      "rawBytesMatch": true,
+      "expectedSha256": "d689b4e72aa562b3fe3272504057d7b1b474a89f19bc1c4ec03c20c4245fb1be",
+      "path": "/signet/signet-login.iife.js",
+      "sha256": "d689b4e72aa562b3fe3272504057d7b1b474a89f19bc1c4ec03c20c4245fb1be",
+      "status": 200,
+      "cacheControl": "max-age=14400"
+    },
+    {
+      "matches": true,
+      "rawBytesMatch": true,
+      "expectedSha256": "9c3dee748f783a9f34a3059058505b67c3a81802994ecac3cf1c18943ca869f7",
+      "path": "/signet/signet-verify.iife.js",
+      "sha256": "9c3dee748f783a9f34a3059058505b67c3a81802994ecac3cf1c18943ca869f7",
+      "status": 200,
+      "cacheControl": "max-age=14400"
+    },
+    {
+      "matches": true,
+      "rawBytesMatch": false,
+      "normalizedSha256": "48a412d25fb1cb75db896913e71c3ad2b83151474e572698f233350788a3e83a",
+      "cloudflareEmailProtection": {
+        "links": 2,
+        "spans": 1,
+        "scripts": 1
+      },
+      "expectedSha256": "48a412d25fb1cb75db896913e71c3ad2b83151474e572698f233350788a3e83a",
+      "path": "/support.html",
+      "sha256": "07610cb34030fee16b43e567d68f84b8ca55d927fadb18050b3eac1a18728bd2",
+      "status": 200,
+      "cacheControl": null
+    },
+    {
+      "matches": true,
+      "rawBytesMatch": true,
+      "expectedSha256": "08b2e48dc157eb3dedf7b1691d50395037738372eda9a4b54c683a2886c9e598",
+      "path": "/sw.js",
+      "sha256": "08b2e48dc157eb3dedf7b1691d50395037738372eda9a4b54c683a2886c9e598",
+      "status": 200,
+      "cacheControl": "max-age=14400, must-revalidate"
+    },
+    {
+      "matches": true,
+      "rawBytesMatch": true,
+      "expectedSha256": "e9311580312d416a98ae89127d8c1ff2f6c214e38e4f2dbcbf29011e8a2b4bfb",
+      "path": "/version.json",
+      "sha256": "e9311580312d416a98ae89127d8c1ff2f6c214e38e4f2dbcbf29011e8a2b4bfb",
+      "status": 200,
+      "cacheControl": "no-cache, must-revalidate"
+    }
+  ],
+  "scope": "All checked client-code files locally; served code/SDK/style/entry/metadata/legal files excluding source maps. Privacy/support raw HTML is changed by Cloudflare email protection; reversing only verified email substitutions and its decoder script exactly restores the checked bytes. Graphics binary files are outside this hash check.",
+  "claimHealth": {
+    "ok": true,
+    "gamePubkey": "370148bb752fee753c8dd436752e801f02913dbc7ac6330828d13d5540c4ca21",
+    "signerConfigured": true,
+    "publishEnabled": true
+  },
+  "recoverySourceFilesUnchanged": true,
+  "recoveryPrMerged": 1,
+  "graphicsPrMerged": 2,
+  "actualCurrentGameRecovery": false,
+  "physicalDevice": false,
+  "verifiedAt": "2026-10-11T22:09:26.969Z",
+  "emailProtectionDocumentation": "https://developers.cloudflare.com/waf/tools/scrape-shield/email-address-obfuscation/"
+}

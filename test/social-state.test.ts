@@ -25,3 +25,23 @@ describe('browser-owned social state', () => {
     expect(readSocialState(storage)).toEqual({ favourites: ['ok-game'], follows: ['b'.repeat(64)] })
   })
 })
+
+
+describe('account isolation and unavailable storage', () => {
+  it('keeps guest legacy preferences separate from signed-in accounts', () => {
+    const values = new Map<string, string>()
+    const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value) } }
+    values.set('gamestr:social:v1', JSON.stringify({ favourites: ['legacy'], follows: [] }))
+    expect(readSocialState(storage).favourites).toEqual(['legacy'])
+    expect(readSocialState(storage, 'a'.repeat(64)).favourites).toEqual([])
+    writeSocialState({ favourites: ['account-a'], follows: [] }, storage, 'a'.repeat(64))
+    expect(readSocialState(storage, 'b'.repeat(64)).favourites).toEqual([])
+    expect(readSocialState(storage, 'a'.repeat(64)).favourites).toEqual(['account-a'])
+    expect(readSocialState(storage).favourites).toEqual(['legacy'])
+  })
+  it('keeps in-memory preferences usable when storage reads or writes fail', () => {
+    const storage = { getItem: () => { throw new Error('blocked') }, setItem: () => { throw new Error('full') } }
+    expect(readSocialState(storage)).toEqual({ favourites: [], follows: [] })
+    expect(writeSocialState({ favourites: ['game'], follows: [] }, storage)).toBe(false)
+  })
+})

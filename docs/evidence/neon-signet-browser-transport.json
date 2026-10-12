@@ -1,0 +1,23 @@
+{
+  "origin": "https://mysignet.app",
+  "results": [
+    {
+      "url": "wss://relay.trotters.cc",
+      "result": "open",
+      "ms": 812
+    },
+    {
+      "url": "wss://nos.lol",
+      "result": "timeout",
+      "ms": 15002
+    },
+    {
+      "url": "wss://relay.ditto.pub",
+      "result": "open",
+      "ms": 1075
+    }
+  ],
+  "identityCreated": false,
+  "authMessagesSent": false,
+  "scorePublished": false
+}

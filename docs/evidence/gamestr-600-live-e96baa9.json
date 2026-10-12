@@ -1,0 +1,54 @@
+{
+  "origin": "https://arcade.600.wtf",
+  "revision": "e96baa931f30284578c6f0465b45588ff0804722",
+  "edition": "600",
+  "forcedHetznerOrigin": true,
+  "verifiedAt": "2026-10-11T11:04:56.077Z",
+  "assets": [
+    {
+      "path": "index.html",
+      "sha256": "752b7771071ea50208edfa26ddf15ad9ec5f2608348319375362d51764dfeb74"
+    },
+    {
+      "path": "catalogue.json",
+      "sha256": "8bd7f1756816933ba372e0cdc9a0a721aca63ef470fb996229363a1182f34350"
+    },
+    {
+      "path": "game/pallasite/index.html",
+      "sha256": "44c51a72386a90df6ab8f51be2c9b9edddfebba7e5193505b6411af40567850d"
+    },
+    {
+      "path": "game/takemetoyourledger/index.html",
+      "sha256": "29effd0f6de123ffa10cf98c49f97a75000d366378e0184ff2b4628d54ff5262"
+    },
+    {
+      "path": "assets/_commonjsHelpers-CqkleIqs.js",
+      "sha256": "84de5b1724808f6a399a33d5fa7887ba0f752bbb73fbb26cc100fbec111abf63"
+    },
+    {
+      "path": "assets/developer-studio-urBesEJd.js",
+      "sha256": "83529180e292ae96bb81940a0c286cbc1c623c681aa2d4b9e7d2dbe9c1c0fe11"
+    },
+    {
+      "path": "assets/index-CE6SpJ9L.css",
+      "sha256": "0f4bd1555b2cfbbff99b75f8d419957dab30ebb9d4963c0e68f84795c3b1322c"
+    },
+    {
+      "path": "assets/index-CpSqO9ba.js",
+      "sha256": "28688321995e217ec1656543c89eeebdd23b04cb09412781ba0123160e3297fe"
+    },
+    {
+      "path": "assets/preference-sync-DkM-C1sG.js",
+      "sha256": "84709be422af565ada8b035171ffe8bfd80be9d8deac267d8a91f0bc7425a874"
+    },
+    {
+      "path": "assets/qrcode-CtOU1MHs.js",
+      "sha256": "75066dc9670886c2b7913df72578587f8b75e64afea7a637f162501af79c6ce3"
+    },
+    {
+      "path": "assets/signet-login-8XqB1tpr.js",
+      "sha256": "cdb9af79f81980e3e8ba167a1357815f0b5d60cd27ec42883b85d76ddfc89641"
+    }
+  ],
+  "securityHeaders": true
+}

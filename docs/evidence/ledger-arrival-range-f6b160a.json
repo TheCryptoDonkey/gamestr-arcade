@@ -1,0 +1,78 @@
+{
+  "previousFullGate": {
+    "run": 38120087817,
+    "revision": "f6b160a21fc5382e4e3645e13ef06994b98003ca",
+    "conclusion": "failure",
+    "developerPanelPassed": 13,
+    "failedSection": "Cinematic arrivals and progressive HUD (WebKit)",
+    "failure": "Load request cancelled for /music/600-billion-eyes.m4a"
+  },
+  "originalMacWebKit": {
+    "passes": true,
+    "musicResponses": [
+      {
+        "path": "/music/600-billion-eyes.m4a",
+        "range": "bytes=0-1",
+        "responseStatus": 200,
+        "contentLength": null
+      },
+      {
+        "path": "/music/600-billion-eyes.m4a",
+        "range": "bytes=0-1",
+        "responseStatus": 200,
+        "contentLength": null
+      }
+    ]
+  },
+  "fixedMacWebKit": {
+    "passes": true,
+    "musicResponses": [
+      {
+        "path": "/music/600-billion-eyes.m4a",
+        "range": "bytes=0-1",
+        "responseStatus": 206,
+        "contentLength": 2
+      },
+      {
+        "path": "/music/600-billion-eyes.m4a",
+        "range": "bytes=0-5093603",
+        "responseStatus": 206,
+        "contentLength": 5093604
+      },
+      {
+        "path": "/music/600-billion-eyes.m4a",
+        "range": "bytes=0-1",
+        "responseStatus": 206,
+        "contentLength": 2
+      },
+      {
+        "path": "/music/600-billion-eyes.m4a",
+        "range": "bytes=0-5093603",
+        "responseStatus": 206,
+        "contentLength": 5093604
+      }
+    ]
+  },
+  "fixedChromium": {
+    "passes": true,
+    "initialConcurrentRun": {
+      "passes": false,
+      "timeoutMs": 6000,
+      "condition": "opening card hidden"
+    },
+    "retryAfterProviderBrowsersClosed": true,
+    "causeOfInitialTimeoutEstablished": false
+  },
+  "publicProductionRange": {
+    "url": "https://ledger.playechoseven.com/music/600-billion-eyes.m4a",
+    "status": 206,
+    "contentRange": "bytes 0-1/5093604",
+    "contentLength": 2,
+    "bytes": 2
+  },
+  "originalAssertionsAndLimitsPreserved": true,
+  "externalWritesBlocked": true,
+  "actualLinuxCauseEstablished": false,
+  "newFullGateRequired": true,
+  "testServerSourceSha256": "b87d707917df7e95f47c3f21869e7909ac858cd7e0cd8bc9d7dfc9e1b3ea99e3"
+}

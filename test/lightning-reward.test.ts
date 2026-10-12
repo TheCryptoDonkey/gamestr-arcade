@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { finalizeEvent, generateSecretKey, verifyEvent } from 'nostr-tools/pure'
 import { bech32 } from '@scure/base'
-import { lightningAddressEndpoint, lightningDestinationEndpoint, rewardLightningAddress } from '../src/web/lightning-reward'
+import { lightningAddressEndpoint, lightningDestinationEndpoint, requestLightningInvoice, rewardLightningAddress } from '../src/web/lightning-reward'
 
 const INVOICE_2000_SATS = 'lnbc20u1p3y0x3hpp5743k2g0fsqqxj7n8qzuhns5gmkk4djeejk3wkp64ppevgekvc0jsdqcve5kzar2v9nr5gpqd4hkuetesp5ez2g297jduwc20t6lmqlsg3man0vf2jfd8ar9fh8fhn2g8yttfkqxqy9gcqcqzys9qrsgqrzjqtx3k77yrrav9hye7zar2rtqlfkytl094dsp0ms5majzth6gt7ca6uhdkxl983uywgqqqqlgqqqvx5qqjqrzjqd98kxkpyw0l9tyy8r8q57k7zpy9zjmh6sez752wj6gcumqnj3yxzhdsmg6qq56utgqqqqqqqqqqqeqqjq7jd56882gtxhrjm03c93aacyfy306m4fq0tskf83c0nmet8zc2lxyyg3saz8x6vwcp26xnrlagf9semau3qm2glysp7sv95693fphvsp54l567'
 
@@ -27,6 +27,14 @@ describe('user-owned Lightning rewards', () => {
     expect(fetcher.mock.calls[1][0].toString()).toBe('https://pay.example.com/cb?amount=2000000')
     expect(provider.enable).toHaveBeenCalledOnce()
     expect(provider.sendPayment).toHaveBeenCalledWith(INVOICE_2000_SATS)
+  })
+
+  it('returns the same validated exact invoice for a mobile wallet without WebLN', async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ tag: 'payRequest', callback: 'https://pay.example.com/cb', minSendable: 1000, maxSendable: 5000000 })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ pr: INVOICE_2000_SATS })))
+    expect(await requestLightningInvoice('player@example.com', 2000, fetcher)).toBe(INVOICE_2000_SATS)
+    expect(fetcher).toHaveBeenCalledTimes(2)
   })
 
   it('rejects mismatched invoices and never opens the wallet', async () => {

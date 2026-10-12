@@ -1,0 +1,93 @@
+{
+  "arcadeRevision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
+  "scope": "All four current publisher launch cases using separate disposable owned account fixtures; this does not qualify the four-game shared-account gameplay journey",
+  "complete": true,
+  "completedCases": [
+    {
+      "game": "hang-on-fren",
+      "revision": "e4ec515c37cac48cb114f0314fc53bf9b2948211",
+      "origin": "https://hang-on-fren.playechoseven.com",
+      "modifierClick": true,
+      "fragmentAbsent": true,
+      "openerAbsent": true,
+      "arcadeAccountNotCopied": true,
+      "arcadeAccountPreserved": true,
+      "assets": [
+        {
+          "path": "/assets/index-C22w-CIe.js",
+          "sha256": "894b596836af817a1c092dbae26aad46e016643a9649f8aeaef4ae844256b591"
+        }
+      ],
+      "physicalDevice": false,
+      "pubkey": "2d9766e0a7b4275bba692d55e20691af17178efbd376082a5386e73b7beebbcb",
+      "sourceProof": "gamestr-c4b7929-independent-entry.json",
+      "servedModuleReverifiedAt": "2026-10-11T23:08:37.748Z"
+    },
+    {
+      "game": "pallasite",
+      "revision": "9813d131985ae97d70cf7c2420c8089dd2cf82a4",
+      "origin": "https://pallasite.app",
+      "modifierClick": true,
+      "fragmentAbsent": true,
+      "openerAbsent": true,
+      "arcadeAccountNotCopied": true,
+      "arcadeAccountPreserved": true,
+      "assets": [
+        {
+          "path": "/assets/index-BAqRJXX5.js",
+          "sha256": "f0e5f8270ab1edbfc180d65b9c04a13e0fbf3e3ac6c593a952d7b33537a5fe8f"
+        }
+      ],
+      "physicalDevice": false,
+      "pubkey": "2d9766e0a7b4275bba692d55e20691af17178efbd376082a5386e73b7beebbcb",
+      "sourceProof": "gamestr-c4b7929-independent-entry.json",
+      "servedModuleReverifiedAt": "2026-10-11T23:08:39.346Z"
+    },
+    {
+      "game": "neon-sentinel",
+      "revision": "0435e9341cc5e34f6512e36c8f3c5047b744cc32",
+      "origin": "https://neonsentinel.com",
+      "modifierClick": true,
+      "fragmentAbsent": true,
+      "openerAbsent": true,
+      "arcadeAccountNotCopied": true,
+      "arcadeAccountPreserved": true,
+      "assets": [
+        {
+          "path": "/assets/index-DWsw73O2.js",
+          "sha256": "672fe4d010dca7c446a8ab5de39445e95bf79678fc18a321bcebc9aa14795074"
+        }
+      ],
+      "physicalDevice": false,
+      "pubkey": "5fc471915bafc9fc1ff44a647e59a64759ce90c1182117f34059efd99bf98985",
+      "sourceProof": "current disposable fixture",
+      "servedModuleReverifiedAt": "2026-10-11T23:08:39.793Z"
+    },
+    {
+      "game": "takemetoyourledger",
+      "revision": "ebcd6a584a341e6aaa0f23ed8a5be0726a8c9ad5",
+      "modifierClick": true,
+      "fragmentAbsent": true,
+      "openerAbsent": true,
+      "arcadeAccountNotCopied": true,
+      "originalArcadeAccountPreserved": true,
+      "assets": [
+        {
+          "path": "/assets/index-Tv5iMwTO.js",
+          "sha256": "367a1eb8e8eb4b63e37e4e48851268e9e0c8652bb9533179e2c0466654dec60a"
+        }
+      ],
+      "physicalDevice": false,
+      "pubkey": "5e581983a4e80e6085387df0e99493584bdf54a86aacbddd0eaf0da6a28c4f72",
+      "sourceProof": "ledger-launch-fallbacks-ebcd6a5.json"
+    }
+  ],
+  "ledgerPending": false,
+  "actualMySignet": true,
+  "forcedHetznerArcadeDns": true,
+  "publicWritesBlocked": true,
+  "gameplayTest": false,
+  "independentLoginCompleted": false,
+  "physicalDevice": false,
+  "at": "2026-10-11T23:58:44.491Z"
+}

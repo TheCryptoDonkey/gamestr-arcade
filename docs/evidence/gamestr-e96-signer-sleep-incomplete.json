@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-10-11T12:50:57.196960+00:00",
+  "origin": "https://gamestr.62-238-98-53.sslip.io",
+  "arcadeRevision": "e96baa931f30284578c6f0465b45588ff0804722",
+  "actualMySignet": true,
+  "disposableIdentity": true,
+  "physicalDevice": false,
+  "temporarySdkRelayOverride": false,
+  "failedPhase": "initial-approval:observe-ui",
+  "authenticationCompleted": false,
+  "sleepTestPerformed": false,
+  "reconnectTestPerformed": false,
+  "scoreClaimRequests": 0,
+  "lightningPaymentTest": false,
+  "publicSubmissionBlocked": true,
+  "fixtureDeadlineSeconds": 60,
+  "approvalUiSigningDisabled": true,
+  "arcadeIdentityAbsent": true,
+  "browserClosedAfterFixture": true
+}

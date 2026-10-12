@@ -1,0 +1,31 @@
+{
+  "run": 38126484713,
+  "revision": "1f41ed8ebc803394c14c90ca640a7f9b01183fa8",
+  "conclusion": "failure",
+  "unitTestsPassed": 268,
+  "failedSection": "early desktop WebKit opening-ready",
+  "deadlineMs": 5000,
+  "pollingMs": 50,
+  "startDurationMs": 103,
+  "openingSamples": [
+    {
+      "at": 5324,
+      "hidden": false,
+      "opacity": 0,
+      "touchHidden": true,
+      "touchVisibility": "visible",
+      "touchOpacity": 1
+    }
+  ],
+  "currentCardHidden": true,
+  "currentCardOpacity": 0,
+  "requestFailures": [],
+  "musicRequestCompleted": true,
+  "musicResponseStatus": 200,
+  "musicContentLength": 5093604,
+  "mediaPlayResolvedObserved": false,
+  "fullGateExercised": false,
+  "candidatePublished": false,
+  "causeEstablished": false,
+  "originalAssertionsAndLimitsPreserved": true
+}

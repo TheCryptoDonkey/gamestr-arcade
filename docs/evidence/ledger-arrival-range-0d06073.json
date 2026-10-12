@@ -1,0 +1,30 @@
+{
+  "failedRevision": "b6ee8dd755ff577bdd873bf7e1160c9908730b54",
+  "failedRun": 38141857525,
+  "failedStage": "Cinematic arrivals and progressive HUD (WebKit)",
+  "failure": "music/600-billion-eyes.m4a Load request cancelled",
+  "arrivalAndHudAssertionsPassed": true,
+  "candidateRevision": "0d06073b57669ecc0a5160c9a62f6fc963df091e",
+  "candidateRun": 38144669741,
+  "changedFiles": [
+    "tests/arrival-focus-profile.mjs"
+  ],
+  "productionRangeProbe": {
+    "status": 206,
+    "range": "bytes 0-1",
+    "contentRange": "bytes 0-1/5093604",
+    "contentLength": 2
+  },
+  "localHttpRangeCasesPassed": 5,
+  "localArrivalProfilesPassed": [
+    "Chromium desktop",
+    "Chromium phone",
+    "WebKit desktop",
+    "WebKit phone"
+  ],
+  "failedRequestChecksAndFinalAssertionsUnchanged": true,
+  "clientPublishedRevision": "e3937ca0152d0f07bf67d25e5f80b827dba87f36",
+  "apiPublishedRevision": "ed73ebcece1c40033064432e8f1fd4700275b799",
+  "candidateClientPublished": false,
+  "physicalAcceptance": false
+}
