@@ -433,6 +433,8 @@ symptoms, physical acceptance and the 600 DNS cutover remain open. See
 
 Arcade [PR #13](https://github.com/TheCryptoDonkey/gamestr-arcade/pull/13) is now merged as `e57376b`. Its [complete main CI](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38195400164) passes 675 units, all 54 browser journeys, audit, packaging, native input/return and the missing-handler negative. The exact downloaded `e113e45` package also passes the isolated native Linux checks. Physical controller/cabinet acceptance remains open. Hang On Fren's published `d6ea31b` client passes 151 public file hashes and seven actual SDK QR/browser cases, including the optional-encoder failure control; physical camera/provider approval remains open.
 
+The later documentation CI run `38197811665` fails the second return-focus assertion despite native shell focus. Packaged return reliability is therefore reopened. PR #14 adds a guarded renderer reconciliation at the next paint; five focus-ownership regressions and types pass, but its complete packaged gate remains required. Earlier successful package proofs remain specific to those runs.
+
 | Goal | Implementation and PR | Automated checks | Deployed or packaged revision | Live acceptance | Status |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Selected-session verification, synchronous port revocation and generation guards; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; 600 `c4b7929` on Hetzner; DNS pending | Physical checks pending | In progress |
