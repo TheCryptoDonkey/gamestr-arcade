@@ -8,7 +8,7 @@ device, browser, provider, date, steps and observed result for each check.
 Current public standard edition:
 https://gamestr.62-238-98-53.sslip.io/.
 The canonical 600 edition is https://arcade.600.wtf/.
-Pallasite client `9813d13` / API `52eab4c`, Hang On Fren `e4ec515` and
+Pallasite client `9813d13` / API `52eab4c`, Hang On Fren client `d6ea31b` (QR correction, recovery API unchanged) and
 Neon Sentinel API recovery have published evidence. Neon’s current graphics
 client is now `0435e93`; its current CI recovery/SDK and served-code checks pass,
 and actual 7,214-point earned recovery after reload and eleven minutes now passes, including both fresh arcade displays. Ledger's requested
@@ -17,17 +17,17 @@ performing these checks.
 
 ## Public 600 DNS
 
-DNS for `600.wtf` uses DigitalOcean's nameservers. The managing account is
-unknown. The required cutover is the `arcade` A record:
+The owner changed `arcade.600.wtf` to a CNAME pointing to
+`play.forgesworn.dev` on 12 October 2026. All three DigitalOcean authoritative
+nameservers publish that alias; Cloudflare and Google resolve the chain to
+`62.238.98.53`. Both editions serve functional `c4b7929` over normal verified
+HTTPS from a separate DigitalOcean host, with strict headers and 24 matched
+checked files. Joystick remains available at `play.forgesworn.dev`.
+See [public cutover](evidence/gamestr-public-dns-cutover-c4b7929.json).
 
-| Record | Current value | Intended Hetzner value |
-| --- | --- | --- |
-| `arcade.600.wtf` A | `95.217.39.110` | `62.238.98.53` |
-
-After the account owner changes that record, check public DNS, normal HTTPS,
-`/release.json`, login and publisher launch from a fresh browser on an external
-network. The intended functional arcade revision is currently `c4b7929`.
-Forced DNS resolution used in automated checks does not qualify this cutover.
+The first normal local browser request still used a cached retired address and
+failed before loading the app. Cache propagation is distinct from authoritative
+DNS and the external successful publication check. A fresh external browser passes actual My Signet login and all four publisher launches after explicit same-account signer reconnect, with checked module hashes, consumed fragments and detached openers. All eight public score pages pass too. See [login/launch](evidence/gamestr-public-dns-cutover-login-launch.json) and [public displays](evidence/gamestr-public-dns-cutover-score-ui.json). The local macOS system resolver still retains the old address despite fresh DNS queries; physical phone/signer checks below remain required.
 
 ## Physical phone and signer checks
 
@@ -69,7 +69,7 @@ published revisions: Ledger 100, Hang On Fren 4,292, Neon 10,677 and Pallasite
 17,780 points. Actual same-account HTTP signatures, immutable recovered receipts,
 positive acknowledgements, canonical game authority and eight fresh score pages
 are verified. See [current matrix](evidence/gamestr-current-four-game-shared-account.json).
-The 600 checks use forced Hetzner resolution; public DNS remains open.
+The earlier matrix used forced Hetzner resolution for 600. Fresh public DNS checks now pass for all eight score pages; see [public displays](evidence/gamestr-public-dns-cutover-score-ui.json).
 
 Perform the physical controller and installed-package checks in
 [conference-acceptance.md](conference-acceptance.md), including wired/wireless

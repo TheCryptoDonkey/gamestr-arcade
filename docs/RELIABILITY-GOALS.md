@@ -129,7 +129,7 @@ SDK 0.17.3 uses the independent `relay.trotters.cc` rendezvous. Source
 regressions cover auth-only restoration, failed relay, user denial and late
 errors from superseded sessions. Current `c4b7929` passes 670 units, 54 browser
 journeys, hosted CI and packaged Linux smoke, and is served by both Hetzner
-editions. The public 600 DNS cutover remains pending.
+editions. The public 600 CNAME cutover is verified below; physical signer checks remain open.
 
 Actual current local My Signet, remote QR and generic NIP-46 QR journeys using
 published My Signet pass authentication, signing after navigation, an explicit browser
@@ -203,7 +203,7 @@ Acceptance criteria:
   and production audit results and the version of the packaged Electron runtime.
 - [ ] Package and smoke-test the Linux AppImage. Check launch, return,
   controller navigation, isolated game sessions and bounded wallet behaviour.
-- [ ] Verify both deployed web editions serve the intended release, usable TLS
+- [x] Verify both deployed web editions serve the intended release, usable TLS
   and security headers. Investigate the review's failed TLS connections before
   asserting a production outage or a successful live release.
 - [x] Keep CI, deployment, packaged-runtime and physical cabinet acceptance as
@@ -290,7 +290,7 @@ Acceptance criteria:
   Surface permanent rejection clearly and provide an explicit owner-controlled
   way to remove an unrecoverable receipt without silently evicting other runs.
 
-Current `c4b7929` / Ledger `ebcd6a5`, Hang On Fren `d6ea31b`, Neon `0435e93` and Pallasite `9813d13` pass the [fresh shared-account journey](evidence/gamestr-d6ea31b-four-game-shared-account.json) and [all eight fresh displays](evidence/gamestr-d6ea31b-four-game-shared-account-ui.json): 100, 4,331, 10,490 and 20,820 points respectively. The earlier `e4ec515` matrix remains historical. Separate-account recovery beyond eleven minutes is qualified for all four scoring implementations; Hang On Fren's delayed run used `e4ec515`, before the client-only QR rendering change, and its scoring API is unchanged. Per-game qualification uses forced Hetzner resolution for 600; public DNS and physical signer/provider checks remain open.
+Current `c4b7929` / Ledger `ebcd6a5`, Hang On Fren `d6ea31b`, Neon `0435e93` and Pallasite `9813d13` pass the [fresh shared-account journey](evidence/gamestr-d6ea31b-four-game-shared-account.json) and [all eight fresh displays](evidence/gamestr-d6ea31b-four-game-shared-account-ui.json): 100, 4,331, 10,490 and 20,820 points respectively. The earlier `e4ec515` matrix remains historical. Separate-account recovery beyond eleven minutes is qualified for all four scoring implementations; Hang On Fren's delayed run used `e4ec515`, before the client-only QR rendering change, and its scoring API is unchanged. Earlier per-game qualification used forced Hetzner resolution for 600. Fresh public DNS score displays now pass for all eight pages; physical signer/provider checks remain open.
 
 Neon's former API rejected runs older than ten minutes. Published `046a822`
 removes that limit while requiring fresh NIP-98 and durably retaining original
@@ -415,8 +415,7 @@ box. All 670 local units, type checks, desktop and both web builds pass.
 Exact hosted CI passes all 54 browser journeys and the packaged Linux runtime
 gate. Each served edition matches twelve checked files, with TLS and security
 headers; each edition's eight script/style files also match the checked CI
-artifact. Standard is public; 600 uses forced Hetzner resolution and public DNS
-is pending. See [standard proof](evidence/gamestr-web-c4b7929.json),
+artifact. Both editions are public after the verified 12 October CNAME cutover; the earlier 600 proofs below used forced Hetzner resolution. See [standard proof](evidence/gamestr-web-c4b7929.json),
 [600 proof](evidence/gamestr-600-live-c4b7929.json),
 [checked package](evidence/gamestr-c4b7929-ci.json) and
 [actual NIP-07 extension](evidence/gamestr-c4b7929-real-nos2x-nip07.json).
@@ -428,24 +427,35 @@ including 652 unit tests, 50 browser journeys and the original Linux AppImage
 journeys. Its downloaded package matches the manifest and runtime hash; see
 [package proof](evidence/gamestr-native-8c3ed43-ci.json). This qualifies that
 package and the stale focus-call repair; other historical intermittent input
-symptoms, physical acceptance and the 600 DNS cutover remain open. See
+symptoms and physical acceptance remain separate. The 600 DNS cutover is verified below. See
 [delivery evidence](RELIABILITY-EVIDENCE.md) for exact stages.
 
 Arcade [PR #13](https://github.com/TheCryptoDonkey/gamestr-arcade/pull/13) is now merged as `e57376b`. Its [complete main CI](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38195400164) passes 675 units, all 54 browser journeys, audit, packaging, native input/return and the missing-handler negative. The exact downloaded `e113e45` package also passes the isolated native Linux checks. Physical controller/cabinet acceptance remains open. Hang On Fren's published `d6ea31b` client passes 151 public file hashes and seven actual SDK QR/browser cases, including the optional-encoder failure control; physical camera/provider approval remains open.
 
 The later documentation CI run `38197811665` fails the second return-focus assertion despite native shell focus. Packaged return reliability is therefore reopened. PR #14 adds a guarded renderer reconciliation at the next paint. Its complete `4210585` hosted gate now passes 680 units, all 54 browser journeys, audit, packaging, both normal input/return journeys and the missing-handler negative. The exact downloaded package also passes three complete native Linux normal runs and the negative control; see [package qualification](evidence/gamestr-4210585-packaged-qualified.json). Earlier proofs remain specific to their runs; physical controller/cabinet checks remain open.
 
+On 12 October the owner changed `arcade.600.wtf` to CNAME `play.forgesworn.dev`.
+All three authoritative nameservers and public Cloudflare/Google queries agree.
+Normal DNS/HTTPS from the separate DigitalOcean host verifies both `c4b7929`
+editions, all 24 checked files and strict security headers; Joystick still serves
+its own site. See [public cutover](evidence/gamestr-public-dns-cutover-c4b7929.json).
+This completes Goal 5's deployed-edition verification. Initial local resolver
+caches retained the retired address and the fresh local browser failed before
+app load. Fresh external public browser login, four launches after explicit signer reconnect, and all eight score pages pass; local system-cache propagation and all physical gates remain separate requirements. PR #14 is merged as `7218a7c`, with complete main CI
+`38198983274` passing 680 units, all 54 browser journeys, audit, packaging and
+normal/controlled-negative runtime checks.
+
 | Goal | Implementation and PR | Automated checks | Deployed or packaged revision | Live acceptance | Status |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Selected-session verification, synchronous port revocation and generation guards; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; 600 `c4b7929` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 2 | Responsive controls, validated SDK callback and generic Cambium/Amber NIP-55 request; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; 600 `c4b7929` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; 600 `c4b7929` on Hetzner; DNS pending | Current c4b7929 local My Signet, remote QR and generic NIP-46 QR approval/signing/explicit refresh/sleep/reconnect/logout pass, with exact paired-client retention across navigation and refresh. Current live QR cancellation/retry pass in both editions; Real nos2x NIP-07 login/refresh/signing, changed-account signature rejection and logout pass on current standard c4b7929; physical and remaining provider checks pending | In progress |
-| 4 | Per-game score authorities and attribution provenance; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; 600 `c4b7929` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 5 | Dependency upgrades and high-severity audit gate; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; 600 `c4b7929` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 6 | Reviewed game handoff in PR #11; owner retains Ledger; saved-score fix merged in PR #89; held PR #88 preserved; Beamward separate | Arcade: 670 units and 54 hosted journeys pass. Ledger: 287 units/types, thirteen durable API groups and both saved-score profiles pass; exact full gate `38181311659` for `ebcd6a5` passes all 98 original checks. Original 98 checks and assertions remain; prior failed gates and controlled fixture positives/negatives are retained in the evidence log. Hang On Fren and Neon hosted recovery/SDK gates pass; Pallasite API has 131 passing tests/types/Linux build. | Standard/600 web `c4b7929` on Hetzner; public 600 DNS pending. Ledger client `ebcd6a5` / API `ed73ebc`; Pallasite client `9813d13` / API `52eab4c` (recovery and owner controls on current graphics); Hang On Fren client `d6ea31b` / unchanged recovery API; Neon client `0435e93` / API recovery source unchanged | Current separate-account delayed recovery and both fresh displays pass: Ledger `ebcd6a5`, 100 points after 664,140 ms; Pallasite `9813d13` / API `52eab4c`, 20,820 points after 666,960 ms; Hang On Fren `e4ec515`, 4,732 points after 662,518 ms; Neon `0435e93`, 7,214 points after 663,636 ms. Each preserves the owned receipt and original run bounds, receives positive relay acknowledgements and clears only after publication. Hang On Fren delayed recovery used the preceding `e4ec515` client; its scoring API is unchanged by the published QR-only change. Earlier four-game evidence is historical. Ledger checked deployment passes 228 local/server hashes and 36 served hashes. Actual Ledger earned recovery and both fresh displays now pass. The current four-game shared-account matrix and all eight fresh score displays now pass: Ledger 100, Hang On Fren 4,331, Neon 10,490 and Pallasite 20,820 points under one My Signet account. The 600 checks use forced Hetzner resolution; public DNS and physical checks remain pending. | In progress |
-| 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; 600 `c4b7929` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; 600 `c4b7929` on Hetzner; DNS pending | Physical checks pending | In progress |
-| 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; 600 `c4b7929` on Hetzner; DNS pending | Physical checks pending | In progress |
+| 1 | Selected-session verification, synchronous port revocation and generation guards; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; public 600 `c4b7929` on Hetzner | Physical checks pending | In progress |
+| 2 | Responsive controls, validated SDK callback and generic Cambium/Amber NIP-55 request; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; public 600 `c4b7929` on Hetzner | Physical checks pending | In progress |
+| 3 | SDK 0.17.3, independent rendezvous, bounded signing and reconnect status; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; public 600 `c4b7929` on Hetzner | Current c4b7929 local My Signet, remote QR and generic NIP-46 QR approval/signing/explicit refresh/sleep/reconnect/logout pass, with exact paired-client retention across navigation and refresh. Current live QR cancellation/retry pass in both editions; Real nos2x NIP-07 login/refresh/signing, changed-account signature rejection and logout pass on current standard c4b7929; physical and remaining provider checks pending | In progress |
+| 4 | Per-game score authorities and attribution provenance; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; public 600 `c4b7929` on Hetzner | Physical checks pending | In progress |
+| 5 | Dependency upgrades and high-severity audit gate; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; public 600 `c4b7929` on Hetzner | Physical checks pending | In progress |
+| 6 | Reviewed game handoff in PR #11; owner retains Ledger; saved-score fix merged in PR #89; held PR #88 preserved; Beamward separate | Arcade: 670 units and 54 hosted journeys pass. Ledger: 287 units/types, thirteen durable API groups and both saved-score profiles pass; exact full gate `38181311659` for `ebcd6a5` passes all 98 original checks. Original 98 checks and assertions remain; prior failed gates and controlled fixture positives/negatives are retained in the evidence log. Hang On Fren and Neon hosted recovery/SDK gates pass; Pallasite API has 131 passing tests/types/Linux build. | Standard/600 web `c4b7929` on Hetzner; public CNAME cutover verified. Ledger client `ebcd6a5` / API `ed73ebc`; Pallasite client `9813d13` / API `52eab4c` (recovery and owner controls on current graphics); Hang On Fren client `d6ea31b` / unchanged recovery API; Neon client `0435e93` / API recovery source unchanged | Current separate-account delayed recovery and both fresh displays pass: Ledger `ebcd6a5`, 100 points after 664,140 ms; Pallasite `9813d13` / API `52eab4c`, 20,820 points after 666,960 ms; Hang On Fren `e4ec515`, 4,732 points after 662,518 ms; Neon `0435e93`, 7,214 points after 663,636 ms. Each preserves the owned receipt and original run bounds, receives positive relay acknowledgements and clears only after publication. Hang On Fren delayed recovery used the preceding `e4ec515` client; its scoring API is unchanged by the published QR-only change. Earlier four-game evidence is historical. Ledger checked deployment passes 228 local/server hashes and 36 served hashes. Actual Ledger earned recovery and both fresh displays now pass. The current four-game shared-account matrix and all eight fresh score displays now pass: Ledger 100, Hang On Fren 4,331, Neon 10,490 and Pallasite 20,820 points under one My Signet account. The earlier matrix used forced Hetzner resolution for 600; all eight fresh public DNS score pages now pass. Physical checks remain pending. | In progress |
+| 7 | Independent personal records, verified cache and exact-ID lookup; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; public 600 `c4b7929` on Hetzner | Physical checks pending | In progress |
+| 8 | Persistent draft/focus, isolated preferences, explicit guest import and opt-in sync; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; public 600 `c4b7929` on Hetzner | Physical checks pending | In progress |
+| 9 | Invoice QR/copy/link, optional WebLN and explicit public zap consent; PR #11 | 670 local unit tests and 54 hosted browser journeys passed | Standard web `c4b7929`; public 600 `c4b7929` on Hetzner | Physical checks pending | In progress |
 
 For live runs, record the browser/device, signer or wallet, date, exact revisions,
 steps exercised and result. Cover both editions; local and cross-device My
