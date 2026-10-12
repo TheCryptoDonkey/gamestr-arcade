@@ -1,5 +1,5 @@
 // Exercise the real packaged IPC and game views using disposable loopback fixtures.
-// Keyboard/CDP evidence is separate from the physical conference controller gate.
+// Automated keyboard evidence is separate from the physical controller gate.
 import { createServer } from 'node:http'
 import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs'
 import { setTimeout as delay } from 'node:timers/promises'
@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { chromium } from 'playwright'
 import { verifyEvent } from 'nostr-tools/pure'
 import { connectNativeFocusInspector } from './runtime-native-focus.mjs'
-import { probeSystemInput } from './runtime-system-input.mjs'
+import { probeSystemInput, sendOwnedSystemKey } from './runtime-system-input.mjs'
 
 const root = process.argv[2]
 if (!root) throw new Error('Pass the isolated runtime fixture directory')
@@ -117,7 +117,8 @@ try {
   }
   async function returnFromGame(game, label) {
     stage = `${label} Escape close`
-    await game.keyboard.down('Escape')
+    if (process.platform === 'linux') await sendOwnedSystemKey({ inspector: nativeInspector, key: 'Escape', action: 'keydown' })
+    else await game.keyboard.down('Escape')
     await until(() => game.isClosed())
     const snapshot = phase => shell.evaluate(phase => ({
       phase, at: performance.now(), focused: document.hasFocus(),
@@ -126,7 +127,8 @@ try {
     }), phase)
     stage = `${label} shell focus after Escape`
     returnFocus.push({ game: label, ...await snapshot('before key release') })
-    await shell.keyboard.up('Escape')
+    if (process.platform === 'linux') await sendOwnedSystemKey({ inspector: nativeInspector, key: 'Escape', action: 'keyup' })
+    else await shell.keyboard.up('Escape')
     returnFocus.push({ game: label, ...await snapshot('after key release') })
     await shell.waitForFunction(() => document.activeElement?.id === 'app')
   }
@@ -139,8 +141,13 @@ try {
   assert.equal(verifyEvent(signed), true)
   stage = 'first game trusted ArrowUp'
   nativeFocus.push({ stage, ...await nativeInspector.read() })
-  await first.keyboard.press('ArrowUp')
+  if (process.platform === 'linux') await sendOwnedSystemKey({ inspector: nativeInspector, key: 'Up' })
+  else await first.keyboard.press('ArrowUp')
   await first.waitForFunction(() => fixtureKeys.some(event => event.key === 'ArrowUp' && event.trusted))
+  if (process.platform === 'linux') {
+    const state = await nativeInspector.read()
+    assert(state.nativeInputEvents.some(event => event.role === 'game' && event.type === 'keyDown' && event.key === 'ArrowUp'))
+  }
   const authority = await first.evaluate(() => {
     localStorage.setItem('runtime-guest', 'previous visitor')
     document.cookie = 'runtime_guest=previous; path=/'
@@ -163,6 +170,7 @@ try {
     keyboardCarouselNavigation: true, launchAndReturn: true, guestSignatureVerified: true,
     freshGuestOnRelaunch: true, gameStorageAndCookiesIsolated: true,
     trustedGameKeyboardInput: true, walletUnavailableWithoutConfiguration: true,
+    gameKeyboardDriver: process.platform === 'linux' ? 'X11 XTEST' : 'CDP',
     noNodeOrShellBridgeInGame: true, physicalControllerAcceptance: 'pending',
     nativeFocus, returnFocus,
     shellFocus: await shell.evaluate(() => ({

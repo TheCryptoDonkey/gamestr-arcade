@@ -49,6 +49,9 @@ jobs:
       - name: Boot the packaged Linux renderer
         run: bash scripts/smoke-appimage.sh release/*.AppImage release/linux-runtime-smoke.json
 
+      - name: Verify missing game input still fails the packaged gate
+        run: node scripts/appimage-input-negative.mjs release/*.AppImage release/linux-input-negative.json
+
       - name: Record release checksums
         run: cd release && sha256sum *.AppImage > SHA256SUMS
 
@@ -60,6 +63,7 @@ jobs:
             release/*.AppImage
             release/SHA256SUMS
             release/linux-runtime-smoke.json
+            release/linux-input-negative.json
             gamestr-arcade.cdx.json
             dist-web/**
             dist-web-600/**
