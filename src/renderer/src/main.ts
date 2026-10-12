@@ -30,6 +30,7 @@ import { RelayPanel } from './ui/relay-panel'
 import { GamesPanel } from './ui/games-panel'
 import { DownloadPanel } from './ui/download-panel'
 import { ReadyPanel } from './ui/ready-panel'
+import { restoreCarouselFocus } from './ui/return-focus'
 import { LaunchOverlay } from './ui/launch-overlay'
 import { DonationPanel } from './ui/donation-panel'
 import { RelayStore } from './leaderboard/relay-store'
@@ -428,7 +429,8 @@ async function boot(): Promise<void> {
       // gets the full idle period before demo mode kicks in again.
       attract.start()
       carousel.refocus()
-      host.focus()
+      restoreCarouselFocus(host, () => !inWebGame && !readyPanel.isOpen &&
+        !donationPanel.isOpen && !relayPanel.isOpen && !gamesPanel.isOpen && !downloadPanel.isOpen)
       // Session stats: real sessions feed the HOT TONIGHT badge (bounces are
       // filtered inside recordSession).
       if (sessionGame && sessionStartedAt) {

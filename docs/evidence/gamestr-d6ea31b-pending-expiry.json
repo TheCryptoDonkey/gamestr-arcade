@@ -1,0 +1,37 @@
+{
+  "complete": true,
+  "arcadeRevision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
+  "pubkey": "21507121a628459b29b7ab6b2fd34f6dbbf26cec363cd1fb219a8c9208394e7a",
+  "actualMySignet": true,
+  "forcedHetznerArcadeDns": true,
+  "publicWritesBlocked": true,
+  "realTimeUsed": true,
+  "proofNotSeeded": true,
+  "independentLoginCompleted": false,
+  "physicalDevice": false,
+  "results": [
+    {
+      "game": "hang-on-fren",
+      "revision": "d6ea31b608788b6f64c8693885eff2f559f68697",
+      "origin": "https://hang-on-fren.playechoseven.com",
+      "expired": {
+        "actualDelayMs": 65014,
+        "noBridgeAccepted": true,
+        "fragmentConsumed": true,
+        "openerRemoved": true,
+        "arcadeAccountNotCopied": true
+      },
+      "freshRealLaunchAccepted": true,
+      "originalArcadeAccountPreserved": true,
+      "signerStillConnected": true,
+      "assets": [
+        {
+          "path": "/assets/index-BiHI3_Ia.js",
+          "sha256": "9e2dbc703bff1a89f9bd8b53e2207109f19e921dae0e01f99f47fe8d8c7a2cef"
+        }
+      ],
+      "physicalDevice": false
+    }
+  ],
+  "at": "2026-10-12T03:00:13.709Z"
+}

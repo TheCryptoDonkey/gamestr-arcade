@@ -1,0 +1,64 @@
+{
+  "complete": true,
+  "arcadeRevision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
+  "pubkey": "09574855e563a98fb43555afd350c41b6433d4d3403a9edc38ee15d5156233da",
+  "actualMySignet": true,
+  "forcedHetznerArcadeDns": true,
+  "publicWritesBlocked": true,
+  "gameplayTest": false,
+  "independentLoginCompleted": true,
+  "loginRoute": "published approval link",
+  "qrLoginQualification": false,
+  "physicalDevice": false,
+  "results": [
+    {
+      "game": "hang-on-fren",
+      "revision": "d6ea31b608788b6f64c8693885eff2f559f68697",
+      "origin": "https://hang-on-fren.playechoseven.com",
+      "modifierClick": true,
+      "fragmentAbsent": true,
+      "openerAbsent": true,
+      "arcadeAccountNotCopied": true,
+      "independentLoginCompleted": true,
+      "gameAuthProof": {
+        "pubkey": "09574855e563a98fb43555afd350c41b6433d4d3403a9edc38ee15d5156233da",
+        "event": {
+          "id": "65697e6a5cfc40dd1da513f7cda22c783e35f31767d93e7b2f787390ffd68691",
+          "pubkey": "09574855e563a98fb43555afd350c41b6433d4d3403a9edc38ee15d5156233da",
+          "kind": 21236,
+          "created_at": 1791773962,
+          "tags": [
+            [
+              "challenge",
+              "bfb01e9221d83eba78b5e331086f92cc1ae62148a81530af3840b53fbb169134"
+            ],
+            [
+              "origin",
+              "https://hang-on-fren.playechoseven.com"
+            ],
+            [
+              "app",
+              "Hang On, Fren"
+            ]
+          ],
+          "content": "",
+          "sig": "e8575952886772efde769f32649a4d178eb1c077e4650aabdbb84ad27c9e215a5eadf5c62ff146f2c67dca26dbf5d8022ce47e6c4b8d1159540c37d7d18caff1"
+        },
+        "method": "bunker"
+      },
+      "qrExactApprovalLink": true,
+      "loginRoute": "published approval link",
+      "qrLoginQualification": false,
+      "separateSignerBrowserContext": true,
+      "arcadeAccountPreserved": true,
+      "assets": [
+        {
+          "path": "/assets/index-BiHI3_Ia.js",
+          "sha256": "9e2dbc703bff1a89f9bd8b53e2207109f19e921dae0e01f99f47fe8d8c7a2cef"
+        }
+      ],
+      "physicalDevice": false
+    }
+  ],
+  "at": "2026-10-12T02:59:26.171Z"
+}
