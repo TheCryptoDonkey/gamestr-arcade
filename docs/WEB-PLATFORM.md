@@ -137,10 +137,15 @@ npm run validate:web:600
 
 `npm run deploy:web:600` deploys that build to
 `/opt/gamestr-web-600/current`; the tracked Caddy configuration serves it as
-`arcade.600.wtf`. The required DNS record is an `A` record for
-`arcade.600.wtf` pointing to `62.238.98.53`. On 10 October 2026 it still resolves
-to the retired `95.217.39.110`; the new server already has its Caddy route, but
-public cutover remains pending the DNS update. The edition definition lives in
+`arcade.600.wtf`. On 12 October 2026 the owner changed its DNS to a CNAME
+pointing to `play.forgesworn.dev`, which resolves to `62.238.98.53`.
+Caddy routes the original requested hostname, so Joystick and the 600 arcade
+remain separate sites. If the target hostname moves servers, the CNAME follows
+it. Normal DNS/HTTPS from a separate DigitalOcean host verifies the published
+`c4b7929` release, strict headers and all twelve checked files per edition;
+see [public cutover evidence](evidence/gamestr-public-dns-cutover-c4b7929.json).
+Some resolver caches initially retained the retired address; those failures are
+recorded separately from successful public checks. The edition definition lives in
 `web.editions.json`, where its allow-list can be expanded without splitting the
 codebase.
 

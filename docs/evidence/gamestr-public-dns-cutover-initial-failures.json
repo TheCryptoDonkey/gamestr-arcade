@@ -1,0 +1,12 @@
+{
+  "initialLaunchAttempt": {
+    "phase": "normal-public-launch-takemetoyourledger",
+    "failure": "connected handoff wait timed out after navigating without confirming a live signer"
+  },
+  "fixtureSetupAttempt": {
+    "failure": "expected release environment variable was not supplied; no product revision mismatch established"
+  },
+  "freshQualification": "gamestr-public-dns-cutover-login-launch.json",
+  "freshPrecondition": "explicit same-account signer reconnect through actual My Signet before each publisher launch",
+  "unqualifiedClaim": "automatic live-signer restoration across navigation is not established by the fresh reconnect fixture"
+}
