@@ -2192,7 +2192,7 @@ The diagnostic shared-account run passed Ledger and then received a valid same-a
 
 Ledger saved-score [PR #89](https://github.com/TheCryptoDonkey/take-me-to-your-ledger/pull/89) is merged as `bc3728322adf831e1aa1994fecc1345d372329c3` after the actual earned recovery and both displays passed. Its Git source tree exactly equals checked/published `ebcd6a5`; the main branch had no intervening changes. No main-triggered workflow or unchecked redeployment was introduced. The published client remains the exact checked `ebcd6a5` artifact, and held PR #88 remains separate. See [source-tree equivalence](evidence/ledger-pr89-merged-source.json).
 
-## Current four-game shared-account qualification
+## Earlier four-game shared-account qualification (`e4ec515` client)
 
 The complete current matrix now passes with one disposable owned My Signet account (`b0d8c7afe83a664b2784977deedf637b15471733cb41691dfb489f76c18e4621`) and arcade `c4b7929`. All scores are normally earned through ordinary controls; game or score state is not injected.
 
@@ -2232,3 +2232,23 @@ Pallasite's rendered QR decodes to its exact approval link during this run. Hang
 The next scoped packaged fixture correction waits for the actual visible fixture heading and two animation frames after the complete focused document, bounded to three seconds. Native focus metadata alone is not evidence that the renderer has presented its first frame. No key handler, account, storage or input event is injected by this wait. The extracted-runtime normal journey passes, and removing only the fixture key handler still fails the original trusted ArrowUp assertion despite native delivery. The original input assertions and watchdog remain unchanged. See [normal readiness and controlled missing-handler diagnostic](evidence/gamestr-painted-input-diagnostic.json). A newly built full hosted package remains required; the diagnostic does not establish a physical input result or clear the earlier failures.
 
 The [exact full hosted gate for `e113e45`](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38194129842) now passes: 675 units, types/config/manifests and builds, all 54 browser journeys, audit, AppImage packaging, both runtime launch/return journeys and the missing-handler negative. The downloaded AppImage matches its checksum manifest and CI smoke SHA `6095e8028a9dbe5a8bb9f19075cb3f4b4b82774783e3c859edc941ab8dc6a3b0`. That exact unmodified AppImage additionally passes the unchanged normal journey and controlled missing-handler negative in an isolated Hetzner Xvfb display. See [downloaded artifact and native Linux qualification](evidence/gamestr-e113e45-packaged-qualified.json). This qualifies the exact checked package and fixture, while preserving the earlier failures; physical controller and installed-cabinet acceptance remain pending. Production services and public web deployment were unchanged.
+
+
+## Merged packaged fix and current QR client qualification
+
+Arcade [PR #13](https://github.com/TheCryptoDonkey/gamestr-arcade/pull/13) is merged as `e57376b`; its source tree matches checked documentation head `8a2f921`. The [complete merged-main gate](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38195400164) passes 675 units, all 54 browser journeys, audit, packaging, normal native input/return and the controlled missing-handler negative. See [merge record](evidence/gamestr-pr13-merged-source.json) and [exact downloaded package qualification](evidence/gamestr-e113e45-packaged-qualified.json). Physical controller and installed-cabinet acceptance remain open; public web stays at `c4b7929`.
+
+Hang On Fren client `d6ea31b` corrects the independent SDK QR canvas using whole-pixel cells and a four-cell quiet zone. It preserves the original approval payload, provider login and challenge. Failure to load the optional encoder leaves the SDK approval link available. Original 219 units, types, client/API builds and private seven-day/restart recovery gates pass, as do all six narrow/wide My Signet and generic Nostr Connect QR cases and the encoder-failure control. The push artifact from [run 38194848370](https://github.com/TheCryptoDonkey/hang-on-fren-public/actions/runs/38194848370) is published; all 151 public file hashes and all seven public browser cases pass. Only static client files changed; the running recovery API and authority are unchanged. See [public hashes and health](evidence/hangonfren-live-d6ea31b.json) and [public QR checks](evidence/hangonfren-public-qr-d6ea31b.json). This qualifies exact browser pixel decoding, not physical phone-camera scanning or an independent signer application. Consumer PR #2 remains a draft pending its documented physical and Actions deployment handover gates.
+
+A fresh actual My Signet account (`644aba0a316f385bfbe141ef7a9235f4ea37b5484e06ce33cc4a69fc16f5aefb`) now passes the complete four-game journey against that current QR client:
+
+| Game | Checked served client | Normally earned points | Positive relay acknowledgements |
+| --- | --- | --- | --- |
+| Ledger | `ebcd6a5` | 100 | 6 / 7 |
+| Hang On Fren | `d6ea31b` | 4,331 | 6 / 7 |
+| Neon Sentinel | `0435e93` | 10,490 | 6 / 7 |
+| Pallasite | `9813d13` | 20,820 | 7 / 7 |
+
+Each actual HTTP NIP-98 signature binds the selected account, exact URL, POST method, body SHA-256 and fresh authentication time. Recovered receipts retain original run bounds and ownership; Hang On Fren's bounded coherent server-clock correction preserves duration. All four canonical game-authority events publish successfully. Eight fresh GET-only scoreboard pages display those exact event IDs, scores and account with REVIEWED GAME AUTHORITY attribution. See [complete current matrix](evidence/gamestr-d6ea31b-four-game-shared-account.json) and [all eight displays](evidence/gamestr-d6ea31b-four-game-shared-account-ui.json).
+
+The preceding fresh matrix stopped because its response assertion ran before the asynchronous observer finished parsing Neon's successful HTTP 200 response. That partial attempt does not qualify the matrix. The corrected fixture awaits its response-parsing promises while preserving all signature, account, receipt and publication assertions. Gameplay, score, clocks and authentication state were not injected. The completed fresh run closes its owned browser. The 600 edition still uses forced Hetzner resolution; public DNS, physical devices/controllers and the unpaid 100-sat wallet test remain separate open gates.
