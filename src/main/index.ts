@@ -446,6 +446,10 @@ function buildLaunchDeps(): LaunchDeps {
       win.setFullScreen(kioskMode)
       win.setKiosk(kioskMode)
       win.focus()
+      // A focused window can still have its game view as the native focus
+      // target. Restore the shell contents before asking its renderer to focus
+      // the carousel, otherwise Chromium can restore a stale button afterwards.
+      win.webContents.focus()
     },
 
     notifyReturned() {
