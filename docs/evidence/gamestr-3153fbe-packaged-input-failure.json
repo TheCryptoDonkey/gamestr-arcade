@@ -1,0 +1,300 @@
+{
+  "revision": "3153fbe9b2c4d63ee857a1c078049e0c4bf7824a",
+  "run": 38193062104,
+  "runUrl": "https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38193062104",
+  "conclusion": "failure",
+  "failedStep": "Boot the packaged Linux renderer",
+  "failure": {
+    "stage": "first game trusted ArrowUp",
+    "error": "page.waitForFunction: Timeout 30000ms exceeded.",
+    "pages": {
+      "shell": {
+        "closed": false,
+        "readyState": "complete",
+        "focused": true,
+        "visibility": "visible",
+        "activeElement": "MAIN",
+        "activeElementId": "app",
+        "activeElementClass": "arcade",
+        "activeElementInert": false,
+        "readyOpen": false,
+        "focusHistory": [],
+        "focusCalls": [
+          {
+            "id": "app",
+            "className": "arcade",
+            "at": 2983.5,
+            "documentFocused": true,
+            "readyOpen": false,
+            "stack": [
+              "    at ReadyPanel.close (file:///tmp/appimage_extracted_f8165f20cc17b33e33985f3ccfa3f6e0/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10652:103)",
+              "    at ReadyPanel.confirm (file:///tmp/appimage_extracted_f8165f20cc17b33e33985f3ccfa3f6e0/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10639:10)",
+              "    at Object.onLaunch (file:///tmp/appimage_extracted_f8165f20cc17b33e33985f3ccfa3f6e0/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11553:20)",
+              "    at onKeyDown (file:///tmp/appimage_extracted_f8165f20cc17b33e33985f3ccfa3f6e0/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:4802:23)"
+            ]
+          }
+        ],
+        "keyHistory": [
+          {
+            "type": "keydown",
+            "key": "ArrowRight",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "ArrowRight",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keydown",
+            "key": "ArrowLeft",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "ArrowLeft",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keydown",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keydown",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          }
+        ],
+        "keys": []
+      },
+      "game": {
+        "closed": false,
+        "readyState": "complete",
+        "focused": true,
+        "visibility": "visible",
+        "activeElement": "BODY",
+        "activeElementId": "",
+        "activeElementClass": "",
+        "activeElementInert": false,
+        "readyOpen": false,
+        "focusHistory": [],
+        "focusCalls": [],
+        "keyHistory": [],
+        "keys": []
+      }
+    },
+    "nativeFocus": [
+      {
+        "stage": "first game trusted ArrowUp",
+        "windows": [
+          {
+            "id": 1,
+            "focused": true,
+            "visible": true,
+            "bounds": {
+              "x": 240,
+              "y": 212,
+              "width": 800,
+              "height": 600
+            },
+            "children": [
+              {
+                "contentsId": 2,
+                "visible": true,
+                "bounds": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 800,
+                  "height": 600
+                }
+              }
+            ]
+          }
+        ],
+        "nativeInputEvents": [],
+        "contents": [
+          {
+            "id": 2,
+            "focused": true,
+            "loading": false,
+            "type": "window",
+            "role": "game"
+          },
+          {
+            "id": 1,
+            "focused": false,
+            "loading": false,
+            "type": "window",
+            "role": "shell"
+          }
+        ]
+      }
+    ],
+    "currentNativeFocus": {
+      "windows": [
+        {
+          "id": 1,
+          "focused": true,
+          "visible": true,
+          "bounds": {
+            "x": 240,
+            "y": 212,
+            "width": 800,
+            "height": 600
+          },
+          "children": [
+            {
+              "contentsId": 2,
+              "visible": true,
+              "bounds": {
+                "x": 0,
+                "y": 0,
+                "width": 800,
+                "height": 600
+              }
+            }
+          ]
+        }
+      ],
+      "nativeInputEvents": [
+        {
+          "id": 2,
+          "role": "game",
+          "type": "keyDown",
+          "key": "ArrowUp",
+          "code": "ArrowUp",
+          "repeat": false
+        },
+        {
+          "id": 2,
+          "role": "game",
+          "type": "keyUp",
+          "key": "ArrowUp",
+          "code": "ArrowUp",
+          "repeat": false
+        }
+      ],
+      "contents": [
+        {
+          "id": 2,
+          "focused": true,
+          "loading": false,
+          "type": "window",
+          "role": "game"
+        },
+        {
+          "id": 1,
+          "focused": false,
+          "loading": false,
+          "type": "window",
+          "role": "shell"
+        }
+      ]
+    },
+    "returnFocus": [],
+    "systemInput": {
+      "attempted": true,
+      "method": "X11 XTEST",
+      "key": "ArrowUp",
+      "pageClosed": false,
+      "trustedPageKeyObserved": true,
+      "nativeStateAfterInput": {
+        "windows": [
+          {
+            "id": 1,
+            "focused": true,
+            "visible": true,
+            "bounds": {
+              "x": 240,
+              "y": 212,
+              "width": 800,
+              "height": 600
+            },
+            "children": [
+              {
+                "contentsId": 2,
+                "visible": true,
+                "bounds": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 800,
+                  "height": 600
+                }
+              }
+            ]
+          }
+        ],
+        "nativeInputEvents": [
+          {
+            "id": 2,
+            "role": "game",
+            "type": "keyDown",
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "repeat": false
+          },
+          {
+            "id": 2,
+            "role": "game",
+            "type": "keyUp",
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "repeat": false
+          },
+          {
+            "id": 2,
+            "role": "game",
+            "type": "keyDown",
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "repeat": false
+          },
+          {
+            "id": 2,
+            "role": "game",
+            "type": "keyUp",
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "repeat": false
+          }
+        ],
+        "contents": [
+          {
+            "id": 2,
+            "focused": true,
+            "loading": false,
+            "type": "window",
+            "role": "game"
+          },
+          {
+            "id": 1,
+            "focused": false,
+            "loading": false,
+            "type": "window",
+            "role": "shell"
+          }
+        ]
+      }
+    }
+  },
+  "qualification": "Initial ArrowUp reaches the native game observer but not the fixture DOM handler. A diagnostic OS key after failure reaches the DOM. The smoke does not reach return-focus assertions or the controlled negative. This is neither full package qualification nor proof of the return-focus correction."
+}
