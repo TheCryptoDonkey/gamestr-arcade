@@ -64,9 +64,12 @@ after parent closure, reload and 664,140 ms now pass, including original-account
 reconnect, positive publication and both fresh score displays. Fresh NIP-98 binds
 the actual POST URL/body; the event keeps its original finish second and UTC-day
 address. See [actual Ledger evidence](evidence/ledger-earned-recovery-ebcd6a5.json).
-Repeat the current four-game shared-account journey using the exact
-published revisions. Independently check same-account HTTP signatures, unchanged
-recovered receipts, positive acknowledgements and reviewed game authority.
+The current four-game shared-account journey also passes on those exact
+published revisions: Ledger 100, Hang On Fren 4,292, Neon 10,677 and Pallasite
+17,780 points. Actual same-account HTTP signatures, immutable recovered receipts,
+positive acknowledgements, canonical game authority and eight fresh score pages
+are verified. See [current matrix](evidence/gamestr-current-four-game-shared-account.json).
+The 600 checks use forced Hetzner resolution; public DNS remains open.
 
 Perform the physical controller and installed-package checks in
 [conference-acceptance.md](conference-acceptance.md), including wired/wireless
