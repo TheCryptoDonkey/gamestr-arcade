@@ -15,8 +15,7 @@ existing suite therefore does not close these goals.
 
 The owner confirmed that Beamward supersedes Ledger, then asked to keep
 Ledger in the arcade catalogue for now. The owner explicitly included Ledger's
-saved-score reliability fix in this delivery. That correction is being prepared
-from the published client baseline in an isolated worktree; previously held
+saved-score reliability fix in this delivery. That correction is published from the original client baseline after its complete release gate; previously held
 HUD and media changes remain preserved separately. No Beamward replacement is
 part of this release. Previous Ledger evidence does not qualify Beamward.
 

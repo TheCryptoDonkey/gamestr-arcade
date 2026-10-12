@@ -1,0 +1,55 @@
+{
+  "complete": true,
+  "arcadeRevision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
+  "pubkey": "5e581983a4e80e6085387df0e99493584bdf54a86aacbddd0eaf0da6a28c4f72",
+  "actualMySignet": true,
+  "forcedHetznerArcadeDns": true,
+  "publicWritesBlocked": true,
+  "realTimeUsed": true,
+  "proofNotSeeded": true,
+  "independentLoginCompleted": false,
+  "physicalDevice": false,
+  "results": [
+    {
+      "game": "takemetoyourledger",
+      "revision": "ebcd6a584a341e6aaa0f23ed8a5be0726a8c9ad5",
+      "origin": "https://ledger.playechoseven.com",
+      "expired": {
+        "actualDelayMs": 65034,
+        "noBridgeAccepted": true,
+        "fragmentConsumed": true,
+        "openerRemoved": true,
+        "arcadeAccountNotCopied": true
+      },
+      "freshRealLaunchAccepted": true,
+      "originalArcadeAccountPreserved": true,
+      "signerStillConnected": true,
+      "assets": [
+        {
+          "path": "/assets/index-Tv5iMwTO.js",
+          "sha256": "367a1eb8e8eb4b63e37e4e48851268e9e0c8652bb9533179e2c0466654dec60a"
+        }
+      ],
+      "physicalDevice": false
+    }
+  ],
+  "modifierResults": [
+    {
+      "game": "takemetoyourledger",
+      "revision": "ebcd6a584a341e6aaa0f23ed8a5be0726a8c9ad5",
+      "modifierClick": true,
+      "fragmentAbsent": true,
+      "openerAbsent": true,
+      "arcadeAccountNotCopied": true,
+      "originalArcadeAccountPreserved": true,
+      "assets": [
+        {
+          "path": "/assets/index-Tv5iMwTO.js",
+          "sha256": "367a1eb8e8eb4b63e37e4e48851268e9e0c8652bb9533179e2c0466654dec60a"
+        }
+      ],
+      "physicalDevice": false
+    }
+  ],
+  "at": "2026-10-11T23:58:44.491Z"
+}

@@ -1,0 +1,52 @@
+{
+  "failedPhase": "independent-original-account-ledger-reconnect",
+  "errorType": "TimeoutError",
+  "state": {
+    "publishStatus": "",
+    "signinStatus": "Guest mode \u2014 scores signed with a local key",
+    "phase": "playing"
+  },
+  "earnedReceipts": [
+    {
+      "run": {
+        "score": 200,
+        "finishedAt": 1791762799724,
+        "wave": 1,
+        "cows": 2,
+        "cultists": 0,
+        "groupies": 0,
+        "drones": 0,
+        "normies": 0,
+        "cropBonus": 0,
+        "bestCombo": 2,
+        "council": false,
+        "durationMs": 25133.333333333187,
+        "runId": "b0f81789-670e",
+        "awards": [
+          "first-beam"
+        ],
+        "stage": 1,
+        "land": "valley"
+      },
+      "pubkey": "c04b2f49f3d08a7c0ea3f4d163bdbdc814c8477eb4e1f3741304c8c280cdb371",
+      "day": "20261011",
+      "queuedAt": 1791762799724
+    }
+  ],
+  "claims": [],
+  "physicalDevice": false,
+  "scope": "Unqualified delayed-recovery attempt: receipt survived reload and real delay; no HTTP claim was sent before title-control timeout",
+  "fixtureDiagnosis": {
+    "publishedTitleIdleMs": 30000,
+    "controlledIdleProbe": {
+      "demoMode": true,
+      "loginVisible": false,
+      "afterOrdinaryEscape": {
+        "remoteChoiceVisible": true,
+        "remoteLinkVisible": true
+      }
+    },
+    "fixtureCorrection": "Exit actual attract demo with Escape before accessing title login; score and clocks are unchanged",
+    "physicalDevice": false
+  }
+}

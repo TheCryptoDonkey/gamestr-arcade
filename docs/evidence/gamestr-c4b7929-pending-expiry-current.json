@@ -1,7 +1,7 @@
 {
   "arcadeRevision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
-  "scope": "Three completed current publisher cases, each with a separate disposable owned My Signet account; not a four-game shared-account qualification",
-  "complete": false,
+  "scope": "All four current publisher launch cases using separate disposable owned account fixtures; this does not qualify the four-game shared-account gameplay journey",
+  "complete": true,
   "completedCases": [
     {
       "game": "hang-on-fren",
@@ -71,6 +71,30 @@
       ],
       "physicalDevice": false,
       "pubkey": "49bcca593d2086a5829a61bab7f3ab8f831ed061f003cae41b8c712bb4737dc5"
+    },
+    {
+      "game": "takemetoyourledger",
+      "revision": "ebcd6a584a341e6aaa0f23ed8a5be0726a8c9ad5",
+      "origin": "https://ledger.playechoseven.com",
+      "expired": {
+        "actualDelayMs": 65034,
+        "noBridgeAccepted": true,
+        "fragmentConsumed": true,
+        "openerRemoved": true,
+        "arcadeAccountNotCopied": true
+      },
+      "freshRealLaunchAccepted": true,
+      "originalArcadeAccountPreserved": true,
+      "signerStillConnected": true,
+      "assets": [
+        {
+          "path": "/assets/index-Tv5iMwTO.js",
+          "sha256": "367a1eb8e8eb4b63e37e4e48851268e9e0c8652bb9533179e2c0466654dec60a"
+        }
+      ],
+      "physicalDevice": false,
+      "pubkey": "5e581983a4e80e6085387df0e99493584bdf54a86aacbddd0eaf0da6a28c4f72",
+      "sourceProof": "ledger-launch-fallbacks-ebcd6a5.json"
     }
   ],
   "actualMySignet": true,
@@ -80,12 +104,10 @@
   "proofNotSeeded": true,
   "independentLoginCompleted": false,
   "physicalDevice": false,
-  "unqualifiedCases": {
-    "ledger": "New checked client not yet published"
-  },
-  "at": "2026-10-11T22:41:06.062632+00:00",
+  "at": "2026-10-11T23:58:44.491Z",
   "retainedEarlierFailures": [
     "Initial disposable My Signet approval readiness timed out before game launch in two attempts",
     "Earlier Pallas navigation restored recognised identity without a live signer; current qualified case uses explicit same-account reconnect"
-  ]
+  ],
+  "ledgerPending": false
 }
