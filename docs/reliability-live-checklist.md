@@ -8,7 +8,7 @@ device, browser, provider, date, steps and observed result for each check.
 Current public standard edition:
 https://gamestr.62-238-98-53.sslip.io/.
 The canonical 600 edition is https://arcade.600.wtf/.
-Pallasite client `9813d13` / API `52eab4c`, Hang On Fren client `d6ea31b` (QR correction, recovery API unchanged) and
+Pallasite client `9813d13` / API `52eab4c`, Hang On Fren client `8830e8e` (game modules unchanged from qualified `d6ea31b`, recovery API unchanged) and
 Neon Sentinel API recovery have published evidence. Neon’s current graphics
 client is now `0435e93`; its current CI recovery/SDK and served-code checks pass,
 and actual 7,214-point earned recovery after reload and eleven minutes now passes, including both fresh arcade displays. Ledger's requested
@@ -88,3 +88,6 @@ and inspect the earlier transaction's status in Wallet of Satoshi. Actual paid
 acceptance remains open until an authorised payment is visibly confirmed.
 Check optional public zap consent separately from wallet payment. Record WebLN
 acceptance separately, rather than inferring it from the phone wallet result.
+
+
+Hang On Fren's previously draft PR #2 is now merged and its repaired Actions deployment passes on main. Both its custom hostname and GitHub Pages publish `8830e8e`; all 151 custom-domain hashes and seven public QR cases pass. No API restart, relay rewrite or score-history change occurred. See [final delivery](evidence/hangonfren-shipped-8830e8e.json). Physical provider/camera and actual paid-wallet checks above remain required.
