@@ -1,0 +1,112 @@
+{
+  "complete": true,
+  "arcadeRevision": "c4b7929149f22f800daa2b0e69dbd7bcd0fbb4aa",
+  "pubkey": "d855a803f434616eaae1fc5ca9d9c968cf76631ed0457c5fa76df619fe18ecd8",
+  "actualMySignet": true,
+  "forcedHetznerArcadeDns": true,
+  "publicWritesBlocked": true,
+  "gameplayTest": false,
+  "independentLoginCompleted": true,
+  "loginRoute": "published approval link",
+  "qrLoginQualification": false,
+  "physicalDevice": false,
+  "results": [
+    {
+      "game": "hang-on-fren",
+      "revision": "e4ec515c37cac48cb114f0314fc53bf9b2948211",
+      "origin": "https://hang-on-fren.playechoseven.com",
+      "modifierClick": true,
+      "fragmentAbsent": true,
+      "openerAbsent": true,
+      "arcadeAccountNotCopied": true,
+      "independentLoginCompleted": true,
+      "gameAuthProof": {
+        "pubkey": "d855a803f434616eaae1fc5ca9d9c968cf76631ed0457c5fa76df619fe18ecd8",
+        "event": {
+          "id": "ea5507a395d4ba5f1001225a6eed884ca5283d57eef357386487bcd762f3bd98",
+          "pubkey": "d855a803f434616eaae1fc5ca9d9c968cf76631ed0457c5fa76df619fe18ecd8",
+          "kind": 21236,
+          "created_at": 1791769519,
+          "tags": [
+            [
+              "challenge",
+              "b65cc0bc54caaa912c9b4b0d156071b0b5c247a66df61cf001bad6591cdfa5c6"
+            ],
+            [
+              "origin",
+              "https://hang-on-fren.playechoseven.com"
+            ],
+            [
+              "app",
+              "Hang On, Fren"
+            ]
+          ],
+          "content": "",
+          "sig": "3808723c8b37e7a91e3579ee3c17e17a80f731a3dbc409fa3950384bf686bb060b6059ed1eb1da20364ced722d4e11d6c56dd7fd27efc970bf0667a4cbd7bd39"
+        },
+        "method": "bunker"
+      },
+      "qrExactApprovalLink": false,
+      "loginRoute": "published approval link",
+      "qrLoginQualification": false,
+      "separateSignerBrowserContext": true,
+      "arcadeAccountPreserved": true,
+      "assets": [
+        {
+          "path": "/assets/index-C22w-CIe.js",
+          "sha256": "894b596836af817a1c092dbae26aad46e016643a9649f8aeaef4ae844256b591"
+        }
+      ],
+      "physicalDevice": false
+    },
+    {
+      "game": "pallasite",
+      "revision": "9813d131985ae97d70cf7c2420c8089dd2cf82a4",
+      "origin": "https://pallasite.app",
+      "modifierClick": true,
+      "fragmentAbsent": true,
+      "openerAbsent": true,
+      "arcadeAccountNotCopied": true,
+      "independentLoginCompleted": true,
+      "gameAuthProof": {
+        "pubkey": "d855a803f434616eaae1fc5ca9d9c968cf76631ed0457c5fa76df619fe18ecd8",
+        "event": {
+          "id": "328b74851c1b217fcb2d8bdddbed7508ea235c8a98f2e366e8fd2a5ce2c0b4c5",
+          "pubkey": "d855a803f434616eaae1fc5ca9d9c968cf76631ed0457c5fa76df619fe18ecd8",
+          "kind": 21236,
+          "created_at": 1791769560,
+          "tags": [
+            [
+              "challenge",
+              "58bb8ebb337b7a5e34ba2f08182605e5217be737ff46121cf6f1376ce772662e"
+            ],
+            [
+              "origin",
+              "https://pallasite.app"
+            ],
+            [
+              "app",
+              "Pallasite"
+            ]
+          ],
+          "content": "",
+          "sig": "9380914fcd15fe80ce718024654d6fc176a0d5a96e55232058764c9d13f5ef84be40a49f048de03e8d1ab611c83ab4d0a92612797dc0a13e3fb45f167d374e6f"
+        },
+        "method": "bunker"
+      },
+      "qrExactApprovalLink": true,
+      "loginRoute": "published approval link",
+      "qrLoginQualification": false,
+      "separateSignerBrowserContext": true,
+      "arcadeAccountPreserved": true,
+      "assets": [
+        {
+          "path": "/assets/index-BAqRJXX5.js",
+          "sha256": "f0e5f8270ab1edbfc180d65b9c04a13e0fbf3e3ac6c593a952d7b33537a5fe8f"
+        }
+      ],
+      "physicalDevice": false
+    }
+  ],
+  "at": "2026-10-12T01:46:11.357Z"
+}

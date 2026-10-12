@@ -113,6 +113,14 @@ try {
     // Preload IPC can be ready before did-finish-load reveals/focuses the view.
     // Exercise input after the real application gives the game keyboard focus.
     await game.waitForFunction(() => document.readyState === 'complete' && document.hasFocus())
+    // Native focus alone can precede the renderer's first presented frame.
+    // Wait for the actual fixture content and a rendered frame before input;
+    // this does not create a key handler or change any trusted-key assertion.
+    await game.getByRole('heading', { name: 'Runtime fixture', exact: true }).waitFor({ state: 'visible' })
+    await game.evaluate(() => new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('Focused game did not render a frame')), 3000)
+      requestAnimationFrame(() => requestAnimationFrame(() => { clearTimeout(timeout); resolve(true) }))
+    }))
     return game
   }
   async function returnFromGame(game, label) {

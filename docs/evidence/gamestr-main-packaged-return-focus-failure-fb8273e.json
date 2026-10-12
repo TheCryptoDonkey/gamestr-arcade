@@ -1,0 +1,367 @@
+{
+  "revision": "fb8273ea5899f64793723076d18744d7bd0fc001",
+  "run": 38191213888,
+  "runUrl": "https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/38191213888",
+  "conclusion": "failure",
+  "failedStep": "Boot the packaged Linux renderer",
+  "sameTreeAsPassingPrHead": "0848add285d44d2d7d6d7f18c9e4110a518e6844",
+  "failure": {
+    "stage": "second game shell focus after Escape",
+    "error": "page.waitForFunction: Timeout 30000ms exceeded.",
+    "pages": {
+      "shell": {
+        "closed": false,
+        "readyState": "complete",
+        "focused": true,
+        "visibility": "visible",
+        "activeElement": "BUTTON",
+        "activeElementId": "",
+        "activeElementClass": "cta",
+        "activeElementInert": false,
+        "readyOpen": false,
+        "focusHistory": [
+          {
+            "event": "focusin",
+            "id": "",
+            "className": "cta",
+            "at": 1966,
+            "documentFocused": true,
+            "readyOpen": false
+          },
+          {
+            "event": "focusin",
+            "id": "app",
+            "className": "arcade",
+            "at": 2199.5,
+            "documentFocused": true,
+            "readyOpen": false
+          },
+          {
+            "event": "focusin",
+            "id": "",
+            "className": "cta",
+            "at": 2907.5,
+            "documentFocused": true,
+            "readyOpen": false
+          }
+        ],
+        "focusCalls": [
+          {
+            "id": "app",
+            "className": "arcade",
+            "at": 1162.1000000000058,
+            "documentFocused": true,
+            "readyOpen": false,
+            "stack": [
+              "    at ReadyPanel.close (file:///tmp/appimage_extracted_9d4289423093e82b57e9064d2300e458/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10652:103)",
+              "    at ReadyPanel.confirm (file:///tmp/appimage_extracted_9d4289423093e82b57e9064d2300e458/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10639:10)",
+              "    at Object.onLaunch (file:///tmp/appimage_extracted_9d4289423093e82b57e9064d2300e458/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11553:20)",
+              "    at onKeyDown (file:///tmp/appimage_extracted_9d4289423093e82b57e9064d2300e458/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:4802:23)"
+            ]
+          },
+          {
+            "id": "app",
+            "className": "arcade",
+            "at": 2199.100000000006,
+            "documentFocused": true,
+            "readyOpen": false,
+            "stack": [
+              "    at file:///tmp/appimage_extracted_9d4289423093e82b57e9064d2300e458/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11624:12"
+            ]
+          },
+          {
+            "id": "app",
+            "className": "arcade",
+            "at": 2747.9000000000233,
+            "documentFocused": true,
+            "readyOpen": false,
+            "stack": [
+              "    at ReadyPanel.close (file:///tmp/appimage_extracted_9d4289423093e82b57e9064d2300e458/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10652:103)",
+              "    at ReadyPanel.confirm (file:///tmp/appimage_extracted_9d4289423093e82b57e9064d2300e458/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:10639:10)",
+              "    at Object.onLaunch (file:///tmp/appimage_extracted_9d4289423093e82b57e9064d2300e458/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11553:20)",
+              "    at onKeyDown (file:///tmp/appimage_extracted_9d4289423093e82b57e9064d2300e458/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:4802:23)"
+            ]
+          },
+          {
+            "id": "app",
+            "className": "arcade",
+            "at": 2906.100000000006,
+            "documentFocused": true,
+            "readyOpen": false,
+            "stack": [
+              "    at file:///tmp/appimage_extracted_9d4289423093e82b57e9064d2300e458/resources/app.asar/out/renderer/assets/index-wFBff1o8.js:11624:12"
+            ]
+          }
+        ],
+        "keyHistory": [
+          {
+            "type": "keydown",
+            "key": "ArrowRight",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "ArrowRight",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keydown",
+            "key": "ArrowLeft",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "ArrowLeft",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keydown",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keydown",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keydown",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keydown",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          },
+          {
+            "type": "keyup",
+            "key": "Enter",
+            "trusted": true,
+            "id": "app"
+          }
+        ],
+        "keys": []
+      },
+      "game": {
+        "closed": true
+      }
+    },
+    "nativeFocus": [
+      {
+        "stage": "first game trusted ArrowUp",
+        "windows": [
+          {
+            "id": 1,
+            "focused": true,
+            "visible": true,
+            "bounds": {
+              "x": 240,
+              "y": 212,
+              "width": 800,
+              "height": 600
+            },
+            "children": [
+              {
+                "contentsId": 2,
+                "visible": true,
+                "bounds": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 800,
+                  "height": 600
+                }
+              }
+            ]
+          }
+        ],
+        "nativeInputEvents": [],
+        "contents": [
+          {
+            "id": 2,
+            "focused": true,
+            "loading": false,
+            "type": "window",
+            "role": "game"
+          },
+          {
+            "id": 1,
+            "focused": false,
+            "loading": false,
+            "type": "window",
+            "role": "shell"
+          }
+        ]
+      },
+      {
+        "stage": "second game Escape return",
+        "windows": [
+          {
+            "id": 1,
+            "focused": true,
+            "visible": true,
+            "bounds": {
+              "x": 240,
+              "y": 212,
+              "width": 800,
+              "height": 600
+            },
+            "children": [
+              {
+                "contentsId": 3,
+                "visible": true,
+                "bounds": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 800,
+                  "height": 600
+                }
+              }
+            ]
+          }
+        ],
+        "nativeInputEvents": [
+          {
+            "id": 2,
+            "role": "game",
+            "type": "keyDown",
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "repeat": false
+          },
+          {
+            "id": 2,
+            "role": "game",
+            "type": "keyUp",
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "repeat": false
+          }
+        ],
+        "contents": [
+          {
+            "id": 3,
+            "focused": true,
+            "loading": false,
+            "type": "window",
+            "role": "game"
+          },
+          {
+            "id": 1,
+            "focused": false,
+            "loading": false,
+            "type": "window",
+            "role": "shell"
+          }
+        ]
+      }
+    ],
+    "currentNativeFocus": {
+      "windows": [
+        {
+          "id": 1,
+          "focused": true,
+          "visible": true,
+          "bounds": {
+            "x": 240,
+            "y": 212,
+            "width": 800,
+            "height": 600
+          },
+          "children": []
+        }
+      ],
+      "nativeInputEvents": [
+        {
+          "id": 2,
+          "role": "game",
+          "type": "keyDown",
+          "key": "ArrowUp",
+          "code": "ArrowUp",
+          "repeat": false
+        },
+        {
+          "id": 2,
+          "role": "game",
+          "type": "keyUp",
+          "key": "ArrowUp",
+          "code": "ArrowUp",
+          "repeat": false
+        }
+      ],
+      "contents": [
+        {
+          "id": 1,
+          "focused": true,
+          "loading": false,
+          "type": "window",
+          "role": "shell"
+        }
+      ]
+    },
+    "returnFocus": [
+      {
+        "game": "first game",
+        "phase": "before key release",
+        "at": 1966.2000000000116,
+        "focused": true,
+        "activeElementId": "",
+        "activeElementClass": "cta"
+      },
+      {
+        "game": "first game",
+        "phase": "after key release",
+        "at": 2318.100000000006,
+        "focused": true,
+        "activeElementId": "app",
+        "activeElementClass": "arcade"
+      },
+      {
+        "game": "second game",
+        "phase": "before key release",
+        "at": 2917.100000000006,
+        "focused": true,
+        "activeElementId": "",
+        "activeElementClass": "cta"
+      },
+      {
+        "game": "second game",
+        "phase": "after key release",
+        "at": 2945.600000000006,
+        "focused": true,
+        "activeElementId": "",
+        "activeElementClass": "cta"
+      }
+    ],
+    "systemInput": {
+      "attempted": false
+    }
+  },
+  "qualification": "Normal Linux XTEST smoke reaches the second return, then fails the original shell-root focus assertion. The active element is .cta after host.focus() was called. Cause and correction remain unqualified; earlier passing runs do not clear this failure. The controlled negative step was not reached. Physical acceptance remains pending."
+}
