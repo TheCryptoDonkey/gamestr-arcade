@@ -119,7 +119,11 @@ for (const [edition, port] of [['gamestr', 4174], ['600', 4175]] as const) {
     const bounds = (await menu.boundingBox())!
     expect(bounds.y + bounds.height).toBeLessThanOrEqual(240)
     expect(await menu.evaluate(node => node.scrollHeight > node.clientHeight)).toBe(true)
-    await page.getByRole('menuitem', { name: 'LOG OUT', exact: true }).click()
+    const logout = page.getByRole('menuitem', { name: 'LOG OUT', exact: true })
+    await logout.scrollIntoViewIfNeeded()
+    const visibility = await logout.evaluate(node=> {const r=node.getBoundingClientRect();const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {visible:hit===node || node.contains(hit),rect:{x:r.x,y:r.y,w:r.width,h:r.height},hits:document.elementsFromPoint(r.x+r.width/2,r.y+r.height/2).map(el=>el.tagName+'.'+el.className)}})
+    expect(visibility.visible,JSON.stringify(visibility)).toBe(true)
+    await logout.click()
     await expect(page.getByRole('button', { name: 'CONNECT NOSTR', exact: true })).toBeVisible()
   })
 

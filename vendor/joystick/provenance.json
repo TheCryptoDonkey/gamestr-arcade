@@ -1,0 +1,17 @@
+{
+  "sourceRepository": "forgesworn/joystick",
+  "sourceCommit": "ed068893f8f2ac44207eaf52a0a5d7ff926c6c4f",
+  "version": "0.4.0",
+  "license": "MIT",
+  "artifacts": [
+    {
+      "file": "joystick-host-0.4.0-03e01adbcd5b.tgz",
+      "sha256": "03e01adbcd5b823053519a1cf72b39ffdece81dea87b49c59bb747a9bd1ce3b4"
+    },
+    {
+      "file": "joystick-protocol-0.4.0-9c68737c0a9e.tgz",
+      "sha256": "9c68737c0a9eff4deae78740b3f744dc614b584ca7937fccd8ffaec346fe85a7"
+    }
+  ],
+  "purpose": "Pinned broker/host and public controller-profile reference SDKs. No registry publication is claimed."
+}

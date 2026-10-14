@@ -27,6 +27,7 @@ export interface InputHandlers {
 }
 
 export interface InputControllerOptions {
+  keyboard?: boolean
   diagnostics?: boolean
 }
 
@@ -93,6 +94,7 @@ export function isEditableTarget(target: EventTarget | null): boolean {
 export class InputController {
   private readonly handlers: InputHandlers
   private readonly diagnostics: boolean
+  private readonly keyboard: boolean
   private rafId = 0
   private running = false
 
@@ -105,13 +107,14 @@ export class InputController {
   constructor(handlers: InputHandlers, options: InputControllerOptions = {}) {
     this.handlers = handlers
     this.diagnostics = options.diagnostics === true
+    this.keyboard = options.keyboard !== false
   }
 
   /** Begin listening to keyboard + polling gamepads. */
   start(): void {
     if (this.running) return
     this.running = true
-    window.addEventListener('keydown', this.onKeyDown)
+    if(this.keyboard)window.addEventListener('keydown', this.onKeyDown)
     window.addEventListener('gamepadconnected', this.onActivity)
     if (this.diagnostics) {
       window.addEventListener('gamepadconnected', this.logGamepadEvent)

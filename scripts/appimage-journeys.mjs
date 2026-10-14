@@ -141,7 +141,13 @@ try {
     await shell.waitForFunction(() => document.activeElement?.id === 'app')
   }
   const first = await launch()
-  stage = 'first game signing'
+  stage = 'native phone gamepad bridge'
+  await shell.evaluate(()=>window.arcade.phoneInput({connected:true,axes:[.6,0,0,0],buttons:[true,...Array(16).fill(false)]}))
+  await first.waitForFunction(()=>navigator.getGamepads()[0]?.id==='Gamestr Joystick phone')
+  assert.deepEqual(await first.evaluate(()=>({axis:navigator.getGamepads()[0].axes[0],fire:navigator.getGamepads()[0].buttons[0].pressed})),{axis:.6,fire:true})
+  await shell.evaluate(()=>window.arcade.phoneInput({connected:false,axes:[0,0,0,0],buttons:Array(17).fill(false)}))
+  await first.waitForFunction(()=>navigator.getGamepads()[0]?.id!=='Gamestr Joystick phone')
+  stage = 'first game signing' 
   const pubkey = await first.evaluate(() => window.nostr.getPublicKey())
   assert.match(pubkey, /^[0-9a-f]{64}$/)
   const signed = await first.evaluate(() => window.nostr.signEvent({ kind: 1, created_at: Math.floor(Date.now() / 1000), tags: [], content: 'Disposable packaged-runtime check; never published.' }))
@@ -175,7 +181,7 @@ try {
   nativeFocus.push({ stage, ...await nativeInspector.read() })
   await returnFromGame(second, 'second game')
   writeFileSync(`${root}/journeys.json`, JSON.stringify({
-    keyboardCarouselNavigation: true, launchAndReturn: true, guestSignatureVerified: true,
+    keyboardCarouselNavigation: true, launchAndReturn: true, guestSignatureVerified: true, nativePhoneGamepad:true, nativePhoneRelease:true,
     freshGuestOnRelaunch: true, gameStorageAndCookiesIsolated: true,
     trustedGameKeyboardInput: true, walletUnavailableWithoutConfiguration: true,
     gameKeyboardDriver: process.platform === 'linux' ? 'X11 XTEST' : 'CDP',

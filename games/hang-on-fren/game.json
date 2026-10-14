@@ -18,7 +18,8 @@
     "keyboard"
   ],
   "controller": {
-    "adapter": "native"
+    "adapter": "native",
+    "phoneProtocol": "gamestr-controller-v1"
   },
   "controlHints": [
     "D-PAD / LEFT STICK = STEER",

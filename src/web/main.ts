@@ -1,3 +1,7 @@
+import type {ArcadePhoneController} from '../shared/ui/phone-controller'
+import {menuPhoneSpec} from '../shared/phone-specs'
+import '../shared/ui/phone-controller.css'
+import type {PhoneSnapshot} from '../shared/phone-input'
 import './style.css'
 import { activateDialog } from './dialog-lifecycle'
 import { createGamestrCatalogue } from '../renderer/src/leaderboard/gamestr'
@@ -20,6 +24,7 @@ interface WebGame {
   slug: string; gameId: string; name: string; tagline: string; description?: string; developer?: string
   genres: string[]; url: string; accent: string; hero?: string; logo?: string; artOverlay?: boolean
   featured: boolean; trending: boolean; newRelease: boolean; walletPay: boolean
+  phoneController?: 'gamestr-controller-v1'
   nostrHandoff?: { protocol: 'gamestr-auth-v1'; editions: string[]; signKinds: number[] }
   players?: { min: number; max: number }; scoreAuthorities?: string[]; scoreKind?: number; scoreField?: string; scoreDir?: 'asc' | 'desc'
 }
@@ -41,6 +46,40 @@ const state = {
   social: readSocialState(), activityMode: 'all' as 'all' | 'following',
 }
 
+let phone:ArcadePhoneController|null=null
+let applyPhoneGamepad: (snapshot:PhoneSnapshot)=>void = ()=> {}
+let activePhoneGame: (()=>void)|null = null
+const pairPhone=document.createElement('button');pairPhone.type='button';pairPhone.className='arcade-phone-open';pairPhone.textContent='Pair phone';document.body.append(pairPhone)
+pairPhone.onclick=async()=> {
+  pairPhone.disabled=true
+  try {
+    const [{mountPhoneController},{InputController},browser]=await Promise.all([import('../shared/ui/phone-controller'),import('../renderer/src/ui/input'),import('@forgesworn/joystick-protocol/browser')])
+    applyPhoneGamepad=browser.applyPhoneGamepad
+    phone=mountPhoneController(snapshot=> {if(!activePhoneGame)applyPhoneGamepad(snapshot)})
+    new InputController({onPrev:()=>movePhoneFocus(-1),onNext:()=>movePhoneFocus(1),
+      onLaunch:()=> {if(!activePhoneGame && document.activeElement instanceof HTMLElement && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName))document.activeElement.click()},
+      onBack:()=> {if(!activePhoneGame && !document.querySelector('dialog[open]'))history.back()},
+    },{keyboard:false}).start()
+    pairPhone.remove();document.querySelector<HTMLButtonElement>('.arcade-phone-open')?.click()
+  } catch {pairPhone.disabled=false;pairPhone.textContent='Retry phone pairing'}
+}
+let phoneGameGeneration=0
+const connectPhoneGame=async(child:Window,url:string)=> {
+  const generation=++phoneGameGeneration
+  activePhoneGame?.();activePhoneGame=null
+  applyPhoneGamepad({connected:false,axes:[0,0,0,0],buttons:Array(17).fill(false)})
+  activePhoneGame=()=> {}
+  const {bindPhoneGame}=await import('./phone-game-handoff')
+  if(generation!==phoneGameGeneration || child.closed)return
+  activePhoneGame=bindPhoneGame(child,new URL(url).origin,()=>phone!.snapshot,profile=>phone!.setSpec(profile),()=> {activePhoneGame=null;phone?.setSpec(menuPhoneSpec);if(phone)applyPhoneGamepad(phone.snapshot)})
+}
+function movePhoneFocus(direction:number): void {
+  if(activePhoneGame || document.querySelector('dialog[open]'))return
+  const targets=[...document.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input,summary')].filter(node=>!node.closest('.arcade-phone-dialog') && node.offsetWidth>0 && node.getAttribute('aria-disabled')!=='true')
+  if(!targets.length)return
+  const index=targets.indexOf(document.activeElement as HTMLElement),next=targets[(index+direction+targets.length)%targets.length]
+  next.focus();next.scrollIntoView({block:'nearest',behavior:'smooth'})
+}
 installNostrGameBridge(() => currentNostrSigner())
 
 window.addEventListener(NOSTR_SESSION_EVENT, event => {
@@ -157,10 +196,17 @@ function playLink(game: WebGame, label = 'PLAY', className = 'play-small'): HTML
       link.addEventListener('click', event => {
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
         event.preventDefault()
-        if (!openNostrGame(launch)) toast('The game popup was blocked. Allow popups to carry your identity, or use a modifier click and sign in inside the game.', 'warn')
+        if (!openNostrGame(launch,phone?.paired && game.phoneController ? child=>connectPhoneGame(child,game.url) : undefined)) toast('The game popup was blocked. Allow popups to carry your identity, or use a modifier click and sign in inside the game.', 'warn')
       })
     }
   }
+  if(game.phoneController && !session) link.addEventListener('click',event=> {
+    if(!phone?.paired || event.button!==0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)return
+    event.preventDefault()
+    const child=window.open('','_blank');if(!child){toast('Allow popups to carry your paired phone into this game.','warn');return}
+    connectPhoneGame(child,game.url);child.location.replace(game.url)
+  })
+  if(phone?.paired && !game.phoneController) link.title += ' Phone pairing across publisher sites is not supported by this game.'
   return link
 }
 
@@ -508,6 +554,8 @@ function gamePage(slug: string): HTMLElement {
   const copy = el('div', 'detail-copy'); copy.append(el('p', 'kicker', game.genres.join(' · ').toUpperCase()), el('h1', '', game.name), el('p', 'page-lede', game.description ?? game.tagline))
   const favourite = button(state.social.favourites.includes(game.slug) ? '★ IN MY ARCADE' : '☆ ADD TO MY ARCADE', 'secondary', () => toggleFavourite(game)); favourite.id = `favourite-detail-${game.slug}`
   const actions = el('div', 'hero-actions'); actions.append(playLink(game, 'PLAY ON PUBLISHER SITE ↗', 'primary'), favourite, button('INVITE TO PLAY', 'secondary', () => void shareInvitation(game)), button('CREATE CHALLENGE', 'secondary', () => createChallengeDialog(game))); copy.append(actions)
+  if(game.phoneController) copy.append(el('p','phone-controller-note','Your paired phone stays connected when this game opens.'))
+  else copy.append(el('p','phone-controller-note','Phone pairing works in the arcade catalogue. This publisher has not enabled phone control across sites.'))
   if (!game.nostrHandoff?.editions.includes(WEB_EDITION.key)) copy.append(el('p', 'launch-login-note', 'This game opens on its publisher’s site and uses its own login. Your arcade login is not passed to it.'))
   const facts = el('dl', 'game-facts'); for (const [label, value] of [['IDENTITY', 'NOSTR'], ['SCORES', 'VERIFIED'], ['WALLET', game.walletPay ? 'LIGHTNING' : 'OPTIONAL'], ['PLAYERS', game.players ? `${game.players.min}–${game.players.max}` : '1']]) { const item = el('div'); item.append(el('dt', '', label), el('dd', '', value)); facts.append(item) } copy.append(facts)
   main.append(art, copy)

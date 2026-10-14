@@ -1,3 +1,5 @@
+import {parsePhoneSnapshot,neutralPhone,type PhoneSnapshot} from '../shared/phone-input'
+import {isControllerSpec} from '@forgesworn/joystick-protocol'
 /**
  * gamestr-arcade - main process entry.
  *
@@ -143,6 +145,7 @@ interface ActiveWebSession {
 }
 
 let activeWebSession: ActiveWebSession | null = null
+let phoneSnapshot: PhoneSnapshot = neutralPhone()
 
 /** Lay out `webView` to cover the full window client area. */
 function sizeWebView(): void {
@@ -169,6 +172,7 @@ function wireGamepadConsole(wc: WebContents, tag: string): void {
 function destroyWebSession(): void {
   const current = activeWebSession
   activeWebSession = null
+  win?.webContents.send('arcade:phone-profile',null)
   webView = null
   if (!current) return
 
@@ -249,6 +253,7 @@ function createWebSession(game: Game): ActiveWebSession {
   activeWebSession = session
   webView = view
   wireGamepadConsole(view.webContents, 'webview')
+  view.webContents.on('did-finish-load',()=> {if(activeWebSession===session) view.webContents.send('arcade:phone-input',phoneSnapshot)})
 
   // This partition belongs to only this view, so deny every privileged browser
   // permission by default without affecting the trusted shell session.
@@ -833,6 +838,19 @@ app.whenReady().then(async () => {
   // Controller translation crosses into the game only through Chromium's
   // trusted input pipeline. Bind every message to the current isolated view,
   // validate its narrow shape, and honour the manifest-declared adapter.
+  ipcMain.on('arcade:phone-input',(event,value:unknown)=> {
+    if(!win || event.sender !== win.webContents) return
+    const snapshot=parsePhoneSnapshot(value);if(!snapshot) return
+    phoneSnapshot=snapshot
+    const view=activeWebSession?.view
+    if(view && !view.webContents.isDestroyed()) view.webContents.send('arcade:phone-input',snapshot)
+  })
+  ipcMain.on('arcade:phone-profile',(event,value:unknown)=> {
+    const session=activeWebSession
+    if(!session || event.sender !== session.view.webContents || !isControllerSpec(value)) return
+    win?.webContents.send('arcade:phone-profile',value)
+  })
+
   ipcMain.on('webgame:input:key', (event, rawAction: unknown) => {
     const session = activeWebSession
     if (!session || event.sender !== session.view.webContents || !adapterUsesKeyboard(session.inputAdapter)) return

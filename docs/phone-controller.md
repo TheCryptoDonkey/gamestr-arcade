@@ -1,0 +1,13 @@
+# Phone controllers
+
+The cabinet and both public web editions offer **Pair phone**. The QR opens Joystick in the phone's browser; a six-character code displays as `ABC DEF`. The controller-options page retains the exact session/version/broker and offers browser installation or an already-installed native app. App Store/Google Play links remain unavailable until Joystick's public store listings exist.
+
+The cabinet uses the existing Joystick v2 host SDK and validates a narrow input snapshot before forwarding it from the trusted shell to the active isolated game view. The game sees a standard virtual Gamepad; physical input remains usable. Keyboard/pointer translation still follows the game's manifest adapter. Input does not grant Nostr signing or wallet permission. Native process/AppImage games are not controlled by this browser bridge.
+
+The public catalogue can be navigated with the paired phone. A publisher must explicitly implement `gamestr-controller-v1` to keep that connection in its own page. Hang On, Fren is the first integrated game. Its controller profile changes labels and layout when play moves into the publisher window. Other games disclose that only catalogue pairing is available. Popups still need the browser's normal permission; modified clicks open an independent game.
+
+The input handshake is separate from `gamestr-auth-v1`. It pins the exact opened child and publisher origin, validates the game's declarative profile, and transfers a dedicated MessageChannel. Publisher clients pin permitted Arcade origins. Closing a channel or losing its heartbeat releases input; profile/geometry changes start neutral. Existing login, signing revocation, selected-account and wallet approval journeys retain their own authority boundaries.
+
+The open draft NIP, schema, shared fixtures and portable browser/Swift/Kotlin reference are at [nostr-game-controller](https://github.com/forgesworn/nostr-game-controller). No NIP number or event-kind allocation is claimed. SDK tarballs are pinned locally with MIT licence and hashes in `vendor/joystick/provenance.json`; no registry publication is claimed.
+
+Validation: complete config/schema/type/unit/Electron/web build gates, both editions' initial JavaScript budget and CSP checks, and 56 browser journeys including actual cross-origin input/profile handoff and input-channel neutralisation. Physical cabinet and publisher gameplay remain a separate acceptance check.

@@ -16,8 +16,8 @@ export default defineConfig({
     },
   },
   preload: {
-    plugins: [externalizeDepsPlugin()],
     build: {
+      externalizeDeps: {exclude:['@forgesworn/joystick-protocol']},
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/preload/index.ts'),

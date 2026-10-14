@@ -10,103 +10,253 @@
       "pattern": "^(https://|http://(localhost|127\\.0\\.0\\.1|\\[::1\\])([:/]|$))"
     }
   },
-  "required": ["manifestVersion", "name", "gameId"],
+  "required": [
+    "manifestVersion",
+    "name",
+    "gameId"
+  ],
   "properties": {
-    "manifestVersion": { "const": 2 },
-    "name": { "type": "string", "minLength": 1, "maxLength": 80 },
-    "tagline": { "type": "string", "maxLength": 140 },
-    "description": { "type": "string", "maxLength": 1200 },
-    "developer": { "type": "string", "maxLength": 100 },
-    "tips": { "type": "string", "minLength": 6, "maxLength": 320 },
+    "manifestVersion": {
+      "const": 2
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "tagline": {
+      "type": "string",
+      "maxLength": 140
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1200
+    },
+    "developer": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "tips": {
+      "type": "string",
+      "minLength": 6,
+      "maxLength": 320
+    },
     "genres": {
       "type": "array",
-      "items": { "type": "string", "minLength": 1, "maxLength": 32 },
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 32
+      },
       "uniqueItems": true,
       "maxItems": 8
     },
-    "url": { "$ref": "#/$defs/secureWebUrl" },
-    "exec": { "type": "string", "minLength": 1 },
-    "args": { "type": "array", "items": { "type": "string" }, "maxItems": 32 },
-    "gameId": { "type": "string", "minLength": 1, "maxLength": 128 },
-    "order": { "type": "number" },
-    "accent": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
-    "logoUrl": { "$ref": "#/$defs/secureWebUrl" },
-    "heroUrl": { "$ref": "#/$defs/secureWebUrl" },
-    "textLogo": { "type": "boolean" },
-    "downloadOnly": { "type": "boolean" },
-    "downloadUrl": { "$ref": "#/$defs/secureWebUrl" },
-    "operatorOnly": { "type": "boolean" },
+    "url": {
+      "$ref": "#/$defs/secureWebUrl"
+    },
+    "exec": {
+      "type": "string",
+      "minLength": 1
+    },
+    "args": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 32
+    },
+    "gameId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "order": {
+      "type": "number"
+    },
+    "accent": {
+      "type": "string",
+      "pattern": "^#[0-9a-fA-F]{6}$"
+    },
+    "logoUrl": {
+      "$ref": "#/$defs/secureWebUrl"
+    },
+    "heroUrl": {
+      "$ref": "#/$defs/secureWebUrl"
+    },
+    "textLogo": {
+      "type": "boolean"
+    },
+    "downloadOnly": {
+      "type": "boolean"
+    },
+    "downloadUrl": {
+      "$ref": "#/$defs/secureWebUrl"
+    },
+    "operatorOnly": {
+      "type": "boolean"
+    },
     "inputModes": {
       "type": "array",
-      "items": { "enum": ["gamepad", "keyboard", "pointer", "touch"] },
+      "items": {
+        "enum": [
+          "gamepad",
+          "keyboard",
+          "pointer",
+          "touch"
+        ]
+      },
       "uniqueItems": true,
       "minItems": 1
     },
     "controller": {
       "type": "object",
-      "required": ["adapter"],
+      "required": [
+        "adapter"
+      ],
       "properties": {
-        "adapter": { "enum": ["native", "keyboard", "pointer", "hybrid"] },
+        "adapter": {
+          "enum": [
+            "native",
+            "keyboard",
+            "pointer",
+            "hybrid"
+          ]
+        },
         "certification": {
           "type": "object",
-          "required": ["level", "testedAt", "hardware", "profiles", "gameRevision"],
+          "required": [
+            "level",
+            "testedAt",
+            "hardware",
+            "profiles",
+            "gameRevision"
+          ],
           "properties": {
-            "level": { "enum": ["desk", "hardware"] },
-            "testedAt": { "type": "string", "format": "date" },
+            "level": {
+              "enum": [
+                "desk",
+                "hardware"
+              ]
+            },
+            "testedAt": {
+              "type": "string",
+              "format": "date"
+            },
             "hardware": {
               "type": "array",
-              "items": { "type": "string", "minLength": 1, "maxLength": 160 },
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
               "uniqueItems": true,
               "minItems": 1,
               "maxItems": 8
             },
             "profiles": {
               "type": "array",
-              "items": { "enum": ["standard", "linux-hat"] },
+              "items": {
+                "enum": [
+                  "standard",
+                  "linux-hat"
+                ]
+              },
               "uniqueItems": true,
               "minItems": 1,
               "maxItems": 2
             },
-            "gameRevision": { "type": "string", "minLength": 1, "maxLength": 160 },
-            "notes": { "type": "string", "maxLength": 500 }
+            "gameRevision": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 500
+            }
           },
           "additionalProperties": false
+        },
+        "phoneProtocol": {
+          "const": "gamestr-controller-v1"
         }
       },
       "additionalProperties": false
     },
     "controlHints": {
       "type": "array",
-      "items": { "type": "string", "minLength": 1, "maxLength": 80 },
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
       "maxItems": 8
     },
     "controls": {
       "type": "object",
       "properties": {
-        "up": { "type": "string" },
-        "down": { "type": "string" },
-        "left": { "type": "string" },
-        "right": { "type": "string" },
-        "fire": { "type": "string" }
+        "up": {
+          "type": "string"
+        },
+        "down": {
+          "type": "string"
+        },
+        "left": {
+          "type": "string"
+        },
+        "right": {
+          "type": "string"
+        },
+        "fire": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
-    "sessionMinutes": { "type": "integer", "minimum": 1, "maximum": 1440 },
+    "sessionMinutes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1440
+    },
     "players": {
       "type": "object",
-      "required": ["min", "max"],
+      "required": [
+        "min",
+        "max"
+      ],
       "properties": {
-        "min": { "type": "integer", "minimum": 1, "maximum": 64 },
-        "max": { "type": "integer", "minimum": 1, "maximum": 64 }
+        "min": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "max": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        }
       },
       "additionalProperties": false
     },
-    "network": { "enum": ["required", "optional", "offline"] },
-    "conferenceFallback": { "type": "boolean" },
-    "ageRating": { "type": "string", "maxLength": 32 },
+    "network": {
+      "enum": [
+        "required",
+        "optional",
+        "offline"
+      ]
+    },
+    "conferenceFallback": {
+      "type": "boolean"
+    },
+    "ageRating": {
+      "type": "string",
+      "maxLength": 32
+    },
     "allowedOrigins": {
       "type": "array",
-      "items": { "$ref": "#/$defs/secureWebUrl" },
+      "items": {
+        "$ref": "#/$defs/secureWebUrl"
+      },
       "uniqueItems": true,
       "maxItems": 12
     },
@@ -150,32 +300,79 @@
     "capabilities": {
       "type": "object",
       "properties": {
-        "nostrSign": { "type": "boolean" },
-        "walletPay": { "type": "boolean" },
-        "persistentStorage": { "type": "boolean" },
-        "externalNavigation": { "type": "boolean" }
+        "nostrSign": {
+          "type": "boolean"
+        },
+        "walletPay": {
+          "type": "boolean"
+        },
+        "persistentStorage": {
+          "type": "boolean"
+        },
+        "externalNavigation": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
     "rewardRules": {
       "type": "object",
-      "required": ["enabled"],
+      "required": [
+        "enabled"
+      ],
       "properties": {
-        "enabled": { "type": "boolean" },
-        "label": { "type": "string", "maxLength": 120 }
+        "enabled": {
+          "type": "boolean"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 120
+        }
       },
       "additionalProperties": false
     },
-    "tHints": { "type": "array", "items": { "type": "string" } },
-    "scoreAuthorities": { "type": "array", "items": { "type": "string", "pattern": "^[0-9a-f]{64}$" }, "maxItems": 8, "uniqueItems": true },
-    "scoreKind": { "type": "integer" },
-    "scoreField": { "type": "string" },
-    "scoreDir": { "enum": ["asc", "desc"] },
-    "source": { "type": "string" }
+    "tHints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "scoreAuthorities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "maxItems": 8,
+      "uniqueItems": true
+    },
+    "scoreKind": {
+      "type": "integer"
+    },
+    "scoreField": {
+      "type": "string"
+    },
+    "scoreDir": {
+      "enum": [
+        "asc",
+        "desc"
+      ]
+    },
+    "source": {
+      "type": "string"
+    }
   },
   "anyOf": [
-    { "required": ["url"] },
-    { "required": ["exec"] }
+    {
+      "required": [
+        "url"
+      ]
+    },
+    {
+      "required": [
+        "exec"
+      ]
+    }
   ],
   "additionalProperties": false
 }

@@ -4,6 +4,8 @@ import type { ArcadeConfig, Game, GamestrCatalogueResult, GamestrImportResult } 
 declare global {
   interface Window {
     arcade: {
+      phoneInput(snapshot: import("../../shared/phone-input").PhoneSnapshot): void
+      onPhoneProfile(cb: (spec: unknown)=>void): void
       readonly gamepadDiagnostics: boolean
       getConfig(): Promise<ArcadeConfig>
       listGames(): Promise<Game[]>

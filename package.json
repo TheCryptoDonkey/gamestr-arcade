@@ -1,6 +1,6 @@
 {
   "name": "gamestr-arcade",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Gamestr arcade kiosk - Electron front-end for a self-contained arcade machine.",
@@ -34,7 +34,7 @@
     "conference:status": "npm run validate:manifests && node scripts/conference-status.mjs",
     "typecheck": "tsc -p tsconfig.node.json --noEmit --pretty false && tsc -p tsconfig.web.json --noEmit --pretty false",
     "check:deploy": "bash -n scripts/deploy.sh && bash -n scripts/deploy-web.sh",
-    "check": "npm run check:deploy && npm run validate && npm run typecheck && npm test && npm run build && npm run build:web && npm run validate:web && npm run build:web:600 && npm run validate:web:600",
+    "check": "npm run check:deploy && npm run validate && npm run typecheck && npm test && npm run build && node scripts/check-preload-bundles.mjs && npm run build:web && npm run validate:web && npm run build:web:600 && npm run validate:web:600",
     "deploy": "bash scripts/deploy.sh",
     "deploy:web:600": "GAMESTR_WEB_EDITION=600 GAMESTR_WEB_ORIGIN=https://arcade.600.wtf bash scripts/deploy-web.sh",
     "test:browser": "playwright test"
@@ -46,7 +46,9 @@
     "light-bolt11-decoder": "^3.2.0",
     "nostr-tools": "^2.23.5",
     "qrcode-generator": "^1.5.2",
-    "signet-login": "^0.17.3"
+    "signet-login": "^0.17.3",
+    "@forgesworn/joystick-host": "file:vendor/joystick/joystick-host-0.4.0-03e01adbcd5b.tgz",
+    "@forgesworn/joystick-protocol": "file:vendor/joystick/joystick-protocol-0.4.0-9c68737c0a9e.tgz"
   },
   "devDependencies": {
     "@electron-toolkit/tsconfig": "^2.0.0",
