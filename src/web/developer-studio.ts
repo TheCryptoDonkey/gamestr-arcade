@@ -1,3 +1,4 @@
+import {GAME_DEFINITION_MAX_BYTES} from '@forgesworn/joystick-protocol'
 import { verifyEvent } from 'nostr-tools/pure'
 import validateSchema from 'virtual:gamestr-manifest-validator'
 import { publicManifestErrors, submissionEvent, type PublicGameManifest } from './developer-submission'
@@ -15,10 +16,10 @@ export interface ValidationResult {
   manifest?: PublicGameManifest
 }
 
-const MAX_MANIFEST_CHARS = 32_768
+const MAX_MANIFEST_BYTES = GAME_DEFINITION_MAX_BYTES
 
 export async function validateManifestJson(raw: string): Promise<ValidationResult> {
-  if (raw.length > MAX_MANIFEST_CHARS) return { ok: false, errors: ['Manifest exceeds 32 KB.'] }
+  if (new TextEncoder().encode(raw).length > MAX_MANIFEST_BYTES) return { ok: false, errors: ['Game definition exceeds 64 KB.'] }
   let manifest: unknown
   try { manifest = JSON.parse(raw) } catch { return { ok: false, errors: ['Manifest is not valid JSON.'] } }
   if (!validateSchema(manifest)) {

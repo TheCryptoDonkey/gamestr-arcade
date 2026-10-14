@@ -8,6 +8,314 @@
       "type": "string",
       "format": "uri",
       "pattern": "^(https://|http://(localhost|127\\.0\\.0\\.1|\\[::1\\])([:/]|$))"
+    },
+    "controllerProfile": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://github.com/forgesworn/nostr-game-controller/blob/main/controller-profile.schema.json",
+      "title": "Experimental Nostr game controller profile v1",
+      "type": "object",
+      "required": [
+        "version",
+        "name",
+        "slots"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "slots": {
+          "type": "object",
+          "maxProperties": 16,
+          "propertyNames": {
+            "enum": [
+              "joyL",
+              "joyR",
+              "A",
+              "B",
+              "X",
+              "Y",
+              "L1",
+              "L2",
+              "R1",
+              "R2",
+              "start",
+              "select",
+              "dpadU",
+              "dpadD",
+              "dpadL",
+              "dpadR"
+            ]
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "enum": [
+                  "heading",
+                  "xy",
+                  "tilt"
+                ]
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 48
+              },
+              "icon": {
+                "type": "string",
+                "maxLength": 64
+              },
+              "colour": {
+                "type": "string",
+                "pattern": "^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$"
+              },
+              "tapAction": {
+                "enum": [
+                  "joyL",
+                  "joyR",
+                  "A",
+                  "B",
+                  "X",
+                  "Y",
+                  "L1",
+                  "L2",
+                  "R1",
+                  "R2",
+                  "start",
+                  "select",
+                  "dpadU",
+                  "dpadD",
+                  "dpadL",
+                  "dpadR"
+                ]
+              },
+              "graphic": {
+                "type": "object",
+                "required": [
+                  "png"
+                ],
+                "properties": {
+                  "png": {
+                    "type": "string",
+                    "maxLength": 12288,
+                    "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "theme": {
+          "type": "object",
+          "properties": {
+            "background": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$"
+            },
+            "accent": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$"
+            }
+          }
+        },
+        "layout": {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "anyOf": [
+            {
+              "required": [
+                "portrait"
+              ]
+            },
+            {
+              "required": [
+                "landscape"
+              ]
+            }
+          ],
+          "properties": {
+            "version": {
+              "const": 1
+            },
+            "portrait": {
+              "type": "object",
+              "propertyNames": {
+                "enum": [
+                  "joyL",
+                  "joyR",
+                  "A",
+                  "B",
+                  "X",
+                  "Y",
+                  "L1",
+                  "L2",
+                  "R1",
+                  "R2",
+                  "start",
+                  "select",
+                  "dpadU",
+                  "dpadD",
+                  "dpadL",
+                  "dpadR"
+                ]
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "x",
+                  "y",
+                  "size"
+                ],
+                "properties": {
+                  "x": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "y": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "size": {
+                    "type": "number",
+                    "minimum": 48,
+                    "maximum": 192
+                  },
+                  "shape": {
+                    "enum": [
+                      "circle",
+                      "rounded"
+                    ]
+                  },
+                  "zone": {
+                    "type": "object",
+                    "required": [
+                      "x",
+                      "y",
+                      "width",
+                      "height"
+                    ],
+                    "properties": {
+                      "x": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "y": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "width": {
+                        "type": "number",
+                        "minimum": 0.1,
+                        "maximum": 1
+                      },
+                      "height": {
+                        "type": "number",
+                        "minimum": 0.1,
+                        "maximum": 1
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "landscape": {
+              "type": "object",
+              "propertyNames": {
+                "enum": [
+                  "joyL",
+                  "joyR",
+                  "A",
+                  "B",
+                  "X",
+                  "Y",
+                  "L1",
+                  "L2",
+                  "R1",
+                  "R2",
+                  "start",
+                  "select",
+                  "dpadU",
+                  "dpadD",
+                  "dpadL",
+                  "dpadR"
+                ]
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "x",
+                  "y",
+                  "size"
+                ],
+                "properties": {
+                  "x": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "y": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "size": {
+                    "type": "number",
+                    "minimum": 48,
+                    "maximum": 192
+                  },
+                  "shape": {
+                    "enum": [
+                      "circle",
+                      "rounded"
+                    ]
+                  },
+                  "zone": {
+                    "type": "object",
+                    "required": [
+                      "x",
+                      "y",
+                      "width",
+                      "height"
+                    ],
+                    "properties": {
+                      "x": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "y": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "width": {
+                        "type": "number",
+                        "minimum": 0.1,
+                        "maximum": 1
+                      },
+                      "height": {
+                        "type": "number",
+                        "minimum": 0.1,
+                        "maximum": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "$comment": "Runtime validators additionally enforce 48 KiB UTF-8, total artwork 32768 characters, PNG dimensions <=256, stick size >=96, stick-only zones, complete maps, bounded zones and viewport collision fallback. Unknown extension fields are ignored within the total limit."
     }
   },
   "required": [
@@ -179,9 +487,26 @@
         },
         "phoneProtocol": {
           "const": "gamestr-controller-v1"
+        },
+        "profile": {
+          "$ref": "https://github.com/forgesworn/nostr-game-controller/blob/main/controller-profile.schema.json"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "profile"
+            ]
+          },
+          "then": {
+            "required": [
+              "phoneProtocol"
+            ]
+          }
+        }
+      ]
     },
     "controlHints": {
       "type": "array",

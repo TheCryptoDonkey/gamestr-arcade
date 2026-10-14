@@ -1,3 +1,4 @@
+import type { ControllerSpec } from '@forgesworn/joystick-protocol'
 export type GameKind = 'appimage' | 'web'
 
 /**
@@ -32,6 +33,8 @@ export interface GameControllerCertification {
 }
 
 export interface GameControllerContract {
+  /** Game-owned default controller presentation, from the game definition. */
+  profile?: ControllerSpec
   phoneProtocol?: 'gamestr-controller-v1'
   /** Native leaves the Gamepad API alone; other modes add only their named synthetic channels. */
   adapter: GameInputAdapter

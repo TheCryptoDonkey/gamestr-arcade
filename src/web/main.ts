@@ -1,3 +1,4 @@
+import type {ControllerSpec} from '@forgesworn/joystick-protocol'
 import type {ArcadePhoneController} from '../shared/ui/phone-controller'
 import {menuPhoneSpec} from '../shared/phone-specs'
 import '../shared/ui/phone-controller.css'
@@ -25,6 +26,7 @@ interface WebGame {
   genres: string[]; url: string; accent: string; hero?: string; logo?: string; artOverlay?: boolean
   featured: boolean; trending: boolean; newRelease: boolean; walletPay: boolean
   phoneController?: 'gamestr-controller-v1'
+  controllerProfile?: ControllerSpec
   nostrHandoff?: { protocol: 'gamestr-auth-v1'; editions: string[]; signKinds: number[] }
   players?: { min: number; max: number }; scoreAuthorities?: string[]; scoreKind?: number; scoreField?: string; scoreDir?: 'asc' | 'desc'
 }
@@ -62,9 +64,10 @@ pairPhone.onclick=async()=> {
   } catch {pairPhone.disabled=false;pairPhone.textContent='Retry phone pairing'}
 }
 let phoneGameGeneration=0
-const connectPhoneGame=async(child:Window,url:string)=> {
+const connectPhoneGame=async(child:Window,url:string,profile?:ControllerSpec)=> {
   const generation=++phoneGameGeneration
   activePhoneGame?.();activePhoneGame=null
+  if(profile)phone?.setSpec(profile)
   applyPhoneGamepad({connected:false,axes:[0,0,0,0],buttons:Array(17).fill(false)})
   activePhoneGame=()=> {}
   const {bindPhoneGame}=await import('./phone-game-handoff')
@@ -187,7 +190,7 @@ function playLink(game: WebGame, label = 'PLAY', className = 'play-small'): HTML
       link.addEventListener('click', event => {
         if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
         event.preventDefault()
-        if (!openNostrGame(launch,phone?.paired && game.phoneController ? child=>connectPhoneGame(child,game.url) : undefined)) toast('The game popup was blocked. Allow popups to carry your identity, or use a modifier click and sign in inside the game.', 'warn')
+        if (!openNostrGame(launch,phone?.paired && game.phoneController ? child=>connectPhoneGame(child,game.url,game.controllerProfile) : undefined)) toast('The game popup was blocked. Allow popups to carry your identity, or use a modifier click and sign in inside the game.', 'warn')
       })
     }
   }
@@ -195,7 +198,7 @@ function playLink(game: WebGame, label = 'PLAY', className = 'play-small'): HTML
     if(!phone?.paired || event.button!==0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)return
     event.preventDefault()
     const child=window.open('','_blank');if(!child){toast('Allow popups to carry your paired phone into this game.','warn');return}
-    connectPhoneGame(child,game.url);child.location.replace(game.url)
+    connectPhoneGame(child,game.url,game.controllerProfile);child.location.replace(game.url)
   })
   if(phone?.paired && !game.phoneController) link.title += ' Phone pairing across publisher sites is not supported by this game.'
   return link

@@ -304,7 +304,7 @@ async function boot(): Promise<void> {
       sessionGame = game
       if (game.kind === 'web') {
         inWebGame = true
-        phone.setSpec(gamePhoneSpec)
+        phone.setSpec(game.controller?.profile ?? gamePhoneSpec)
         launchOverlay.show(game)
       }
     } else {

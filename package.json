@@ -1,6 +1,6 @@
 {
   "name": "gamestr-arcade",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "type": "module",
   "description": "Gamestr arcade kiosk - Electron front-end for a self-contained arcade machine.",
@@ -47,8 +47,8 @@
     "nostr-tools": "^2.23.5",
     "qrcode-generator": "^1.5.2",
     "signet-login": "^0.17.3",
-    "@forgesworn/joystick-host": "file:vendor/joystick/joystick-host-0.4.1-8d574c349aa2.tgz",
-    "@forgesworn/joystick-protocol": "file:vendor/joystick/joystick-protocol-0.4.1-235e0a393581.tgz"
+    "@forgesworn/joystick-host": "file:vendor/joystick/joystick-host-0.4.2-d045b6bb94bd.tgz",
+    "@forgesworn/joystick-protocol": "file:vendor/joystick/joystick-protocol-0.4.2-613408c2b830.tgz"
   },
   "devDependencies": {
     "@electron-toolkit/tsconfig": "^2.0.0",

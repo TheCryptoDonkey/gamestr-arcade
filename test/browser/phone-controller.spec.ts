@@ -56,3 +56,19 @@ test('phone navigation cannot activate account or payment approval controls',asy
   })
   expect(result).toEqual({approvals:0,plays:1})
 })
+
+test('the public catalogue and submission schema carry the game-owned controller definition',async({page})=> {
+  await page.goto('http://127.0.0.1:4174')
+  const result=await page.evaluate(async()=> {
+    const catalogue=await(await fetch('/catalogue.json')).json()
+    const racer=catalogue.find((g:any)=>g.gameId==='hangonfren')
+    const {validateManifestJson}=await import('/developer-studio.ts')
+    const game={manifestVersion:2,name:'Manifest racer',gameId:'manifest-racer',url:'https://play.example.com/',controller:{adapter:'native',phoneProtocol:'gamestr-controller-v1',profile:racer.controllerProfile}}
+    const valid=await validateManifestJson(JSON.stringify(game))
+    const invalid=await validateManifestJson(JSON.stringify({...game,controller:{...game.controller,profile:{...racer.controllerProfile,slots:{unknown:{}}}}}))
+    return {profile:racer.controllerProfile,valid:valid.ok,invalid:invalid.ok}
+  })
+  expect(result.profile.slots.joyL.label).toBe('Steer')
+  expect(result.profile.slots.A.label).toBe('Brake / Begin')
+  expect(result).toMatchObject({valid:true,invalid:false})
+})

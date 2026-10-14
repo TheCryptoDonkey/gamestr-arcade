@@ -1,3 +1,4 @@
+import { controllerProfileFromGameDefinition, type ControllerSpec } from '@forgesworn/joystick-protocol'
 import { defineConfig, type Plugin } from 'vite'
 import Ajv2020 from 'ajv/dist/2020.js'
 import addFormats from 'ajv-formats'
@@ -58,6 +59,7 @@ interface WebGame {
   newRelease: boolean
   walletPay: boolean
   phoneController?: 'gamestr-controller-v1'
+  controllerProfile?: ControllerSpec
   nostrHandoff?: { protocol: 'gamestr-auth-v1'; editions: string[]; signKinds: number[] }
   players?: { min: number; max: number }
   scoreAuthorities?: string[]
@@ -105,6 +107,7 @@ async function catalogue(): Promise<WebGame[]> {
       newRelease: (edition.newReleases ?? editorial.new)?.includes(entry.name) ?? false,
       walletPay: manifest.capabilities?.walletPay === true,
       phoneController: manifest.controller?.phoneProtocol === 'gamestr-controller-v1' ? manifest.controller.phoneProtocol : undefined,
+      controllerProfile: controllerProfileFromGameDefinition(manifest) ?? undefined,
       nostrHandoff: manifest.capabilities?.nostrSign === true ? manifest.nostrHandoff : undefined,
       players: manifest.players,
       scoreAuthorities: manifest.scoreAuthorities,
