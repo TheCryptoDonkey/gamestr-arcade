@@ -149,6 +149,24 @@ recorded separately from successful public checks. The edition definition lives 
 `web.editions.json`, where its allow-list can be expanded without splitting the
 codebase.
 
+### Game definition review
+
+The [600 game definition review](https://arcade.600.wtf/definitions/600/), linked
+from the 600 edition footer, shows selected artwork, descriptions, current
+keyboard actions and portrait/landscape phone layouts for all four titles.
+Each card offers an inspector and a downloadable portable `game.json` draft.
+The source files live in [examples/game-definitions/600](../examples/game-definitions/600/README.md).
+
+CI validates the four complete definitions, checks sixteen phone/tablet layout
+combinations, verifies that published downloads match the source bytes, and
+exercises the page under a strict script CSP. The review uses separate external
+scripts and styles, so it adds no preview code to the catalogue's initial bundle.
+
+Hang On, Fren retains its live layout. The other three profiles remain proposed
+until their publisher games implement phone handoff. Review publication does not
+add phone compatibility to the live catalogue. Extra keyboard actions are
+readable hints; complete custom-action remapping remains protocol work.
+
 Legacy route compatibility is handled in the clone client: existing
 `/player/<pubkey>` and `/score/<event>` links remain canonical, the older
 four-segment score route resolves its final event ID, and `/game/naddr…` links

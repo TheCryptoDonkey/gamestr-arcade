@@ -899,6 +899,11 @@ function footer(): HTMLElement {
   const foot = el('footer'); const brand = el('div'); brand.append(el('strong', '', WEB_EDITION.footerName), el('p', '', WEB_EDITION.footerDescription))
   const links = el('div'); links.append(linkButton('ARCADE', '/'), linkButton('SCORES', '/scores'), linkButton('BUILD', '/developers'))
   links.append(externalLink('GAMESTR.IO ↗', GAMESTR_ORIGIN))
+  if (WEB_EDITION.key === '600') {
+    const definitions = el('a', 'text-link', 'GAME DEFINITIONS')
+    definitions.href = '/definitions/600/'
+    links.append(definitions)
+  }
   if (WEB_EDITION.footerLink) {
     const external = el('a', 'text-link', WEB_EDITION.footerLink.label)
     external.href = WEB_EDITION.footerLink.url

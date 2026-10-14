@@ -56,6 +56,19 @@ for (const route of ['scores', 'developers']) await stat(new URL(`${route}/index
 const schema = await read('schemas/game-manifest-v2.schema.json').then(JSON.parse).catch(() => fail('Manifest v2 schema is missing'))
 if (schema?.$schema !== 'https://json-schema.org/draft/2020-12/schema' || schema?.properties?.manifestVersion?.const !== 2) fail('Manifest v2 schema is not canonical')
 
+const reviewHtml = await read('definitions/600/index.html')
+if (!reviewHtml.includes("script-src 'self'") || /<script\b(?![^>]*\bsrc=)[^>]*>/i.test(reviewHtml)) fail('definition review must use external scripts under strict CSP')
+for (const file of ['preview.js', 'preview.css']) await stat(new URL(`definitions/600/${file}`, root)).catch(() => fail(`definition review asset is missing: ${file}`))
+const definitions = await read('definitions/600/games.json').then(JSON.parse)
+if (JSON.stringify(definitions.map(game => game.slug)) !== JSON.stringify(editions['600'].gameSlugs)) fail('definition review must contain the four 600 games')
+for (const definition of definitions) {
+  const published = await read(`definitions/600/drafts/${definition.slug}/game.json`)
+  const source = await readFile(resolve(projectRoot, 'examples/game-definitions/600', definition.slug, 'game.json'), 'utf8')
+  if (published !== source || JSON.stringify(JSON.parse(published)) !== JSON.stringify(definition.draft)) fail(`${definition.slug} review download differs from its source`)
+  const live = catalogue.find(game => game.slug === definition.slug)
+  if (definition.livePhone !== Boolean(live?.phoneController)) fail(`${definition.slug} review must preserve the live compatibility status`)
+}
+
 const assetFiles = await readdir(new URL('assets/', root))
 const initialScripts = new Set(Array.from(html.matchAll(/\b(?:src|href)="\/assets\/([^"?]+\.js)(?:\?[^\"]*)?"/g), match => match[1]))
 if (initialScripts.size === 0) fail('initial JavaScript entry is missing')

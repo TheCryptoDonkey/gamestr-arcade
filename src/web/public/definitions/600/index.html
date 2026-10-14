@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>600 Arcade - game definition review</title>
+<link rel="icon" href="/icon.svg">
+<link rel="stylesheet" href="./preview.css">
+</head>
+<body>
+<main>
+<header>
+<div class="brand">
+<span class="mark">600<br>000<br>000<br>000</span>
+<a href="/">600.WTF / ARCADE</a>
+</div>
+<span class="review">GAME DEFINITIONS · REVIEW</span>
+</header>
+<h1>Four games.<br>
+<span>One definition each.</span>
+</h1>
+<p class="lede">The artwork players see, the story of each game, and the controls their thumbs use. These previews use our selected Arcade images and source-checked keyboard actions.</p>
+<div class="toolbar">
+<span>Rotate the preview · try the sticks and buttons · inspect or download the draft</span>
+<div class="tabs" aria-label="Controller orientation">
+<button id="portrait" aria-pressed="false">Portrait</button>
+<button id="landscape" aria-pressed="true">Landscape</button>
+</div>
+</div>
+<div class="grid" id="games">
+</div>
+<footer>
+<strong>What is live:</strong> all four games and their artwork are in the public Arcade. Hang On, Fren already carries its custom phone layout across the publisher handoff. The other three layouts are proposed; their publisher games still need the same handoff integration.<br>
+<strong>Keyboard controls:</strong> the table shows keys supported by the current game code. The current definition supports direction/fire overrides; the extra actions are shown as review notes and still need a full binding contract for remapping.<br>
+<strong>Motion:</strong> touch is the default. Joystick has an optional, explicitly enabled Tilt mode; these previews do not request motion access.</footer>
+</main>
+<div class="status" role="status" aria-live="polite">
+</div>
+<script type="module" src="./preview.js">
+</script>
+</body>
+</html>
+
