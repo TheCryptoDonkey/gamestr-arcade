@@ -1,0 +1,189 @@
+{
+  "manifestVersion": 2,
+  "name": "Pallasite",
+  "tagline": "Cosmic arcade Asteroids - mine the belt, top the chain",
+  "description": "Mine a neon asteroid belt, survive the swarm, and chase the global high score.",
+  "genres": [
+    "arcade",
+    "shooter"
+  ],
+  "tips": "profusemeat89@walletofsatoshi.com",
+  "gameId": "pallasite",
+  "order": 1,
+  "accent": "#7cf3ff",
+  "url": "https://pallasite.app/",
+  "inputModes": [
+    "gamepad",
+    "keyboard"
+  ],
+  "controller": {
+    "adapter": "native",
+    "phoneProtocol": "gamestr-controller-v1",
+    "profile": {
+      "version": 1,
+      "name": "Pallasite",
+      "theme": {
+        "background": "#0d121c",
+        "accent": "#7cf3ff"
+      },
+      "slots": {
+        "joyL": {
+          "mode": "xy",
+          "label": "Aim / fly",
+          "colour": "#7cf3ff"
+        },
+        "A": {
+          "label": "Fire",
+          "icon": "●",
+          "colour": "#ff8a3a"
+        },
+        "B": {
+          "label": "Shield",
+          "icon": "⛨",
+          "colour": "#58ff58"
+        },
+        "X": {
+          "label": "Warp",
+          "icon": "ϟ",
+          "colour": "#b48cff"
+        },
+        "R2": {
+          "label": "Thrust",
+          "icon": "↑",
+          "colour": "#7cf3ff"
+        },
+        "start": {
+          "label": "Pause",
+          "icon": "Ⅱ",
+          "colour": "#ffd84a"
+        }
+      },
+      "layout": {
+        "version": 1,
+        "portrait": {
+          "joyL": {
+            "x": 0.24,
+            "y": 0.78,
+            "size": 144,
+            "zone": {
+              "x": 0,
+              "y": 0.28,
+              "width": 0.52,
+              "height": 0.72
+            }
+          },
+          "A": {
+            "x": 0.81,
+            "y": 0.82,
+            "size": 88
+          },
+          "B": {
+            "x": 0.82,
+            "y": 0.53,
+            "size": 64
+          },
+          "X": {
+            "x": 0.62,
+            "y": 0.65,
+            "size": 64
+          },
+          "R2": {
+            "x": 0.24,
+            "y": 0.46,
+            "size": 64
+          },
+          "start": {
+            "x": 0.5,
+            "y": 0.12,
+            "size": 48,
+            "shape": "rounded"
+          }
+        },
+        "landscape": {
+          "joyL": {
+            "x": 0.17,
+            "y": 0.68,
+            "size": 144,
+            "zone": {
+              "x": 0,
+              "y": 0.2,
+              "width": 0.4,
+              "height": 0.8
+            }
+          },
+          "A": {
+            "x": 0.86,
+            "y": 0.78,
+            "size": 88
+          },
+          "B": {
+            "x": 0.88,
+            "y": 0.35,
+            "size": 64
+          },
+          "X": {
+            "x": 0.74,
+            "y": 0.56,
+            "size": 64
+          },
+          "R2": {
+            "x": 0.2,
+            "y": 0.2,
+            "size": 64
+          },
+          "start": {
+            "x": 0.5,
+            "y": 0.12,
+            "size": 48,
+            "shape": "rounded"
+          }
+        }
+      }
+    }
+  },
+  "controlHints": [
+    "STEER / THRUST = ← → / ↑ · A D / W",
+    "FIRE = Space",
+    "SHIELD = ↓",
+    "WARP = Shift / H · double-tap ↓",
+    "PAUSE = P / Esc",
+    "MENUS = Arrows · Enter · Esc"
+  ],
+  "sessionMinutes": 5,
+  "players": {
+    "min": 1,
+    "max": 1
+  },
+  "network": "optional",
+  "capabilities": {
+    "nostrSign": true,
+    "walletPay": true,
+    "persistentStorage": true,
+    "externalNavigation": false
+  },
+  "allowedOrigins": [
+    "https://pallasite.app"
+  ],
+  "developer": "The Crypto Donkey",
+  "nostrHandoff": {
+    "protocol": "gamestr-auth-v1",
+    "editions": [
+      "600"
+    ],
+    "signKinds": [
+      30762,
+      27235
+    ]
+  },
+  "scoreAuthorities": [
+    "fa9291d038fd1d3e4439364f289f2e53a64a1d32776ee52c000da53ebc718cdc"
+  ],
+  "heroUrl": "https://arcade.600.wtf/game-art/pallasite/hero.webp",
+  "controls": {
+    "up": "ArrowUp",
+    "down": "ArrowDown",
+    "left": "ArrowLeft",
+    "right": "ArrowRight",
+    "fire": "Space"
+  }
+}

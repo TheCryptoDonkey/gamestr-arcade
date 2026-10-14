@@ -4,6 +4,7 @@
     "electron.vite.config.*",
     "vite.web.config.ts",
     "vite.preview.config.ts",
+    "tools/game-definition-preview.ts",
     "src/main/**/*",
     "src/preload/**/*",
     "src/shared/**/*"

@@ -1,6 +1,6 @@
 {
   "name": "gamestr-arcade",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "type": "module",
   "description": "Gamestr arcade kiosk - Electron front-end for a self-contained arcade machine.",
@@ -30,14 +30,15 @@
     "dist": "electron-vite build && electron-builder --linux AppImage --x64 --publish never",
     "validate:config": "node scripts/validate-config.mjs",
     "validate:manifests": "node scripts/validate-manifests.mjs",
-    "validate": "npm run validate:config && npm run validate:manifests",
+    "validate": "npm run validate:config && npm run validate:manifests && npm run validate:definitions",
     "conference:status": "npm run validate:manifests && node scripts/conference-status.mjs",
     "typecheck": "tsc -p tsconfig.node.json --noEmit --pretty false && tsc -p tsconfig.web.json --noEmit --pretty false",
     "check:deploy": "bash -n scripts/deploy.sh && bash -n scripts/deploy-web.sh",
     "check": "npm run check:deploy && npm run validate && npm run typecheck && npm test && npm run build && node scripts/check-preload-bundles.mjs && npm run build:web && npm run validate:web && npm run build:web:600 && npm run validate:web:600",
     "deploy": "bash scripts/deploy.sh",
     "deploy:web:600": "GAMESTR_WEB_EDITION=600 GAMESTR_WEB_ORIGIN=https://arcade.600.wtf bash scripts/deploy-web.sh",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "validate:definitions": "node scripts/validate-definition-previews.mjs"
   },
   "dependencies": {
     "@getalby/sdk": "^8.0.3",

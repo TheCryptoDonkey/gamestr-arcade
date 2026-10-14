@@ -8,6 +8,7 @@ import { execFileSync } from 'node:child_process'
 import { copyFile, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 import editions from './web.editions.json'
+import { definitionPreview } from './tools/game-definition-preview'
 
 const projectRoot = import.meta.dirname
 const gamesDir = join(projectRoot, 'games')
@@ -203,6 +204,23 @@ function webData(): Plugin {
     name: 'gamestr-web-catalogue',
     transformIndexHtml: editionHtml,
     configureServer(server) {
+      server.middlewares.use('/definitions/600', async (req, res, next) => {
+        const path = (req.url ?? '').split('?')[0]
+        if (path === '/' || path === '/index.html' || path === '') {
+          res.setHeader('content-type', 'text/html; charset=utf-8')
+          res.end(await readFile(join(webRoot, 'public/definitions/600/index.html')))
+          return
+        }
+        if (path !== '/games.json' && !/^\/drafts\/[a-z0-9-]+\/game\.json$/.test(path)) return next()
+        try {
+          const games = await definitionPreview(projectRoot)
+          const selected = path === '/games.json' ? games : games.find(game => path === `/drafts/${game.slug}/game.json`)?.draft
+          if (!selected) { res.statusCode = 404; res.end('Unknown review definition'); return }
+          res.setHeader('content-type', 'application/json; charset=utf-8')
+          res.setHeader('cache-control', 'no-store')
+          res.end(`${JSON.stringify(selected, null, 2)}\n`)
+        } catch (error) { next(error as Error) }
+      })
       server.middlewares.use('/catalogue.json', async (_req, res) => {
         res.setHeader('content-type', 'application/json; charset=utf-8')
         res.setHeader('cache-control', 'no-store')
@@ -227,6 +245,15 @@ function webData(): Plugin {
     },
     async closeBundle() {
       const games = await catalogue()
+      const definitions = await definitionPreview(projectRoot)
+      const previewRoot = join(outDir, 'definitions/600')
+      await mkdir(previewRoot, { recursive: true })
+      await writeFile(join(previewRoot, 'games.json'), `${JSON.stringify(definitions, null, 2)}\n`)
+      for (const definition of definitions) {
+        const destination = join(previewRoot, 'drafts', definition.slug)
+        await mkdir(destination, { recursive: true })
+        await copyFile(join(projectRoot, 'examples/game-definitions/600', definition.slug, 'game.json'), join(destination, 'game.json'))
+      }
       await writeFile(join(outDir, 'catalogue.json'), `${JSON.stringify(games, null, 2)}\n`)
       await mkdir(join(outDir, 'schemas'), { recursive: true })
       await copyFile(manifestSchema, join(outDir, 'schemas/game-manifest-v2.schema.json'))

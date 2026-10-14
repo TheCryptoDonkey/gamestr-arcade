@@ -1,0 +1,160 @@
+{
+  "manifestVersion": 2,
+  "name": "Neon Sentinel",
+  "tagline": "Hold the relay, save the keys, don't get TIME LOCKED",
+  "description": "A radar-first Nostr rescue shooter with Defender-style waves, a seeded daily gauntlet, and 600B pressure.",
+  "genres": [
+    "arcade",
+    "shooter",
+    "action"
+  ],
+  "gameId": "neonsentinel",
+  "order": 2,
+  "accent": "#22d3ee",
+  "url": "https://neonsentinel.com/",
+  "logoUrl": "https://arcade.600.wtf/editorial/neon-sentinel-logo.webp",
+  "heroUrl": "https://arcade.600.wtf/editorial/neon-sentinel-hero.webp",
+  "inputModes": [
+    "gamepad",
+    "keyboard",
+    "touch"
+  ],
+  "controller": {
+    "adapter": "native",
+    "phoneProtocol": "gamestr-controller-v1",
+    "profile": {
+      "version": 1,
+      "name": "Neon Sentinel",
+      "theme": {
+        "background": "#0d121c",
+        "accent": "#22d3ee"
+      },
+      "slots": {
+        "joyL": {
+          "mode": "xy",
+          "label": "Fly",
+          "colour": "#22d3ee"
+        },
+        "A": {
+          "label": "Fire",
+          "icon": "●",
+          "colour": "#fb7185"
+        },
+        "X": {
+          "label": "Burst",
+          "icon": "ϟ",
+          "colour": "#c084fc"
+        },
+        "start": {
+          "label": "Pause / begin",
+          "icon": "Ⅱ"
+        }
+      },
+      "layout": {
+        "version": 1,
+        "portrait": {
+          "joyL": {
+            "x": 0.24,
+            "y": 0.78,
+            "size": 144,
+            "zone": {
+              "x": 0,
+              "y": 0.28,
+              "width": 0.52,
+              "height": 0.72
+            }
+          },
+          "A": {
+            "x": 0.82,
+            "y": 0.8,
+            "size": 88
+          },
+          "X": {
+            "x": 0.69,
+            "y": 0.56,
+            "size": 64
+          },
+          "start": {
+            "x": 0.5,
+            "y": 0.12,
+            "size": 48,
+            "shape": "rounded"
+          }
+        },
+        "landscape": {
+          "joyL": {
+            "x": 0.17,
+            "y": 0.68,
+            "size": 144,
+            "zone": {
+              "x": 0,
+              "y": 0.2,
+              "width": 0.4,
+              "height": 0.8
+            }
+          },
+          "A": {
+            "x": 0.86,
+            "y": 0.74,
+            "size": 88
+          },
+          "X": {
+            "x": 0.76,
+            "y": 0.36,
+            "size": 64
+          },
+          "start": {
+            "x": 0.5,
+            "y": 0.12,
+            "size": 48,
+            "shape": "rounded"
+          }
+        }
+      }
+    }
+  },
+  "controlHints": [
+    "FLY = Arrows / WASD",
+    "FIRE = Space / J",
+    "SMART BURST = X / K / Shift",
+    "PAUSE / RESUME = Esc",
+    "BEGIN / CONFIRM = Enter / Space"
+  ],
+  "sessionMinutes": 5,
+  "players": {
+    "min": 1,
+    "max": 1
+  },
+  "network": "required",
+  "capabilities": {
+    "nostrSign": true,
+    "walletPay": false,
+    "persistentStorage": true,
+    "externalNavigation": false
+  },
+  "allowedOrigins": [
+    "https://neonsentinel.com"
+  ],
+  "developer": "The Crypto Donkey",
+  "tips": "profusemeat89@walletofsatoshi.com",
+  "nostrHandoff": {
+    "protocol": "gamestr-auth-v1",
+    "editions": [
+      "600"
+    ],
+    "signKinds": [
+      30762,
+      27235
+    ]
+  },
+  "scoreAuthorities": [
+    "370148bb752fee753c8dd436752e801f02913dbc7ac6330828d13d5540c4ca21"
+  ],
+  "controls": {
+    "up": "ArrowUp",
+    "down": "ArrowDown",
+    "left": "ArrowLeft",
+    "right": "ArrowRight",
+    "fire": "Space"
+  }
+}
