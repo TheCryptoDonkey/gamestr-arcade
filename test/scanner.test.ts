@@ -230,3 +230,13 @@ describe('shipped conference catalogue policy', () => {
     }
   })
 })
+
+describe('game definition controller profiles', () => {
+  it('retains the same publisher-defined controls when loading a cabinet game', async () => {
+    const games=await scanGames(REAL_GAMES),game=games.find(g=>g.gameId==='hangonfren')
+    expect(game?.controller?.profile?.slots.joyL?.label).toBe('Steer')
+    expect(game?.controller?.profile?.slots.A?.label).toBe('Brake / Begin')
+    expect(game?.controller?.profile?.layout?.portrait).toBeDefined()
+    expect(game?.controller?.profile?.layout?.landscape).toBeDefined()
+  })
+})

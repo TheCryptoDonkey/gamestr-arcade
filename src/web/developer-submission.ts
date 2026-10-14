@@ -1,4 +1,7 @@
+import { controllerProfileFromGameDefinition, GAME_DEFINITION_MAX_BYTES } from '@forgesworn/joystick-protocol'
+import type {GameControllerContract} from '../shared/types'
 export interface PublicGameManifest {
+  controller?: GameControllerContract
   manifestVersion: 2
   name: string
   gameId: string
@@ -23,6 +26,8 @@ export function publicManifestErrors(game: PublicGameManifest): string[] {
     const url = new URL(game.url)
     if (url.protocol !== 'https:' || url.username || url.password) throw new Error()
   } catch { errors.push('Public submissions require a credential-free HTTPS game URL.') }
+  if (game.controller?.profile !== undefined && !controllerProfileFromGameDefinition(game)) errors.push('Controller profile is invalid or its phone protocol is missing.')
+  if (new TextEncoder().encode(submissionEvent(game).content).length > GAME_DEFINITION_MAX_BYTES) errors.push('Signed game definition exceeds 64 KB.')
   return errors
 }
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import {controllerProfileFromGameDefinition, GAME_DEFINITION_MAX_BYTES} from '@forgesworn/joystick-protocol'
 
 import { readdir, readFile, stat } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
@@ -44,6 +45,10 @@ for (const gamesRoot of roots) {
     // when a manifest explicitly opts into the v2 contract.
     if (manifest.manifestVersion !== 2) continue
     checked += 1
+    if (new TextEncoder().encode(JSON.stringify(manifest)).length > GAME_DEFINITION_MAX_BYTES || (manifest.controller?.profile !== undefined && !controllerProfileFromGameDefinition(manifest))) {
+      failures.push(`${path}: invalid or oversized game/controller definition`)
+      continue
+    }
     if (!validate(manifest)) {
       for (const issue of validate.errors ?? []) {
         failures.push(`${path}${issue.instancePath || '/'} ${issue.message}`)

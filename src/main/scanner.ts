@@ -1,3 +1,4 @@
+import { controllerProfileFromGameDefinition } from '@forgesworn/joystick-protocol'
 import { readdir, readFile, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import type {
@@ -51,12 +52,14 @@ function inputModes(value: unknown): GameInputMode[] | undefined {
 }
 
 const INPUT_ADAPTERS = new Set<GameInputAdapter>(['native', 'keyboard', 'pointer', 'hybrid'])
-function controllerContract(value: unknown): GameControllerContract | undefined {
+function controllerContract(value: unknown, definition: unknown): GameControllerContract | undefined {
   if (typeof value !== 'object' || !value) return undefined
   const raw = value as Record<string, unknown>
   if (!INPUT_ADAPTERS.has(raw.adapter as GameInputAdapter)) return undefined
   const result: GameControllerContract = { adapter: raw.adapter as GameInputAdapter }
   if(raw.phoneProtocol === 'gamestr-controller-v1')result.phoneProtocol=raw.phoneProtocol
+  const profile=controllerProfileFromGameDefinition(definition)
+  if(profile)result.profile=profile
   if (typeof raw.certification !== 'object' || !raw.certification) return result
   const cert = raw.certification as Record<string, unknown>
   const hardware = stringArray(cert.hardware)
@@ -246,7 +249,7 @@ async function build(
     description: typeof meta?.description === 'string' ? meta.description.trim() || undefined : undefined,
     genres: stringArray(meta?.genres),
     inputModes: inputModes(meta?.inputModes),
-    controller: controllerContract(meta?.controller),
+    controller: controllerContract(meta?.controller, meta),
     controlHints: stringArray(meta?.controlHints),
     sessionMinutes: Number.isSafeInteger(sessionMinutes) && sessionMinutes > 0 && sessionMinutes <= 1440 ? sessionMinutes : undefined,
     players: playerRange(meta?.players),
