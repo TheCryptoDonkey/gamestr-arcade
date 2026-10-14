@@ -10,4 +10,6 @@ The input handshake is separate from `gamestr-auth-v1`. It pins the exact opened
 
 The open draft NIP, schema, shared fixtures and portable browser/Swift/Kotlin reference are at [nostr-game-controller](https://github.com/forgesworn/nostr-game-controller). No NIP number or event-kind allocation is claimed. SDK tarballs are pinned locally with MIT licence and hashes in `vendor/joystick/provenance.json`; no registry publication is claimed.
 
-Validation: complete config/schema/type/unit/Electron/web build gates, both editions' initial JavaScript budget and CSP checks, and 56 browser journeys including actual cross-origin input/profile handoff and input-channel neutralisation. Physical cabinet and publisher gameplay remain a separate acceptance check.
+Validation: complete config/schema/type/unit/Electron/web build gates, both editions' initial JavaScript budget and CSP checks, and 57 browser journeys including actual cross-origin input/profile handoff and input-channel neutralisation. Physical cabinet and publisher gameplay remain a separate acceptance check.
+
+Version 0.2.1 restricts phone catalogue navigation and activation to game cards, play links and Arcade/Scores navigation. Pairing cannot activate focused account, signing or payment controls; an open dialog suspends catalogue navigation. The regression covers these focused approval controls. The 0.4.1 profile SDK also retains physical HAT directions and rumble beside the phone.

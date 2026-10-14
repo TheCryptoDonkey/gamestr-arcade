@@ -53,13 +53,11 @@ const pairPhone=document.createElement('button');pairPhone.type='button';pairPho
 pairPhone.onclick=async()=> {
   pairPhone.disabled=true
   try {
-    const [{mountPhoneController},{InputController},browser]=await Promise.all([import('../shared/ui/phone-controller'),import('../renderer/src/ui/input'),import('@forgesworn/joystick-protocol/browser')])
+    const [{mountPhoneController},{startCataloguePhoneInput},browser]=await Promise.all([import('../shared/ui/phone-controller'),import('./phone-catalogue-input'),import('@forgesworn/joystick-protocol/browser')])
     applyPhoneGamepad=browser.applyPhoneGamepad
     phone=mountPhoneController(snapshot=> {if(!activePhoneGame)applyPhoneGamepad(snapshot)})
-    new InputController({onPrev:()=>movePhoneFocus(-1),onNext:()=>movePhoneFocus(1),
-      onLaunch:()=> {if(!activePhoneGame && document.activeElement instanceof HTMLElement && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName))document.activeElement.click()},
-      onBack:()=> {if(!activePhoneGame && !document.querySelector('dialog[open]'))history.back()},
-    },{keyboard:false}).start()
+    const stopInput=startCataloguePhoneInput(()=>!!activePhoneGame)
+    window.addEventListener('pagehide',stopInput,{once:true})
     pairPhone.remove();document.querySelector<HTMLButtonElement>('.arcade-phone-open')?.click()
   } catch {pairPhone.disabled=false;pairPhone.textContent='Retry phone pairing'}
 }
@@ -72,13 +70,6 @@ const connectPhoneGame=async(child:Window,url:string)=> {
   const {bindPhoneGame}=await import('./phone-game-handoff')
   if(generation!==phoneGameGeneration || child.closed)return
   activePhoneGame=bindPhoneGame(child,new URL(url).origin,()=>phone!.snapshot,profile=>phone!.setSpec(profile),()=> {activePhoneGame=null;phone?.setSpec(menuPhoneSpec);if(phone)applyPhoneGamepad(phone.snapshot)})
-}
-function movePhoneFocus(direction:number): void {
-  if(activePhoneGame || document.querySelector('dialog[open]'))return
-  const targets=[...document.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input,summary')].filter(node=>!node.closest('.arcade-phone-dialog') && node.offsetWidth>0 && node.getAttribute('aria-disabled')!=='true')
-  if(!targets.length)return
-  const index=targets.indexOf(document.activeElement as HTMLElement),next=targets[(index+direction+targets.length)%targets.length]
-  next.focus();next.scrollIntoView({block:'nearest',behavior:'smooth'})
 }
 installNostrGameBridge(() => currentNostrSigner())
 

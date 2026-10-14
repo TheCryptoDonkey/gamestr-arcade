@@ -36,3 +36,23 @@ test('pairing is explicit and does not request a Nostr signer',async({page})=> {
   await page.getByRole('button',{name:'Disconnect phone',exact:true}).click()
   await expect(page.getByRole('status')).toHaveText('Disconnected')
 })
+
+test('phone navigation cannot activate account or payment approval controls',async({page})=> {
+  await page.goto('http://127.0.0.1:4174')
+  const result=await page.evaluate(async()=> {
+    const {startCataloguePhoneInput}=await import('/phone-catalogue-input.ts')
+    let pressed=false,approvals=0,plays=0
+    const original=navigator.getGamepads.bind(navigator)
+    Object.defineProperty(navigator,'getGamepads',{configurable:true,value:()=>[{connected:true,mapping:'standard',axes:[0,0,0,0],buttons:Array.from({length:17},(_,i)=>({pressed:i===0 && pressed,value:i===0 && pressed ? 1 : 0}))}]})
+    const approval=document.createElement('button');approval.textContent='Approve payment';approval.onclick=()=>++approvals
+    const dialog=document.createElement('dialog');dialog.append(approval);document.body.append(dialog);dialog.showModal();approval.focus()
+    const stop=startCataloguePhoneInput(()=>false),wait=(ms:number)=>new Promise(resolve=>setTimeout(resolve,ms))
+    const pulse=async()=> {pressed=true;await wait(80);pressed=false;await wait(50)}
+    try {
+      await pulse();dialog.close();document.body.append(approval);approval.focus();await pulse()
+      const play=document.createElement('button');play.className='game-art';play.onclick=()=>++plays;document.getElementById('app')!.append(play);play.focus();await pulse();play.remove()
+      return {approvals,plays}
+    } finally {stop();Object.defineProperty(navigator,'getGamepads',{configurable:true,value:original});dialog.remove();approval.remove()}
+  })
+  expect(result).toEqual({approvals:0,plays:1})
+})
