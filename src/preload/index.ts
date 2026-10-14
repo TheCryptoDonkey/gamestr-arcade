@@ -10,6 +10,8 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { gamepadDiagnosticsEnabled } from '../shared/diagnostics'
 
 contextBridge.exposeInMainWorld('arcade', {
+  phoneInput: (snapshot: unknown) => ipcRenderer.send('arcade:phone-input',snapshot),
+  onPhoneProfile: (cb: (spec: unknown) => void) => {ipcRenderer.removeAllListeners('arcade:phone-profile');ipcRenderer.on('arcade:phone-profile',(_e,spec)=>cb(spec))},
   gamepadDiagnostics: gamepadDiagnosticsEnabled(process.env.ARCADE_GAMEPAD_DIAGNOSTICS),
   getConfig: () => ipcRenderer.invoke('config:get'),
   listGames: () => ipcRenderer.invoke('games:list'),

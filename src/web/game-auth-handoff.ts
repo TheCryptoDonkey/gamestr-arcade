@@ -238,7 +238,7 @@ export function installNostrGameBridge(getSigner: () => ArcadeSigner | undefined
   })
 }
 
-export function openNostrGame(launch: NostrGameLaunch): boolean {
+export function openNostrGame(launch: NostrGameLaunch,onOpened?: (child:Window)=>void): boolean {
   const child = window.open('', '_blank')
   if (!child) {
     return false
@@ -253,6 +253,7 @@ export function openNostrGame(launch: NostrGameLaunch): boolean {
     signKinds: launch.signKinds,
   })
   window.setTimeout(() => launches.delete(launch.channel), 60_000)
+  onOpened?.(child)
   child.location.replace(launch.url)
   return true
 }

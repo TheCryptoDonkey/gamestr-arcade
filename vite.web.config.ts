@@ -57,6 +57,7 @@ interface WebGame {
   trending: boolean
   newRelease: boolean
   walletPay: boolean
+  phoneController?: 'gamestr-controller-v1'
   nostrHandoff?: { protocol: 'gamestr-auth-v1'; editions: string[]; signKinds: number[] }
   players?: { min: number; max: number }
   scoreAuthorities?: string[]
@@ -103,6 +104,7 @@ async function catalogue(): Promise<WebGame[]> {
       trending: (edition.trending ?? editorial.trending)?.includes(entry.name) ?? false,
       newRelease: (edition.newReleases ?? editorial.new)?.includes(entry.name) ?? false,
       walletPay: manifest.capabilities?.walletPay === true,
+      phoneController: manifest.controller?.phoneProtocol === 'gamestr-controller-v1' ? manifest.controller.phoneProtocol : undefined,
       nostrHandoff: manifest.capabilities?.nostrSign === true ? manifest.nostrHandoff : undefined,
       players: manifest.players,
       scoreAuthorities: manifest.scoreAuthorities,

@@ -56,6 +56,7 @@ function controllerContract(value: unknown): GameControllerContract | undefined 
   const raw = value as Record<string, unknown>
   if (!INPUT_ADAPTERS.has(raw.adapter as GameInputAdapter)) return undefined
   const result: GameControllerContract = { adapter: raw.adapter as GameInputAdapter }
+  if(raw.phoneProtocol === 'gamestr-controller-v1')result.phoneProtocol=raw.phoneProtocol
   if (typeof raw.certification !== 'object' || !raw.certification) return result
   const cert = raw.certification as Record<string, unknown>
   const hardware = stringArray(cert.hardware)

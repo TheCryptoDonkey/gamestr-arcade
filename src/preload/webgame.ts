@@ -1,3 +1,5 @@
+import {parsePhoneSnapshot,neutralPhone,phoneAsGamepad,applyPhoneGamepad} from '../shared/phone-input'
+import {isControllerSpec} from '@forgesworn/joystick-protocol'
 /**
  * gamestr-arcade - web-game view preload.
  *
@@ -46,6 +48,16 @@ import {
   unionPadSnapshots,
   type GamepadInputSnapshot,
 } from '../shared/gamepad'
+
+let phoneInput = neutralPhone()
+if(typeof window !== 'undefined') ipcRenderer.on('arcade:phone-input',(_event,raw:unknown)=> {
+  const snapshot=parsePhoneSnapshot(raw);if(!snapshot)return;phoneInput=snapshot
+  contextBridge.executeInMainWorld({func:applyPhoneGamepad,args:[snapshot]})
+})
+if(typeof window !== 'undefined') window.addEventListener('message',event=> {
+  if(event.source !== window || event.origin !== location.origin || event.data?.protocol !== 'gamestr-controller-profile-v1' || !isControllerSpec(event.data.spec)) return
+  ipcRenderer.send('arcade:phone-profile',event.data.spec)
+})
 
 export { DPAD, FIRE_BUTTONS, HAT_AXIS, HAT_THRESHOLD, CABINET_EXIT_BUTTONS }
 
@@ -696,7 +708,8 @@ function initGamepadLoop(): void {
       console.log(`[gp:web] hb ${gpSummary()}`)
     }
 
-    const pads = navigator.getGamepads()
+    const pads = [...navigator.getGamepads()]
+    const phone = phoneAsGamepad(phoneInput);if(phone)pads.push(phone)
 
     // ── Deliberate cabinet-exit gesture ───────────────────────────────────
     if (menuDetector.update(cabinetExitPressedFromPads(pads))) {

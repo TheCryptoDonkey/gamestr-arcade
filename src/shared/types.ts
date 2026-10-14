@@ -32,6 +32,7 @@ export interface GameControllerCertification {
 }
 
 export interface GameControllerContract {
+  phoneProtocol?: 'gamestr-controller-v1'
   /** Native leaves the Gamepad API alone; other modes add only their named synthetic channels. */
   adapter: GameInputAdapter
   certification?: GameControllerCertification

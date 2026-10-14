@@ -1,3 +1,6 @@
+import {mountPhoneController,menuPhoneSpec,gamePhoneSpec} from '../../shared/ui/phone-controller'
+import {applyPhoneGamepad} from '../../shared/phone-input'
+import {isControllerSpec} from '@forgesworn/joystick-protocol'
 /**
  * gamestr-arcade - renderer entry point.
  *
@@ -39,6 +42,9 @@ import { ArcadeAudio } from './ui/audio'
 import { AttractMode } from './ui/attract'
 import { CrtOverlay } from './ui/crt'
 import type { ArcadeConfig, Game } from '../../shared/types'
+
+const phone = mountPhoneController(snapshot=> {applyPhoneGamepad(snapshot);if(typeof window.arcade !== 'undefined')window.arcade.phoneInput(snapshot)})
+if(typeof window.arcade !== 'undefined')window.arcade.onPhoneProfile(spec=> {phone.setSpec(isControllerSpec(spec) ? spec : menuPhoneSpec)})
 
 const inElectron = typeof window.arcade !== 'undefined'
 
@@ -298,6 +304,7 @@ async function boot(): Promise<void> {
       sessionGame = game
       if (game.kind === 'web') {
         inWebGame = true
+        phone.setSpec(gamePhoneSpec)
         launchOverlay.show(game)
       }
     } else {
@@ -424,6 +431,7 @@ async function boot(): Promise<void> {
   if (inElectron) {
     window.arcade.onReturn(() => {
       inWebGame = false
+      phone.setSpec(menuPhoneSpec)
       launchOverlay.hide()
       // Resume attract watching - the timeout restarts from now so the player
       // gets the full idle period before demo mode kicks in again.
@@ -463,6 +471,7 @@ async function boot(): Promise<void> {
     })
     window.arcade.onError(msg => {
       inWebGame = false
+      phone.setSpec(menuPhoneSpec)
       sessionStartedAt = 0
       sessionGame = null
       launchOverlay.hide()
