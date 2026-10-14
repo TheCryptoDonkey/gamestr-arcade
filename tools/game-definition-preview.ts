@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { isDeepStrictEqual } from 'node:util'
 import Ajv2020 from 'ajv/dist/2020.js'
 import addFormats from 'ajv-formats'
-import { controllerProfileFromGameDefinition, resolveControllerLayout, GAME_DEFINITION_MAX_BYTES } from '@forgesworn/joystick-protocol'
+import { controllerProfileFromGameDefinition, resolveControllerLayout, defaultControllerLayout, GAME_DEFINITION_MAX_BYTES } from '@forgesworn/joystick-protocol'
 import type { GamestrGameDefinition, ResolvedPlacement } from '@forgesworn/joystick-protocol'
 
 interface ReviewDefinition extends GamestrGameDefinition {
@@ -59,7 +59,7 @@ export async function definitionPreview(projectRoot: string) {
       if (draft[key] !== current[key]) throw new Error(`${slug} review ${key} differs from the catalogue`)
     }
     const resolved = Object.fromEntries(dimensions.map(([orientation, width, height]) => {
-      const slots = resolveControllerLayout(profile, width, height)
+      const slots = resolveControllerLayout(profile, width, height) ?? (!profile.layout ? defaultControllerLayout(width, height, Object.keys(profile.slots)) : null)
       if (!slots) throw new Error(`${slug} review layout overlaps at ${width} × ${height}`)
       return [orientation, { width, height, slots }]
     }))

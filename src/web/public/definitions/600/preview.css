@@ -81,3 +81,5 @@ main{padding:10px}
 .description-toggle { font-size: 11px; margin: -3px 0 14px; padding: 5px 8px; }
 .actions .download { display: inline-block; padding: 9px 13px; border: 1px solid #343c4c; border-radius: 8px; background: #1b2331; color: #e4e9f2; }
 @media(max-width: 380px) { header { flex-wrap: wrap; } }
+
+.tabs{flex-wrap:wrap}.slot{gap:2px;padding:4px}.slot .glyph{font-size:22px;line-height:1}.slot .label{font-size:11px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
