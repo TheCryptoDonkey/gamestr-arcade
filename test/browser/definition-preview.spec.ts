@@ -21,6 +21,9 @@ test('600 game definition review works with strict CSP and keeps draft compatibi
   await expect(page.locator('.layout-heading span')).toHaveText(['PORTRAIT', 'PORTRAIT', 'PORTRAIT', 'PORTRAIT'])
   await page.getByRole('button', { name: 'Landscape', exact: true }).click()
   await expect(page.locator('.layout-heading span')).toHaveText(['LANDSCAPE', 'LANDSCAPE', 'LANDSCAPE', 'LANDSCAPE'])
+  await page.getByRole('button', { name: 'iPad landscape', exact: true }).click()
+  await expect(page.locator('.layout-heading span')).toHaveText(['IPAD LANDSCAPE','IPAD LANDSCAPE','IPAD LANDSCAPE','IPAD LANDSCAPE'])
+  await page.getByRole('button', { name: 'Landscape', exact: true }).click()
   const ledger = page.locator('article[data-slug=takemetoyourledger]')
   await ledger.getByRole('button', { name: 'Read full description', exact: true }).click()
   await expect(ledger.locator('.description')).toHaveClass(/expanded/)
@@ -51,4 +54,20 @@ test('preview releases held input on blur and rotation and fits narrow screens',
     await page.setViewportSize({ width, height: 844 })
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   }
+})
+
+
+test('all preview action clusters use the exported game controls and bounded thumb reach', async ({ page }) => {
+  await page.goto('http://127.0.0.1:4175/definitions/600/')
+  const result = await page.evaluate(async () => {
+    const games = await (await fetch('./games.json')).json()
+    return games.every((game: any) => !game.draft.controller.profile.layout && Object.values(game.resolved).every((layout: any) => {
+      const a = layout.slots.A
+      return a.zone.width >= 100 && layout.width-a.x <= 116 && Object.entries(layout.slots).every(([key,p]: [string,any]) => key === 'start' || key.startsWith('joy') || Math.hypot(p.x-a.x,p.y-a.y) <= 180)
+    }))
+  })
+  expect(result).toBe(true)
+  const fire = page.getByRole('button', { name: 'Pallasite: Fire', exact: true })
+  const bounds = await fire.boundingBox()
+  expect(bounds!.width).toBeGreaterThan(bounds!.height)
 })

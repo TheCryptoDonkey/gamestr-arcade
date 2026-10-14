@@ -1,16 +1,16 @@
 {
   "sourceRepository": "forgesworn/joystick",
-  "sourceCommit": "7ac8091765b5585c2a002ab258a29046e4124369",
-  "version": "0.4.2",
+  "sourceCommit": "caa12b5ccef360e8a053cf3e864e323a2a107458",
+  "version": "0.4.3",
   "license": "MIT",
   "artifacts": [
     {
-      "file": "joystick-host-0.4.2-d045b6bb94bd.tgz",
-      "sha256": "d045b6bb94bdc89ac9641edb6d52394335e12d03534ee518aef5a382bab2565f"
+      "file": "joystick-protocol-0.4.3-c705883c020a.tgz",
+      "sha256": "c705883c020a1ac9c261987d6cb14d4912af75ac4de0c323e8844c6a13d939c6"
     },
     {
-      "file": "joystick-protocol-0.4.2-613408c2b830.tgz",
-      "sha256": "613408c2b830e69e50765605122bbb5f7981eb60e4ba2b761f48418246b6177d"
+      "file": "joystick-host-0.4.3-cd486d9a0ffa.tgz",
+      "sha256": "cd486d9a0ffa9fc09579456d23b6a3cdc15c26288fa5735b55f7b0bc6938f92c"
     }
   ]
 }

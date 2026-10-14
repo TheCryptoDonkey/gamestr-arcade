@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { scanGames } from '../src/main/scanner'
 import { join } from 'node:path'
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, mkdir, rm, writeFile, readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 
 const DIR = join(import.meta.dirname, 'fixtures/games')
@@ -236,7 +236,8 @@ describe('game definition controller profiles', () => {
     const games=await scanGames(REAL_GAMES),game=games.find(g=>g.gameId==='hangonfren')
     expect(game?.controller?.profile?.slots.joyL?.label).toBe('Steer')
     expect(game?.controller?.profile?.slots.A?.label).toBe('Brake / Begin')
-    expect(game?.controller?.profile?.layout?.portrait).toBeDefined()
-    expect(game?.controller?.profile?.layout?.landscape).toBeDefined()
+    const publisher = JSON.parse(await readFile(join(REAL_GAMES,'hang-on-fren/game.json'),'utf8'))
+    expect(game?.controller?.profile).toEqual(publisher.controller.profile)
+    expect(game?.controller?.profile?.layout).toBeUndefined()
   })
 })

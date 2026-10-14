@@ -33,7 +33,7 @@ function controller(game, container) {
   viewport.append(surface)
   frame.append(viewport)
   container.append(frame)
-  const width = orientation === 'portrait' ? 176 : Math.min(600, container.clientWidth - 30)
+  const width = Math.min(orientation === 'portrait' ? 360 : orientation === 'ipadPortrait' ? 420 : 600, container.clientWidth - 30)
   const scale = width / data.width
   viewport.style.width = `${width}px`
   viewport.style.height = `${data.height * scale}px`
@@ -47,10 +47,11 @@ function controller(game, container) {
     control.type = 'button'
     control.dataset.slot = key
     control.setAttribute('aria-label', `${game.name}: ${slot.label || key}`)
-    control.style.left = `${placement.x - placement.size / 2}px`
-    control.style.top = `${placement.y - placement.size / 2}px`
-    control.style.width = `${placement.size}px`
-    control.style.height = `${placement.size}px`
+    const bounds = stick ? {x:placement.x-placement.size/2,y:placement.y-placement.size/2,width:placement.size,height:placement.size} : placement.zone
+    control.style.left = `${bounds.x}px`
+    control.style.top = `${bounds.y}px`
+    control.style.width = `${bounds.width}px`
+    control.style.height = `${bounds.height}px`
     control.style.setProperty('--colour', slot.colour || profile.theme.accent)
     if (stick) control.append(element('span', '', slot.label))
     else {
@@ -129,7 +130,7 @@ function render(games) {
     }
     body.append(element('p', 'details-line', `${game.draft.genres.join(' / ')} · ${game.draft.developer}`))
     const heading = element('div', 'layout-heading')
-    heading.append(element('b', '', 'PHONE CONTROLLER'), element('span', '', orientation.toUpperCase()))
+    heading.append(element('b', '', 'PHONE CONTROLLER'), element('span', '', orientation.replace('ipad', 'iPad ').toUpperCase()))
     body.append(heading)
     const preview = element('div', 'controller-wrap')
     body.append(preview)
@@ -146,7 +147,7 @@ function render(games) {
     }
     body.append(table)
     body.append(element('p', 'note', game.livePhone
-      ? 'Existing live layout. The draft also includes the selected Arcade artwork and direction/fire key overrides.'
+      ? 'Adaptive phone controls. The draft also includes the selected Arcade artwork and direction/fire key overrides.'
       : 'Proposed phone layout, matched to this game’s current gamepad actions. Publisher phone handoff still needs integration.'))
     const buttons = element('div', 'actions')
     const download = element('a', 'download', 'Download draft game.json')
@@ -176,9 +177,9 @@ try {
   const response = await fetch(new URL('./games.json', import.meta.url))
   if (!response.ok) throw new Error('Definitions are unavailable. Reload to try again.')
   const games = await response.json()
-  for (const selected of ['portrait', 'landscape']) document.getElementById(selected).onclick = () => {
+  for (const selected of ['portrait', 'landscape', 'ipadPortrait', 'ipadLandscape']) document.getElementById(selected).onclick = () => {
     orientation = selected
-    for (const name of ['portrait', 'landscape']) document.getElementById(name).setAttribute('aria-pressed', String(name === selected))
+    for (const name of ['portrait', 'landscape', 'ipadPortrait', 'ipadLandscape']) document.getElementById(name).setAttribute('aria-pressed', String(name === selected))
     render(games)
   }
   window.addEventListener('resize', () => {
