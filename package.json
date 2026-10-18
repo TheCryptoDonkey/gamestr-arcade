@@ -42,12 +42,12 @@
   },
   "dependencies": {
     "@getalby/sdk": "^8.0.3",
-    "@scure/base": "^1.2.6",
+    "@scure/base": "^2.4.0",
     "gsap": "^3.12.5",
     "light-bolt11-decoder": "^3.2.0",
-    "nostr-tools": "^2.23.5",
-    "qrcode-generator": "^1.5.2",
-    "signet-login": "^0.17.3",
+    "nostr-tools": "^2.25.2",
+    "qrcode-generator": "^2.0.4",
+    "signet-login": "^0.19.1",
     "@forgesworn/joystick-host": "file:vendor/joystick/joystick-host-0.4.3-cd486d9a0ffa.tgz",
     "@forgesworn/joystick-protocol": "file:vendor/joystick/joystick-protocol-0.4.3-c705883c020a.tgz"
   },
