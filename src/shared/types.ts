@@ -241,6 +241,11 @@ export interface ArcadeConfig {
    * unlike the webln spend credentials. When absent, no ask is ever shown.
    */
   donation?: DonationConfig
+  /**
+   * wss:// URL of the Joystick controller relay used for phone pairing. The SDK has
+   * no default relay, so this is always passed explicitly (default: the hosted relay).
+   */
+  controllerRelay?: string
 }
 
 export interface DonationConfig {

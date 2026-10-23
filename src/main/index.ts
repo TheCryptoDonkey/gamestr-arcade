@@ -7,7 +7,7 @@ import {isControllerSpec} from '@forgesworn/joystick-protocol'
  * Set ARCADE_KIOSK=0 for a normal windowed build during development.
  */
 
-import { app, BrowserWindow, globalShortcut, ipcMain, net, protocol, WebContentsView } from 'electron'
+import { app, BrowserWindow, globalShortcut, ipcMain, net, protocol, session as electronSession, WebContentsView } from 'electron'
 import type { IpcMainInvokeEvent, WebContents } from 'electron'
 import { chmod, mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
@@ -25,6 +25,7 @@ import type { ImportDeps } from './gamestr-import'
 import { startLocalServer } from './local-server'
 import type { LocalServer } from './local-server'
 import { DEFAULT_CONFIG, parseConfig } from './config'
+import { ARCADE_RELAY_ORIGIN, productionRelayPattern } from './relay-origin'
 import { Launcher } from './launch'
 import type { LaunchDeps } from './launch'
 import { GamepadExitWatcher, realExitWatcherDeps } from './gamepad-exit'
@@ -613,6 +614,14 @@ app.whenReady().then(async () => {
   // below may refresh theme/wallet values but always report these effective
   // startup values until the process restarts.
   const startupConfig = await loadConfig()
+  // Phone pairing opens a WebSocket to the controller relay from this shell. The hosted relay
+  // accepts game screens only from the owner's sites, so present the arcade's web origin to it.
+  const relayPattern = productionRelayPattern(startupConfig.controllerRelay ?? '')
+  if (relayPattern) {
+    electronSession.defaultSession.webRequest.onBeforeSendHeaders({ urls: [relayPattern] }, (details, callback) => {
+      callback({ requestHeaders: { ...details.requestHeaders, Origin: ARCADE_RELAY_ORIGIN } })
+    })
+  }
   kioskMode = resolveStartupKiosk(startupConfig.kiosk, process.env.ARCADE_KIOSK)
   const gamesDir = resolveStartupGamesDir(
     resolveConfigPath(),

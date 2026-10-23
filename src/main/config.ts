@@ -1,4 +1,5 @@
 import type { ArcadeConfig, DonationConfig, WebLNConfig } from '../shared/types'
+import { DEFAULT_CONTROLLER_RELAY, parseControllerRelay } from '../shared/controller-relay'
 
 /**
  * Default relay set - kept in sync with Pallasite's `DEFAULT_RELAYS` so the
@@ -26,6 +27,7 @@ export const DEFAULT_CONFIG: ArcadeConfig = {
     relays: [...DEFAULT_LEADERBOARD_RELAYS],
     topN: 5,
   },
+  controllerRelay: DEFAULT_CONTROLLER_RELAY,
 }
 
 export function parseConfig(raw: unknown): ArcadeConfig {
@@ -50,6 +52,7 @@ export function parseConfig(raw: unknown): ArcadeConfig {
     leaderboard,
     webln: parseWebLN(o.webln),
     donation: parseDonation(o.donation),
+    controllerRelay: parseControllerRelay(o.controllerRelay),
   }
 }
 

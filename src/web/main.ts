@@ -10,6 +10,7 @@ import { lookupScore } from './score-lookup'
 import { boardFor, parseAnyScoreEvent, parse5555Event, scoreGameId } from '../renderer/src/leaderboard/gamestr-reduce'
 import { avatarCss, hexToNpub, lightningDestination, playerIdentity, resolveProfiles, type Profile } from '../renderer/src/leaderboard/profiles'
 import type { LeaderboardEntry } from '../shared/types'
+import {DEFAULT_CONTROLLER_RELAY} from '../shared/controller-relay'
 import { decodeInvitation, encodeInvitation, invitationTemplate, parseInvitation } from './game-invitation'
 import { challengeTemplate, decodeChallenge, encodeChallenge, parseChallenge } from './game-challenge'
 import { readSocialState, toggleSocialItem, writeSocialState } from './social-state'
@@ -57,7 +58,7 @@ pairPhone.onclick=async()=> {
   try {
     const [{mountPhoneController},{startCataloguePhoneInput},browser]=await Promise.all([import('../shared/ui/phone-controller'),import('./phone-catalogue-input'),import('@forgesworn/joystick-protocol/browser')])
     applyPhoneGamepad=browser.applyPhoneGamepad
-    phone=mountPhoneController(snapshot=> {if(!activePhoneGame)applyPhoneGamepad(snapshot)})
+    phone=mountPhoneController(snapshot=> {if(!activePhoneGame)applyPhoneGamepad(snapshot)},()=>DEFAULT_CONTROLLER_RELAY)
     const stopInput=startCataloguePhoneInput(()=>!!activePhoneGame)
     window.addEventListener('pagehide',stopInput,{once:true})
     pairPhone.remove();document.querySelector<HTMLButtonElement>('.arcade-phone-open')?.click()
