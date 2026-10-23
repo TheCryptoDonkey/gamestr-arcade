@@ -3,6 +3,7 @@ import {formatPairingCode,isControllerSpec,type ControllerSpec} from '@forgeswor
 import {PhoneInputState,neutralPhone,type PhoneSnapshot} from '../phone-input'
 import './phone-controller.css'
 import {menuPhoneSpec} from '../phone-specs'
+import {DEFAULT_CONTROLLER_RELAY} from '../controller-relay'
 export {menuPhoneSpec,gamePhoneSpec} from '../phone-specs'
 export interface ArcadePhoneController {
   readonly paired: boolean
@@ -11,7 +12,8 @@ export interface ArcadePhoneController {
   disconnect(): void
   dispose(): void
 }
-export function mountPhoneController(onInput: (snapshot:PhoneSnapshot)=>void): ArcadePhoneController {
+/** `relay` names the controller relay at pairing time (the SDK has no default); it may change after the config loads. */
+export function mountPhoneController(onInput: (snapshot:PhoneSnapshot)=>void,relay:()=>string=()=>DEFAULT_CONTROLLER_RELAY): ArcadePhoneController {
   let host:ControllerHost|null = null, spec = menuPhoneSpec, paired = false, previous = '', snapshot = neutralPhone()
   const input = new PhoneInputState(spec)
   const opener = document.createElement('button'); opener.type='button'; opener.className='arcade-phone-open'; opener.textContent='Pair phone'; document.body.append(opener)
@@ -32,7 +34,7 @@ export function mountPhoneController(onInput: (snapshot:PhoneSnapshot)=>void): A
   opener.onclick=async()=> {
     if(!host) {
       const {startControllerHost}=await import('@forgesworn/joystick-host')
-      host=startControllerHost({protocolVersion:2,pwaUrl:'https://pad.forgesworn.dev/'})
+      host=startControllerHost({ws:relay(),protocolVersion:2,pwaUrl:'https://pad.forgesworn.dev/'})
       host.setSpec(spec)
       input.setSpec(spec)
       code.textContent=formatPairingCode(host.sessionId)
