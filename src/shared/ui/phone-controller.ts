@@ -38,7 +38,11 @@ export function mountPhoneController(onInput: (snapshot:PhoneSnapshot)=>void,rel
       host.setSpec(spec)
       input.setSpec(spec)
       code.textContent=formatPairingCode(host.sessionId)
-      const url=new URL(host.pairingUrl);url.pathname='/get.html';apps.href=url.href
+      // Vendored SDK 0.4.3 omits its default relay from pairing links. The
+      // current pad requires w= even for that relay, so name it on every link.
+      const pairing=new URL(host.pairingUrl);pairing.searchParams.set('w',host.ws)
+      const pairingUrl=pairing.href
+      const url=new URL(pairingUrl);url.pathname='/get.html';apps.href=url.href
       status.textContent='Connecting to controller service…'
       host.onInput(frame=> {input.input(frame.k,frame.v,performance.now());emit()})
       host.onStatus(state=> {
@@ -50,7 +54,7 @@ export function mountPhoneController(onInput: (snapshot:PhoneSnapshot)=>void,rel
       const active=host
       const {default:qrcode}=await import('qrcode-generator')
       if(host!==active)return
-      const qr=qrcode(0,'M');qr.addData(active.pairingUrl);qr.make();qrImage.src=`data:image/svg+xml;charset=utf-8,${encodeURIComponent(qr.createSvgTag({scalable:true,margin:2}))}`
+      const qr=qrcode(0,'M');qr.addData(pairingUrl);qr.make();qrImage.src=`data:image/svg+xml;charset=utf-8,${encodeURIComponent(qr.createSvgTag({scalable:true,margin:2}))}`
     }
     if(!dialog.open && !paired)dialog.showModal()
   }
