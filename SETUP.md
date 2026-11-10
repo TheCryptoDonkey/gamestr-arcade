@@ -2,6 +2,9 @@
 
 Concise runbook for deploying the arcade kiosk to a booth Linux laptop.
 
+For Bitfest release preparation, machine selection, physical acceptance and
+recovery evidence, use [the Bitfest readiness checklist](docs/bitfest-readiness.md).
+
 ---
 
 ## 1. Build the AppImage (Linux only)
@@ -205,8 +208,18 @@ automatic AppImage rollback:
 npm run deploy -- --ship-only \
   --artifact release/gamestr-arcade-<version>-x86_64.AppImage \
   --sha256 <64-hex-digest> \
+  --no-games \
   --restart
 ```
+
+Deployment preserves the installed games catalogue by default. `--no-games`
+states that shell-only intent explicitly. To install or reconcile the source
+catalogue, add `--sync-games` only after inspecting and backing up the target:
+its `rsync --delete` preserves native `*.AppImage` files, but overwrites
+booth-edited manifests (including physical certifications) and removes
+booth-only local sites/assets absent from source. Native game binaries must be
+installed separately. Pass `--booth <user@confirmed-host>` for the selected
+machine; the tracked default is historical configuration.
 
 The service uses `Restart=always` with `RestartSec=2` - a one-off crash returns to the game grid within 2 seconds - **capped** by a `StartLimitBurst=4` / `StartLimitIntervalSec=120` guard so a persistently-failing launch can't crash-loop forever (it trips to `failed` after 4 starts in 2 min instead of hammering the machine).
 

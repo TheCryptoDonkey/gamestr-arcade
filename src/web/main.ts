@@ -10,10 +10,11 @@ import { lookupScore } from './score-lookup'
 import { boardFor, parseAnyScoreEvent, parse5555Event, scoreGameId } from '../renderer/src/leaderboard/gamestr-reduce'
 import { avatarCss, hexToNpub, lightningDestination, playerIdentity, resolveProfiles, type Profile } from '../renderer/src/leaderboard/profiles'
 import type { LeaderboardEntry } from '../shared/types'
+import { DEFAULT_CONTROLLER_RELAY } from '../shared/controller-relay'
 import { decodeInvitation, encodeInvitation, invitationTemplate, parseInvitation } from './game-invitation'
 import { challengeTemplate, decodeChallenge, encodeChallenge, parseChallenge } from './game-challenge'
 import { readSocialState, toggleSocialItem, writeSocialState } from './social-state'
-import { requestLightningInvoice, type WebLNProvider } from './lightning-reward'
+import type { WebLNProvider } from './lightning-reward'
 import { decode as decodeNip19 } from 'nostr-tools/nip19'
 import { WEB_EDITION } from './web-edition'
 import { connectNostrAccess, currentNostrAccess, currentNostrGameSession, currentNostrSigner, disconnectNostrAccess, NOSTR_SESSION_EVENT, restoreNostrAccess, type ArcadeNostrSigner, type NostrAccess } from './nostr-access'
@@ -57,7 +58,7 @@ pairPhone.onclick=async()=> {
   try {
     const [{mountPhoneController},{startCataloguePhoneInput},browser]=await Promise.all([import('../shared/ui/phone-controller'),import('./phone-catalogue-input'),import('@forgesworn/joystick-protocol/browser')])
     applyPhoneGamepad=browser.applyPhoneGamepad
-    phone=mountPhoneController(snapshot=> {if(!activePhoneGame)applyPhoneGamepad(snapshot)})
+    phone=mountPhoneController(snapshot=> {if(!activePhoneGame)applyPhoneGamepad(snapshot)},()=>DEFAULT_CONTROLLER_RELAY)
     const stopInput=startCataloguePhoneInput(()=>!!activePhoneGame)
     window.addEventListener('pagehide',stopInput,{once:true})
     pairPhone.remove();document.querySelector<HTMLButtonElement>('.arcade-phone-open')?.click()
@@ -860,6 +861,7 @@ function rewardDialog(pubkey: string, profile: Profile): void {
     try {
       const signer = publicZap.checked ? currentNostrSigner() ?? await connectIdentity(true) : undefined
       if (publicZap.checked && !signer) throw new Error('A signing-capable Signet or Nostr session is required for a public zap receipt.')
+      const { requestLightningInvoice } = await import('./lightning-reward')
       if (!modal.isConnected) return
       const invoice = await requestLightningInvoice(lightning, Number(amount.value), fetch, publicZap.checked ? { zap: { recipientPubkey: pubkey, signer: signer!, relays: RELAYS } } : {})
       if (!modal.isConnected) return

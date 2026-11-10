@@ -1,4 +1,5 @@
 import {mountPhoneController,menuPhoneSpec,gamePhoneSpec} from '../../shared/ui/phone-controller'
+import {DEFAULT_CONTROLLER_RELAY} from '../../shared/controller-relay'
 import {applyPhoneGamepad} from '../../shared/phone-input'
 import {isControllerSpec} from '@forgesworn/joystick-protocol'
 /**
@@ -43,7 +44,8 @@ import { AttractMode } from './ui/attract'
 import { CrtOverlay } from './ui/crt'
 import type { ArcadeConfig, Game } from '../../shared/types'
 
-const phone = mountPhoneController(snapshot=> {applyPhoneGamepad(snapshot);if(typeof window.arcade !== 'undefined')window.arcade.phoneInput(snapshot)})
+let controllerRelay = DEFAULT_CONTROLLER_RELAY
+const phone = mountPhoneController(snapshot=> {applyPhoneGamepad(snapshot);if(typeof window.arcade !== 'undefined')window.arcade.phoneInput(snapshot)},()=>controllerRelay)
 if(typeof window.arcade !== 'undefined')window.arcade.onPhoneProfile(spec=> {phone.setSpec(isControllerSpec(spec) ? spec : menuPhoneSpec)})
 
 const inElectron = typeof window.arcade !== 'undefined'
@@ -100,6 +102,7 @@ async function boot(): Promise<void> {
   }
 
   document.title = config.theme.title
+  controllerRelay = config.controllerRelay ?? DEFAULT_CONTROLLER_RELAY
   const carousel = new Carousel(games, host, 0, {
     title: config.theme.title,
     wordmark: config.theme.wordmark,

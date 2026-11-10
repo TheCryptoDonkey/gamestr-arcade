@@ -1,8 +1,14 @@
 # Phone controllers
 
+Changing the cabinet's `controllerRelay` requires a full service restart. A
+renderer reload keeps the startup relay so its connection and the main-process
+Origin policy always agree.
+
 The cabinet and both public web editions offer **Pair phone**. The QR opens Joystick in the phone's browser; a six-character code displays as `ABC DEF`. The controller-options page retains the exact session/version/broker and offers browser installation or an already-installed native app. App Store/Google Play links remain unavailable until Joystick's public store listings exist.
 
 The cabinet uses the existing Joystick v2 host SDK and validates a narrow input snapshot before forwarding it from the trusted shell to the active isolated game view. The game sees a standard virtual Gamepad; physical input remains usable. Keyboard/pointer translation still follows the game's manifest adapter. Input does not grant Nostr signing or wallet permission. Native process/AppImage games are not controlled by this browser bridge.
+
+The arcade explicitly selects `controllerRelay` in `arcade.config.json` (default `wss://controller.pallasite.app/`) rather than relying on SDK defaults. The owner's hosted relay accepts game screens only from the owner's own sites, so the Electron cabinet, which loads from a file, presents `https://arcade.600.wtf` as the `Origin` only on the trusted shell's host WebSocket handshakes to the production relay (`src/main/relay-origin.ts`). Custom relays keep their original headers. The relay forwards only a closed vocabulary of labels and names, so the built-in menu and game specs and the shipped game profiles use words from it (`scripts/check-owner-games-vocab.mjs` in the Joystick repository runs them); a game definition with other labels still pairs, but the phone shows its own default for those buttons.
 
 The public catalogue can be navigated with the paired phone. A publisher must explicitly implement `gamestr-controller-v1` to keep that connection in its own page. Hang On, Fren is the first integrated game. Its controller profile changes labels and layout when play moves into the publisher window. Other games disclose that only catalogue pairing is available. Popups still need the browser's normal permission; modified clicks open an independent game.
 
