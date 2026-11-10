@@ -3,6 +3,7 @@ import {formatPairingCode,isControllerSpec,type ControllerSpec} from '@forgeswor
 import {PhoneInputState,neutralPhone,type PhoneSnapshot} from '../phone-input'
 import './phone-controller.css'
 import {menuPhoneSpec} from '../phone-specs'
+import {DEFAULT_CONTROLLER_RELAY} from '../controller-relay'
 export {menuPhoneSpec,gamePhoneSpec} from '../phone-specs'
 export interface ArcadePhoneController {
   readonly paired: boolean
@@ -11,7 +12,8 @@ export interface ArcadePhoneController {
   disconnect(): void
   dispose(): void
 }
-export function mountPhoneController(onInput: (snapshot:PhoneSnapshot)=>void): ArcadePhoneController {
+/** `relay` selects the controller relay at pairing time; it may change after the config loads. */
+export function mountPhoneController(onInput: (snapshot:PhoneSnapshot)=>void,relay:()=>string=()=>DEFAULT_CONTROLLER_RELAY): ArcadePhoneController {
   let host:ControllerHost|null = null, spec = menuPhoneSpec, paired = false, previous = '', snapshot = neutralPhone()
   const input = new PhoneInputState(spec)
   const opener = document.createElement('button'); opener.type='button'; opener.className='arcade-phone-open'; opener.textContent='Pair phone'; document.body.append(opener)
@@ -32,11 +34,15 @@ export function mountPhoneController(onInput: (snapshot:PhoneSnapshot)=>void): A
   opener.onclick=async()=> {
     if(!host) {
       const {startControllerHost}=await import('@forgesworn/joystick-host')
-      host=startControllerHost({protocolVersion:2,pwaUrl:'https://pad.forgesworn.dev/'})
+      host=startControllerHost({ws:relay(),protocolVersion:2,pwaUrl:'https://pad.forgesworn.dev/'})
       host.setSpec(spec)
       input.setSpec(spec)
       code.textContent=formatPairingCode(host.sessionId)
-      const url=new URL(host.pairingUrl);url.pathname='/get.html';apps.href=url.href
+      // Vendored SDK 0.4.3 omits its default relay from pairing links. The
+      // current pad requires w= even for that relay, so name it on every link.
+      const pairing=new URL(host.pairingUrl);pairing.searchParams.set('w',host.ws)
+      const pairingUrl=pairing.href
+      const url=new URL(pairingUrl);url.pathname='/get.html';apps.href=url.href
       status.textContent='Connecting to controller service…'
       host.onInput(frame=> {input.input(frame.k,frame.v,performance.now());emit()})
       host.onStatus(state=> {
@@ -48,7 +54,7 @@ export function mountPhoneController(onInput: (snapshot:PhoneSnapshot)=>void): A
       const active=host
       const {default:qrcode}=await import('qrcode-generator')
       if(host!==active)return
-      const qr=qrcode(0,'M');qr.addData(active.pairingUrl);qr.make();qrImage.src=`data:image/svg+xml;charset=utf-8,${encodeURIComponent(qr.createSvgTag({scalable:true,margin:2}))}`
+      const qr=qrcode(0,'M');qr.addData(pairingUrl);qr.make();qrImage.src=`data:image/svg+xml;charset=utf-8,${encodeURIComponent(qr.createSvgTag({scalable:true,margin:2}))}`
     }
     if(!dialog.open && !paired)dialog.showModal()
   }

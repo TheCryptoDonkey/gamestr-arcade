@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test'
+import qrcode from 'qrcode-generator'
 test('publisher handoff carries controls and a per-game profile through its own bounded channel',async({context,page})=> {
   const profile={version:1,name:'Publisher racer',slots:{joyL:{mode:'xy'},A:{label:'Brake'}},layout:{version:1,landscape:{joyL:{x:.2,y:.7,size:144},A:{x:.85,y:.7,size:64}}}}
   await context.route('http://127.0.0.1:4175/phone-game-test',route=>route.fulfill({contentType:'text/html',body:`<!doctype html><h1>Publisher game</h1><script type="module">import {installArcadeGameController} from '/@fs/${process.cwd()}/node_modules/@forgesworn/joystick-protocol/dist/browser.js'; installArcadeGameController({allowedOrigins:['http://127.0.0.1:4174'],profile:${JSON.stringify(profile)}});</script>`}))
@@ -32,7 +33,11 @@ test('pairing is explicit and does not request a Nostr signer',async({page})=> {
   await expect(page.getByRole('img',{name:'QR code to open Joystick'})).toHaveAttribute('src',/^data:image\/svg\+xml/)
   const href=await page.getByRole('link',{name:'Browser, iPhone, iPad and Android options'}).getAttribute('href')
   expect(href).toMatch(/^https:\/\/pad.forgesworn.dev\/get.html\?s=[A-Z]{6}/)
+  expect(new URL(href!).searchParams.get('w')).toBe('wss://controller.pallasite.app/')
   expect(href).not.toContain('hostToken');expect(href).toContain('v=2')
+  const pairingUrl=new URL(href!);pairingUrl.pathname='/'
+  const qr=qrcode(0,'M');qr.addData(pairingUrl.href);qr.make()
+  await expect(page.getByRole('img',{name:'QR code to open Joystick'})).toHaveAttribute('src',`data:image/svg+xml;charset=utf-8,${encodeURIComponent(qr.createSvgTag({scalable:true,margin:2}))}`)
   await page.getByRole('button',{name:'Disconnect phone',exact:true}).click()
   await expect(page.getByRole('status')).toHaveText('Disconnected')
 })

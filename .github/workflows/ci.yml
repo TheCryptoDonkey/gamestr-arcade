@@ -53,7 +53,9 @@ jobs:
         run: node scripts/appimage-input-negative.mjs release/*.AppImage release/linux-input-negative.json
 
       - name: Record release checksums
-        run: cd release && sha256sum *.AppImage > SHA256SUMS
+        run: |
+          git archive --format=tar.gz --prefix=gamestr-arcade-source/ HEAD > release/gamestr-arcade-source.tar.gz
+          cd release && sha256sum *.AppImage *.tar.gz > SHA256SUMS
 
       - name: Upload release evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -61,6 +63,7 @@ jobs:
           name: gamestr-arcade-linux-${{ github.sha }}
           path: |
             release/*.AppImage
+            release/gamestr-arcade-source.tar.gz
             release/SHA256SUMS
             release/linux-runtime-smoke.json
             release/linux-input-negative.json

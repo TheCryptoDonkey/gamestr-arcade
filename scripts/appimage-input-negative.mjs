@@ -37,9 +37,26 @@ try {
   assert.equal(failure.systemInput.trustedPageKeyObserved, false)
   assert(failure.systemInput.nativeStateAfterInput.nativeInputEvents.some(event =>
     event.role === 'game' && event.type === 'keyDown' && event.key === 'ArrowUp'))
+  const inputForward = "else if (frame.type === undefined && typeof frame.k === 'string' && typeof frame.v === 'string') hostSocket.send(JSON.stringify(frame))"
+  assert.equal(source.split(inputForward).length, 2, 'Expected exactly one relay input forwarder')
+  writeFileSync(join(project, 'scripts', 'appimage-journeys.mjs'), source.replace(inputForward, '/* Controlled negative: drop phone input. */'))
+  const relayResult = spawnSync('bash', ['scripts/smoke-appimage.sh', artifact], {
+    cwd: project, encoding: 'utf8', timeout: 100000, maxBuffer: 4 * 1024 * 1024,
+  })
+  if (relayResult.error) throw relayResult.error
+  assert.equal(relayResult.status, 1, 'Missing relay input must fail the smoke gate')
+  const relayLine = (relayResult.stderr ?? '').split('\n').find(value => value.startsWith(prefix))
+  assert(relayLine, 'The relay negative must retain structured failure diagnostics')
+  const relayFailure = JSON.parse(relayLine.slice(prefix.length))
+  assert.equal(relayFailure.stage, 'native phone relay gamepad bridge')
+  assert.match(relayFailure.error, /Timeout/)
+  assert.equal(relayFailure.pages.game.phoneGamepad.id, 'Gamestr Joystick phone')
+  assert(relayFailure.pages.game.phoneGamepad.axes.every(axis => axis === 0))
+  assert(relayFailure.pages.game.phoneGamepad.pressed.every(pressed => !pressed))
   const report = { controlledNegative: 'missing game key handler', gateRejected: true,
     nativeGameKeyObserved: true, trustedGameKeyObserved: false,
-    originalFailureStage: failure.stage, physicalControllerAcceptance: 'pending' }
+    originalFailureStage: failure.stage, physicalControllerAcceptance: 'pending',
+    droppedRelayInput: { gateRejected: true, originalFailureStage: relayFailure.stage, inputStayedNeutral: true } }
   if (reportPath) writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n')
   console.log(JSON.stringify(report))
 } finally {

@@ -6,6 +6,7 @@ import { setTimeout as delay } from 'node:timers/promises'
 import assert from 'node:assert/strict'
 import { chromium } from 'playwright'
 import { verifyEvent } from 'nostr-tools/pure'
+import { WebSocket, WebSocketServer } from 'ws'
 import { connectNativeFocusInspector } from './runtime-native-focus.mjs'
 import { probeSystemInput, sendOwnedSystemKey } from './runtime-system-input.mjs'
 
@@ -16,6 +17,12 @@ let stage = 'starting runtime'
 let shellPage
 let gamePage
 let nativeInspector
+let phoneSocket
+let relayPhoneSocket
+let hostSocket
+let hostJoined = false
+let relayOrigin
+const phoneSpecs = []
 const nativeFocus = []
 const returnFocus = []
 const server = createServer((_request, response) => {
@@ -27,6 +34,39 @@ const server = createServer((_request, response) => {
 })
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
 const origin = `http://127.0.0.1:${server.address().port}`
+const controllerRelay = `ws://127.0.0.1:${server.address().port}/controller`
+// A disposable protocol fixture exercises the shipped host SDK and the actual
+// shell WebSocket. It never contacts the public relay or handles a real key.
+const relay = new WebSocketServer({ noServer: true })
+server.on('upgrade', (request, socket, head) => {
+  const url = new URL(request.url, origin)
+  if (url.pathname !== '/controller' || url.searchParams.get('v') !== '2') { socket.destroy(); return }
+  relay.handleUpgrade(request, socket, head, client => {
+    if (url.searchParams.get('r') === 'host') {
+      hostSocket = client
+      relayOrigin = request.headers.origin
+      client.on('message', data => {
+        const frame = JSON.parse(String(data))
+        if (frame.type === 'host-join') {
+          hostJoined = /^[a-f0-9]{64}$/.test(frame.hostToken) && Object.keys(frame).sort().join(',') === 'hostToken,type'
+          if (hostJoined) client.send(JSON.stringify({ type: 'host-ready', version: 2 }))
+        } else if (frame.type === 'controller-spec' && relayPhoneSocket?.readyState === WebSocket.OPEN) {
+          relayPhoneSocket.send(JSON.stringify(frame))
+        }
+      })
+    } else if (url.searchParams.get('r') === 'phone' && hostJoined) {
+      relayPhoneSocket = client
+      client.on('message', data => {
+        const frame = JSON.parse(String(data))
+        if (frame.type === 'controller-join') hostSocket.send(JSON.stringify({ type: 'peer-up' }))
+        else if (frame.type === undefined && typeof frame.k === 'string' && typeof frame.v === 'string') hostSocket.send(JSON.stringify(frame))
+      })
+      client.on('close', () => {
+        if (hostSocket?.readyState === WebSocket.OPEN) hostSocket.send(JSON.stringify({ type: 'peer-down' }))
+      })
+    } else client.close(1008, 'fixture-role')
+  })
+})
 const probe = createServer()
 await new Promise(resolve => probe.listen(0, '127.0.0.1', resolve))
 const debugPort = probe.address().port
@@ -45,6 +85,7 @@ for (const [index, slug] of ['game-a', 'game-b'].entries()) {
 }
 writeFileSync(`${root}/arcade.config.json`, JSON.stringify({
   gamesDir: `${root}/games`, kiosk: false, attractTimeoutMs: 120000,
+  controllerRelay,
   theme: { title: 'Packaged runtime journeys', accent: '#7cf3ff', crt: false },
   leaderboard: { provider: 'mock', relays: [], topN: 5 },
 }))
@@ -102,6 +143,30 @@ try {
   await shell.keyboard.press('ArrowLeft')
   await until(async () => /Runtime A/i.test(await tile.innerText()))
 
+  stage = 'custom controller relay handshake'
+  await shell.getByRole('button', { name: 'Pair phone', exact: true }).click()
+  const pairingLink = shell.getByRole('link', { name: 'Browser, iPhone, iPad and Android options' })
+  await pairingLink.waitFor({ state: 'visible' })
+  const pairing = new URL(await pairingLink.getAttribute('href'))
+  assert.equal(pairing.searchParams.get('w'), controllerRelay)
+  assert.equal(pairing.searchParams.get('v'), '2')
+  assert.match(pairing.searchParams.get('s'), /^[A-Z]{6}$/)
+  assert.equal(pairing.searchParams.has('hostToken'), false)
+  await until(() => hostJoined)
+  assert.notEqual(relayOrigin, 'https://arcade.600.wtf', 'Custom relay Origin must be untouched')
+  const phoneEndpoint = new URL(controllerRelay)
+  for (const [key, value] of [['s', pairing.searchParams.get('s')], ['v', '2'], ['r', 'phone']]) phoneEndpoint.searchParams.set(key, value)
+  phoneSocket = new WebSocket(phoneEndpoint)
+  phoneSocket.on('message', data => {
+    const frame = JSON.parse(String(data))
+    if (frame.type === 'controller-spec') phoneSpecs.push(frame.spec)
+  })
+  await new Promise((resolve, reject) => { phoneSocket.once('open', resolve); phoneSocket.once('error', reject) })
+  phoneSocket.send(JSON.stringify({ type: 'controller-join' }))
+  await until(() => phoneSpecs.some(spec => spec.name === 'Gamestr Arcade'))
+  await shell.getByRole('button', { name: 'Phone connected', exact: true }).waitFor({ state: 'visible' })
+  await shell.locator('#app').focus()
+
   async function launch() {
     await shell.bringToFront()
     await shell.keyboard.press('Enter')
@@ -141,12 +206,17 @@ try {
     await shell.waitForFunction(() => document.activeElement?.id === 'app')
   }
   const first = await launch()
-  stage = 'native phone gamepad bridge'
-  await shell.evaluate(()=>window.arcade.phoneInput({connected:true,axes:[.6,0,0,0],buttons:[true,...Array(16).fill(false)]}))
+  stage = 'native phone relay gamepad bridge'
+  await until(() => phoneSpecs.some(spec => spec.name === 'Gamestr game'))
+  phoneSocket.send(JSON.stringify({ k: 'joyL-x', v: '600' }))
+  phoneSocket.send(JSON.stringify({ k: 'A', v: '1' }))
   await first.waitForFunction(()=>navigator.getGamepads()[0]?.id==='Gamestr Joystick phone')
+  await first.waitForFunction(()=>navigator.getGamepads()[0]?.axes[0]===.6 && navigator.getGamepads()[0]?.buttons[0].pressed)
   assert.deepEqual(await first.evaluate(()=>({axis:navigator.getGamepads()[0].axes[0],fire:navigator.getGamepads()[0].buttons[0].pressed})),{axis:.6,fire:true})
-  await shell.evaluate(()=>window.arcade.phoneInput({connected:false,axes:[0,0,0,0],buttons:Array(17).fill(false)}))
-  await first.waitForFunction(()=>navigator.getGamepads()[0]?.id!=='Gamestr Joystick phone')
+  phoneSocket.close()
+  // A disconnected phone may leave an allocated virtual pad. Input must be
+  // neutral immediately; physical controllers remain available beside it.
+  await first.waitForFunction(()=>!navigator.getGamepads()[0]?.buttons[0]?.pressed && !navigator.getGamepads()[0]?.axes.some(axis=>axis!==0))
   stage = 'first game signing' 
   const pubkey = await first.evaluate(() => window.nostr.getPublicKey())
   assert.match(pubkey, /^[0-9a-f]{64}$/)
@@ -182,6 +252,7 @@ try {
   await returnFromGame(second, 'second game')
   writeFileSync(`${root}/journeys.json`, JSON.stringify({
     keyboardCarouselNavigation: true, launchAndReturn: true, guestSignatureVerified: true, nativePhoneGamepad:true, nativePhoneRelease:true,
+    nativePhoneRelayHandshake: true, customRelayOriginUnchanged: true,
     freshGuestOnRelaunch: true, gameStorageAndCookiesIsolated: true,
     trustedGameKeyboardInput: true, walletUnavailableWithoutConfiguration: true,
     gameKeyboardDriver: process.platform === 'linux' ? 'X11 XTEST' : 'CDP',
@@ -205,6 +276,7 @@ try {
       focusCalls: window.runtimeFocusCalls ?? [],
       keyHistory: window.runtimeKeyHistory ?? [],
       keys: window.fixtureKeys ?? [],
+      phoneGamepad: (() => { const pad = [...navigator.getGamepads()].find(pad => pad?.id === 'Gamestr Joystick phone'); return pad ? { id: pad.id, axes: [...pad.axes], pressed: pad.buttons.map(button => button.pressed) } : null })(),
     })).catch(() => ({ inspectionFailed: true }))
   }
   const currentNativeFocus = nativeInspector ? await nativeInspector.read().catch(() => ({ inspectionFailed: true })) : null
@@ -223,5 +295,8 @@ try {
   clearTimeout(watchdog)
   if (nativeInspector) await nativeInspector.close()
   if (browser) await browser.close()
+  for (const client of relay.clients) client.terminate()
+  if (phoneSocket) phoneSocket.terminate()
+  await new Promise(resolve => relay.close(resolve))
   await new Promise(resolve => server.close(resolve))
 }

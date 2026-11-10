@@ -5,16 +5,21 @@
 # Idempotent and safe to re-run; aborts on checksum or readiness failure and
 # keeps the previously installed AppImage available for rollback.
 #
-#   npm run deploy                              # build, package, ship, verify, sync games
+#   npm run deploy                              # build, package, ship, verify; preserve installed games
 #   npm run deploy -- --restart                # …and restart the service on the booth
 #   npm run deploy -- --ship-only --artifact release/gamestr-arcade-0.1.1-x86_64.AppImage
 #                                               # skip build+package; exact artifact is required
 #   npm run deploy -- --artifact PATH --sha256 HEX
 #                                               # pin an exact artifact and expected digest
 #   npm run deploy -- --no-build               # skip npm build, still repackage + ship
-#   npm run deploy -- --no-games               # skip rsyncing the games/ folder
+#   npm run deploy -- --sync-games             # reconcile games/; overwrites/deletes booth-only data
+#   npm run deploy -- --no-games               # preserve installed games (default; overrides earlier --sync-games)
 #   npm run deploy -- --no-enable              # install but don't autostart on login (manual-launch booth)
 #   npm run deploy -- --booth user@host[:dir]  # override booth target
+#
+# --sync-games overwrites booth-edited manifests/certifications and deletes
+# booth-only files, including offline site assets. Inspect and back them up first.
+# Native *.AppImage files remain excluded from catalogue synchronisation.
 #
 # Booth defaults to the axenstax kiosk; override with --booth or BOOTH=.
 # Passwordless SSH (key already installed) is assumed.
@@ -26,7 +31,7 @@ DEST="${DEST:-.}"          # remote dir (relative to login home, or absolute)
 RESTART=0
 DO_BUILD=1
 DO_PACKAGE=1
-DO_GAMES=1
+DO_GAMES=0
 DO_ENABLE=1
 ARTIFACT=""
 EXPECTED_SHA=""
@@ -43,13 +48,14 @@ while [ $# -gt 0 ]; do
     --restart)   RESTART=1 ;;
     --no-build)  DO_BUILD=0 ;;
     --ship-only) DO_BUILD=0; DO_PACKAGE=0 ;;
+    --sync-games) DO_GAMES=1 ;;
     --no-games)  DO_GAMES=0 ;;
     --no-enable) DO_ENABLE=0 ;;
     --artifact)  require_value "$@"; ARTIFACT="$2"; shift ;;
     --sha256)    require_value "$@"; EXPECTED_SHA="$2"; shift ;;
     --booth)     require_value "$@"; BOOTH="$2"; shift ;;
     -h|--help)
-      sed -n '2,18p' "$0"; exit 0 ;;
+      sed -n '2,22p' "$0"; exit 0 ;;
     *) echo "deploy: unknown arg '$1' (try --help)" >&2; exit 2 ;;
   esac
   shift
@@ -196,6 +202,7 @@ else
 fi
 
 if [ "$DO_GAMES" = 1 ]; then
+  step "WARNING: --sync-games overwrites booth-edited manifests/certifications and deletes booth-only files (except *.AppImage)."
   step "Syncing games → $BOOTH:~/gamestr-games/ …"
   # --exclude '*.AppImage': native game binaries are shipped out-of-band (too big
   # to commit - they're gitignored) and dropped into ~/gamestr-games/<slug>/ on the
@@ -204,6 +211,8 @@ if [ "$DO_GAMES" = 1 ]; then
   # the arcade's gamepad→key translation then exposes in-game cheats). rsync also
   # protects excluded paths from --delete, so booth-side AppImages survive.
   rsync -az --delete --exclude='*.AppImage' -e "ssh -o BatchMode=yes" "$REPO_DIR/games/" "$BOOTH:gamestr-games/"
+else
+  step "Preserving installed games (use --sync-games only after reviewing and backing up booth-local data)."
 fi
 
 if [ "$RESTART" = 1 ]; then
