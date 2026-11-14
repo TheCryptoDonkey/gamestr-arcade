@@ -868,11 +868,11 @@ function rewardDialog(pubkey: string, profile: Profile): void {
       invoiceCreated = true
       amount.disabled = true; publicZap.disabled = true
       for (const preset of presets.querySelectorAll('button')) preset.disabled = true
-      const { default: qrcode } = await import('qrcode-generator')
+      const { encode, toSvg } = await import('@forgesworn/qr')
       if (!modal.isConnected) return
-      const qr = qrcode(0, 'M'); qr.addData(invoice.toUpperCase()); qr.make()
+      const qrSvg = toSvg(encode(invoice.toUpperCase(), { ecc: 'M', mode: 'byte' }), { margin: 4 })
       const image = el('img', 'reward-qr'); image.alt = `Lightning invoice for ${Number(amount.value)} sats to ${identity.label}`
-      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(qr.createSvgTag({ scalable: true }))}`
+      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(qrSvg)}`
       const walletLink = el('a', 'primary', 'OPEN LIGHTNING WALLET'); walletLink.href = `lightning:${invoice}`
       const copy = button('COPY INVOICE', 'secondary', () => {
         void (navigator.clipboard?.writeText(invoice) ?? Promise.reject(new Error('Clipboard unavailable'))).then(() => toast('Invoice copied. Pay this invoice once.', 'good'), () => { status.textContent = 'Copy the invoice text below; clipboard access is unavailable.' })

@@ -52,9 +52,9 @@ export function mountPhoneController(onInput: (snapshot:PhoneSnapshot)=>void,rel
       host.onPlayerSuspend(()=>reset(false));host.onPlayerLeave(()=>reset(false))
       if(!dialog.open && !paired)dialog.showModal()
       const active=host
-      const {default:qrcode}=await import('qrcode-generator')
+      const {encode,toSvg}=await import('@forgesworn/qr')
       if(host!==active)return
-      const qr=qrcode(0,'M');qr.addData(pairingUrl);qr.make();qrImage.src=`data:image/svg+xml;charset=utf-8,${encodeURIComponent(qr.createSvgTag({scalable:true,margin:2}))}`
+      qrImage.src=`data:image/svg+xml;charset=utf-8,${encodeURIComponent(toSvg(encode(pairingUrl,{ecc:'M',mode:'byte'}),{margin:1}))}`
     }
     if(!dialog.open && !paired)dialog.showModal()
   }
