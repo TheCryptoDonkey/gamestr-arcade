@@ -1,7 +1,7 @@
 /** Render the SDK's existing approval payload with a complete quiet zone and
  * whole-pixel cells. No challenge, signer or authentication state is changed. */
 export async function observeLoginQr(): Promise<() => void> {
-  const { default: qrcode } = await import('qrcode-generator')
+  const { encode, isDark } = await import('@forgesworn/qr')
   const drawings = new Map<HTMLCanvasElement, { payload: string; cells: number; parent: HTMLElement }>()
   let active = true
   let frame: number | undefined
@@ -36,16 +36,15 @@ export async function observeLoginQr(): Promise<() => void> {
       const payload = payloadNode instanceof HTMLAnchorElement ? payloadNode.getAttribute('href')
         : payloadNode instanceof HTMLTextAreaElement ? payloadNode.value : null
       if (!payload || drawings.get(canvas)?.payload === payload) continue
-      const qr = qrcode(0, level)
-      qr.addData(payload); qr.make()
+      const qr = encode(payload, { ecc: level, mode: 'byte' })
       const context = canvas.getContext('2d')
       if (!context) continue
-      const border = 4, scale = 4, cells = qr.getModuleCount() + 2 * border
+      const border = 4, scale = 4, cells = qr.size + 2 * border
       canvas.width = canvas.height = cells * scale
       context.fillStyle = '#ffffff'; context.fillRect(0, 0, canvas.width, canvas.height)
       context.fillStyle = '#0a0418'
-      for (let y = 0; y < qr.getModuleCount(); y++) for (let x = 0; x < qr.getModuleCount(); x++) {
-        if (qr.isDark(y, x)) context.fillRect((x + border) * scale, (y + border) * scale, scale, scale)
+      for (let y = 0; y < qr.size; y++) for (let x = 0; x < qr.size; x++) {
+        if (isDark(qr, x, y)) context.fillRect((x + border) * scale, (y + border) * scale, scale, scale)
       }
       // The SDK's second padding layer otherwise compresses a dense QR below
       // two screen pixels per cell at the supported 320px viewport.
