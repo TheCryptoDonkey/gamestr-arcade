@@ -65,6 +65,7 @@ pairPhone.onclick=async()=> {
   } catch {pairPhone.disabled=false;pairPhone.textContent='Retry phone pairing'}
 }
 let phoneGameGeneration=0
+let currentConferencePlayer = false
 const connectPhoneGame=async(child:Window,url:string,profile?:ControllerSpec)=> {
   const generation=++phoneGameGeneration
   activePhoneGame?.();activePhoneGame=null
@@ -80,6 +81,7 @@ installNostrGameBridge(() => currentNostrSigner())
 window.addEventListener(NOSTR_SESSION_EVENT, event => {
   const access = (event as CustomEvent<NostrAccess>).detail
   if (!access) {
+    if (currentConferencePlayer) { phone?.disconnect(); activePhoneGame?.(); activePhoneGame = null; currentConferencePlayer = false }
     state.pubkey = ''
     state.social = readSocialState()
     state.accountMenuOpen = false
@@ -87,6 +89,7 @@ window.addEventListener(NOSTR_SESSION_EVENT, event => {
     return
   }
   if (!/^[0-9a-f]{64}$/.test(access.pubkey)) return
+  currentConferencePlayer = !!access.temporary
   state.pubkey = access.pubkey
   state.social = readSocialState(undefined, access.pubkey)
   state.accountMenuOpen = false
@@ -239,6 +242,7 @@ function header(): HTMLElement {
       profile: state.profiles.get(state.pubkey),
       open: state.accountMenuOpen,
       busy: state.identityDisconnecting || state.identityConnecting,
+      logoutLabel: currentNostrAccess()?.temporary ? 'FINISH / NEXT PLAYER' : undefined,
       signerStatus: state.identityConnecting ? 'RECONNECTING…' : currentNostrAccess()?.signerStatus === 'unavailable' ? 'SIGNER UNAVAILABLE' : currentNostrAccess()?.canSignEvents ? 'SIGNER CONNECTED' : 'IDENTITY CONNECTED · SIGNER NEEDED',
       onReconnect: () => void connectIdentity(true),
       onSyncPreferences: () => preferenceDialog(),

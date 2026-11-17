@@ -2,9 +2,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { finalizeEvent, getPublicKey } from 'nostr-tools/pure'
 
-const mocks = vi.hoisted(() => ({ login: vi.fn(), restoreSession: vi.fn(), logout: vi.fn(), handleRedirectCallback: vi.fn() }))
+const mocks = vi.hoisted(() => ({ login: vi.fn(), restoreSession: vi.fn(), logout: vi.fn(), handleRedirectCallback: vi.fn(), phonePairing: vi.fn() }))
 vi.mock('signet-login', () => mocks)
 vi.mock('../src/web/login-method-picker', () => ({ pickLoginMethod: vi.fn(async () => 'bunker') }))
+vi.mock('../src/shared/ui/player-pairing', () => ({ connectConferencePlayer: mocks.phonePairing }))
 const SECRET = new Uint8Array(32).fill(7)
 const PUBKEY = getPublicKey(SECRET)
 const OTHER = new Uint8Array(32).fill(8)
@@ -92,6 +93,29 @@ describe('selected Nostr session', () => {
     await access.connectNostrAccess({ appName: 'Arcade', relays: [] })
     await expect(access.currentNostrSigner()!.signEvent(template)).rejects.toThrow('User denied')
     expect(access.currentNostrAccess()).toMatchObject({ pubkey: PUBKEY, canSignEvents: true, signerStatus: 'connected' })
+  })
+
+  it('can replace a temporary phone session without its close callback revoking the new signer', async () => {
+    const picker = await import('../src/web/login-method-picker')
+    vi.mocked(picker.pickLoginMethod).mockResolvedValueOnce('phone-pairing')
+    const temporary = session(), replacement = session()
+    mocks.phonePairing.mockImplementationOnce(async options => {
+      temporary.signer.close.mockImplementation(() => options.onEnded())
+      return temporary
+    })
+    const access = await import('../src/web/nostr-access')
+    await access.connectNostrAccess({ appName: 'Arcade', relays: [] })
+    expect(access.currentNostrAccess()?.temporary).toBe(true)
+    const old = access.currentNostrSigner()!
+    mocks.login.mockResolvedValueOnce(replacement)
+    const states: unknown[] = []
+    const observe = (event: Event) => states.push((event as CustomEvent).detail)
+    window.addEventListener(access.NOSTR_SESSION_EVENT, observe)
+    await access.connectNostrAccess({ appName: 'Arcade', relays: [], signingRequired: true })
+    window.removeEventListener(access.NOSTR_SESSION_EVENT, observe)
+    expect(states).not.toContain(null)
+    await expect(old.signEvent(template)).rejects.toThrow('revoked')
+    await expect(access.currentNostrSigner()!.signEvent(template)).resolves.toMatchObject({ pubkey: PUBKEY })
   })
 
   it('never signs through an ambient extension and revokes before cleanup completes', async () => {

@@ -17,6 +17,9 @@ import { randomUUID } from 'node:crypto'
 import { is } from '@electron-toolkit/utils'
 import { NostrWebLNProvider } from '@getalby/sdk'
 import { finalizeEvent, generateSecretKey, getPublicKey } from 'nostr-tools/pure'
+import type { SignetSession } from 'signet-login'
+import { ConferencePlayer } from '../shared/conference-player'
+import webEditions from '../../web.editions.json'
 import { buildGamesList, isPathAllowed, mediaUrlToPath, playerVisibleGames, MEDIA_SCHEME } from './games'
 import { fetchGamestrCatalogue } from './gamestr-catalogue'
 import type { CatalogueDeps } from './gamestr-catalogue'
@@ -47,6 +50,7 @@ import {
   isAllowedWebNavigation,
   normaliseWebOrigin,
   parseGuestNostrTemplate,
+  parsePlayerNostrTemplate,
   publicArcadeConfig,
   type WebSessionGrants,
 } from './web-session-policy'
@@ -138,6 +142,8 @@ interface ActiveWebSession {
   allowedOrigins: Set<string>
   grants: WebSessionGrants
   nostrSecret: Uint8Array | null
+  playerSigner: SignetSession['signer'] | null
+  gameId: string
   walletProvider: NostrWebLNProvider | null
   walletEnabled: Promise<void> | null
   paymentBroker: SessionPaymentBroker<WalletPaymentResult> | null
@@ -147,6 +153,17 @@ interface ActiveWebSession {
 
 let activeWebSession: ActiveWebSession | null = null
 let phoneSnapshot: PhoneSnapshot = neutralPhone()
+let cabinetPlayer: SignetSession | null = null
+const conferencePlayer = new ConferencePlayer({
+  appName: 'Gamestr Arcade', origin: webEditions.gamestr.defaultOrigin,
+  onChange(state) {
+    if (state.status !== 'connected') {
+      cabinetPlayer = null
+      if (activeWebSession?.playerSigner) launcher?.back()
+    }
+    win?.webContents.send('arcade:player-state', state)
+  },
+})
 
 /** Lay out `webView` to cover the full window client area. */
 function sizeWebView(): void {
@@ -226,7 +243,9 @@ function createWebSession(game: Game): ActiveWebSession {
     inputAdapter: resolveGameInputAdapter(game),
     allowedOrigins,
     grants,
-    nostrSecret: grants.nostrSign ? generateSecretKey() : null,
+    nostrSecret: grants.nostrSign && !cabinetPlayer ? generateSecretKey() : null,
+    playerSigner: grants.nostrSign ? cabinetPlayer?.signer ?? null : null,
+    gameId: game.gameId,
     walletProvider: null,
     walletEnabled: null,
     paymentBroker: null,
@@ -597,6 +616,8 @@ function createWindow(): void {
   wireGamepadConsole(win.webContents, 'menu')
 
   win.on('close', destroyWebSession)
+  win.on('close', () => conferencePlayer.end())
+  win.webContents.on('did-start-navigation', (_event, _url, _inPlace, mainFrame) => { if (mainFrame) conferencePlayer.end() })
   win.on('closed', () => {
     win = null
   })
@@ -691,6 +712,13 @@ app.whenReady().then(async () => {
     console.log(`[arcade] renderer ready (pid=${process.pid})`)
     return true
   })
+
+  const requireShell = (event: IpcMainInvokeEvent) => {
+    if (!win || event.sender !== win.webContents || event.senderFrame !== win.webContents.mainFrame) throw new Error('Player controls belong to the arcade shell.')
+  }
+  ipcMain.handle('arcade:player-start', async event => { requireShell(event); if (activeWebSession) throw new Error('Return to the arcade before pairing.'); return conferencePlayer.start() })
+  ipcMain.handle('arcade:player-confirm', event => { requireShell(event); cabinetPlayer = conferencePlayer.confirm() })
+  ipcMain.handle('arcade:player-end', event => { requireShell(event); conferencePlayer.end() })
 
   // ── gamestr catalogue import ──────────────────────────────────────────────
   // gamestr.io has no registry API - its catalogue (incl. each game's external
@@ -817,17 +845,31 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('webgame:nostr:get-public-key', event => {
     const session = requireWebSession(event)
-    if (!session.grants.nostrSign || !session.nostrSecret) {
+    if (!session.grants.nostrSign) {
       throw new Error('Nostr signing capability is not granted for this game')
     }
+    if (session.playerSigner) {
+      if (cabinetPlayer?.signer !== session.playerSigner) throw new Error('Player session ended.')
+      return session.playerSigner.pubkey
+    }
+    if (!session.nostrSecret) throw new Error('Nostr signer unavailable.')
     return getPublicKey(session.nostrSecret)
   })
 
-  ipcMain.handle('webgame:nostr:sign-event', (event, rawTemplate: unknown) => {
+  ipcMain.handle('webgame:nostr:sign-event', async (event, rawTemplate: unknown) => {
     const session = requireWebSession(event)
-    if (!session.grants.nostrSign || !session.nostrSecret) {
+    if (!session.grants.nostrSign) {
       throw new Error('Nostr signing capability is not granted for this game')
     }
+    if (session.playerSigner) {
+      if (cabinetPlayer?.signer !== session.playerSigner) throw new Error('Player session ended.')
+      const template = parsePlayerNostrTemplate(rawTemplate, session.gameId, session.allowedOrigins)
+      if (!template) throw new Error('Event outside this game’s personal signing permissions.')
+      const signed = await session.playerSigner.signEvent(template)
+      if (activeWebSession !== session || cabinetPlayer?.signer !== session.playerSigner) throw new Error('Player session ended.')
+      return signed
+    }
+    if (!session.nostrSecret) throw new Error('Nostr signer unavailable.')
     const template = parseGuestNostrTemplate(rawTemplate)
     if (!template) throw new Error('Nostr event template is malformed or outside session limits')
     return finalizeEvent(template, session.nostrSecret)
@@ -910,6 +952,7 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', () => app.quit())
 
 app.on('will-quit', () => {
+  conferencePlayer.end()
   destroyWebSession()
   globalShortcut.unregisterAll()
   localServer?.close()

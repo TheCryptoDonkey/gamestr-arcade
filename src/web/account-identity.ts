@@ -6,6 +6,7 @@ export interface AccountIdentityOptions {
   open: boolean
   busy: boolean
   signerStatus?: string
+  logoutLabel?: string
   onReconnect?(): void
   onSyncPreferences?(): void
   onImportDevicePreferences?(): void
@@ -55,7 +56,7 @@ export function accountIdentity(options: AccountIdentityOptions): HTMLElement {
     profile.type = 'button'
     profile.setAttribute('role', 'menuitem')
     profile.addEventListener('click', options.onProfile)
-    const logout = element('button', 'logout-button', options.busy ? 'LOGGING OUT...' : 'LOG OUT')
+    const logout = element('button', 'logout-button', options.busy ? 'LOGGING OUT...' : options.logoutLabel ?? 'LOG OUT')
     logout.type = 'button'
     logout.setAttribute('role', 'menuitem')
     logout.disabled = options.busy

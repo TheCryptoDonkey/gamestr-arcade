@@ -1,5 +1,5 @@
 import type { LoginPickerMethod } from 'signet-login'
-export type ArcadeLoginMethod = Exclude<LoginPickerMethod, 'nsec' | 'amber'> | 'android-signer'
+export type ArcadeLoginMethod = Exclude<LoginPickerMethod, 'nsec' | 'amber'> | 'android-signer' | 'phone-pairing'
 
 export function pickLoginMethod(signingRequired = false): Promise<ArcadeLoginMethod | null> {
   return new Promise(resolve => {
@@ -9,11 +9,11 @@ export function pickLoginMethod(signingRequired = false): Promise<ArcadeLoginMet
     dialog.setAttribute('aria-labelledby', title.id)
     const description = document.createElement('p'); description.textContent = 'Choose where you approve. Your private key stays with your signer.'
     dialog.append(title, description)
-    const choices: [ArcadeLoginMethod, string][] = [['local-signet', 'My Signet on this device'], ['remote-signet', 'My Signet on another device (QR)']]
+    const choices: [ArcadeLoginMethod, string][] = [['phone-pairing', 'Pair a phone (Signet or Cambium)'], ['local-signet', 'My Signet on this device'], ['remote-signet', 'My Signet on another device (QR)']]
     if ('nostr' in window) choices.push(['nip07', 'Browser extension'])
     if (!signingRequired && /android/i.test(navigator.userAgent)) choices.push(['android-signer', 'Cambium or Amber (Android signer)'])
     if (signingRequired && /android/i.test(navigator.userAgent)) {
-      const note = document.createElement('p'); note.textContent = 'Cambium and Amber can verify your identity. To approve actions in this arcade, connect My Signet or a NIP-46 signer.'; dialog.append(note)
+      const note = document.createElement('p'); note.textContent = 'For ongoing Cambium approvals, choose Pair a phone above. My Signet and other NIP-46 signers can also approve game actions.'; dialog.append(note)
     }
     choices.push(['nostrconnect', 'Connect a Nostr signer (NIP-46 QR)'], ['bunker', 'Connect a bunker URI'])
     let result: ArcadeLoginMethod | null = null
