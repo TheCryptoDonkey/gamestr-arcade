@@ -383,11 +383,13 @@ async function boot(): Promise<void> {
   const input = new InputController({
     onPairPlayer: () => { if (!inWebGame) document.querySelector<HTMLButtonElement>('.arcade-player-open:not(:disabled)')?.click() },
     onPrev: () => {
+      if (inWebGame) return
       if (donationPanel.isOpen) { donationPanel.close(); return }
       if (gamesPanel.isOpen) gamesPanel.moveSelection(-1)
       else if (!readyPanel.isOpen && !downloadPanel.isOpen && !relayPanel.isOpen) carousel.prev()
     },
     onNext: () => {
+      if (inWebGame) return
       if (donationPanel.isOpen) { donationPanel.close(); return }
       if (gamesPanel.isOpen) gamesPanel.moveSelection(1)
       else if (!readyPanel.isOpen && !downloadPanel.isOpen && !relayPanel.isOpen) carousel.next()

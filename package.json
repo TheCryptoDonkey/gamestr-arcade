@@ -1,6 +1,6 @@
 {
   "name": "gamestr-arcade",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "private": true,
   "type": "module",
   "description": "Gamestr arcade kiosk - Electron front-end for a self-contained arcade machine.",
@@ -34,11 +34,14 @@
     "conference:status": "npm run validate:manifests && node scripts/conference-status.mjs",
     "typecheck": "tsc -p tsconfig.node.json --noEmit --pretty false && tsc -p tsconfig.web.json --noEmit --pretty false",
     "check:deploy": "bash -n scripts/deploy.sh && bash -n scripts/deploy-web.sh",
-    "check": "npm run check:deploy && npm run validate && npm run typecheck && npm test && npm run build && node scripts/check-preload-bundles.mjs && npm run build:web && npm run validate:web && npm run build:web:600 && npm run validate:web:600",
+    "check": "npm run check:deploy && npm run check:mobile && npm run validate && npm run typecheck && npm test && npm run build && node scripts/check-preload-bundles.mjs && npm run build:web && npm run validate:web && npm run build:web:600 && npm run validate:web:600",
     "deploy": "bash scripts/deploy.sh",
     "deploy:web:600": "GAMESTR_WEB_EDITION=600 GAMESTR_WEB_ORIGIN=https://arcade.600.wtf bash scripts/deploy-web.sh",
     "test:browser": "playwright test",
-    "validate:definitions": "node scripts/validate-definition-previews.mjs"
+    "validate:definitions": "node scripts/validate-definition-previews.mjs",
+    "test:mobile:android": "bash scripts/check-mobile-pairing.sh android",
+    "test:mobile:ios": "bash scripts/check-mobile-pairing.sh ios",
+    "check:mobile": "node --check scripts/check-android-signer.mjs && bash -n scripts/check-mobile-pairing.sh && bash -n scripts/check-ios-safari.sh"
   },
   "dependencies": {
     "@forgesworn/joystick-host": "file:vendor/joystick/joystick-host-0.4.3-cd486d9a0ffa.tgz",

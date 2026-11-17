@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { finalizeEvent, getPublicKey } from 'nostr-tools/pure'
 import { androidApprovalUrl, acceptPhoneApproval, initialApproval, newPhoneSigner } from '../src/shared/phone-signer'
-import { PAIRING_MS, PHONE_SIGNING_RELAY, parsePhoneInvitation, phonePairingUrl, signingTemplate, type PhoneInvitation } from '../src/shared/phone-signing'
+import { PAIRING_MS, PHONE_SIGNING_RELAY, parsePhoneInvitation, phoneConnection, phonePairingUrl, signingTemplate, type PhoneInvitation } from '../src/shared/phone-signing'
 import { parsePlayerNostrTemplate } from '../src/main/web-session-policy'
 
 const now = Date.now(), secret = new Uint8Array(32).fill(31), pubkey = getPublicKey(secret), origin = 'https://arcade.example'
@@ -10,6 +10,22 @@ function invitation(): PhoneInvitation {
   return { uri: `nostrconnect://${'a'.repeat(64)}?${params}`, expiresAt: now + PAIRING_MS, proof: { kind: 21236, content: '', created_at: Math.floor(now / 1000), tags: [['challenge', 'c'.repeat(64)], ['origin', origin], ['app', 'Gamestr Arcade']] } }
 }
 describe('phone signer pairing and Android callbacks', () => {
+  it('reads a strict NIP-46 authority without custom-scheme URL support', () => {
+    expect(phoneConnection(invitation().uri).publicKey).toBe('a'.repeat(64))
+    for (const authority of [`user@${'a'.repeat(64)}`, `${'a'.repeat(64)}:443`, `${'a'.repeat(64)}/`, 'short']) {
+      expect(() => phoneConnection(`nostrconnect://${authority}?secret=secret`)).toThrow()
+    }
+    expect(() => phoneConnection(invitation().uri + '#fragment')).toThrow()
+    expect(() => phoneConnection(invitation().uri.replace('nostrconnect:', 'https:'))).toThrow()
+  })
+
+  it('allows small phone clock differences without extending the invitation deadline', () => {
+    const invite = invitation()
+    expect(parsePhoneInvitation(invite, origin, now - 1000)).toEqual(invite)
+    expect(() => parsePhoneInvitation({ ...invite, expiresAt: invite.expiresAt + 2000 }, origin, now)).toThrow()
+    expect(() => parsePhoneInvitation(invite, origin, invite.expiresAt)).toThrow()
+  })
+
   it('keeps the invitation in a fragment and rejects unrelated origins and relays', () => {
     const invite = invitation(), url = new URL(phonePairingUrl(origin, invite))
     expect(url.search).toBe(''); expect(url.pathname).toBe('/phone-pair/')

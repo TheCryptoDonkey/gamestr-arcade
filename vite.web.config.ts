@@ -202,7 +202,12 @@ async function writeEditionManifest(): Promise<void> {
 function webData(): Plugin {
   return {
     name: 'gamestr-web-catalogue',
-    transformIndexHtml: (html, context) => context.filename.endsWith('/phone-pair/index.html') ? html : editionHtml(html),
+    transformIndexHtml: (html, context) => {
+      // Safari also upgrades loopback subresources, but the dev server uses HTTP.
+      // Keep the directive in every production build.
+      if (context.server) html = html.replace('; upgrade-insecure-requests', '')
+      return context.filename.endsWith('/phone-pair/index.html') ? html : editionHtml(html)
+    },
     configureServer(server) {
       server.middlewares.use('/definitions/600', async (req, res, next) => {
         const path = (req.url ?? '').split('?')[0]

@@ -1,4 +1,4 @@
-import { parsePhoneInvitation, decodePhonePairing, confirmationCode, PLAYER_MS, randomToken, signedFor } from '../shared/phone-signing'
+import { parsePhoneInvitation, decodePhonePairing, confirmationCode, PLAYER_MS, randomToken, signedFor, phoneConnection } from '../shared/phone-signing'
 import { npubEncode } from 'nostr-tools/nip19'
 import { PhoneSigner, newPhoneSigner, initialApproval, androidApprovalUrl, acceptPhoneApproval, type PhoneSignerState } from '../shared/phone-signer'
 
@@ -77,7 +77,7 @@ async function boot(): Promise<void> {
   let completed: { id: string; event: ReturnType<typeof acceptPhoneApproval> } | undefined
   if (hash.has('pairing')) {
     const invitation = decodePhonePairing(hash.get('pairing')!, location.origin)
-    sessionId = new URL(invitation.uri).hostname
+    sessionId = phoneConnection(invitation.uri).publicKey
     if (localStorage.getItem(prefix + sessionId)) throw new Error('This pairing has already been opened. Show a fresh code on the TV.')
     state = newPhoneSigner(invitation)
   } else {
@@ -87,7 +87,7 @@ async function boot(): Promise<void> {
     state = stored?.state as PhoneSignerState | undefined
     if (!state || state.expiresAt <= Date.now() || state.expiresAt > Date.now() + PLAYER_MS || !Array.isArray(state.answered)) throw new Error('Phone session expired. Scan a fresh code on the TV.')
     parsePhoneInvitation(state.invitation, location.origin, Math.min(Date.now(), state.invitation.expiresAt - 1))
-    if (new URL(state.invitation.uri).hostname !== sessionId || state.proof && !signedFor(state.proof, state.invitation.proof)) throw new Error('Invalid saved phone session.')
+    if (phoneConnection(state.invitation.uri).publicKey !== sessionId || state.proof && !signedFor(state.proof, state.invitation.proof)) throw new Error('Invalid saved phone session.')
     if (returned !== null) {
       const id = state.pending?.id
       if (!id) throw new Error('This approval was already used.')

@@ -24,12 +24,20 @@ export interface PhoneInvitation {
   expiresAt: number
 }
 
+/** Chrome before 130 leaves URL.hostname empty for custom schemes. Keep the
+ * NIP-46 authority strict and parse its ordinary query independently. */
+export function phoneConnection(uri: string): { publicKey: string; params: URLSearchParams } {
+  const match = /^nostrconnect:\/\/([0-9a-f]{64})\?([^#]*)$/.exec(uri)
+  if (!match) throw new Error('Invalid signer connection URI.')
+  return { publicKey: match[1], params: new URLSearchParams(match[2]) }
+}
+
 export function phonePairingUrl(origin: string, invitation: PhoneInvitation): string {
   const url = new URL('/phone-pair/', origin)
-  const uri = new URL(invitation.uri)
+  const { publicKey, params } = phoneConnection(invitation.uri)
   // Keep the camera payload compact: the fixed protocol, relay and proof tags
   // are reconstructed on the phone rather than percent-encoded twice in a QR.
-  const compact = [uri.hostname, uri.searchParams.get('secret'), invitation.proof.tags[0][1], invitation.proof.created_at, invitation.expiresAt, uri.searchParams.get('name')]
+  const compact = [publicKey, params.get('secret'), invitation.proof.tags[0][1], invitation.proof.created_at, invitation.expiresAt, params.get('name')]
   const bytes = new TextEncoder().encode(JSON.stringify(compact))
   url.hash = `pairing=${btoa(Array.from(bytes, byte => String.fromCharCode(byte)).join('')).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`
   return url.href
@@ -50,10 +58,8 @@ export function parsePhoneInvitation(value: unknown, origin: string, now = Date.
   if (!value || typeof value !== 'object') throw new Error('Scan a fresh pairing code on the arcade.')
   const invitation = value as PhoneInvitation
   if (typeof invitation.uri !== 'string' || invitation.uri.length > 4096) throw new Error('Invalid pairing link.')
-  const uri = new URL(invitation.uri)
-  const params = uri.searchParams
-  if (uri.protocol !== 'nostrconnect:' || !/^[0-9a-f]{64}$/.test(uri.hostname)
-    || !/^[0-9a-f]{64}$/.test(params.get('secret') ?? '') || params.getAll('relay').length !== 1
+  const { params } = phoneConnection(invitation.uri)
+  if (!/^[0-9a-f]{64}$/.test(params.get('secret') ?? '') || params.getAll('relay').length !== 1
     || params.get('relay') !== relay || params.get('url') !== origin) throw new Error('This pairing link is not for this arcade.')
   const name = params.get('name')
   const proof = signingTemplate(invitation.proof, now)
@@ -62,7 +68,7 @@ export function parsePhoneInvitation(value: unknown, origin: string, now = Date.
     || proof.tags[0][0] !== 'challenge' || !/^[0-9a-f]{64}$/.test(proof.tags[0][1])
     || JSON.stringify(proof.tags.slice(1)) !== JSON.stringify([['origin', origin], ['app', name]])
     || !Number.isSafeInteger(invitation.expiresAt) || invitation.expiresAt <= now
-    || invitation.expiresAt > now + PAIRING_MS || proof.created_at * 1000 > now + 30_000
+    || invitation.expiresAt > (proof.created_at + 1) * 1000 + PAIRING_MS || proof.created_at * 1000 > now + 30_000
     || proof.created_at * 1000 < now - PAIRING_MS) throw new Error('Pairing expired. Scan a fresh code on the arcade.')
   return { uri: invitation.uri, proof, expiresAt: invitation.expiresAt }
 }
