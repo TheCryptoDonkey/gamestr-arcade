@@ -213,6 +213,7 @@ try {
   await first.waitForFunction(()=>navigator.getGamepads()[0]?.id==='Gamestr Joystick phone')
   await first.waitForFunction(()=>navigator.getGamepads()[0]?.axes[0]===.6 && navigator.getGamepads()[0]?.buttons[0].pressed)
   assert.deepEqual(await first.evaluate(()=>({axis:navigator.getGamepads()[0].axes[0],fire:navigator.getGamepads()[0].buttons[0].pressed})),{axis:.6,fire:true})
+  assert.match(await tile.innerText(), /Runtime A/i, 'Playing with a phone must preserve the cabinet selection')
   phoneSocket.close()
   // A disconnected phone may leave an allocated virtual pad. Input must be
   // neutral immediately; physical controllers remain available beside it.
@@ -239,6 +240,7 @@ try {
   })
   assert.deepEqual(authority, { wallet: 'undefined', node: 'undefined', shellBridge: 'undefined' })
   await returnFromGame(first, 'first game')
+  assert.match(await tile.innerText(), /Runtime A/i, 'Returning from a game must preserve the cabinet selection')
   stage = 'second game launch'
   const second = await launch()
   stage = 'second game isolation'
