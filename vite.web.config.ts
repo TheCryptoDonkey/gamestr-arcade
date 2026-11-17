@@ -202,7 +202,7 @@ async function writeEditionManifest(): Promise<void> {
 function webData(): Plugin {
   return {
     name: 'gamestr-web-catalogue',
-    transformIndexHtml: editionHtml,
+    transformIndexHtml: (html, context) => context.filename.endsWith('/phone-pair/index.html') ? html : editionHtml(html),
     configureServer(server) {
       server.middlewares.use('/definitions/600', async (req, res, next) => {
         const path = (req.url ?? '').split('?')[0]
@@ -294,6 +294,6 @@ export default defineConfig({
   publicDir: join(webRoot, 'public'),
   plugins: [manifestValidator(), webData()],
   define: { __GAMESTR_WEB_EDITION__: JSON.stringify(edition.key) },
-  build: { outDir, emptyOutDir: true, sourcemap: true },
+  build: { outDir, emptyOutDir: true, sourcemap: true, rollupOptions: { input: { arcade: join(webRoot, 'index.html'), phone: join(webRoot, 'phone-pair/index.html') } } },
   server: { host: '127.0.0.1', port: 4174 },
 })

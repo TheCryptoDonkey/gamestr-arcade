@@ -1,4 +1,5 @@
 import type { ArcadeConfig, Game } from '../shared/types'
+import { signingTemplate } from '../shared/phone-signing'
 
 const MAX_NOSTR_CONTENT_CHARS = 64 * 1024
 const MAX_NOSTR_TAGS = 64
@@ -16,6 +17,21 @@ export interface GuestNostrEventTemplate {
   created_at: number
   tags: string[][]
   content: string
+}
+
+/** Personal signing is narrower than the disposable guest identity. */
+export function parsePlayerNostrTemplate(raw: unknown, gameId: string, origins: ReadonlySet<string>): GuestNostrEventTemplate | null {
+  const template = parseGuestNostrTemplate(raw)
+  if (!template || !signingTemplate(template)) return null
+  if ([30762, 5555].includes(template.kind)) {
+    if (!template.tags.some(tag => tag[0] === 'game' && tag[1] === gameId)
+      || template.tags.some(tag => tag[0] === 'game' && tag[1] !== gameId)) return null
+  } else if (template.kind === 27235 || template.kind === 21236) {
+    const name = template.kind === 27235 ? 'u' : 'origin'
+    const values = template.tags.filter(tag => tag[0] === name)
+    if (values.length !== 1 || !isAllowedWebNavigation(values[0][1], origins)) return null
+  } else return null
+  return template
 }
 
 function isLoopbackHost(hostname: string): boolean {

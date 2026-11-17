@@ -17,11 +17,16 @@ import {
   type Direction,
 } from '../../../shared/gamepad'
 
+// Capture the native reader before the phone SDK merges its input into pad 0.
+// Approval must retain physical input even while that virtual pad is connected.
+const physicalGamepads = typeof navigator !== 'undefined' ? navigator.getGamepads?.bind(navigator) : undefined
+
 export interface InputHandlers {
   onPrev(): void
   onNext(): void
   onLaunch(): void
   onBack(): void
+  onPairPlayer?(): void
   /** Fired on ANY input (key / gamepad / pointer) - used to wake from attract. */
   onActivity?(): void
 }
@@ -142,6 +147,7 @@ export class InputController {
   private onKeyDown = (e: KeyboardEvent): void => {
     // Let the global admin shortcuts (Ctrl+Q, F5) pass through untouched.
     if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && (e.key === 'q' || e.key === 'Q'))) return
+    if (e.target instanceof Element && e.target.closest('.arcade-player-open,.player-pairing')) return
     if (isEditableTarget(e.target)) {
       this.handlers.onActivity?.()
       return
@@ -149,6 +155,10 @@ export class InputController {
 
     let handled = true
     switch (e.key) {
+      case 'p':
+      case 'P':
+        this.handlers.onPairPlayer?.()
+        break
       case 'ArrowLeft':
         this.handlers.onPrev()
         break
@@ -190,6 +200,24 @@ export class InputController {
     const pads = Array.from(navigator.getGamepads?.() ?? []).filter(
       (p): p is Gamepad => p != null,
     )
+    const approvalDialog = document.querySelector<HTMLDialogElement>('.player-pairing[open]')
+    if (approvalDialog) {
+      // A phone controller may play games but cannot approve another phone's
+      // identity. Only a local physical pad can operate this TV confirmation.
+      const local = Array.from(physicalGamepads?.() ?? []).filter((pad): pad is Gamepad => pad != null && pad.id !== 'Gamestr Joystick phone')
+      const pressed = (index: number) => local.some(pad => !!pad.buttons[index]?.pressed)
+      if (pressed(BTN_A) && !this.prevButtons[BTN_A] && document.activeElement instanceof HTMLButtonElement && approvalDialog.contains(document.activeElement)) document.activeElement.click()
+      if (BACK_BUTTON_INDICES.some(index => pressed(index) && !this.prevButtons[index])) approvalDialog.close()
+      const direction = directionFromGamepads(local)
+      if (direction && (direction !== this.heldDir || now >= this.nextRepeatAt)) {
+        const controls = [...approvalDialog.querySelectorAll<HTMLButtonElement>('button')].filter(button => !button.hidden && !button.disabled)
+        controls[(controls.indexOf(document.activeElement as HTMLButtonElement) + direction + controls.length) % controls.length]?.focus()
+        this.nextRepeatAt = now + (direction === this.heldDir ? REPEAT_INTERVAL_MS : REPEAT_INITIAL_MS)
+      }
+      this.heldDir = direction
+      this.prevButtons = Array.from({ length: 17 }, (_, index) => pressed(index))
+      return
+    }
     if (this.diagnostics && now - this.lastGpDiag > 1000) {
       this.lastGpDiag = now
       const detail = pads.map(p => `${p.index}:"${(p.id || '').slice(0, 28)}" map=${p.mapping || 'none'}`).join(' | ')
@@ -208,6 +236,8 @@ export class InputController {
     // diffing against the previous frame's UNIONED button state.
     const anyPressed = (i: number): boolean => pads.some(p => !!p.buttons[i]?.pressed)
     const justPressed = (i: number): boolean => anyPressed(i) && !this.prevButtons[i]
+
+    if (justPressed(3) && Array.from(physicalGamepads?.() ?? []).some(pad => pad?.buttons[3]?.pressed)) { this.handlers.onPairPlayer?.(); activity = true }
 
     if (justPressed(BTN_A)) {
       this.handlers.onLaunch()

@@ -9,6 +9,7 @@ offline/local game support, and operator-friendly booth controls.
 - Keyboard and multi-gamepad navigation, including a virtual cursor for web games
 - Versioned game manifests with readiness, controls, network and capability declarations
 - A player-facing **Ready to Play** check before every launch
+- [Conference phone pairing](./docs/conference-phone-pairing.md): My Signet and Cambium first, compatible Nostr signers and guest play
 - Native AppImage launch with a playable web fallback when the binary is absent
 - Session-wide, bounded Nostr score feeds with event ID and signature verification
 - Live profiles, Today / All-Time boards, relay controls and local cache support
