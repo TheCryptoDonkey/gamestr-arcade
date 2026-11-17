@@ -52,6 +52,15 @@ describe('phone signer pairing and Android callbacks', () => {
     expect(() => acceptPhoneApproval(state, pending.token, '{', now)).toThrow()
     expect(acceptPhoneApproval(state, pending.token, btoa(JSON.stringify(event)), now).pubkey).toBe(pubkey)
   })
+
+  it('accepts a hardware approval after two minutes but refuses it at the original deadline', () => {
+    const invite = invitation(), state = newPhoneSigner(invite), pending = initialApproval(state)
+    expect(parsePhoneInvitation(invite, origin, now + 150_000)).toEqual(invite)
+    const event = finalizeEvent(pending.template, secret)
+    expect(acceptPhoneApproval(state, pending.token, JSON.stringify(event), now + 150_000).pubkey).toBe(pubkey)
+    const expired = newPhoneSigner(invite), late = initialApproval(expired)
+    expect(() => acceptPhoneApproval(expired, late.token, JSON.stringify(event), invite.expiresAt)).toThrow('expired')
+  })
 })
 
 describe('personal game signing scope', () => {

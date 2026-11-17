@@ -13,13 +13,18 @@ QR, choices and guest button visible together.
 
 ## Player journey
 
-1. Choose My Signet or Cambium on the TV and scan the fresh QR. My Signet uses
-   its existing Nostr Connect handler. Cambium opens `/phone-pair/` on Android.
+1. Choose My Signet or Cambium on the TV. Scan the My Signet QR **inside My
+   Signet**; scan the Cambium QR **with the Android phone camera** to open
+   `/phone-pair/`. The selected method is named above the QR. Tapping that
+   same method again keeps the existing invitation; switching methods creates
+   a new one. Expired invitations require an explicit retry.
 2. On the Cambium phone page, choose **Approve with Cambium**. Cambium asks
    Heartwood to sign the login challenge and returns the signed event to the
    browser. The page also offers the standard Android signer scheme.
-3. Check the account on the TV. For Cambium, compare the confirmation code on
-   both screens; it is derived from the signed identity proof. Confirm locally
+3. Check the account on the TV. For Cambium, a confirmation code appears on
+   both screens **after approval**; it is derived from the signed identity
+   proof. There is no changing invitation reference to compare before approval.
+   My Signet uses account confirmation on the TV. Confirm locally
    with **That’s me. Let’s play**. A paired phone controller cannot operate this
    account-confirmation screen.
 4. Keep the Cambium page open during play. Game actions appear there for visible
@@ -27,8 +32,11 @@ QR, choices and guest button visible together.
    selected account. Declining a request does not grant any signing authority.
 5. Choose **Finish / Next player** from the web account menu or cabinet player
    control. The phone can also disconnect. Access ends immediately on the TV;
-   a later phone response cannot revive it. Pairing expires after two minutes,
-   individual approvals after 90 seconds, and a player session after 20 minutes.
+   a later phone response cannot revive it. Pairing expires after five minutes
+   to allow phone unlock and hardware approval; the TV shows the time remaining.
+   The deadline is fixed and does not extend when scanned or tapped again.
+   Individual game approvals expire after 90 seconds, and a player session
+   after 20 minutes.
 
 ## Keys, storage and network
 
@@ -116,3 +124,30 @@ Verify physical controller approval and guest recovery on the chosen browser
 or packaged Linux cabinet. Automated protocol and macOS runtime evidence does
 not establish these physical-device results. See also
 [conference acceptance](./conference-acceptance.md).
+
+## Rehearsal fixes in 0.2.7
+
+The first live rehearsal reached signed account confirmation and a connected
+My Signet session. Cambium/Heartwood completion remains pending: the two-minute
+invitation expired during hardware approval. The rehearsal driver also replaced
+invitations while the phone was still being used; do not refresh a live QR
+without an explicit retry from the person testing.
+
+Pairing now allows five minutes with a visible countdown. Repeated selection
+of the same method preserves the scanned invitation, and expiry never replaces
+it automatically. The Cambium camera instruction is above its QR. The initial
+invitation reference has been removed; the signed-account confirmation code
+appears only after approval, with an explicit label on both screens. My Signet
+and other NIP-46 routes use account confirmation on the TV, without a code their
+signer may not display.
+
+Regressions cover delayed hardware approval, the fixed expiry deadline,
+repeated method selection, explicit retry, and the confirmation screens in both
+web editions. Native Cambium and any code-validation prompt inside an installed
+My Signet app still require another phone rehearsal; the automated signer is a
+disposable protocol fixture.
+
+Local validation passed: 717 unit tests, types, desktop and both web builds,
+the five focused pairing browser journeys, and the Electron runtime check.
+The runtime check now waits for the dialog's asynchronous close event before
+checking that guest play removed it.
