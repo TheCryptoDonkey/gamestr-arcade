@@ -39,7 +39,9 @@ It does not request identity-key export, decryption or private messaging.
 
 The Cambium companion is a static page on each existing Arcade origin, not a
 new account service. It uses encrypted NIP-46/NIP-44 messages over the existing
-`wss://relay.trotters.cc` relay. The QR invitation secret is in the URL fragment.
+`wss://relay.primal.net` relay, matching My Signet's production default. The
+retired `relay.trotters.cc` endpoint rejects temporary-key writes and is not
+suitable for pairing. The QR invitation secret is in the URL fragment.
 The phone stores an expiring connection key, signed proof and pending request
 in local storage so a native callback can return in another tab. A new tab
 takes ownership and pauses the old one. Finish removes this record; expired
@@ -49,7 +51,8 @@ NIP-55 returns the signed event and a one-use request token in an HTTPS query
 because Cambium rejects callback fragments. The page immediately removes these
 from its visible URL and uses `no-referrer`; the HTTPS server may still receive
 the callback query in access logs. It contains a signed request, not an identity
-private key. No extra analytics, cloud account or relay is introduced.
+private key. This uses an existing public relay; no new relay service, analytics
+or cloud account is operated by Arcade.
 
 The cabinet restricts personal signing to game-tagged scores and authentication
 for the launched game's allowed origins. Guest games retain a separate
@@ -72,6 +75,7 @@ login/action/finish screens, and web/cabinet Next Player controls. Reproduce wit
 npm run check
 npm run test:browser
 node scripts/check-conference-cabinet.mjs
+node scripts/check-signing-relay.mjs wss://relay.primal.net
 ```
 
 Local results: `npm run check` passed with 715 unit tests, types, desktop build,
@@ -81,6 +85,12 @@ the four pairing journeys, affected unit tests, types, desktop build and the
 Electron runtime check passed again. The final browser regression uses the
 actual phone SDK's merged virtual pad alongside a physical controller: only
 the physical controller can confirm the account.
+
+Release verification also checks actual encrypted delivery between two
+disposable keys and sockets on the selected public signing relay. Local relay
+fixtures alone cannot establish that a public relay permits temporary-key
+writes. This live check caught the retired operator-only endpoint before
+publication; the replacement accepted the encrypted NIP-46 message.
 
 The browser pairing test uses real NIP-46 encryption and signed events with a
 disposable local relay and simulated native approvals. It covers both editions,

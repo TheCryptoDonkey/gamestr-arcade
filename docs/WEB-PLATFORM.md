@@ -97,6 +97,10 @@ The Cambium companion translates visible Android NIP-55 approvals into a
 temporary NIP-46 connection. Existing personal-device login options, including
 Bark through NIP-07, remain available.
 
+Authentication and conference pairing use `wss://relay.primal.net`, matching
+My Signet's production default. The retired operator-only `relay.trotters.cc`
+endpoint rejects temporary-key writes; it remains in historical score reads.
+
 The public web app never receives the cabinet NWC URI. A cross-origin game owns
 its own wallet UX. The Electron cabinet may broker narrowly bounded payments,
 but that authority stays in its main process and the hardened NWC gateway.
