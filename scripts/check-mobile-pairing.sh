@@ -59,7 +59,7 @@ JS
     echo 'emulator-5554 is already in use; stop it before running this check.' >&2; exit 1
   fi
   serial=emulator-5554
-  "$sdk/emulator/emulator" -avd "$avd_name" -port 5554 -no-window -no-audio -no-snapshot -no-boot-anim -memory 1536 -cores 2 -gpu swiftshader_indirect >"$evidence/android-emulator.log" 2>&1 &
+  "$sdk/emulator/emulator" -avd "$avd_name" -port 5554 -no-window -no-audio -no-snapshot -no-boot-anim -memory 2048 -cores 2 -gpu swiftshader_indirect >"$evidence/android-emulator.log" 2>&1 &
   emulator_pid=$!
   for attempt in {1..120}; do
     if test "$("$sdk/platform-tools/adb" -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1; then break; fi
@@ -67,6 +67,9 @@ JS
     sleep 2
   done
   test "$("$sdk/platform-tools/adb" -s "$serial" shell getprop sys.boot_completed | tr -d '\r')" = 1
+  for setting in window_animation_scale transition_animation_scale animator_duration_scale; do
+    "$sdk/platform-tools/adb" -s "$serial" shell settings put global "$setting" 0
+  done
   "$sdk/platform-tools/adb" -s "$serial" install "$scratch/cambium-0.9.1.apk"
   "$sdk/platform-tools/adb" -s "$serial" reverse tcp:4174 tcp:4174
   ANDROID_HOME="$sdk" node scripts/check-android-signer.mjs "$serial" "$evidence"

@@ -23,14 +23,24 @@ let subscription, device, mobile, browser, tv, phone, invitation
 const watchdog = setTimeout(() => { console.error('Android signer rehearsal exceeded six minutes'); process.exit(1) }, 360_000)
 // Use fresh accessibility snapshots across app transitions. Keep UIAutomator
 // exclusive: a second persistent automation driver can retain a stale root.
-async function nativeElement(resourceId, text, timeout = 30_000) {
+async function nativeElement(resourceId, text, timeout = 30_000, revealTop = false) {
   const path = '/sdcard/gamestr-pairing-ui.xml'
   let element
   await expect.poll(async () => {
-    execFileSync(adb, ['-s', serial, 'shell', 'uiautomator', 'dump', path], { timeout: 15_000 })
-    const xml = execFileSync(adb, ['-s', serial, 'shell', 'cat', path]).toString()
-    execFileSync(adb, ['-s', serial, 'shell', 'rm', path])
+    let xml
+    try {
+      execFileSync(adb, ['-s', serial, 'shell', 'uiautomator', 'dump', path], { timeout: 15_000, stdio: 'ignore' })
+      xml = execFileSync(adb, ['-s', serial, 'shell', 'cat', path], { stdio: ['ignore', 'pipe', 'ignore'] }).toString()
+    } catch { return false } // No accessibility root yet during an app transition.
+    finally { execFileSync(adb, ['-s', serial, 'shell', 'rm', '-f', path], { stdio: 'ignore' }) }
     const node = Array.from(xml.matchAll(/<node\b[^>]*>/g), match => match[0]).find(node => node.includes(`resource-id="dev.forgesworn.cambium:id/${resourceId}"`))
+    if (!node && revealTop) {
+      const size = (await device.shell('wm size')).toString().match(/(\d+)x(\d+)/)
+      if (!size) throw Error('Emulator screen size unavailable')
+      const width = Number(size[1]), height = Number(size[2])
+      await device.shell(`input swipe ${Math.floor(width / 2)} ${Math.floor(height / 4)} ${Math.floor(width / 2)} ${Math.floor(height * .85)} 300`)
+      return false
+    }
     const bounds = node?.match(/bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/)
     const escapedText = text?.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     if (!node || text && !node.includes(`text="${escapedText}"`) || !node.includes('enabled="true"') || !bounds) return false
@@ -38,7 +48,7 @@ async function nativeElement(resourceId, text, timeout = 30_000) {
     if (right <= left || bottom <= top) return false
     element = { x: Math.floor((left + right) / 2), y: Math.floor((top + bottom) / 2) }
     return true
-  }, { timeout }).toBe(true)
+  }, { timeout, message: `Native Cambium control ${resourceId} must be ready` }).toBe(true)
   return element
 }
 async function tapNative(element) {
@@ -89,11 +99,11 @@ try {
   if (!device) throw Error(`Emulator ${serial} not found`)
   device.setDefaultTimeout(30_000)
   await device.shell('pm clear dev.forgesworn.cambium')
-  await device.shell('am start -n dev.forgesworn.cambium/.MainActivity')
+  await device.shell('am start -W -n dev.forgesworn.cambium/.MainActivity')
   await fillNative('bunkerInput', `bunker://${pubkey}?${new URLSearchParams({ relay, secret })}`)
   await fillNative('labelInput', 'Disposable arcade rehearsal')
   await tapNative(await nativeElement('pairButton'))
-  await nativeElement('pairingLabelValue', 'Disposable arcade rehearsal', 60_000)
+  await nativeElement('pairingLabelValue', 'Disposable arcade rehearsal', 60_000, true)
   console.log('Published Cambium paired with disposable software bunker')
   mobile = await device.launchBrowser()
   mobile.setDefaultTimeout(20_000)
