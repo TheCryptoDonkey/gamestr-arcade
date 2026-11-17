@@ -1,4 +1,4 @@
-import { parsePhoneInvitation, decodePhonePairing, pairingCode, confirmationCode, PLAYER_MS, randomToken, signedFor } from '../shared/phone-signing'
+import { parsePhoneInvitation, decodePhonePairing, confirmationCode, PLAYER_MS, randomToken, signedFor } from '../shared/phone-signing'
 import { npubEncode } from 'nostr-tools/nip19'
 import { PhoneSigner, newPhoneSigner, initialApproval, androidApprovalUrl, acceptPhoneApproval, type PhoneSignerState } from '../shared/phone-signer'
 
@@ -38,8 +38,12 @@ function nativeLink(label: string, cambium: boolean): HTMLAnchorElement {
 function render(): void {
   if (!state) return
   heading(state.proof ? state.pending ? 'Approve this game action.' : 'Your phone is connected.' : 'Connect with Cambium.')
-  const code = document.createElement('strong'); code.className = 'code'; code.textContent = state.proof ? confirmationCode(state.proof) : pairingCode(state.invitation); root.append(code)
-  message('Check this code matches the TV. Cambium asks Heartwood to sign; your identity key stays on Heartwood.')
+  if (state.proof) {
+    message('Account confirmation code')
+    const code = document.createElement('strong'); code.className = 'code'; code.textContent = confirmationCode(state.proof); root.append(code)
+    message('Check this code matches the TV before continuing there.')
+  } else message('A confirmation code will appear after you approve.')
+  message('Cambium asks Heartwood to sign; your identity key stays on Heartwood.')
   if (state.proof) { const npub = npubEncode(state.proof.pubkey); message(`Your account: ${npub.slice(0, 16)}…${npub.slice(-8)}`) }
   if (!/android/i.test(navigator.userAgent)) { message('Cambium needs an Android phone. On the TV, choose My Signet, another Nostr signer, or guest play.'); return }
   if (!state.proof && !state.pending) { initialApproval(state); save() }

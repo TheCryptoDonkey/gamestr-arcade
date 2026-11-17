@@ -33,7 +33,7 @@ try {
   assert.deepEqual(await shell.locator('.player-pair-choice strong').allTextContents(), ['My Signet', 'Cambium', 'Another Nostr signer'])
   assert.match(await shell.evaluate(async () => { try { await window.arcade.confirmPlayerPairing(); return 'accepted' } catch (error) { return String(error) } }), /no longer available/)
   await shell.getByRole('button', { name: 'Play as guest', exact: true }).click()
-  assert.equal(await shell.locator('.player-pairing').count(), 0)
+  await shell.locator('.player-pairing').waitFor({ state: 'detached' })
   let previous
   for (let attempt = 0; attempt < 2; attempt++) {
     const gameWindow = app.waitForEvent('window', { predicate: page => page !== shell })

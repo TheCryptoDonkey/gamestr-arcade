@@ -6,7 +6,7 @@ import { SIGNING_RELAY } from './signing-relay'
 // Match My Signet's production default. This relay accepts disposable NIP-46
 // transport keys; the retired operator-only relay rejects their writes.
 export const PHONE_SIGNING_RELAY = SIGNING_RELAY
-export const PAIRING_MS = 2 * 60_000
+export const PAIRING_MS = 5 * 60_000
 export const PLAYER_MS = 20 * 60_000
 export const SIGNING_MS = 90_000
 export const PHONE_SIGNING_KINDS = [21236, 30762, 5555, 27235, 23033, 23034, 9734] as const
@@ -22,12 +22,6 @@ export interface PhoneInvitation {
   uri: string
   proof: EventTemplate
   expiresAt: number
-}
-
-export function pairingCode(invitation: PhoneInvitation): string {
-  // The code identifies the invitation; the TV still requires local confirmation
-  // of the signed player identity before granting any game signing access.
-  return new URL(invitation.uri).hostname.slice(-6).toUpperCase().match(/.../g)!.join(' ')
 }
 
 export function phonePairingUrl(origin: string, invitation: PhoneInvitation): string {

@@ -27,6 +27,22 @@ function fixture() {
 afterEach(() => { for (const player of players.splice(0)) player.end(); vi.useRealTimers() })
 
 describe('conference player consent and revocation', () => {
+  it('allows time to unlock a hardware signer without replacing or extending the invitation', async () => {
+    vi.useFakeTimers()
+    const f = fixture(), invitation = await f.player.start()
+    const secret = new URL(invitation.uri).searchParams.get('secret')!
+    expect(invitation.expiresAt - Date.now()).toBe(5 * 60_000)
+    await vi.advanceTimersByTimeAsync(150_000)
+    expect(f.player.state.status).toBe('pairing')
+    f.send({ id: 'ack', result: secret }); f.reply(pubkey)
+    await vi.advanceTimersByTimeAsync(0)
+    f.reply(JSON.stringify(finalizeEvent(invitation.proof, identity)))
+    await vi.advanceTimersByTimeAsync(0)
+    expect(f.player.state.status).toBe('confirm')
+    await vi.advanceTimersByTimeAsync(150_000)
+    expect(() => f.player.confirm()).toThrow('no longer')
+  })
+
   it('requires an exact signed challenge and local confirmation before signing', async () => {
     const f = fixture(), invitation = await f.pair()
     expect(f.player.state).toMatchObject({ status: 'confirm', pubkey, confirmationCode: expect.stringMatching(/^[A-F0-9]{3} [A-F0-9]{3}$/) })
