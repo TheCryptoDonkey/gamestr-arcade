@@ -15,7 +15,7 @@ function relayFixture() {
   return async (context: BrowserContext) => {
     await context.route('https://**/*', route => route.abort())
     await context.routeWebSocket('wss://**', socket => {
-      if (new URL(socket.url()).hostname !== 'relay.trotters.cc') { socket.close(); return }
+      if (new URL(socket.url()).hostname !== 'relay.primal.net') { socket.close(); return }
       const subscriptions = new Map<string, any[]>(); subscribers.set(socket, subscriptions)
       socket.onClose(() => subscribers.delete(socket))
       socket.onMessage(raw => {
@@ -145,7 +145,7 @@ test('My Signet and other signer QR routes complete the standard NIP-46 handshak
 
 test('guest play opens no signer subscription; a phone controller cannot confirm an account', async ({ page, context }) => {
   let requests = 0
-  await context.routeWebSocket('wss://relay.trotters.cc/**', socket => {
+  await context.routeWebSocket('wss://relay.primal.net/**', socket => {
     socket.onMessage(raw => { const frame = JSON.parse(String(raw)); if (frame[0] === 'REQ' && frame.slice(2).some((filter: any) => filter.kinds?.includes(24133))) ++requests })
   })
   await page.goto('http://127.0.0.1:4174/')

@@ -1,8 +1,11 @@
 import { finalizeEvent, generateSecretKey, getPublicKey, verifyEvent, type Event, type EventTemplate } from 'nostr-tools/pure'
 import { getConversationKey, encrypt, decrypt } from 'nostr-tools/nip44'
 import { SimplePool } from 'nostr-tools/pool'
+import { SIGNING_RELAY } from './signing-relay'
 
-export const PHONE_SIGNING_RELAY = 'wss://relay.trotters.cc'
+// Match My Signet's production default. This relay accepts disposable NIP-46
+// transport keys; the retired operator-only relay rejects their writes.
+export const PHONE_SIGNING_RELAY = SIGNING_RELAY
 export const PAIRING_MS = 2 * 60_000
 export const PLAYER_MS = 20 * 60_000
 export const SIGNING_MS = 90_000

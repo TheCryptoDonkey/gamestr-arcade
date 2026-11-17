@@ -2,11 +2,12 @@ import { verifyEvent } from 'nostr-tools/pure'
 import { startAndroidSignerLogin } from './android-signer'
 import { pickLoginMethod } from './login-method-picker'
 import { revokeNostrGameBridges } from './game-auth-handoff'
+import { SIGNING_RELAY } from '../shared/signing-relay'
 import type { LoginPickerMethod, NostrEvent, SignetSession, SignetStorage } from 'signet-login'
 
 export const NOSTR_SESSION_EVENT = 'gamestr:nostr-session'
 // Authentication needs a reachable rendezvous regardless of score-feed settings.
-export const NOSTR_AUTH_RELAY = 'wss://relay.trotters.cc'
+export const NOSTR_AUTH_RELAY = SIGNING_RELAY
 
 export interface ArcadeNostrSigner {
   signEvent(event: { created_at: number; kind: number; tags: string[][]; content: string }): Promise<NostrEvent>

@@ -43,7 +43,7 @@ describe('selected Nostr session', () => {
     expect(options.methods).toContain('remote-signet')
     expect(options.methods).not.toContain('nsec')
     expect(options.relayUrl).toBe(access.NOSTR_AUTH_RELAY)
-    expect(options.relayUrl).toBe('wss://relay.trotters.cc')
+    expect(options.relayUrl).toBe('wss://relay.primal.net')
     expect(options.relayUrls).toBeUndefined()
     expect(await access.currentNostrSigner()!.signEvent(template)).toMatchObject({ pubkey: PUBKEY })
   })
