@@ -66,6 +66,14 @@ for (const [edition, port] of [['gamestr', 4174], ['600', 4175]] as const) {
     const relay = relayFixture(); await relay(context)
     const mobile = await browser.newContext({ userAgent: 'Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/133.0 Mobile Safari/537.36', viewport: { width: 390, height: 844 } })
     try {
+      // Android's API-35 image ships Chrome 124, whose custom-scheme URL
+      // authority is empty. Retain that real-device regression in fast CI.
+      await mobile.addInitScript(() => {
+        const NativeURL = window.URL
+        window.URL = class extends NativeURL {
+          get hostname(): string { return this.protocol === 'nostrconnect:' ? '' : super.hostname }
+        }
+      })
       await relay(mobile)
       await page.setViewportSize({ width: 1920, height: 1080 })
       await page.goto(`http://127.0.0.1:${port}/`)

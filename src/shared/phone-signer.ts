@@ -1,5 +1,5 @@
 import type { Event, EventTemplate } from 'nostr-tools/pure'
-import { PhoneSigningChannel, PHONE_SIGNING_RELAY, PLAYER_MS, SIGNING_MS, generateSecretKey, hexKey, keyBytes, randomToken, signedFor, signingTemplate, type Nip46Message, type PhoneInvitation } from './phone-signing'
+import { PhoneSigningChannel, PHONE_SIGNING_RELAY, PLAYER_MS, SIGNING_MS, generateSecretKey, hexKey, keyBytes, randomToken, signedFor, signingTemplate, phoneConnection, type Nip46Message, type PhoneInvitation } from './phone-signing'
 
 export interface PhoneApproval { id: string; token: string; template: EventTemplate; expiresAt: number }
 export interface PhoneSignerState {
@@ -24,7 +24,7 @@ export function androidApprovalUrl(state: PhoneSignerState, callbackOrigin: stri
   if (!pending || pending.expiresAt <= Date.now()) throw new Error('Approval expired. Return to the arcade and try again.')
   const callback = new URL('/phone-pair/', callbackOrigin)
   if (callback.protocol !== 'https:' && !(callback.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(callback.hostname))) throw new Error('Phone approval requires HTTPS.')
-  callback.searchParams.set('session', new URL(state.invitation.uri).hostname)
+  callback.searchParams.set('session', phoneConnection(state.invitation.uri).publicKey)
   callback.searchParams.set('request', pending.token)
   const params = new URLSearchParams({ type: 'sign_event', compressionType: 'none', returnType: 'event', callbackUrl: `${callback.href}&event=` })
   if (state.proof) params.set('current_user', state.proof.pubkey)
@@ -54,7 +54,7 @@ export class PhoneSigner {
   private timer?: ReturnType<typeof setTimeout>
   private host: string
   constructor(readonly state: PhoneSignerState, private callbacks: { save(): void; pending(): void; ended(): void; error(message: string): void }, private relay = PHONE_SIGNING_RELAY) {
-    this.host = new URL(state.invitation.uri).hostname
+    this.host = phoneConnection(state.invitation.uri).publicKey
   }
 
   async start(): Promise<void> {
@@ -68,7 +68,7 @@ export class PhoneSigner {
     if (this.closed) return
     // On Android a callback may open a new tab. The same short-lived transport
     // key resumes that session; the TV pins its peer and ignores a repeated ACK.
-    await this.channel.send(this.host, { id: randomToken(), result: new URL(this.state.invitation.uri).searchParams.get('secret')! })
+    await this.channel.send(this.host, { id: randomToken(), result: phoneConnection(this.state.invitation.uri).params.get('secret')! })
   }
 
   private async receive(message: Nip46Message): Promise<void> {

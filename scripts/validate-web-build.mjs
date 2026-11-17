@@ -44,6 +44,7 @@ if (!catalogue.some(game => game.featured) || !catalogue.some(game => game.trend
 }
 
 if (!html.includes('Content-Security-Policy') || !html.includes("script-src 'self'")) fail('strict script CSP is missing')
+if (!html.includes('upgrade-insecure-requests')) fail('production HTTPS upgrade policy is missing')
 const phoneHtml = await read('phone-pair/index.html').catch(() => fail('phone pairing companion is missing'))
 if (!phoneHtml.includes("script-src 'self'") || !phoneHtml.includes('no-referrer') || /<script\b(?![^>]*\bsrc=)[^>]*>/i.test(phoneHtml)) fail('phone pairing requires external scripts and no-referrer under strict CSP')
 if (!html.includes('manifest.webmanifest')) fail('PWA manifest link is missing')

@@ -125,6 +125,10 @@ or packaged Linux cabinet. Automated protocol and macOS runtime evidence does
 not establish these physical-device results. See also
 [conference acceptance](./conference-acceptance.md).
 
+For real Android native consent and iPhone Safari checks, use the
+[mobile pairing runners](./mobile-pairing-tests.md). These supplement the fast
+browser fixtures and keep physical Heartwood/camera acceptance separate.
+
 ## Rehearsal fixes in 0.2.7
 
 The first live rehearsal reached signed account confirmation and a connected
