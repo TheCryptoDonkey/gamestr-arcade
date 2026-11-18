@@ -9,7 +9,7 @@ recovery evidence, use [the Bitfest readiness checklist](docs/bitfest-readiness.
 
 ## 1. Build the AppImage (Linux only)
 
-The AppImage must be built on an **x86_64 Linux machine** (e.g. the booth laptop running Ubuntu). macOS builds are not supported by electron-builder for this target.
+The cabinet AppImage targets **x86_64 Linux** (e.g. the booth laptop running Ubuntu).
 
 ```bash
 npm ci
@@ -23,13 +23,37 @@ The exact name comes from `electron-builder.yml`:
 artifactName: gamestr-arcade-${version}-${arch}.AppImage
 ```
 
-The resulting AppImage is self-contained - copy it anywhere on the booth laptop.
+Copy the self-contained AppImage to the booth laptop. In the file's properties,
+allow it to run as a program, then open it as the user who will run the cabinet.
+
+### Install Pallasite and Neon Sentinel
+
+Both games ship inside the arcade AppImage. Open the cabinet, select a game and
+choose **Install on this arcade**. Once the copy completes, choose **Start game**.
+The tile shows **Play** on subsequent visits, including after a restart. Repeat
+for the second game. If the operator has already supplied a working native
+AppImage for either game, that native build takes priority.
+
+The cabinet keeps the installed files under `cabinet-games/` in its Electron
+user-data directory. Run the arcade as the same Linux user to keep using that
+library. The install and local play work with networking disconnected. This
+edition offers local practice, with online scores, Nostr sign-in and Lightning
+payments unavailable.
+
+Plug an Xbox controller in by USB before starting. Press **A** in the game to
+take control. If it disconnects during play, release the controls and press **A**
+on the reconnected controller to reclaim them. Use the game's pause menu to
+resume. Check both games with the actual controllers before the event using the
+[cabinet acceptance runbook](docs/conference-acceptance.md).
 
 ---
 
 ## 2. Games folder layout
 
-The scanner looks for games in `ARCADE_GAMES_DIR` (default: `games/` next to the AppImage in production). Create one sub-folder per game:
+The AppImage keeps the default catalogue under `games/` in its writable Electron
+user-data directory. `ARCADE_GAMES_DIR` overrides that location. With a custom
+`ARCADE_CONFIG`, a relative `gamesDir` is resolved beside that config file.
+Create one sub-folder per game:
 
 ```
 games/
@@ -109,7 +133,8 @@ WebP/PNG/JPEG sibling art). The static image remains the lightweight fallback.
 
 ## 3. `arcade.config.json`
 
-Shipped alongside the AppImage (in `resources/`) via `extraResources`. Edit the copy next to the AppImage - no rebuild needed.
+The AppImage includes a default in `resources/`. Copy `arcade.config.json` from
+this repository and set `ARCADE_CONFIG` to the path of your copy to customise it.
 
 ```jsonc
 {
@@ -272,7 +297,13 @@ While a game is running, `Escape`, Guide, or the gamepad View + Menu chord retur
 
 ## 7. Adding a game at the booth
 
-1. Drop a new folder into the `games/` directory (path set in `ARCADE_GAMES_DIR`).
+Press **G** on the carousel and select **Add** beside a game. It appears in the
+carousel and launches from the publisher's site, so it needs an internet
+connection. The catalogue keeps your additions for the next launch.
+
+To add a game from files:
+
+1. Drop a new folder into the profile's `games/` directory or your `ARCADE_GAMES_DIR` override.
 2. Press **F5** to reload - the new tile appears immediately.
 
 No restart required.

@@ -7,7 +7,10 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { parseConfig } from '../src/main/config'
+import { decodeModules, encode, toSvg } from '@forgesworn/qr'
 import { DonationPanel } from '../src/renderer/src/ui/donation-panel'
+import { qrSvg } from '../src/renderer/src/ui/qr-svg'
+import oldEncoderFixtures from './fixtures/donation-qr.json'
 import type { DonationConfig, Game } from '../src/shared/types'
 
 const GAME: Game = {
@@ -107,5 +110,62 @@ describe('DonationPanel', () => {
     const panel = new DonationPanel(host)
     panel.show({ ...GAME, name: '<img src=x onerror=alert(1)>' }, CFG)
     expect(host.querySelector('.donate-title img')).toBeNull()
+  })
+})
+
+/** Read a toSvg() path back into a module grid, dropping the margin. */
+function gridFromSvg(svg: string, margin: number): { size: number; modules: Uint8Array } {
+  const side = Number(/viewBox="0 0 (\d+) \d+"/.exec(svg)?.[1])
+  const size = side - margin * 2
+  const modules = new Uint8Array(size * size)
+  for (const m of svg.matchAll(/M(\d+) (\d+)h(\d+)v1/g)) {
+    const [x, y, w] = [Number(m[1]) - margin, Number(m[2]) - margin, Number(m[3])]
+    for (let i = 0; i < w; i += 1) modules[y * size + x + i] = 1
+  }
+  return { size, modules }
+}
+
+describe('qrSvg', () => {
+  // The fixture holds matrices from the encoder this one replaced
+  // (qrcode-generator, level M). That encoder picked its mask with a rule that
+  // differs from the standard's, so the mask is pinned for the comparison.
+  for (const fixture of oldEncoderFixtures) {
+    it(`matches the previous encoder with the same mask: ${fixture.value.slice(0, 20)}`, () => {
+      const qr = encode(fixture.value, {
+        ecc: 'M',
+        mode: 'byte',
+        mask: fixture.mask as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7,
+      })
+      expect(qr.size).toBe(fixture.size)
+      const rows: string[] = []
+      for (let y = 0; y < qr.size; y += 1) {
+        rows.push(Array.from(qr.modules.subarray(y * qr.size, (y + 1) * qr.size), (v) => (v ? '1' : '0')).join(''))
+      }
+      expect(rows).toEqual(fixture.rows)
+    })
+
+    it(`renders a level M SVG that reads back: ${fixture.value.slice(0, 20)}`, () => {
+      const svg = qrSvg(fixture.value)
+      expect(svg).not.toBeNull()
+      const { size, modules } = gridFromSvg(svg as string, 1)
+      expect(size).toBe(fixture.size)
+      const found = decodeModules(modules, size)
+      expect(found?.text).toBe(fixture.value)
+      expect(found?.ecc).toBe('M')
+    })
+  }
+
+  it('keeps the old 1-module margin and white background', () => {
+    const svg = qrSvg('lightning:booth@coinos.io') as string
+    expect(svg).toBe(toSvg(encode('lightning:booth@coinos.io', { ecc: 'M', mode: 'byte' }), { margin: 1 }))
+    expect(svg).toContain('viewBox="0 0 27 27"')
+    expect(svg).toContain('fill="#fff"')
+  })
+
+  it('falls back to level L for a payload too large for M, then gives up', () => {
+    const big = 'x'.repeat(2500) // over level M's capacity, within level L's
+    const svg = qrSvg(big) as string
+    expect(decodeModules(gridFromSvg(svg, 1).modules, gridFromSvg(svg, 1).size)?.ecc).toBe('L')
+    expect(qrSvg('x'.repeat(4000))).toBeNull()
   })
 })

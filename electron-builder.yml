@@ -12,12 +12,13 @@ files:
 # the leaderboard / attract timeout / CRT without rebuilding (read from
 # process.resourcesPath at runtime).
 #
-# Games are NOT bundled - they live in ~/gamestr-games on the booth and are
-# deployed there independently by deploy.sh (via rsync). The arcade reads them
-# at runtime via ARCADE_GAMES_DIR (set in gamestr-arcade.service).
+# The two curated offline packages are staged by build:cabinet-games.
+# Additional games still come from the operator's ARCADE_GAMES_DIR.
 extraResources:
   - from: arcade.config.json
     to: arcade.config.json
+  - from: release/cabinet-games
+    to: cabinet-games
 
 linux:
   target: [AppImage]

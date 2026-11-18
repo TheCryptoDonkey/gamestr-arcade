@@ -38,7 +38,10 @@ jobs:
         run: npm run test:browser
 
       - name: Audit full dependency tree
-        run: npm audit --audit-level=high
+        run: node scripts/check-dependency-audit.mjs
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Generate CycloneDX SBOM
         run: npm sbom --sbom-format=cyclonedx > gamestr-arcade.cdx.json
@@ -48,6 +51,9 @@ jobs:
 
       - name: Boot the packaged Linux renderer
         run: bash scripts/smoke-appimage.sh release/*.AppImage release/linux-runtime-smoke.json
+
+      - name: Install and launch both bundled cabinet games
+        run: xvfb-run -a -s '-screen 0 1280x800x24' node scripts/check-installed-games.mjs release/*.AppImage --install-only
 
       - name: Verify missing game input still fails the packaged gate
         run: node scripts/appimage-input-negative.mjs release/*.AppImage release/linux-input-negative.json
