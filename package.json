@@ -62,7 +62,7 @@
     "@types/node": "^24.19.2",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
-    "electron": "^44.11.0",
+    "electron": "^45.3.2",
     "electron-builder": "^26.18.0",
     "electron-vite": "^5.0.0",
     "happy-dom": "^21.0.4",
