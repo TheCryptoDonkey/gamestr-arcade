@@ -7,7 +7,7 @@ import {isControllerSpec} from '@forgesworn/joystick-protocol'
  * Set ARCADE_KIOSK=0 for a normal windowed build during development.
  */
 
-import { app, BrowserWindow, globalShortcut, ipcMain, net, protocol, WebContentsView } from 'electron'
+import { app, BrowserWindow, globalShortcut, ipcMain, net, protocol, session as electronSession, WebContentsView } from 'electron'
 import type { IpcMainInvokeEvent, WebContents } from 'electron'
 import { chmod, mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
@@ -17,6 +17,9 @@ import { randomUUID } from 'node:crypto'
 import { is } from '@electron-toolkit/utils'
 import { NostrWebLNProvider } from '@getalby/sdk'
 import { finalizeEvent, generateSecretKey, getPublicKey } from 'nostr-tools/pure'
+import type { SignetSession } from 'signet-login'
+import { ConferencePlayer } from '../shared/conference-player'
+import webEditions from '../../web.editions.json'
 import { buildGamesList, isPathAllowed, mediaUrlToPath, playerVisibleGames, MEDIA_SCHEME } from './games'
 import { fetchGamestrCatalogue } from './gamestr-catalogue'
 import type { CatalogueDeps } from './gamestr-catalogue'
@@ -24,7 +27,9 @@ import { importGameToFolder } from './gamestr-import'
 import type { ImportDeps } from './gamestr-import'
 import { startLocalServer } from './local-server'
 import type { LocalServer } from './local-server'
+import { CabinetGames } from './cabinet-games'
 import { DEFAULT_CONFIG, parseConfig } from './config'
+import { controllerRelayHeaders, productionRelayPattern } from './relay-origin'
 import { Launcher } from './launch'
 import type { LaunchDeps } from './launch'
 import { GamepadExitWatcher, realExitWatcherDeps } from './gamepad-exit'
@@ -46,6 +51,7 @@ import {
   isAllowedWebNavigation,
   normaliseWebOrigin,
   parseGuestNostrTemplate,
+  parsePlayerNostrTemplate,
   publicArcadeConfig,
   type WebSessionGrants,
 } from './web-session-policy'
@@ -137,6 +143,8 @@ interface ActiveWebSession {
   allowedOrigins: Set<string>
   grants: WebSessionGrants
   nostrSecret: Uint8Array | null
+  playerSigner: SignetSession['signer'] | null
+  gameId: string
   walletProvider: NostrWebLNProvider | null
   walletEnabled: Promise<void> | null
   paymentBroker: SessionPaymentBroker<WalletPaymentResult> | null
@@ -146,6 +154,17 @@ interface ActiveWebSession {
 
 let activeWebSession: ActiveWebSession | null = null
 let phoneSnapshot: PhoneSnapshot = neutralPhone()
+let cabinetPlayer: SignetSession | null = null
+const conferencePlayer = new ConferencePlayer({
+  appName: 'Gamestr Arcade', origin: webEditions.gamestr.defaultOrigin,
+  onChange(state) {
+    if (state.status !== 'connected') {
+      cabinetPlayer = null
+      if (activeWebSession?.playerSigner) launcher?.back()
+    }
+    win?.webContents.send('arcade:player-state', state)
+  },
+})
 
 /** Lay out `webView` to cover the full window client area. */
 function sizeWebView(): void {
@@ -174,6 +193,7 @@ function destroyWebSession(): void {
   activeWebSession = null
   win?.webContents.send('arcade:phone-profile',null)
   webView = null
+  localServer?.setRoot(null)
   if (!current) return
 
   if (current.readyTimer !== null) clearTimeout(current.readyTimer)
@@ -225,7 +245,9 @@ function createWebSession(game: Game): ActiveWebSession {
     inputAdapter: resolveGameInputAdapter(game),
     allowedOrigins,
     grants,
-    nostrSecret: grants.nostrSign ? generateSecretKey() : null,
+    nostrSecret: grants.nostrSign && !cabinetPlayer ? generateSecretKey() : null,
+    playerSigner: grants.nostrSign ? cabinetPlayer?.signer ?? null : null,
+    gameId: game.gameId,
     walletProvider: null,
     walletEnabled: null,
     paymentBroker: null,
@@ -261,6 +283,13 @@ function createWebSession(game: Game): ActiveWebSession {
   isolatedSession.setPermissionCheckHandler(() => false)
   isolatedSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false))
   isolatedSession.on('will-download', event => event.preventDefault())
+  if (game.cabinetInstall === 'installed') {
+    isolatedSession.webRequest.onBeforeRequest({ urls: ['<all_urls>'] }, (details, callback) => {
+      const url = new URL(details.url)
+      const network = ['http:', 'https:', 'ws:', 'wss:'].includes(url.protocol)
+      callback({ cancel: network && (!allowedOrigins.has(url.origin) || /^\/api(?:\/|$)/.test(url.pathname)) })
+    })
+  }
 
   view.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
   view.webContents.on('will-frame-navigate', event => {
@@ -475,6 +504,7 @@ function buildLaunchDeps(): LaunchDeps {
       const session = createWebSession(game)
       const view = session.view
       const url = game.url!
+      if (game.localSite && game.localRoot) localServer?.setRoot(game.localRoot)
       sizeWebView()
 
       // Send the resolved controls mapping to the webgame preload at DOM-ready
@@ -487,6 +517,7 @@ function buildLaunchDeps(): LaunchDeps {
           controls: game.controls ?? {},
           adapter: session.inputAdapter,
           diagnostics: GAMEPAD_DIAGNOSTICS,
+          cabinetGamepad: game.cabinetInstall === 'installed',
         })
         view.webContents.send('arcade:session-grants', session.grants)
         // Kiosk-ify the game page (runs in the page's main world, so it bypasses
@@ -596,6 +627,8 @@ function createWindow(): void {
   wireGamepadConsole(win.webContents, 'menu')
 
   win.on('close', destroyWebSession)
+  win.on('close', () => conferencePlayer.end())
+  win.webContents.on('did-start-navigation', (_event, _url, _inPlace, mainFrame) => { if (mainFrame) conferencePlayer.end() })
   win.on('closed', () => {
     win = null
   })
@@ -613,9 +646,22 @@ app.whenReady().then(async () => {
   // below may refresh theme/wallet values but always report these effective
   // startup values until the process restarts.
   const startupConfig = await loadConfig()
+  // Phone pairing opens a WebSocket to the controller relay from this shell. The hosted relay
+  // accepts game screens only from the owner's sites, so present the arcade's web origin to it.
+  const relayPattern = productionRelayPattern(startupConfig.controllerRelay ?? '')
+  if (relayPattern) {
+    electronSession.defaultSession.webRequest.onBeforeSendHeaders({ urls: [relayPattern] }, (details, callback) => {
+      callback({ requestHeaders: controllerRelayHeaders(details, win?.webContents.id) })
+    })
+  }
   kioskMode = resolveStartupKiosk(startupConfig.kiosk, process.env.ARCADE_KIOSK)
+  // The bundled AppImage resources are read-only. Resolve its default games
+  // directory under the same writable profile as the installed cabinet games.
+  const catalogueConfigPath = app.isPackaged && !process.env.ARCADE_CONFIG
+    ? join(app.getPath('userData'), 'arcade.config.json')
+    : resolveConfigPath()
   const gamesDir = resolveStartupGamesDir(
-    resolveConfigPath(),
+    catalogueConfigPath,
     startupConfig.gamesDir,
     process.env.ARCADE_GAMES_DIR,
   )
@@ -624,9 +670,15 @@ app.whenReady().then(async () => {
   // App resources dir (holds the deterministic placeholder icon used when a
   // game ships no sibling/remote logo; AppImages are never executed for art).
   const resourcesDir = resolve(app.getAppPath(), 'resources')
+  const packageDir = app.isPackaged
+    ? join(process.resourcesPath, 'cabinet-games')
+    : process.env.ARCADE_CABINET_GAMES_DIR ? resolve(process.env.ARCADE_CABINET_GAMES_DIR) : undefined
+  const cabinetLibrary = join(app.getPath('userData'), 'cabinet-games')
+  const cabinetGames = packageDir ? new CabinetGames(packageDir, cabinetLibrary) : null
 
   // Roots the media protocol is permitted to serve from.
   const allowedRoots = [gamesDir, cacheDir, resourcesDir]
+  if (packageDir) allowedRoots.push(packageDir, cabinetLibrary)
 
   // ── Local static server ─────────────────────────────────────────────────
   // Serves mirrored game sites from games/<slug>/site/ on localhost.
@@ -637,6 +689,10 @@ app.whenReady().then(async () => {
     console.log(`[arcade] local server: http://127.0.0.1:${localServer.port}/`)
   } catch (err) {
     console.warn(`[arcade] local server: failed to start (${String(err)}) - offline mirrors unavailable`)
+  }
+  const readCatalogue = async (): Promise<Game[]> => {
+    const games = await buildGamesList(gamesDir, cacheDir, localServer?.port)
+    return gamesForThisKiosk(cabinetGames ? await cabinetGames.addToCatalogue(games, localServer?.port) : games)
   }
 
   // ── Media protocol handler ──────────────────────────────────────────────
@@ -662,11 +718,12 @@ app.whenReady().then(async () => {
       ...config,
       gamesDir: activeGamesDir ?? gamesDir,
       kiosk: kioskMode,
+      controllerRelay: startupConfig.controllerRelay,
     })
   })
 
   ipcMain.handle('games:list', async () => {
-    const games = gamesForThisKiosk(await buildGamesList(gamesDir, cacheDir, localServer?.port))
+    const games = await readCatalogue()
     cachedGames = games
     const localCount = games.filter(g => g.localSite).length
     console.log(`[arcade] games dir: ${gamesDir} - ${games.length} game(s)${localCount ? ` (${localCount} local)` : ''}`)
@@ -681,6 +738,24 @@ app.whenReady().then(async () => {
     console.log(`[arcade] renderer ready (pid=${process.pid})`)
     return true
   })
+
+  const requireShell = (event: IpcMainInvokeEvent) => {
+    if (!win || event.sender !== win.webContents || event.senderFrame !== win.webContents.mainFrame) throw new Error('Player controls belong to the arcade shell.')
+  }
+  ipcMain.handle('game:install', async (event, id: unknown) => {
+    requireShell(event)
+    if (typeof id !== 'string' || !localServer || !cabinetGames) throw new Error('This game cannot be installed.')
+    const game = cachedGames?.find(game => game.id === id)
+    if (game?.cabinetInstall !== 'available') throw new Error('This game is unavailable for installation.')
+    await cabinetGames.install(id)
+    cachedGames = gamesForThisKiosk(await cabinetGames.addToCatalogue([...(cachedGames ?? [])], localServer.port))
+    const installed = cachedGames.find(game => game.id === id && game.cabinetInstall === 'installed')
+    if (!installed) throw new Error('The cabinet could not find the installed game.')
+    return installed
+  })
+  ipcMain.handle('arcade:player-start', async event => { requireShell(event); if (activeWebSession) throw new Error('Return to the arcade before pairing.'); return conferencePlayer.start() })
+  ipcMain.handle('arcade:player-confirm', event => { requireShell(event); cabinetPlayer = conferencePlayer.confirm() })
+  ipcMain.handle('arcade:player-end', event => { requireShell(event); conferencePlayer.end() })
 
   // ── gamestr catalogue import ──────────────────────────────────────────────
   // gamestr.io has no registry API - its catalogue (incl. each game's external
@@ -744,7 +819,7 @@ app.whenReady().then(async () => {
       const res = await importGameToFolder(gamesDir, entry, importDeps)
       // Force a rescan so the new game.json is picked up.
       cachedGames = null
-      const games = gamesForThisKiosk(await buildGamesList(gamesDir, cacheDir, localServer?.port))
+      const games = await readCatalogue()
       cachedGames = games
       console.log(`[arcade] imported gamestr game "${entry.name}" (${slug})${res.created ? '' : ' - already present'}`)
       return { ok: true, slug: res.slug, created: res.created, games }
@@ -754,15 +829,15 @@ app.whenReady().then(async () => {
     }
   })
 
-  ipcMain.handle('game:launch', async (_event, id: string) => {
+  ipcMain.handle('game:launch', async (event, id: string) => {
+    requireShell(event)
     // Do not depend on the renderer having requested its sanitized config first.
     if (cachedWebLN === undefined) await loadConfig()
     // Resolve the game from the cache; rebuild if not yet populated.
     // Guard against re-entrancy: two rapid presses share a single in-flight scan.
     if (!cachedGames) {
       if (!buildingGames) {
-        buildingGames = buildGamesList(gamesDir, cacheDir, localServer?.port)
-          .then(gamesForThisKiosk)
+        buildingGames = readCatalogue()
           .finally(() => { buildingGames = null })
       }
       cachedGames = await buildingGames
@@ -774,11 +849,6 @@ app.whenReady().then(async () => {
       return
     }
     console.log(`[arcade] launching "${game.name}" (${game.kind})`)
-    // Point the local server at this game's site/ dir before the web view loads
-    // so the SPA router sees `/` as its base path (not a subpath).
-    if (game.localSite && game.localRoot && localServer) {
-      localServer.setRoot(game.localRoot)
-    }
     const started = launcher.launch(game)
     // Register force-back hotkeys for the duration of this game session.
     // Covers both web and native - native apps steal OS focus so the arcade
@@ -807,17 +877,31 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('webgame:nostr:get-public-key', event => {
     const session = requireWebSession(event)
-    if (!session.grants.nostrSign || !session.nostrSecret) {
+    if (!session.grants.nostrSign) {
       throw new Error('Nostr signing capability is not granted for this game')
     }
+    if (session.playerSigner) {
+      if (cabinetPlayer?.signer !== session.playerSigner) throw new Error('Player session ended.')
+      return session.playerSigner.pubkey
+    }
+    if (!session.nostrSecret) throw new Error('Nostr signer unavailable.')
     return getPublicKey(session.nostrSecret)
   })
 
-  ipcMain.handle('webgame:nostr:sign-event', (event, rawTemplate: unknown) => {
+  ipcMain.handle('webgame:nostr:sign-event', async (event, rawTemplate: unknown) => {
     const session = requireWebSession(event)
-    if (!session.grants.nostrSign || !session.nostrSecret) {
+    if (!session.grants.nostrSign) {
       throw new Error('Nostr signing capability is not granted for this game')
     }
+    if (session.playerSigner) {
+      if (cabinetPlayer?.signer !== session.playerSigner) throw new Error('Player session ended.')
+      const template = parsePlayerNostrTemplate(rawTemplate, session.gameId, session.allowedOrigins)
+      if (!template) throw new Error('Event outside this game’s personal signing permissions.')
+      const signed = await session.playerSigner.signEvent(template)
+      if (activeWebSession !== session || cabinetPlayer?.signer !== session.playerSigner) throw new Error('Player session ended.')
+      return signed
+    }
+    if (!session.nostrSecret) throw new Error('Nostr signer unavailable.')
     const template = parseGuestNostrTemplate(rawTemplate)
     if (!template) throw new Error('Nostr event template is malformed or outside session limits')
     return finalizeEvent(template, session.nostrSecret)
@@ -900,6 +984,7 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', () => app.quit())
 
 app.on('will-quit', () => {
+  conferencePlayer.end()
   destroyWebSession()
   globalShortcut.unregisterAll()
   localServer?.close()

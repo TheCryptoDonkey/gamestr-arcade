@@ -15,6 +15,7 @@
       },
       "additionalProperties": false
     },
+    "controllerRelay": { "type": "string", "pattern": "^wss?://[^/?#@\\s]+(/[^?#\\s]*)?$", "description": "wss:// URL of the Joystick controller relay used for phone pairing" },
     "attractTimeoutMs": { "type": "integer", "minimum": 1000, "maximum": 3600000 },
     "kiosk": { "type": "boolean" },
     "leaderboard": {

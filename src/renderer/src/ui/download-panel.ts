@@ -6,32 +6,16 @@
  * launching, we surface the game's download URL as a QR code so the visitor can
  * grab it on their own device. Turns "can't play here" into "take it home".
  *
- * The QR is generated offline (qrcode-generator, zero deps) so it works at a
+ * The QR is generated offline (@forgesworn/qr, zero deps) so it works at a
  * booth with no internet. Open/close + input routing are driven by the shell
  * (see main.ts): onBack closes, navigation/launch are swallowed while open.
  */
 
-import qrcode from 'qrcode-generator'
 import type { Game } from '../../../shared/types'
+import { qrSvg } from './qr-svg'
 
 export interface DownloadPanelOptions {
   onClose?: () => void
-}
-
-/** Build a scalable SVG QR for `data`, trying medium then low error correction
- *  (low holds more, so a long URL still fits). Returns null if it can't encode. */
-function qrSvg(data: string): string | null {
-  for (const level of ['M', 'L'] as const) {
-    try {
-      const qr = qrcode(0, level) // typeNumber 0 = auto-size to fit
-      qr.addData(data)
-      qr.make()
-      return qr.createSvgTag({ scalable: true, margin: 1 })
-    } catch {
-      /* data too large at this level → try the next */
-    }
-  }
-  return null
 }
 
 export class DownloadPanel {

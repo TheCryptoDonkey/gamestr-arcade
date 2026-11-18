@@ -10,10 +10,11 @@ import { lookupScore } from './score-lookup'
 import { boardFor, parseAnyScoreEvent, parse5555Event, scoreGameId } from '../renderer/src/leaderboard/gamestr-reduce'
 import { avatarCss, hexToNpub, lightningDestination, playerIdentity, resolveProfiles, type Profile } from '../renderer/src/leaderboard/profiles'
 import type { LeaderboardEntry } from '../shared/types'
+import { DEFAULT_CONTROLLER_RELAY } from '../shared/controller-relay'
 import { decodeInvitation, encodeInvitation, invitationTemplate, parseInvitation } from './game-invitation'
 import { challengeTemplate, decodeChallenge, encodeChallenge, parseChallenge } from './game-challenge'
 import { readSocialState, toggleSocialItem, writeSocialState } from './social-state'
-import { requestLightningInvoice, type WebLNProvider } from './lightning-reward'
+import type { WebLNProvider } from './lightning-reward'
 import { decode as decodeNip19 } from 'nostr-tools/nip19'
 import { WEB_EDITION } from './web-edition'
 import { connectNostrAccess, currentNostrAccess, currentNostrGameSession, currentNostrSigner, disconnectNostrAccess, NOSTR_SESSION_EVENT, restoreNostrAccess, type ArcadeNostrSigner, type NostrAccess } from './nostr-access'
@@ -57,13 +58,14 @@ pairPhone.onclick=async()=> {
   try {
     const [{mountPhoneController},{startCataloguePhoneInput},browser]=await Promise.all([import('../shared/ui/phone-controller'),import('./phone-catalogue-input'),import('@forgesworn/joystick-protocol/browser')])
     applyPhoneGamepad=browser.applyPhoneGamepad
-    phone=mountPhoneController(snapshot=> {if(!activePhoneGame)applyPhoneGamepad(snapshot)})
+    phone=mountPhoneController(snapshot=> {if(!activePhoneGame)applyPhoneGamepad(snapshot)},()=>DEFAULT_CONTROLLER_RELAY)
     const stopInput=startCataloguePhoneInput(()=>!!activePhoneGame)
     window.addEventListener('pagehide',stopInput,{once:true})
     pairPhone.remove();document.querySelector<HTMLButtonElement>('.arcade-phone-open')?.click()
   } catch {pairPhone.disabled=false;pairPhone.textContent='Retry phone pairing'}
 }
 let phoneGameGeneration=0
+let currentConferencePlayer = false
 const connectPhoneGame=async(child:Window,url:string,profile?:ControllerSpec)=> {
   const generation=++phoneGameGeneration
   activePhoneGame?.();activePhoneGame=null
@@ -79,6 +81,7 @@ installNostrGameBridge(() => currentNostrSigner())
 window.addEventListener(NOSTR_SESSION_EVENT, event => {
   const access = (event as CustomEvent<NostrAccess>).detail
   if (!access) {
+    if (currentConferencePlayer) { phone?.disconnect(); activePhoneGame?.(); activePhoneGame = null; currentConferencePlayer = false }
     state.pubkey = ''
     state.social = readSocialState()
     state.accountMenuOpen = false
@@ -86,6 +89,7 @@ window.addEventListener(NOSTR_SESSION_EVENT, event => {
     return
   }
   if (!/^[0-9a-f]{64}$/.test(access.pubkey)) return
+  currentConferencePlayer = !!access.temporary
   state.pubkey = access.pubkey
   state.social = readSocialState(undefined, access.pubkey)
   state.accountMenuOpen = false
@@ -238,6 +242,7 @@ function header(): HTMLElement {
       profile: state.profiles.get(state.pubkey),
       open: state.accountMenuOpen,
       busy: state.identityDisconnecting || state.identityConnecting,
+      logoutLabel: currentNostrAccess()?.temporary ? 'FINISH / NEXT PLAYER' : undefined,
       signerStatus: state.identityConnecting ? 'RECONNECTING…' : currentNostrAccess()?.signerStatus === 'unavailable' ? 'SIGNER UNAVAILABLE' : currentNostrAccess()?.canSignEvents ? 'SIGNER CONNECTED' : 'IDENTITY CONNECTED · SIGNER NEEDED',
       onReconnect: () => void connectIdentity(true),
       onSyncPreferences: () => preferenceDialog(),
@@ -860,17 +865,18 @@ function rewardDialog(pubkey: string, profile: Profile): void {
     try {
       const signer = publicZap.checked ? currentNostrSigner() ?? await connectIdentity(true) : undefined
       if (publicZap.checked && !signer) throw new Error('A signing-capable Signet or Nostr session is required for a public zap receipt.')
+      const { requestLightningInvoice } = await import('./lightning-reward')
       if (!modal.isConnected) return
       const invoice = await requestLightningInvoice(lightning, Number(amount.value), fetch, publicZap.checked ? { zap: { recipientPubkey: pubkey, signer: signer!, relays: RELAYS } } : {})
       if (!modal.isConnected) return
       invoiceCreated = true
       amount.disabled = true; publicZap.disabled = true
       for (const preset of presets.querySelectorAll('button')) preset.disabled = true
-      const { default: qrcode } = await import('qrcode-generator')
+      const { encode, toSvg } = await import('@forgesworn/qr')
       if (!modal.isConnected) return
-      const qr = qrcode(0, 'M'); qr.addData(invoice.toUpperCase()); qr.make()
+      const qrSvg = toSvg(encode(invoice.toUpperCase(), { ecc: 'M', mode: 'byte' }), { margin: 4 })
       const image = el('img', 'reward-qr'); image.alt = `Lightning invoice for ${Number(amount.value)} sats to ${identity.label}`
-      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(qr.createSvgTag({ scalable: true }))}`
+      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(qrSvg)}`
       const walletLink = el('a', 'primary', 'OPEN LIGHTNING WALLET'); walletLink.href = `lightning:${invoice}`
       const copy = button('COPY INVOICE', 'secondary', () => {
         void (navigator.clipboard?.writeText(invoice) ?? Promise.reject(new Error('Clipboard unavailable'))).then(() => toast('Invoice copied. Pay this invoice once.', 'good'), () => { status.textContent = 'Copy the invoice text below; clipboard access is unavailable.' })

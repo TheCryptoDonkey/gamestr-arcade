@@ -568,7 +568,10 @@
   flex-direction: column;
   align-items: center;
   gap: 1.4rem;
+  pointer-events: none;
 }
+
+.filmstrip-wrap :is(.tile, .dot) { pointer-events: auto; }
 
 .filmstrip {
   display: flex;
@@ -939,6 +942,7 @@
   .cta-text { font-size: 0.72rem; letter-spacing: 0.1em; }
   .filmstrip-wrap { bottom: 1.1rem; gap: 0; }
   .filmstrip {
+    pointer-events: auto;
     width: 100%;
     height: 8rem;
     justify-content: flex-start;

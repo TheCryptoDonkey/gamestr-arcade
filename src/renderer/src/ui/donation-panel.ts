@@ -9,28 +9,14 @@
  * Deliberately not a modal: it demands nothing. Any control press dismisses
  * it (the shell swallows that first press), and it auto-dismisses after
  * `showSeconds` so an abandoned cabinet drifts back to attract on its own.
- * The QR is generated offline (qrcode-generator) - no network at the booth.
+ * The QR is generated offline (@forgesworn/qr) - no network at the booth.
  */
 
-import qrcode from 'qrcode-generator'
 import type { DonationConfig, Game } from '../../../shared/types'
+import { qrSvg } from './qr-svg'
 
 export interface DonationPanelOptions {
   onClose?: () => void
-}
-
-function qrSvg(data: string): string | null {
-  for (const level of ['M', 'L'] as const) {
-    try {
-      const qr = qrcode(0, level)
-      qr.addData(data)
-      qr.make()
-      return qr.createSvgTag({ scalable: true, margin: 1 })
-    } catch {
-      /* data too large at this level → try the next */
-    }
-  }
-  return null
 }
 
 export class DonationPanel {
@@ -80,7 +66,7 @@ export class DonationPanel {
 
     const qrEl = document.createElement('div')
     qrEl.className = 'donate-qr'
-    qrEl.innerHTML = svg // trusted: generated locally by qrcode-generator
+    qrEl.innerHTML = svg // trusted: generated locally by @forgesworn/qr
 
     const addr = document.createElement('div')
     addr.className = 'donate-address'

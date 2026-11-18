@@ -72,6 +72,7 @@ export interface Game {
   url?: string          // web url (kind === 'web')
   localSite?: boolean   // true when url points to the local mirror server
   localRoot?: string    // absolute path to the game's site/ dir (set when localSite is true)
+  cabinetInstall?: 'available' | 'installed'
   // Download-only games can't be played in the kiosk (no embeddable web build).
   // They're kept in the carousel for showcase - greyed-out with a DOWNLOAD ONLY
   // ribbon - and pressing play opens a QR panel pointing at `downloadUrl` (or `url`)
@@ -241,6 +242,11 @@ export interface ArcadeConfig {
    * unlike the webln spend credentials. When absent, no ask is ever shown.
    */
   donation?: DonationConfig
+  /**
+   * ws:// or wss:// URL of the Joystick controller relay used for phone pairing.
+   * Always passed explicitly (default: the hosted relay).
+   */
+  controllerRelay?: string
 }
 
 export interface DonationConfig {

@@ -1,0 +1,20 @@
+.player-pairing{box-sizing:border-box;width:min(1000px,calc(100vw - 48px));max-height:calc(100dvh - 48px);overflow:auto;margin:auto;padding:clamp(24px,4vw,54px);border:1px solid #77749d;border-radius:28px;background:#0b1022;color:#f4f6ff;font:18px/1.5 system-ui,sans-serif;text-align:center;box-shadow:0 30px 120px #000b}
+.player-pairing::backdrop{background:#030610e8;backdrop-filter:blur(12px)}
+.player-pairing h2{font-size:clamp(27px,3.2vw,46px);line-height:1.12;margin:0 0 18px;letter-spacing:-.035em}
+.player-pairing p{max-width:720px;margin:16px auto;color:#c5cee3}
+.player-pair-choices{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:28px 0}
+.player-pairing button{min-height:56px;border:1px solid #696b99;border-radius:16px;padding:16px 22px;background:#222c4c;color:#fff;font:inherit;cursor:pointer}
+.player-pairing button:focus-visible{outline:3px solid #95f3d2;outline-offset:5px}
+.player-pairing button:disabled{opacity:.6;cursor:wait}
+.player-pair-choice strong{display:block;font-size:24px}.player-pair-choice span{display:block;margin-top:8px;color:#c5cee3;font-size:15px}
+.player-pairing img{display:block;width:clamp(280px,35vw,480px);max-width:100%;height:auto;margin:24px auto;background:#fff;border-radius:12px;padding:8px}
+.player-pairing [hidden]{display:none!important}
+.player-pair-code{font:700 30px ui-monospace,monospace;letter-spacing:.15em;color:#95f3d2}
+.player-pair-identity{font-family:ui-monospace,monospace;overflow-wrap:anywhere}
+.player-pair-method{font-size:22px;line-height:1.3;margin:8px 0 16px;color:#f4f6ff}
+.player-pair-choice[aria-pressed=true]{border-color:#95f3d2;background:#183e40}
+.player-pairing .player-pair-expiry{font-size:15px;margin:8px auto;color:#c5cee3}
+.player-pairing .player-pair-guest{display:block;margin:20px auto 0;background:transparent;color:#e4e9f5}
+.arcade-player-open{position:fixed;left:20px;bottom:20px;z-index:30;min-height:48px;padding:12px 18px;border:1px solid #95f3d2;border-radius:18px;background:#142a2b;color:#eafff8;font:600 15px system-ui;cursor:pointer}
+@media(min-width:900px) and (min-height:700px){.player-pairing:has(img:not([hidden])){padding:32px}.player-pairing:has(img:not([hidden])) .player-pair-body{display:grid;grid-template-columns:minmax(240px,1fr) minmax(360px,1.3fr);align-items:center;gap:32px}.player-pairing:has(img:not([hidden])) .player-pair-choices{grid-template-columns:1fr;margin:16px 0}.player-pairing:has(img:not([hidden])) img{width:380px;margin:16px auto}.player-pairing:has(img:not([hidden])) .player-pair-guest{margin-top:8px}}
+@media(max-width:650px){.player-pair-choices{grid-template-columns:1fr;gap:8px;margin:18px 0}.player-pair-choice strong{font-size:20px}.player-pairing{width:calc(100vw - 24px);padding:24px 18px}.player-pairing img{width:320px}}

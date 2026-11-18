@@ -1,4 +1,5 @@
 import {mountPhoneController,menuPhoneSpec,gamePhoneSpec} from '../../shared/ui/phone-controller'
+import {DEFAULT_CONTROLLER_RELAY} from '../../shared/controller-relay'
 import {applyPhoneGamepad} from '../../shared/phone-input'
 import {isControllerSpec} from '@forgesworn/joystick-protocol'
 /**
@@ -14,6 +15,7 @@ import {isControllerSpec} from '@forgesworn/joystick-protocol'
  */
 
 import './styles/carousel.css'
+import '../../shared/ui/player-pairing.css'
 import './styles/leaderboard.css'
 import './styles/attract.css'
 import './styles/crt.css'
@@ -43,10 +45,35 @@ import { AttractMode } from './ui/attract'
 import { CrtOverlay } from './ui/crt'
 import type { ArcadeConfig, Game } from '../../shared/types'
 
-const phone = mountPhoneController(snapshot=> {applyPhoneGamepad(snapshot);if(typeof window.arcade !== 'undefined')window.arcade.phoneInput(snapshot)})
+let controllerRelay = DEFAULT_CONTROLLER_RELAY
+const phone = mountPhoneController(snapshot=> {applyPhoneGamepad(snapshot);if(typeof window.arcade !== 'undefined')window.arcade.phoneInput(snapshot)},()=>controllerRelay)
 if(typeof window.arcade !== 'undefined')window.arcade.onPhoneProfile(spec=> {phone.setSpec(isControllerSpec(spec) ? spec : menuPhoneSpec)})
 
 const inElectron = typeof window.arcade !== 'undefined'
+
+if (inElectron) {
+  const playerButton = document.createElement('button'); playerButton.type = 'button'; playerButton.className = 'arcade-player-open'; playerButton.textContent = 'Player · guest (Y / P)'
+  document.body.append(playerButton)
+  let connected = false, pairing: { update(state: import('../../shared/conference-player').PlayerState): void; close(): void } | undefined
+  window.arcade.onPlayerState(state => {
+    connected = state.status === 'connected'
+    playerButton.textContent = connected ? 'Finish / Next player' : state.status === 'unavailable' ? 'Reconnect player · or play as guest' : 'Player · guest (Y / P)'
+    playerButton.title = state.message ?? (state.pubkey ? `Player ${state.pubkey.slice(0, 12)}…` : 'Connect My Signet or Cambium, or play as guest')
+    if (!connected && state.status !== 'pairing' && state.status !== 'confirm') phone.disconnect()
+    pairing?.update(state)
+  })
+  playerButton.onclick = async () => {
+    playerButton.disabled = true
+    window.dispatchEvent(new CustomEvent('gamestr:player-pairing', { detail: true }))
+    try {
+      if (connected) { phone.disconnect(); await window.arcade.endPlayerSession() }
+      const [{ showPlayerPairing }, { default: editions }] = await Promise.all([import('../../shared/ui/player-pairing'), import('../../../web.editions.json')])
+      const modal = showPlayerPairing({ start: () => window.arcade.startPlayerPairing(), confirm: () => window.arcade.confirmPlayerPairing(), end: () => { void window.arcade.endPlayerSession() } }, editions.gamestr.defaultOrigin)
+      pairing = modal
+      await modal.result
+    } finally { pairing = undefined; playerButton.disabled = false; window.dispatchEvent(new CustomEvent('gamestr:player-pairing', { detail: false })) }
+  }
+}
 
 async function loadGames(): Promise<Game[]> {
   if (inElectron) return window.arcade.listGames()
@@ -100,6 +127,7 @@ async function boot(): Promise<void> {
   }
 
   document.title = config.theme.title
+  controllerRelay = config.controllerRelay ?? DEFAULT_CONTROLLER_RELAY
   const carousel = new Carousel(games, host, 0, {
     title: config.theme.title,
     wordmark: config.theme.wordmark,
@@ -319,6 +347,10 @@ async function boot(): Promise<void> {
 
   const readyPanel = new ReadyPanel(host, {
     onConfirm: startGame,
+    onInstall: async game => {
+      Object.assign(game, await window.arcade.install(game.id))
+      carousel.refocus()
+    },
     onCancel: () => {
       audio.playBack()
       attract.start()
@@ -353,12 +385,15 @@ async function boot(): Promise<void> {
   // pick + add a game with the gamepad (or keyboard) - a kiosk has no usable mouse
   // cursor. up/left → previous row, down/right → next, Ⓐ/Enter → ADD, Ⓑ/Start/Esc → close.
   const input = new InputController({
+    onPairPlayer: () => { if (!inWebGame) document.querySelector<HTMLButtonElement>('.arcade-player-open:not(:disabled)')?.click() },
     onPrev: () => {
+      if (inWebGame) return
       if (donationPanel.isOpen) { donationPanel.close(); return }
       if (gamesPanel.isOpen) gamesPanel.moveSelection(-1)
       else if (!readyPanel.isOpen && !downloadPanel.isOpen && !relayPanel.isOpen) carousel.prev()
     },
     onNext: () => {
+      if (inWebGame) return
       if (donationPanel.isOpen) { donationPanel.close(); return }
       if (gamesPanel.isOpen) gamesPanel.moveSelection(1)
       else if (!readyPanel.isOpen && !downloadPanel.isOpen && !relayPanel.isOpen) carousel.next()
@@ -385,6 +420,7 @@ async function boot(): Promise<void> {
     },
   }, { diagnostics: inElectron && window.arcade.gamepadDiagnostics })
   input.start()
+  window.addEventListener('gamestr:player-pairing', event => { if ((event as CustomEvent<boolean>).detail) attract.stop(); else attract.start() })
 
   // Grab keyboard focus so ← → / Enter work the moment the cabinet loads. In a
   // plain browser a freshly-opened tab leaves focus on the address bar, so the

@@ -2,11 +2,12 @@ import { verifyEvent } from 'nostr-tools/pure'
 import { startAndroidSignerLogin } from './android-signer'
 import { pickLoginMethod } from './login-method-picker'
 import { revokeNostrGameBridges } from './game-auth-handoff'
+import { SIGNING_RELAY } from '../shared/signing-relay'
 import type { LoginPickerMethod, NostrEvent, SignetSession, SignetStorage } from 'signet-login'
 
 export const NOSTR_SESSION_EVENT = 'gamestr:nostr-session'
 // Authentication needs a reachable rendezvous regardless of score-feed settings.
-export const NOSTR_AUTH_RELAY = 'wss://relay.trotters.cc'
+export const NOSTR_AUTH_RELAY = SIGNING_RELAY
 
 export interface ArcadeNostrSigner {
   signEvent(event: { created_at: number; kind: number; tags: string[][]; content: string }): Promise<NostrEvent>
@@ -24,6 +25,7 @@ export interface NostrAccess {
   method: SignetSession['method']
   canSignEvents: boolean
   signerStatus: 'connected' | 'identity-only' | 'unavailable'
+  temporary?: boolean
 }
 
 export interface NostrGameSessionProof {
@@ -41,13 +43,14 @@ export interface ConnectNostrOptions {
 let activeSession: SignetSession | null = null
 let generation = 0
 let signerUnavailable = false
+const temporarySessions = new WeakSet<SignetSession>()
 
 export const NOSTR_SIGN_TIMEOUT_MS = 45_000
 
-async function boundedSigning<T>(operation: () => Promise<T>): Promise<T> {
+async function boundedSigning<T>(operation: () => Promise<T>, timeout = NOSTR_SIGN_TIMEOUT_MS): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined
   try {
-    return await Promise.race([operation(), new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('Signer did not respond. Wake your signer and reconnect; pairing credentials were retained.')), NOSTR_SIGN_TIMEOUT_MS) })])
+    return await Promise.race([operation(), new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('Signer did not respond. Wake your signer and reconnect; pairing credentials were retained.')), timeout) })])
   } finally { clearTimeout(timer) }
 }
 
@@ -84,13 +87,17 @@ function accessFor(session: SignetSession): NostrAccess {
     method: session.method,
     canSignEvents: session.signer.capabilities.canSignEvents && !signerUnavailable,
     signerStatus: signerUnavailable ? 'unavailable' : session.signer.capabilities.canSignEvents ? 'connected' : 'identity-only',
+    ...(temporarySessions.has(session) ? { temporary: true } : {}),
   }
 }
 
 function activate(session: SignetSession): NostrAccess {
   revokeNostrGameBridges()
-  if (activeSession !== session) closeSession(activeSession)
+  const previous = activeSession
   activeSession = session
+  // Closing a phone session synchronously reports its end. Select the new
+  // session first so that old callback cannot log out the replacement.
+  if (previous !== session) closeSession(previous)
   signerUnavailable = false
   const access = accessFor(session)
   window.dispatchEvent(new CustomEvent<NostrAccess>(NOSTR_SESSION_EVENT, { detail: access }))
@@ -127,7 +134,7 @@ export function currentNostrSigner(): ArcadeNostrSigner | undefined {
           throw new Error('The signer returned an event for a different account or request.')
         }
         return signed
-        })
+        }, temporarySessions.has(session) ? 91_000 : NOSTR_SIGN_TIMEOUT_MS)
       } catch (error) {
         // The SDK can fail before our outer deadline. Approval denial does not
         // mean the connection is unavailable, so recognise transport errors only.
@@ -166,6 +173,26 @@ export async function connectNostrAccess(options: ConnectNostrOptions): Promise<
   revokeNostrGameBridges()
   const method = await pickLoginMethod(options.signingRequired)
   if (!method || generation !== epoch) return null
+  if (method === 'phone-pairing') {
+    const { connectConferencePlayer } = await import('../shared/ui/player-pairing')
+    if (generation !== epoch) return null
+    let paired: SignetSession | null = null
+    paired = await connectConferencePlayer({ appName: options.appName, origin: location.origin, onEnded: () => {
+      if (paired && activeSession === paired) void disconnectNostrAccess()
+    } })
+    if (!paired) return null
+    if (generation !== epoch || expectedPubkey && paired.pubkey !== expectedPubkey) {
+      closeSession(paired)
+      if (generation === epoch) throw new Error('Connect the same Nostr account to enable signing.')
+      return null
+    }
+    // A shared TV must not restore either this visitor or a previous account
+    // after refresh. This connection is deliberately held only in memory.
+    persistence.commit()
+    for (const key of ['pubkey', 'method', 'authEvent', 'bunkerUri', 'bunkerClientSk', 'clientSk', 'expiresAt', 'displayName', 'pendingRedirect', 'pendingRelayAuth']) persistence.storage.removeItem(`signet:login.${key}`)
+    temporarySessions.add(paired)
+    return activate(paired)
+  }
   if (method === 'android-signer') return startAndroidSignerLogin(options.appName, persistence.storage)
   const methods: LoginPickerMethod[] = ['local-signet', 'remote-signet', 'nip07', 'nostrconnect', 'bunker']
   const { login } = await import('signet-login')
@@ -256,6 +283,7 @@ export async function restoreNostrAccess(_relays: string[]): Promise<NostrAccess
 
 export async function disconnectNostrAccess(): Promise<void> {
   const session = activeSession
+  const temporary = !!session && temporarySessions.has(session)
   const epoch = ++generation
   activeSession = null
   revokeNostrGameBridges()
@@ -264,6 +292,7 @@ export async function disconnectNostrAccess(): Promise<void> {
   persistence.commit()
   // A refresh during SDK cleanup must not restore the account or a pending login.
   for (const key of ['pubkey', 'method', 'authEvent', 'bunkerUri', 'bunkerClientSk', 'expiresAt', 'displayName', 'pendingRedirect', 'pendingRelayAuth']) persistence.storage.removeItem(`signet:login.${key}`)
+  if (temporary) persistence.storage.removeItem('signet:login.clientSk')
   const { logout } = await import('signet-login')
-  await logout(session ?? undefined, { storage: persistence.storage })
+  await logout(session ?? undefined, { storage: persistence.storage, ...(temporary ? { clearPersistentClientKey: true } : {}) })
 }

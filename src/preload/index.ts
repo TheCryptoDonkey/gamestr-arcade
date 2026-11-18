@@ -10,12 +10,17 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { gamepadDiagnosticsEnabled } from '../shared/diagnostics'
 
 contextBridge.exposeInMainWorld('arcade', {
+  startPlayerPairing: () => ipcRenderer.invoke('arcade:player-start'),
+  confirmPlayerPairing: () => ipcRenderer.invoke('arcade:player-confirm'),
+  endPlayerSession: () => ipcRenderer.invoke('arcade:player-end'),
+  onPlayerState: (cb: (state: unknown) => void) => { ipcRenderer.removeAllListeners('arcade:player-state'); ipcRenderer.on('arcade:player-state', (_event, state) => cb(state)) },
   phoneInput: (snapshot: unknown) => ipcRenderer.send('arcade:phone-input',snapshot),
   onPhoneProfile: (cb: (spec: unknown) => void) => {ipcRenderer.removeAllListeners('arcade:phone-profile');ipcRenderer.on('arcade:phone-profile',(_e,spec)=>cb(spec))},
   gamepadDiagnostics: gamepadDiagnosticsEnabled(process.env.ARCADE_GAMEPAD_DIAGNOSTICS),
   getConfig: () => ipcRenderer.invoke('config:get'),
   listGames: () => ipcRenderer.invoke('games:list'),
   launch: (id: string) => ipcRenderer.invoke('game:launch', id),
+  install: (id: string) => ipcRenderer.invoke('game:install', id),
   back: () => ipcRenderer.invoke('game:back'),
   markReady: () => ipcRenderer.invoke('arcade:ready'),
   gamestrCatalogue: () => ipcRenderer.invoke('gamestr:catalogue'),

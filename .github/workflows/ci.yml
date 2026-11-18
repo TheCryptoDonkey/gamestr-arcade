@@ -38,7 +38,10 @@ jobs:
         run: npm run test:browser
 
       - name: Audit full dependency tree
-        run: npm audit --audit-level=high
+        run: node scripts/check-dependency-audit.mjs
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Generate CycloneDX SBOM
         run: npm sbom --sbom-format=cyclonedx > gamestr-arcade.cdx.json
@@ -49,18 +52,24 @@ jobs:
       - name: Boot the packaged Linux renderer
         run: bash scripts/smoke-appimage.sh release/*.AppImage release/linux-runtime-smoke.json
 
+      - name: Install and launch both bundled cabinet games
+        run: xvfb-run -a -s '-screen 0 1280x800x24' node scripts/check-installed-games.mjs release/*.AppImage --install-only
+
       - name: Verify missing game input still fails the packaged gate
         run: node scripts/appimage-input-negative.mjs release/*.AppImage release/linux-input-negative.json
 
       - name: Record release checksums
-        run: cd release && sha256sum *.AppImage > SHA256SUMS
+        run: |
+          git archive --format=tar.gz --prefix=gamestr-arcade-source/ HEAD > release/gamestr-arcade-source.tar.gz
+          cd release && sha256sum *.AppImage *.tar.gz > SHA256SUMS
 
       - name: Upload release evidence
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: gamestr-arcade-linux-${{ github.sha }}
           path: |
             release/*.AppImage
+            release/gamestr-arcade-source.tar.gz
             release/SHA256SUMS
             release/linux-runtime-smoke.json
             release/linux-input-negative.json
