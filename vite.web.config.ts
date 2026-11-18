@@ -299,6 +299,15 @@ export default defineConfig({
   publicDir: join(webRoot, 'public'),
   plugins: [manifestValidator(), webData()],
   define: { __GAMESTR_WEB_EDITION__: JSON.stringify(edition.key) },
-  build: { outDir, emptyOutDir: true, sourcemap: true, rollupOptions: { input: { arcade: join(webRoot, 'index.html'), phone: join(webRoot, 'phone-pair/index.html') } } },
+  build: {
+    outDir,
+    emptyOutDir: true,
+    sourcemap: true,
+    // Preserve the previous browser targets for the arcade and phone pairing pages.
+    target: ['chrome107', 'edge107', 'firefox104', 'safari16.0'],
+    rolldownOptions: {
+      input: { arcade: join(webRoot, 'index.html'), phone: join(webRoot, 'phone-pair/index.html') },
+    },
+  },
   server: { host: '127.0.0.1', port: 4174 },
 })

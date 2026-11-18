@@ -8,7 +8,7 @@ export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin()],
     build: {
-      rollupOptions: {
+      rolldownOptions: {
         input: {
           index: resolve(__dirname, 'src/main/index.ts'),
         },
@@ -18,7 +18,7 @@ export default defineConfig({
   preload: {
     build: {
       externalizeDeps: {exclude:['@forgesworn/joystick-protocol']},
-      rollupOptions: {
+      rolldownOptions: {
         input: {
           index: resolve(__dirname, 'src/preload/index.ts'),
           webgame: resolve(__dirname, 'src/preload/webgame.ts'),
@@ -31,7 +31,7 @@ export default defineConfig({
   renderer: {
     root: resolve(__dirname, 'src/renderer'),
     build: {
-      rollupOptions: {
+      rolldownOptions: {
         input: {
           index: resolve(__dirname, 'src/renderer/index.html'),
         },
