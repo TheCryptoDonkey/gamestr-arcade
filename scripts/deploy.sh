@@ -88,6 +88,7 @@ fi
 
 if [ "$DO_PACKAGE" = 1 ]; then
   step "Packaging x64 AppImage…"
+  ( cd "$REPO_DIR" && npm run build:cabinet-games )
   ( cd "$REPO_DIR" && npx electron-builder --linux AppImage --x64 )
 fi
 

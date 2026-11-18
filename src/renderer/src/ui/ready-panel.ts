@@ -9,6 +9,7 @@ import type { Game, GameInputMode } from '../../../shared/types'
 
 export interface ReadyPanelOptions {
   onConfirm: (game: Game) => void
+  onInstall?: (game: Game) => Promise<void>
   onCancel?: () => void
 }
 
@@ -32,6 +33,12 @@ export function readyStatusFor(game: Game): ReadyStatus {
       detail: game.availabilityReason || 'This game is unavailable on the cabinet.',
       tone: 'blocked',
     }
+  }
+  if (game.cabinetInstall === 'available') {
+    return { label: 'INSTALL AVAILABLE', detail: 'Install the bundled game for offline play on this arcade.', tone: 'ready' }
+  }
+  if (game.cabinetInstall === 'installed') {
+    return { label: 'INSTALLED', detail: 'Local practice play. Online scores and payments are unavailable in this edition.', tone: 'ready' }
   }
   if (game.localSite || game.network === 'offline') {
     return { label: 'OFFLINE READY', detail: 'Playable without conference Wi-Fi.', tone: 'ready' }
@@ -100,6 +107,7 @@ export class ReadyPanel {
   private previousFocus: HTMLElement | null = null
   private inerted: HTMLElement[] = []
   private _open = false
+  private installing = false
   private focusTimer: number | null = null
 
   constructor(host: HTMLElement, opts: ReadyPanelOptions) {
@@ -138,7 +146,7 @@ export class ReadyPanel {
         </div>
         <footer class="ready-actions">
           <button class="ready-cancel" type="button">Ⓑ / ESC&nbsp;&nbsp;BACK</button>
-          <button class="ready-start" type="button"><span class="ready-a">Ⓐ</span> START GAME</button>
+          <button class="ready-start" type="button"><span class="ready-a">Ⓐ</span> <span class="ready-action-label">START GAME</span></button>
         </footer>
       </section>
     `
@@ -197,6 +205,8 @@ export class ReadyPanel {
     this.statusEl.dataset.tone = status.tone
     ;(this.statusEl.querySelector('.ready-status-label') as HTMLElement).textContent = status.label
     this.statusDetailEl.textContent = status.detail
+    this.statusDetailEl.setAttribute('role', 'status')
+    this.setAction(game.cabinetInstall === 'available' ? 'INSTALL ON THIS ARCADE' : 'START GAME')
     this.startBtn.disabled = status.tone === 'blocked'
 
     const facts = [
@@ -228,11 +238,16 @@ export class ReadyPanel {
   confirm(): void {
     if (!this._open || !this.game || this.startBtn.disabled) return
     const game = this.game
+    if (game.cabinetInstall === 'available' && this.opts.onInstall) {
+      void this.install(game)
+      return
+    }
     this.close(false)
     this.opts.onConfirm(game)
   }
 
   close(notify = true): void {
+    if (this.installing) return
     this.cancelPendingFocus()
     if (!this._open) return
     this._open = false
@@ -245,6 +260,31 @@ export class ReadyPanel {
     if (this.previousFocus?.isConnected && !this.previousFocus.closest('[inert]')) this.previousFocus.focus()
     this.previousFocus = null
     if (notify) this.opts.onCancel?.()
+  }
+
+  private setAction(label: string): void {
+    const action = this.startBtn.querySelector('.ready-action-label')!
+    action.textContent = label
+  }
+
+  private async install(game: Game): Promise<void> {
+    this.installing = true
+    this.startBtn.disabled = true
+    this.cancelBtn.disabled = true
+    this.setAction('INSTALLING…')
+    this.statusDetailEl.textContent = 'Copying the game to this arcade.'
+    try {
+      await this.opts.onInstall!(game)
+      this.open(game)
+    } catch {
+      this.setAction('RETRY INSTALL')
+      this.statusDetailEl.textContent = 'Installation failed. Check available storage and try again.'
+      this.startBtn.disabled = false
+      this.startBtn.focus()
+    } finally {
+      this.installing = false
+      this.cancelBtn.disabled = false
+    }
   }
 
   private cancelPendingFocus(): void {

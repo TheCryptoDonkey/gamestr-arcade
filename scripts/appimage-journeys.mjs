@@ -79,7 +79,7 @@ for (const [index, slug] of ['game-a', 'game-b'].entries()) {
   mkdirSync(directory, { recursive: true })
   writeFileSync(`${directory}/game.json`, JSON.stringify({
     manifestVersion: 2, name: `Runtime ${index ? 'B' : 'A'}`, gameId: slug,
-    order: index + 1, url: `${origin}/${slug}`, inputModes: ['keyboard'],
+    order: 0, url: `${origin}/${slug}`, inputModes: ['keyboard'],
     network: 'optional', capabilities: { nostrSign: true, walletPay: true },
   }))
 }

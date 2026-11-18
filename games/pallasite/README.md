@@ -1,30 +1,15 @@
 # Pallasite tile
 
-Web tile for Pallasite (cosmic Asteroids, kind-30762 leaderboard).
+Pallasite is a cosmic Asteroids game with a kind-30762 leaderboard in the hosted edition.
 
 ## Launch
 
-`game.json` is a **web tile** - it points at the hosted build so it plays in dev
-on any platform and on the booth:
-
-```json
-{ "url": "https://pallasite.app/" }
-```
-
-The scanner classifies any folder whose `game.json` has a `url` (and no loose
-`*.AppImage` / `exec`) as `kind: 'web'`. The carousel launches it in an embedded
-web view; the leaderboard reads kind-30762 scores tagged `pallasite`.
-
-## Offline mirror (later)
-
-When an offline mirror is added under `games/pallasite/site/index.html`, the
-launcher serves it from the local static server and badges the tile **LOCAL** -
-no internet needed at the booth. (Not wired yet.)
+On the packaged cabinet, **Install on this arcade** copies the bundled Pallasite
+practice edition into the arcade's local library. See the [cabinet setup](../../SETUP.md#install-pallasite-and-neon-sentinel).
+The manifest in this folder supplies the hosted URL for the web catalogue.
 
 ## Art
 
 - `logo.png` - the cyan crystal wordmark/icon, shown prominently on the left of
   the hero carousel.
-- No `hero.png`: Pallasite uses the carousel's accent-driven neon backdrop
-  (cyan `#7cf3ff`) so the clean logo reads crisply on the left, rather than the
-  og-image with baked-in "SHOOT ROCKS" text.
+- `hero.webp` - the carousel backdrop.

@@ -14,6 +14,7 @@ declare global {
       getConfig(): Promise<ArcadeConfig>
       listGames(): Promise<Game[]>
       launch(id: string): Promise<void>
+      install(id: string): Promise<Game>
       back(): Promise<void>
       markReady(): Promise<boolean>
       gamestrCatalogue(): Promise<GamestrCatalogueResult>

@@ -379,7 +379,7 @@ export interface LocalServer {
    * served from `absDir`.  Swapping is safe because only one game runs at a
    * time (single-flight launch guard in `index.ts`).
    */
-  setRoot(absDir: string): void
+  setRoot(absDir: string | null): void
   close(): void
 }
 
@@ -421,7 +421,7 @@ export async function startLocalServer(
 
   return {
     port: actualPort,
-    setRoot(absDir: string) {
+    setRoot(absDir: string | null) {
       currentRoot = absDir
     },
     close() {
