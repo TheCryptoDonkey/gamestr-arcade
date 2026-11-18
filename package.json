@@ -48,7 +48,7 @@
     "@forgesworn/joystick-host": "file:vendor/joystick/joystick-host-0.4.3-cd486d9a0ffa.tgz",
     "@forgesworn/joystick-protocol": "file:vendor/joystick/joystick-protocol-0.4.3-c705883c020a.tgz",
     "@forgesworn/qr": "0.2.0",
-    "@getalby/sdk": "^8.0.3",
+    "@getalby/sdk": "^9.0.0",
     "@scure/base": "^1.2.6",
     "gsap": "^3.12.5",
     "light-bolt11-decoder": "^3.2.0",
