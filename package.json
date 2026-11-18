@@ -57,7 +57,7 @@
   },
   "devDependencies": {
     "@electron-toolkit/tsconfig": "^2.0.0",
-    "@electron-toolkit/utils": "^3.0.0",
+    "@electron-toolkit/utils": "^4.0.0",
     "@playwright/test": "^1.65.1",
     "@types/node": "^24.19.2",
     "ajv": "^8.20.0",
