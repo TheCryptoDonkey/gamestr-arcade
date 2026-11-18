@@ -49,8 +49,8 @@
     "@forgesworn/joystick-protocol": "file:vendor/joystick/joystick-protocol-0.4.3-c705883c020a.tgz",
     "@forgesworn/qr": "0.2.0",
     "@getalby/sdk": "^9.0.0",
-    "@scure/base": "^1.2.6",
-    "gsap": "^3.12.5",
+    "@scure/base": "^2.4.0",
+    "gsap": "^3.15.1",
     "light-bolt11-decoder": "^3.2.0",
     "nostr-tools": "^2.26.1",
     "signet-login": "^0.22.0"
