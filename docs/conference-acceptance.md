@@ -13,6 +13,12 @@ Every gamepad title declares one web adapter:
 
 The arcade normalises both controller layouts observed around the Prague failure: Chromium `standard` mapping and the Linux non-standard HAT layout on axes 6/7.  A hardware certification must exercise both profiles, not merely assert support from unit tests.
 
+For installed Pallasite and Neon Sentinel, the cabinet passes the active
+controller to the game in a fixed Xbox layout. With a second Xbox pad connected,
+unplug the active pad mid-run. Confirm the game pauses and the spare stays idle.
+Reconnect the first pad, release the controls, press **A** to reclaim them, then
+resume the run. Repeat across both layouts on the intended booth hardware.
+
 ## Physical run for each title
 
 Use the final booth computer, packaged build, display, USB/Bluetooth stack and Xbox controllers.
@@ -46,5 +52,6 @@ Use this manifest shape only after that run succeeds:
 
 - Payment Lab is absent in normal kiosk mode.  Set `ARCADE_OPERATOR_TOOLS=1` only for an operator diagnostics session.
 - Word5 opens directly at `https://otherstuff.ai/word5/`; no blocked cross-origin redirect is part of launch.
+- Disconnect networking before installing Pallasite and Neon Sentinel from their tiles. Start a run in each game, return to the carousel, restart the arcade and launch both again. Record the exact local revision from each installed game's `revision` file.
 - Run once with conference networking disabled.  Confirm the shell remains recoverable, set `conferenceFallback: true` only on the proven local title, and verify its `exec` file or `site/index.html` is actually installed.  A remote URL plus `network: optional` is not offline evidence.
 - Run `npm run check` on the exact checkout used to package the booth, then run `npm run conference:status -- /home/<booth-user>/gamestr-games` against the installed catalogue.

@@ -1,4 +1,5 @@
 import {parsePhoneSnapshot,neutralPhone,phoneAsGamepad,applyPhoneGamepad} from '../shared/phone-input'
+import { CabinetGamepadSession, normaliseCabinetGamepad } from '../shared/cabinet-gamepad'
 import {isControllerSpec} from '@forgesworn/joystick-protocol'
 /**
  * gamestr-arcade - web-game view preload.
@@ -50,9 +51,11 @@ import {
 } from '../shared/gamepad'
 
 let phoneInput = neutralPhone()
+let cabinetInput: CabinetGamepadSession | null = null
+let cabinetPad: Gamepad | null = null
 if(typeof window !== 'undefined') ipcRenderer.on('arcade:phone-input',(_event,raw:unknown)=> {
   const snapshot=parsePhoneSnapshot(raw);if(!snapshot)return;phoneInput=snapshot
-  contextBridge.executeInMainWorld({func:applyPhoneGamepad,args:[snapshot]})
+  if (!cabinetInput) contextBridge.executeInMainWorld({func:applyPhoneGamepad,args:[snapshot]})
 })
 if(typeof window !== 'undefined') window.addEventListener('message',event=> {
   if(event.source !== window || event.origin !== location.origin || event.data?.protocol !== 'gamestr-controller-profile-v1' || !isControllerSpec(event.data.spec)) return
@@ -60,6 +63,17 @@ if(typeof window !== 'undefined') window.addEventListener('message',event=> {
 })
 
 export { DPAD, FIRE_BUTTONS, HAT_AXIS, HAT_THRESHOLD, CABINET_EXIT_BUTTONS }
+
+function exposeCabinetGamepad(): void {
+  contextBridge.exposeInMainWorld('gamestrCabinetGamepad', () => cabinetPad)
+  contextBridge.executeInMainWorld({
+    func: () => {
+      const read = (window as Window & { gamestrCabinetGamepad?: () => Gamepad | null }).gamestrCabinetGamepad
+      if (!read) return
+      Object.defineProperty(navigator, 'getGamepads', { value: () => [read(), null, null, null] })
+    },
+  })
+}
 
 // ── Menu-button detector (pure, exported for unit tests) ──────────────────────
 
@@ -669,9 +683,11 @@ function initGamepadLoop(): void {
     const g = (e as GamepadEvent).gamepad
     console.log(`[gp:web] connected idx=${g.index} id="${g.id}" map=${g.mapping || 'none'}`)
   })
+  let reconnectNotice: HTMLElement | null = null
   window.addEventListener('gamepaddisconnected', e => {
-    if (!diagnosticsEnabled) return
     const g = (e as GamepadEvent).gamepad
+    cabinetInput?.disconnect(g)
+    if (!diagnosticsEnabled) return
     console.log(`[gp:web] disconnected idx=${g.index} id="${g.id}"`)
   })
 
@@ -681,10 +697,15 @@ function initGamepadLoop(): void {
     controls?: Partial<GameControls>
     adapter?: GameInputAdapter
     diagnostics?: boolean
+    cabinetGamepad?: boolean
   }) => {
     activeControls = resolveControls(config?.controls)
     activeAdapter = config?.adapter ?? 'native'
     diagnosticsEnabled = config?.diagnostics === true
+    if (config?.cabinetGamepad && !cabinetInput) {
+      cabinetInput = new CabinetGamepadSession()
+      exposeCabinetGamepad()
+    }
     // Re-evaluate any buttons held during page load under the newly-authorised
     // adapter instead of inheriting state sampled while synthesis was disabled.
     keyTranslator = new GamepadKeyTranslator()
@@ -708,8 +729,25 @@ function initGamepadLoop(): void {
       console.log(`[gp:web] hb ${gpSummary()}`)
     }
 
-    const pads = [...navigator.getGamepads()]
-    const phone = phoneAsGamepad(phoneInput);if(phone)pads.push(phone)
+    let pads = [...navigator.getGamepads()]
+    const phone = phoneAsGamepad(phoneInput)
+    if (phone) pads.push(cabinetInput ? { ...phone, index: -1 } as Gamepad : phone)
+    if (cabinetInput) {
+      const connected = pads.filter((pad): pad is Gamepad => !!pad)
+      cabinetPad = cabinetInput.sample(connected)
+      if (cabinetInput.disconnected && !reconnectNotice) {
+        reconnectNotice = document.createElement('div')
+        reconnectNotice.setAttribute('role', 'status')
+        reconnectNotice.style.cssText = 'position:fixed;z-index:2147483647;top:8%;left:50%;transform:translateX(-50%);padding:1em 1.5em;background:#0d1930;color:white;border:2px solid #7cf3ff;border-radius:8px;text-align:center;font:bold 20px system-ui;pointer-events:none'
+        reconnectNotice.textContent = 'Controller disconnected. Release the controls, then press A to reconnect.'
+        document.body.append(reconnectNotice)
+        window.dispatchEvent(new Event('gamestr:controller-lost'))
+      } else if (!cabinetInput.disconnected && reconnectNotice) {
+        reconnectNotice.remove()
+        reconnectNotice = null
+      }
+      pads = connected.map(normaliseCabinetGamepad)
+    }
 
     // ── Deliberate cabinet-exit gesture ───────────────────────────────────
     if (menuDetector.update(cabinetExitPressedFromPads(pads))) {

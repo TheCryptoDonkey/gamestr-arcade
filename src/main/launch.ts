@@ -109,6 +109,11 @@ export class Launcher {
   launch(game: Game): boolean {
     if (this.running) return false
 
+    if (game.cabinetInstall === 'available') {
+      this.deps.notifyError(`Install "${game.name}" on this arcade first.`)
+      return false
+    }
+
     // Renderer readiness is presentation, not authority. Direct IPC callers
     // must not bypass scanner validation for missing/invalid launch targets.
     if (game.available === false) {

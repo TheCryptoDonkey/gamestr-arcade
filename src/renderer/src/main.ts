@@ -347,6 +347,10 @@ async function boot(): Promise<void> {
 
   const readyPanel = new ReadyPanel(host, {
     onConfirm: startGame,
+    onInstall: async game => {
+      Object.assign(game, await window.arcade.install(game.id))
+      carousel.refocus()
+    },
     onCancel: () => {
       audio.playBack()
       attract.start()

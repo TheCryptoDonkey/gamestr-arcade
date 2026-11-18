@@ -20,6 +20,7 @@ contextBridge.exposeInMainWorld('arcade', {
   getConfig: () => ipcRenderer.invoke('config:get'),
   listGames: () => ipcRenderer.invoke('games:list'),
   launch: (id: string) => ipcRenderer.invoke('game:launch', id),
+  install: (id: string) => ipcRenderer.invoke('game:install', id),
   back: () => ipcRenderer.invoke('game:back'),
   markReady: () => ipcRenderer.invoke('arcade:ready'),
   gamestrCatalogue: () => ipcRenderer.invoke('gamestr:catalogue'),

@@ -406,12 +406,15 @@ export class Carousel {
     this.ribbonEl.hidden = !downloadOnly
     const unavailable = game.available === false
     this.ctaEl.disabled = unavailable
-    this.ctaEl.setAttribute('aria-label', unavailable ? `${game.name} is unavailable` : `${downloadOnly ? 'Download' : 'Play'} ${game.name}`)
+    const action = game.cabinetInstall === 'available' ? 'Install' : downloadOnly ? 'Download' : 'Play'
+    this.ctaEl.setAttribute('aria-label', unavailable ? `${game.name} is unavailable` : `${action} ${game.name}`)
     this.ctaTextEl.innerHTML = unavailable
       ? 'NOT&nbsp;AVAILABLE&nbsp;ON&nbsp;THIS&nbsp;CABINET'
       : downloadOnly
         ? 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;TO&nbsp;DOWNLOAD'
-        : 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;FOR&nbsp;DETAILS'
+        : game.cabinetInstall === 'available'
+          ? 'INSTALL&nbsp;ON&nbsp;THIS&nbsp;ARCADE'
+          : 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;FOR&nbsp;DETAILS'
 
     this.renderLogo(game)
     this.nameEl.textContent = game.name
