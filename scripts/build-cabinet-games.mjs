@@ -58,6 +58,8 @@ async function buildGame(work, target, { id, repository, revision, icon }) {
   const remote = `https://github.com/TheCryptoDonkey/${repository}.git`
   await mkdir(source)
   run(source, 'git', ['init', '--quiet'])
+  // Keep the pinned sources in their published byte form on Windows as well.
+  run(source, 'git', ['config', 'core.autocrlf', 'false'])
   run(source, 'git', ['remote', 'add', 'origin', remote])
   run(source, 'git', ['config', 'remote.origin.promisor', 'true'])
   run(source, 'git', ['config', 'remote.origin.partialclonefilter', 'blob:none'])
