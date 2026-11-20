@@ -1,0 +1,32 @@
+name: Windows Pallasite verification
+
+on:
+  push:
+    branches: [codex/windows-pallasite-verification]
+
+permissions:
+  contents: read
+
+jobs:
+  pallasite:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Retrieve the exact public Windows installer
+        run: |
+          New-Item -ItemType Directory -Force release | Out-Null
+          $file = 'gamestr-arcade-0.2.14-x64-setup.exe'
+          curl.exe --fail --location --silent --show-error --retry 2 --output "release/$file" "https://github.com/TheCryptoDonkey/gamestr-arcade/releases/download/v0.2.14/$file"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $digest = (Get-FileHash "release/$file" -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($digest -ne '78e1fd95b5eb1982fde8b5c115bc5de53a401fb6e2dd2261599332e98a161222') {
+            throw "Unexpected Gamestr Arcade installer digest: $digest"
+          }
+      - name: Install Pallasite from Games Settings and play it
+        run: node scripts/verify-windows-pallasite.mjs release
