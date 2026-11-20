@@ -56,11 +56,14 @@ async function openArcade(name) {
     executablePath: executable, args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--user-data-dir=' + profile],
     env, timeout: 60_000,
   })
+  app.process().once('exit', (code, signal) => console.log(`Gamestr ${name} process exited`, { code, signal }))
+  app.process().stderr?.on('data', data => process.stderr.write(data))
   try {
     await app.context().addInitScript(() => {
       if (location.hostname === '127.0.0.1') localStorage.setItem('pallasite:quality', 'low')
     })
     const page = await app.firstWindow()
+    page.once('crash', () => console.error(`Gamestr ${name} shell renderer crashed`))
     await page.locator('.tile-active').waitFor()
     const details = await app.evaluate(({ app }) => ({ profile: app.getPath('userData'), version: app.getVersion() }))
     assert.deepEqual(details, { profile, version })
@@ -83,8 +86,10 @@ async function installFromSettings(page, label) {
   const fail = status.filter({ hasText: /Error invoking remote method/ }).waitFor({ timeout: 240_000 })
     .then(async () => { throw new Error(await status.innerText()) })
   const reloaded = page.waitForEvent('domcontentloaded', { timeout: 240_000 })
-  await click(settings.getByRole('button', { name: label, exact: true }))
-  await Promise.race([reloaded, fail])
+  await Promise.all([
+    Promise.race([reloaded, fail]),
+    click(settings.getByRole('button', { name: label, exact: true })),
+  ])
   await page.locator('.tile-active').waitFor()
   return page.evaluate(async () => (await window.arcade.listGames()).find(game => game.id === 'pallasite'))
 }
@@ -103,11 +108,12 @@ async function checkOffline() {
     const site = join(profile, 'cabinet-games', 'pallasite', 'site')
     assert.equal(installed.localRoot, site)
     console.log('The installed Gamestr app copied the bundled Pallasite files from Games Settings.')
-    const view = app.waitForEvent('window', { predicate: view => view !== page, timeout: 30_000 })
     await selectPallasite(page)
     await click(page.getByRole('button', { name: 'Play Pallasite', exact: true }))
-    await click(page.getByRole('button', { name: /start game/i }))
-    const game = await view
+    const [game] = await Promise.all([
+      app.waitForEvent('window', { predicate: view => view !== page, timeout: 30_000 }),
+      click(page.getByRole('button', { name: /start game/i })),
+    ])
     game.on('pageerror', error => console.error('Pallasite renderer:', error.message))
     await game.waitForURL(/^http:\/\/127\.0\.0\.1:\d+\/$/, { waitUntil: 'commit' })
     const response = await fetch(game.url())
@@ -187,7 +193,7 @@ async function checkDesktop() {
 }
 
 const errors = []
-for (const check of [checkOffline, checkDesktop]) {
+for (const check of [checkDesktop, checkOffline]) {
   try {
     await check()
   } catch (error) {

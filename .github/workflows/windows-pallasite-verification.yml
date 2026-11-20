@@ -5,6 +5,7 @@ on:
     branches: [codex/windows-pallasite-verification]
 
 permissions:
+  actions: read
   contents: read
 
 jobs:
@@ -17,29 +18,27 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - name: Build the Windows installer
+      - run: npm ci
+      - name: Retrieve the exact Windows candidate
+        id: candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          npm ci
+          $source = 'cba2caeb00cb3876576fa2a8cc1a1eba01fa7ffa'
+          $build = gh run view 44834728362 --json headSha --jq .headSha
+          if ($LASTEXITCODE -ne 0 -or $build -ne $source) { throw 'Unexpected Windows build commit' }
+          gh run download 44834728362 --name "gamestr-arcade-windows-pallasite-$source" --dir release
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          npm run dist:win
-      - name: Record the installer checksum
-        run: |
-          $installer = Get-ChildItem release -Filter '*-setup.exe'
-          if (@($installer).Count -ne 1) { throw 'Expected one Windows installer' }
-          $checksum = (Get-FileHash -Algorithm SHA256 -LiteralPath $installer.FullName).Hash.ToLowerInvariant()
-          "$checksum  $($installer.Name)" | Set-Content -Encoding ascii release/SHA256SUMS
-      - name: Retain the installer for verification
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: gamestr-arcade-windows-pallasite-${{ github.sha }}
-          path: |
-            release/*-setup.exe
-            release/SHA256SUMS
-          if-no-files-found: error
-          compression-level: 0
+          $checksum, $name = ((Get-Content release/SHA256SUMS) -split '  ', 2)
+          if ($name -ne 'gamestr-arcade-0.2.15-x64-setup.exe') { throw 'Unexpected installer name' }
+          $actual = (Get-FileHash -LiteralPath "release/$name" -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($checksum -ne $actual) { throw 'Installer checksum mismatch' }
+          Write-Host "Testing Windows installer $name with SHA-256 $actual"
       - name: Install Pallasite from Games Settings and play it
         run: node scripts/verify-windows-pallasite.mjs release
       - name: Create a setup executable for the BTC stale-link regression
+        id: btc-fixture
+        if: ${{ !cancelled() && steps.candidate.conclusion == 'success' }}
         shell: powershell
         run: |
           $fixture = Join-Path $env:GITHUB_WORKSPACE 'release\native fixture'
@@ -54,4 +53,5 @@ jobs:
           }
           '@ -OutputAssembly (Join-Path $fixture 'BTC Proof of Play Setup.exe') -OutputType ConsoleApplication
       - name: Check that the BTC game pack still opens directly
+        if: ${{ !cancelled() && steps.btc-fixture.conclusion == 'success' }}
         run: node scripts/verify-windows-btc-game-pack.mjs release
