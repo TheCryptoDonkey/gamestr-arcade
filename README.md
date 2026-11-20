@@ -14,7 +14,7 @@ offline/local game support, and operator-friendly booth controls.
 - Session-wide, bounded Nostr score feeds with event ID and signature verification
 - Live profiles, Today / All-Time boards, relay controls and local cache support
 - Themeable brand, accent, CRT and attract-mode presentation
-- Linux AppImage packaging and repeatable, pinned Node 24 CI quality gates
+- Windows Setup, Linux `.deb` and AppImage builds with pinned Node 24 CI quality gates
 
 ## Quick start
 
@@ -59,6 +59,8 @@ Legacy manifests remain supported.
 npm run check      # shell contract, manifests, types, tests, desktop + both web editions
 npm audit --audit-level=high
 npm run dist       # Linux AppImage
+npm run dist:deb   # Ubuntu/Debian installer (amd64)
+npm run dist:win   # Windows installer (x64)
 ```
 
 See [SETUP.md](./SETUP.md) for the booth runbook and

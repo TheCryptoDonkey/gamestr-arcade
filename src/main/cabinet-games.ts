@@ -1,6 +1,6 @@
 import { cp, lstat, mkdir, mkdtemp, readFile, rename, rm } from 'node:fs/promises'
 import { join } from 'node:path'
-import type { Game } from '../shared/types'
+import type { Game, LocalGameSettings } from '../shared/types'
 import { pathToMediaUrl } from './games'
 import { localUrlFor } from './local-server'
 import { scanGames } from './scanner'
@@ -24,14 +24,28 @@ export class CabinetGames {
     private readonly library: string,
   ) {}
 
+  async listPackages(): Promise<LocalGameSettings['bundled']> {
+    const bundles = await scanGames(this.packages)
+    const installed = await scanGames(this.library)
+    const packages: LocalGameSettings['bundled'] = []
+    for (const id of CABINET_IDS) {
+      const present = await hasBundle(join(this.library, id))
+      const game = bundles.find(game => game.id === id) ?? installed.find(game => game.id === id)
+      if (game && (present || await hasBundle(join(this.packages, id)))) {
+        packages.push({ id, name: game.name, installed: present })
+      }
+    }
+    return packages
+  }
+
   async addToCatalogue(games: Game[], port?: number): Promise<Game[]> {
     const bundled = await scanGames(this.packages)
     for (const id of CABINET_IDS) {
       const index = games.findIndex(game => game.id === id)
       const existing = games[index]
-      if (existing?.kind === 'appimage' && existing.available !== false) continue
       const directory = join(this.library, id)
       const installed = await hasBundle(directory)
+      if (!installed && existing?.kind === 'appimage' && existing.available !== false) continue
       let pack = bundled.find(game => game.id === id)
       if (!await hasBundle(join(this.packages, id))) pack = undefined
       if (!pack && installed) pack = (await scanGames(this.library)).find(game => game.id === id)
@@ -43,6 +57,9 @@ export class CabinetGames {
       }
       const game: Game = {
         ...pack,
+        kind: 'web',
+        exec: undefined,
+        args: undefined,
         logo: pathToMediaUrl(pack.logo),
         operatorOnly: existing?.operatorOnly ?? pack.operatorOnly,
         url: installed && port !== undefined ? localUrlFor(port) : undefined,

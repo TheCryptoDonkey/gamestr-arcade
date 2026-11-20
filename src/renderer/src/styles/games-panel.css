@@ -158,6 +158,31 @@
 }
 
 /* ── Status line ─────────────────────────────────────────────────────────── */
+.gp-local {
+  padding: 0.7rem 1.4rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent, #7cf3ff) 22%, transparent);
+}
+
+.gp-local h3 {
+  margin: 0 0 0.45rem;
+  color: var(--accent, #7cf3ff);
+  font-size: 0.78rem;
+}
+
+.gp-local-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.gp-local-actions .gp-add { white-space: normal; text-align: left; }
+
+.gp-local-status:not(:empty) {
+  margin-top: 0.4rem;
+  color: #d0e7ed;
+  font-size: 0.7rem;
+}
+
 .gp-status {
   flex: 0 0 auto;
   padding: 0.7rem 1.4rem 0.1rem;

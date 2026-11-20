@@ -1,8 +1,10 @@
 import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { CabinetGames } from '../src/main/cabinet-games'
+import { isWindowsGame, writeVerifiedDownload } from '../src/main/desktop-games'
 
 describe('cabinet game installation', () => {
   let root: string
@@ -46,6 +48,11 @@ describe('cabinet game installation', () => {
     const [available] = await cabinet.addToCatalogue([], 31234)
     const native = { ...available, kind: 'appimage' as const, exec: '/games/Pallasite.AppImage', cabinetInstall: undefined }
     expect(await cabinet.addToCatalogue([native], 31234)).toEqual([native])
+    expect(await cabinet.listPackages()).toEqual([{ id: 'pallasite', name: 'Pallasite', installed: false }])
+    await cabinet.install('pallasite')
+    expect(await cabinet.addToCatalogue([native], 31234)).toMatchObject([
+      { id: 'pallasite', kind: 'web', cabinetInstall: 'installed', url: 'http://127.0.0.1:31234/' },
+    ])
   })
 
   it('keeps a failed copy uninstalled, accepts a retry and refuses outside paths', async () => {
@@ -56,5 +63,25 @@ describe('cabinet game installation', () => {
     await rm(link)
     await expect(cabinet.install('pallasite')).resolves.toBeUndefined()
     await expect(cabinet.install('../pallasite')).rejects.toThrow('no cabinet package')
+  })
+
+  it('requires the installed Unity player and companion files when linking BTC Proof of Play', async () => {
+    const player = join(root, 'BTC Proof of Play.exe')
+    await writeFile(player, 'fixture player')
+    expect(await isWindowsGame('btc-proof-of-play', player)).toBe(false)
+    await mkdir(join(root, 'BTC Proof of Play_Data'))
+    await writeFile(join(root, 'UnityPlayer.dll'), 'fixture Unity library')
+    expect(await isWindowsGame('btc-proof-of-play', player)).toBe(true)
+    expect(await isWindowsGame('btc-proof-of-play', join(root, 'BTC Proof of Play Setup.exe'))).toBe(false)
+  })
+
+  it('accepts the exact downloaded game bytes and rejects a mismatched payload', async () => {
+    const data = 'fixture game download'
+    const expected = { size: data.length, sha256: createHash('sha256').update(data).digest('hex') }
+    const destination = join(root, 'download')
+    await writeVerifiedDownload(new Response(data), destination, expected)
+    expect(await readFile(destination, 'utf8')).toBe(data)
+    await expect(writeVerifiedDownload(new Response(data.toUpperCase()), join(root, 'bad'), expected))
+      .rejects.toThrow('checksum')
   })
 })

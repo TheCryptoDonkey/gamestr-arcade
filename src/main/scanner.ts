@@ -1,6 +1,6 @@
 import { controllerProfileFromGameDefinition } from '@forgesworn/joystick-protocol'
 import { readdir, readFile, stat } from 'node:fs/promises'
-import { join } from 'node:path'
+import { isAbsolute, join } from 'node:path'
 import type {
   Game,
   GameCapabilities,
@@ -151,6 +151,7 @@ export async function scanGames(
   let entries: string[] = []
   try { entries = await readdir(gamesDir) } catch { return [] }
   const games: Game[] = []
+  const windows = process.platform === 'win32'
 
   for (const entry of entries) {
     const full = join(gamesDir, entry)
@@ -158,7 +159,7 @@ export async function scanGames(
     if (!info) continue
 
     // Loose top-level *.AppImage → native game, slug from filename.
-    if (info.isFile() && APPIMAGE_RE.test(entry)) {
+    if (!windows && info.isFile() && APPIMAGE_RE.test(entry)) {
       const slug = entry.replace(APPIMAGE_RE, '')
       games.push(await build(slug, gamesDir, { kind: 'appimage', exec: full }, null, resolveLogo, resolveHero, undefined))
       continue
@@ -166,11 +167,12 @@ export async function scanGames(
     if (!info.isDirectory()) continue
 
     const meta = await readJson(join(full, 'game.json'))
-    const appImage = await firstAppImage(full)
+    const appImage = windows ? undefined : await firstAppImage(full)
     // Precedence: a present local AppImage wins; a declared web URL is the
     // graceful fallback when an optional native build has not been installed.
-    const execPath = !appImage && meta?.exec
-      ? (meta.exec as string).startsWith('/') ? meta.exec : join(full, meta.exec)
+    const exec = typeof meta?.exec === 'string' ? meta.exec : undefined
+    const execPath = !appImage && exec && (!windows || /\.exe$/i.test(exec))
+      ? isAbsolute(exec) ? exec : join(full, exec)
       : undefined
     if (appImage) {
       games.push(await build(entry, full, { kind: 'appimage', exec: appImage }, meta, resolveLogo, resolveHero, appImage))

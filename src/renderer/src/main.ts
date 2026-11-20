@@ -266,6 +266,7 @@ async function boot(): Promise<void> {
   // bridge); harmless to construct in the browser preview.
   let installedGames = games
   const gamesPanel = new GamesPanel(host, {
+    enableLocalGames: inElectron,
     getInstalledIds: () => installedGames.map(g => g.id),
     relays: () => relayStore.getEnabled(),
     onAdded: fresh => {

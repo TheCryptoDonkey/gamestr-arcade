@@ -15,7 +15,7 @@
  * so the new tile appears in the carousel.
  */
 
-import type { Game, GamestrCatalogueEntry } from '../../../shared/types'
+import type { Game, GamestrCatalogueEntry, LocalGameSettings } from '../../../shared/types'
 import { createGameDetector, type DetectedGame, type GameDetector } from '../discovery/detector'
 
 export interface GamesPanelOptions {
@@ -26,6 +26,7 @@ export interface GamesPanelOptions {
   /** Called after a successful import with the fresh games list. */
   onAdded: (games: Game[]) => void
   onClose?: () => void
+  enableLocalGames?: boolean
 }
 
 function esc(s: string): string {
@@ -46,6 +47,9 @@ export class GamesPanel {
   private readonly listEl: HTMLElement
   private readonly statusEl: HTMLElement
   private readonly closeBtn: HTMLButtonElement
+  private readonly localEl: HTMLElement
+  private readonly localActions: HTMLElement
+  private readonly localStatus: HTMLElement
   private readonly opts: GamesPanelOptions
   private previousFocus: HTMLElement | null = null
   private inertedSiblings: HTMLElement[] = []
@@ -55,6 +59,8 @@ export class GamesPanel {
   private catalogue: GamestrCatalogueEntry[] = []
   private added = new Set<string>()
   private loading = false
+  private localSettings: LocalGameSettings | undefined
+  private localBusy = false
   // Gamepad/keyboard navigation: index into the current addable list + its slugs.
   private selectedIndex = 0
   private addableSlugs: string[] = []
@@ -77,11 +83,16 @@ export class GamesPanel {
         <header class="gp-head">
           <div class="gp-head-inner">
             <span class="gp-cursor" aria-hidden="true">▌</span>
-            <h2 id="games-panel-title" class="gp-title">ADD GAMES · GAMESTR</h2>
+            <h2 id="games-panel-title" class="gp-title">GAMES SETTINGS</h2>
             <button class="gp-close" type="button"><span aria-hidden="true">[ G ]</span> CLOSE</button>
           </div>
           <div class="gp-scanline-bar"></div>
         </header>
+        <section class="gp-local" aria-labelledby="gp-local-title" hidden>
+          <h3 id="gp-local-title">Local games</h3>
+          <div class="gp-local-actions"></div>
+          <div class="gp-local-status" role="status"></div>
+        </section>
         <div id="games-panel-status" class="gp-status" aria-live="polite"></div>
         <div id="games-panel-hint" class="gp-hint">↕ NAVIGATE · Ⓐ / ENTER = ADD · Ⓑ / START / ESC = CLOSE</div>
         <ol class="gp-list" aria-label="Available games"></ol>
@@ -91,6 +102,9 @@ export class GamesPanel {
     this.listEl = this.overlay.querySelector('.gp-list') as HTMLElement
     this.statusEl = this.overlay.querySelector('.gp-status') as HTMLElement
     this.closeBtn = this.overlay.querySelector('.gp-close') as HTMLButtonElement
+    this.localEl = this.overlay.querySelector('.gp-local') as HTMLElement
+    this.localActions = this.overlay.querySelector('.gp-local-actions') as HTMLElement
+    this.localStatus = this.overlay.querySelector('.gp-local-status') as HTMLElement
     this.closeBtn.addEventListener('click', () => this.close())
     this.overlay.addEventListener('keydown', event => this.handleKeydown(event))
   }
@@ -112,6 +126,7 @@ export class GamesPanel {
     // continues to operate; Tab moves into its native controls.
     this.overlay.focus()
     this.startDetector()
+    if (this.opts.enableLocalGames) void this.loadLocalGames()
     void this.loadCatalogue()
   }
 
@@ -233,6 +248,67 @@ export class GamesPanel {
     } finally {
       this.loading = false
       this.render()
+    }
+  }
+
+  private async loadLocalGames(): Promise<void> {
+    try {
+      this.localSettings = await window.arcade.localGames()
+      this.renderLocalGames()
+    } catch (error) {
+      this.localEl.hidden = false
+      this.localStatus.textContent = String(error)
+    }
+  }
+
+  private renderLocalGames(): void {
+    const settings = this.localSettings
+    if (!settings) return
+    const actions: HTMLButtonElement[] = []
+    const addAction = (label: string, action?: () => Promise<Game[] | null>, pending?: string) => {
+      const button = document.createElement('button')
+      button.className = 'gp-add'
+      button.type = 'button'
+      button.textContent = label
+      button.disabled = this.localBusy || !action
+      if (action) button.addEventListener('click', () => void this.runLocalAction(action, pending ?? 'Updating games…'))
+      actions.push(button)
+    }
+
+    for (const game of settings.bundled) {
+      const selected = game.installed && !(game.id === 'pallasite' && settings.pallasiteDesktopSelected)
+      if (selected) addAction(`${game.name} offline installed`)
+      else addAction(`Install ${game.name} for offline play`, async () => {
+        await window.arcade.install(game.id)
+        return window.arcade.listGames()
+      }, `Installing ${game.name}…`)
+    }
+    if (settings.canDownloadPallasite && !settings.pallasiteDesktopSelected) {
+      addAction('Download and install Pallasite Desktop', () => window.arcade.downloadPallasite(), 'Downloading Pallasite Desktop…')
+    }
+    if (settings.canLinkWindowsGames) {
+      addAction('Locate Pallasite.exe', () => window.arcade.linkWindowsGame('pallasite'))
+      const label = settings.proofOfPlayLinked ? 'Change BTC Proof of Play location' : 'Locate BTC Proof of Play.exe'
+      addAction(label, () => window.arcade.linkWindowsGame('btc-proof-of-play'))
+    }
+    this.localActions.replaceChildren(...actions)
+    this.localEl.hidden = actions.length === 0
+  }
+
+  private async runLocalAction(action: () => Promise<Game[] | null>, pending: string): Promise<void> {
+    if (this.localBusy) return
+    this.localBusy = true
+    this.localStatus.textContent = pending
+    this.renderLocalGames()
+    try {
+      const games = await action()
+      this.localStatus.textContent = games ? 'Game ready.' : ''
+      if (games) this.opts.onAdded(games)
+    } catch (error) {
+      this.localStatus.textContent = error instanceof Error ? error.message : String(error)
+    } finally {
+      this.localBusy = false
+      await this.loadLocalGames()
     }
   }
 

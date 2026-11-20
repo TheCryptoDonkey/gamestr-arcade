@@ -1,15 +1,48 @@
 # gamestr-arcade - Booth Setup
 
-Concise runbook for deploying the arcade kiosk to a booth Linux laptop.
+Install Gamestr Arcade and set up a Linux booth cabinet.
 
 For Bitfest release preparation, machine selection, physical acceptance and
 recovery evidence, use [the Bitfest readiness checklist](docs/bitfest-readiness.md).
 
 ---
 
-## 1. Build the AppImage (Linux only)
+## 1. Install the arcade
 
-The cabinet AppImage targets **x86_64 Linux** (e.g. the booth laptop running Ubuntu).
+### Windows installer
+
+On 64-bit Windows, run `gamestr-arcade-<version>-x64-setup.exe` and open
+**Gamestr Arcade** from the Start menu. Press **Ctrl+Q** to quit kiosk mode.
+Uninstall from **Settings → Apps → Installed apps**. The installer keeps the
+cabinet library in your user profile. Native AppImage games require Linux.
+
+To build the installer on Windows, run `npm ci` followed by `npm run dist:win`.
+The installer is written to `release/`.
+
+### Ubuntu and Debian installer
+
+Install `gamestr-arcade_<version>_amd64.deb` from the directory containing the
+download. For example, for version 0.2.11:
+
+```bash
+sudo apt install ./gamestr-arcade_0.2.11_amd64.deb
+```
+
+Open **Gamestr Arcade** from the applications menu. For a windowed session, run
+`ARCADE_KIOSK=0 gamestr-arcade-desktop`. Press **Ctrl+Q** to quit kiosk mode.
+On a booth with the per-user systemd launcher, run `gamestr-arcade-desktop` to
+open the package directly. Set `ARCADE_GAMES_DIR` to the booth's existing game
+directory to use that catalogue.
+
+Use `sudo apt remove gamestr-arcade` to uninstall the app and keep the cabinet
+library in your user profile.
+
+To build the installer on Ubuntu or Debian, install `binutils` and `xz-utils`.
+Run `npm ci` followed by `npm run dist:deb`. The installer is written to `release/`.
+
+### Portable AppImage
+
+The cabinet AppImage also targets **x86_64 Linux**.
 
 ```bash
 npm ci
@@ -28,11 +61,17 @@ allow it to run as a program, then open it as the user who will run the cabinet.
 
 ### Install Pallasite and Neon Sentinel
 
-Both games ship inside the arcade AppImage. Open the cabinet, select a game and
-choose **Install on this arcade**. Once the copy completes, choose **Start game**.
-The tile shows **Play** on subsequent visits, including after a restart. Repeat
-for the second game. If the operator has already supplied a working native
-AppImage for either game, that native build takes priority.
+The Windows and Linux builds include offline copies of both games. Press **G**
+to open **Games Settings**, then choose **Install Pallasite for offline play**
+or **Install Neon Sentinel for offline play**. You can also select the game in
+the carousel and choose **Install on this arcade**. Choose **Play** when the
+copy completes. The install stays available after restarting the arcade.
+
+On 64-bit Windows and Linux, **Download and install Pallasite Desktop** gets
+the publisher's desktop edition and verifies the published checksum. On Windows,
+finish Pallasite Setup. If you choose a custom folder, use **Locate Pallasite.exe**
+to link the installed game. Installing the offline copy in Games Settings selects
+that copy again.
 
 The cabinet keeps the installed files under `cabinet-games/` in its Electron
 user-data directory. Run the arcade as the same Linux user to keep using that
@@ -45,6 +84,16 @@ take control. If it disconnects during play, release the controls and press **A*
 on the reconnected controller to reclaim them. Use the game's pause menu to
 resume. Check both games with the actual controllers before the event using the
 [cabinet acceptance runbook](docs/conference-acceptance.md).
+
+### Add BTC: Proof of Play to a Windows cabinet
+
+Install the [publisher's Windows game](https://btcproofofplay.itch.io/btcproofofplay#download)
+and finish downloading the Unity client. In Gamestr Arcade, press **G**, then
+choose **Locate BTC Proof of Play.exe**. Select the actual game executable in
+the folder containing `BTC Proof of Play_Data` and `UnityPlayer.dll`.
+
+Open the new **BTC: Proof of Play** tile and choose **Start game**. Play with
+keyboard and mouse. Use the game's **Quit** command to return to the arcade.
 
 ### Add BTC: Proof of Play to a Linux cabinet
 
@@ -309,8 +358,9 @@ The service uses `Restart=always` with `RestartSec=2` - a one-off crash returns 
 
 ### Ubuntu 24.04+ Chromium sandbox
 
-Ubuntu restricts unprivileged user namespaces by default. Keep Electron's
-Chromium sandbox enabled by installing the narrow AppArmor grant shipped here:
+Ubuntu restricts unprivileged user namespaces by default. The Debian package
+installs its own AppArmor profile on supported systems. For an AppImage booth,
+install the narrow AppArmor grant to keep Electron's Chromium sandbox enabled:
 
 ```bash
 sudo install -m 0644 systemd/apparmor-gamestr-arcade /etc/apparmor.d/gamestr-arcade

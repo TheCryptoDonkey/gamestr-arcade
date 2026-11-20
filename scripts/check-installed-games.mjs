@@ -6,7 +6,8 @@ import { _electron as electron } from 'playwright'
 
 const args = process.argv.slice(2)
 const verifyGameplay = !args.includes('--install-only')
-const artifactPath = args.find(arg => arg !== '--install-only')
+const verifyKiosk = args.includes('--kiosk')
+const artifactPath = args.find(arg => !arg.startsWith('--'))
 const artifact = artifactPath ? resolve(artifactPath) : undefined
 const scratch = await mkdtemp(join(tmpdir(), 'gamestr-installed-games-'))
 const profile = join(scratch, 'profile')
@@ -14,12 +15,12 @@ const tiles = [['pallasite', 'Pallasite'], ['neon-sentinel', 'Neon Sentinel']]
 let app
 
 async function openArcade() {
-  const env = { ...process.env, ARCADE_KIOSK: '0' }
+  const env = { ...process.env, ARCADE_KIOSK: verifyKiosk ? '1' : '0' }
   delete env.ARCADE_GAMES_DIR
   delete env.ARCADE_CONFIG
   delete env.ELECTRON_RUN_AS_NODE
-  if (artifact) env.APPIMAGE_EXTRACT_AND_RUN = '1'
-  else {
+  if (artifact?.endsWith('.AppImage')) env.APPIMAGE_EXTRACT_AND_RUN = '1'
+  if (!artifact) {
     env.ARCADE_GAMES_DIR = join(scratch, 'games')
     env.ARCADE_CABINET_GAMES_DIR = resolve('release/cabinet-games')
   }
@@ -110,10 +111,50 @@ try {
   await mkdir(gamesDir, { recursive: true })
   await writeFile(join(gamesDir, '.write-test'), '')
   console.log('PASS: the cabinet catalogue writes to the user profile or the configured override.')
+  const missingLogos = await shell.evaluate(async () => {
+    const games = await window.arcade.listGames()
+    const results = await Promise.all(games.map(game => {
+      const logo = new Image()
+      logo.src = game.logo
+      return logo.decode().then(() => null, () => game.id)
+    }))
+    return results.filter(Boolean)
+  })
+  assert.deepEqual(missingLogos, [], 'The bundled game logos should load from the installed app.')
+  if (verifyKiosk) {
+    await app.evaluate(({ BrowserWindow }) => {
+      const window = BrowserWindow.getAllWindows()[0]
+      window.setKiosk(false)
+      window.setFullScreen(false)
+    })
+    let restored = false
+    for (let attempt = 0; attempt < 30 && !restored; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      restored = await app.evaluate(({ BrowserWindow }) => {
+        const window = BrowserWindow.getAllWindows()[0]
+        return window.isKiosk() && window.isFullScreen()
+      })
+    }
+    assert(restored, 'Kiosk mode should recover fullscreen after a window transition.')
+    console.log('PASS: the cabinet restores fullscreen automatically in kiosk mode.')
+  }
+  await shell.keyboard.press('g')
+  const settings = shell.getByRole('dialog', { name: 'GAMES SETTINGS' })
+  if (process.arch === 'x64' && (process.platform === 'linux' || process.platform === 'win32')) {
+    await settings.getByRole('button', { name: 'Download and install Pallasite Desktop' }).waitFor()
+  }
+  if (process.platform === 'win32') await settings.getByRole('button', { name: 'Locate BTC Proof of Play.exe' }).waitFor()
+  await settings.getByRole('button', { name: 'Install Pallasite for offline play' }).click()
+  await shell.getByRole('button', { name: 'Play Pallasite', exact: true }).waitFor()
+  console.log('PASS: Pallasite installs from Games Settings.')
   for (const [index, [id, name]] of tiles.entries()) {
     if (index) await shell.keyboard.press('ArrowRight')
-    await shell.getByRole('button', { name: `Install ${name}`, exact: true }).click()
-    await shell.getByRole('button', { name: /install on this arcade/i }).click()
+    if (id === 'pallasite') {
+      await shell.getByRole('button', { name: 'Play Pallasite', exact: true }).click()
+    } else {
+      await shell.getByRole('button', { name: `Install ${name}`, exact: true }).click()
+      await shell.getByRole('button', { name: /install on this arcade/i }).click()
+    }
     const play = shell.getByRole('button', { name: /start game/i })
     await play.waitFor()
     const installed = join(profile, 'cabinet-games', id)

@@ -1,5 +1,14 @@
 import type { ControllerSpec } from '@forgesworn/joystick-protocol'
 export type GameKind = 'appimage' | 'web'
+export type DesktopGameId = 'pallasite' | 'btc-proof-of-play'
+
+export interface LocalGameSettings {
+  bundled: { id: string; name: string; installed: boolean }[]
+  canDownloadPallasite: boolean
+  canLinkWindowsGames: boolean
+  pallasiteDesktopSelected: boolean
+  proofOfPlayLinked: boolean
+}
 
 /**
  * Per-game gamepad→keyboard mapping.
@@ -67,7 +76,7 @@ export interface Game {
   name: string
   tagline?: string
   kind: GameKind
-  exec?: string         // absolute .AppImage path (kind === 'appimage')
+  exec?: string         // absolute native executable path (kind === 'appimage')
   args?: string[]       // extra CLI args for the native exec (game.json `args`, e.g. ['--no-sandbox'])
   url?: string          // web url (kind === 'web')
   localSite?: boolean   // true when url points to the local mirror server

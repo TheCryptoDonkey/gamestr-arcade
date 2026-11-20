@@ -58,10 +58,20 @@ jobs:
       - name: Verify missing game input still fails the packaged gate
         run: node scripts/appimage-input-negative.mjs release/*.AppImage release/linux-input-negative.json
 
+      - name: Package, install and launch the Linux deb
+        run: |
+          npm run package:deb
+          sudo apt-get install -y --no-install-recommends desktop-file-utils ./release/*.deb
+          desktop-file-validate /usr/share/applications/gamestr-arcade.desktop
+          xvfb-run -a -s '-screen 0 1280x800x24' node scripts/check-installed-games.mjs /usr/bin/gamestr-arcade-desktop --install-only
+          sudo apt-get remove -y gamestr-arcade
+          test ! -e /usr/share/applications/gamestr-arcade.desktop
+          test ! -L /usr/bin/gamestr-arcade-desktop
+
       - name: Record release checksums
         run: |
           git archive --format=tar.gz --prefix=gamestr-arcade-source/ HEAD > release/gamestr-arcade-source.tar.gz
-          cd release && sha256sum *.AppImage *.tar.gz > SHA256SUMS
+          cd release && sha256sum -- *.AppImage *.deb *.tar.gz > SHA256SUMS
 
       - name: Upload release evidence
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -69,6 +79,7 @@ jobs:
           name: gamestr-arcade-linux-${{ github.sha }}
           path: |
             release/*.AppImage
+            release/*.deb
             release/gamestr-arcade-source.tar.gz
             release/SHA256SUMS
             release/linux-runtime-smoke.json
@@ -76,5 +87,53 @@ jobs:
             gamestr-arcade.cdx.json
             dist-web/**
             dist-web-600/**
+          if-no-files-found: error
+          retention-days: 90
+
+  windows-installer:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Package the Windows installer
+        run: |
+          npm ci
+          npm run dist:win
+
+      - name: Install, launch and remove Gamestr Arcade
+        run: |
+          $installer = Get-ChildItem release -Filter '*-setup.exe'
+          if (@($installer).Count -ne 1) { throw 'Expected one Windows installer' }
+          $install = Start-Process -FilePath $installer.FullName -ArgumentList '/S' -Wait -PassThru
+          if ($install.ExitCode -ne 0) { throw "Installer exited with $($install.ExitCode)" }
+
+          $shortcut = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Gamestr Arcade.lnk'
+          if (!(Test-Path -LiteralPath $shortcut)) { throw 'Start menu shortcut is missing' }
+          $launcher = (New-Object -ComObject WScript.Shell).CreateShortcut($shortcut).TargetPath
+          node scripts/check-installed-games.mjs $launcher --install-only
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          $uninstaller = Join-Path (Split-Path $launcher) 'Uninstall Gamestr Arcade.exe'
+          $remove = Start-Process -FilePath $uninstaller -ArgumentList '/S' -Wait -PassThru
+          if ($remove.ExitCode -ne 0 -or (Test-Path -LiteralPath $shortcut)) { throw 'Uninstall did not complete' }
+          $checksum = (Get-FileHash -Algorithm SHA256 -LiteralPath $installer.FullName).Hash.ToLowerInvariant()
+          "$checksum  $($installer.Name)" | Set-Content -Encoding ascii release/SHA256SUMS
+
+      - name: Upload the checked Windows installer
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: gamestr-arcade-windows-${{ github.sha }}
+          path: |
+            release/*-setup.exe
+            release/SHA256SUMS
           if-no-files-found: error
           retention-days: 90

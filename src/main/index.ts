@@ -7,11 +7,12 @@ import {isControllerSpec} from '@forgesworn/joystick-protocol'
  * Set ARCADE_KIOSK=0 for a normal windowed build during development.
  */
 
-import { app, BrowserWindow, globalShortcut, ipcMain, net, protocol, session as electronSession, WebContentsView } from 'electron'
+import { app, BrowserWindow, dialog, globalShortcut, ipcMain, net, protocol, session as electronSession, WebContentsView } from 'electron'
 import type { IpcMainInvokeEvent, WebContents } from 'electron'
 import { chmod, mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { spawn as nodeSpawn, spawnSync } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { is } from '@electron-toolkit/utils'
@@ -28,6 +29,7 @@ import type { ImportDeps } from './gamestr-import'
 import { startLocalServer } from './local-server'
 import type { LocalServer } from './local-server'
 import { CabinetGames } from './cabinet-games'
+import { DesktopGames } from './desktop-games'
 import { DEFAULT_CONFIG, parseConfig } from './config'
 import { controllerRelayHeaders, productionRelayPattern } from './relay-origin'
 import { Launcher } from './launch'
@@ -57,12 +59,16 @@ import {
 } from './web-session-policy'
 import type {
   ArcadeConfig,
+  DesktopGameId,
   Game,
   GameInputAdapter,
   GamestrCatalogueResult,
   GamestrImportResult,
+  LocalGameSettings,
   WebLNConfig,
 } from '../shared/types'
+
+if (process.platform === 'win32') app.setAppUserModelId('dev.forgesworn.gamestr-arcade')
 
 // GPU flags: keep the hardware path active on booth hardware.
 app.commandLine.appendSwitch('ignore-gpu-blocklist')
@@ -118,6 +124,48 @@ async function loadConfig(): Promise<ArcadeConfig> {
 }
 
 let win: BrowserWindow | null = null
+let nativeGameOwnsDisplay = false
+
+function restoreKiosk(window: BrowserWindow): void {
+  if (!kioskMode || nativeGameOwnsDisplay || window.isDestroyed() || !window.isVisible()) return
+  if (!window.isKiosk()) window.setKiosk(true)
+  if (!window.isFullScreen()) window.setFullScreen(true)
+}
+
+function hideShell(): void {
+  if (!win) return
+  nativeGameOwnsDisplay = true
+  // On Wayland, the fullscreen surface can stay mapped until kiosk mode exits.
+  win.setKiosk(false)
+  win.setFullScreen(false)
+  win.hide()
+}
+
+function showShell(): void {
+  nativeGameOwnsDisplay = false
+  if (!win) return
+  win.show()
+  restoreKiosk(win)
+  win.focus()
+  // Restore focus to the shell contents before the renderer focuses the carousel.
+  win.webContents.focus()
+}
+
+async function runWindowsSetup(installer: string): Promise<void> {
+  hideShell()
+  try {
+    await new Promise<void>((done, fail) => {
+      const setup = nodeSpawn(installer, [], { cwd: dirname(installer), stdio: 'ignore' })
+      setup.once('error', fail)
+      setup.once('exit', code => {
+        if (code === 0) done()
+        else fail(new Error('Pallasite Setup was cancelled or failed.'))
+      })
+    })
+  } finally {
+    showShell()
+  }
+}
 // Local static server - started once on app ready; serves mirrored game sites.
 let localServer: LocalServer | null = null
 
@@ -429,6 +477,8 @@ function buildLaunchDeps(): LaunchDeps {
           ['--user', '--wait', '--collect', '--quiet', '--setenv=APPIMAGE_EXTRACT_AND_RUN=1', '--unit', GAME_UNIT, '--', exec, ...args],
           { detached: false, env },
         )
+      } else if (process.platform === 'win32') {
+        child = nodeSpawn(exec, args, { cwd: dirname(exec), detached: false })
       } else {
         child = nodeSpawn(exec, args, { detached: false, env: { ...process.env, APPIMAGE_EXTRACT_AND_RUN: '1' } })
       }
@@ -461,30 +511,10 @@ function buildLaunchDeps(): LaunchDeps {
       }
     },
 
-    chmodExec: (path) => chmod(path, 0o755),
+    chmodExec: async path => { if (process.platform !== 'win32') await chmod(path, 0o755) },
 
-    hideShell() {
-      if (!win) return
-      // A kiosk/fullscreen window won't yield the display on hide() under a
-      // Wayland compositor (GNOME/Mutter): the kiosk surface stays mapped, so the
-      // grid covers the native game and the game runs invisibly behind it. Drop
-      // kiosk + fullscreen FIRST, then hide - showShell() restores them on return.
-      win.setKiosk(false)
-      win.setFullScreen(false)
-      win.hide()
-    },
-
-    showShell() {
-      if (!win) return
-      win.show()
-      win.setFullScreen(kioskMode)
-      win.setKiosk(kioskMode)
-      win.focus()
-      // A focused window can still have its game view as the native focus
-      // target. Restore the shell contents before asking its renderer to focus
-      // the carousel, otherwise Chromium can restore a stale button afterwards.
-      win.webContents.focus()
-    },
+    hideShell,
+    showShell,
 
     notifyReturned() {
       // Unregister force-back hotkeys - game has ended, player is back at grid.
@@ -592,13 +622,15 @@ const FORCE_BACK_SHORTCUTS = ['Escape', 'CommandOrControl+Shift+Backspace'] as c
 // reclaim the arcade from a native fullscreen game. Created after app ready.
 let gamepadExit: GamepadExitWatcher | null = null
 
-function registerForceBack(): void {
+function registerForceBack(game: Game): void {
+  const desktopControls = game.kind === 'appimage' && !!game.inputModes?.length && !game.inputModes.includes('gamepad')
   for (const accel of FORCE_BACK_SHORTCUTS) {
+    if (desktopControls && accel === 'Escape') continue
     // globalShortcut.register is a no-op if already registered; safe to call.
     globalShortcut.register(accel, () => launcher.forceBack())
   }
   // Begin watching the controller for a menu-button exit (Linux/native games).
-  void gamepadExit?.start()
+  if (!desktopControls) void gamepadExit?.start()
 }
 
 function unregisterForceBack(): void {
@@ -612,7 +644,7 @@ function unregisterForceBack(): void {
 let launcher: Launcher
 
 function createWindow(): void {
-  win = new BrowserWindow({
+  const window = new BrowserWindow({
     fullscreen: kioskMode,
     kiosk: kioskMode,
     backgroundColor: '#05070f',
@@ -623,6 +655,18 @@ function createWindow(): void {
       sandbox: false,
     },
   })
+  win = window
+
+  // Compositors can finish an earlier fullscreen transition after the shell has
+  // already returned. Reapply kiosk mode only while the arcade owns the display.
+  let fullscreenRetry: ReturnType<typeof setTimeout> | undefined
+  window.on('leave-full-screen', () => {
+    if (!kioskMode || nativeGameOwnsDisplay) return
+    clearTimeout(fullscreenRetry)
+    fullscreenRetry = setTimeout(() => restoreKiosk(window), 150)
+  })
+  window.on('show', () => restoreKiosk(window))
+  window.once('closed', () => clearTimeout(fullscreenRetry))
 
   wireGamepadConsole(win.webContents, 'menu')
 
@@ -655,7 +699,7 @@ app.whenReady().then(async () => {
     })
   }
   kioskMode = resolveStartupKiosk(startupConfig.kiosk, process.env.ARCADE_KIOSK)
-  // The bundled AppImage resources are read-only. Resolve its default games
+  // Packaged resources are read-only. Resolve the default games
   // directory under the same writable profile as the installed cabinet games.
   const catalogueConfigPath = app.isPackaged && !process.env.ARCADE_CONFIG
     ? join(app.getPath('userData'), 'arcade.config.json')
@@ -675,6 +719,7 @@ app.whenReady().then(async () => {
     : process.env.ARCADE_CABINET_GAMES_DIR ? resolve(process.env.ARCADE_CABINET_GAMES_DIR) : undefined
   const cabinetLibrary = join(app.getPath('userData'), 'cabinet-games')
   const cabinetGames = packageDir ? new CabinetGames(packageDir, cabinetLibrary) : null
+  const desktopGames = new DesktopGames(join(app.getPath('userData'), 'desktop-games'))
 
   // Roots the media protocol is permitted to serve from.
   const allowedRoots = [gamesDir, cacheDir, resourcesDir]
@@ -691,8 +736,39 @@ app.whenReady().then(async () => {
     console.warn(`[arcade] local server: failed to start (${String(err)}) - offline mirrors unavailable`)
   }
   const readCatalogue = async (): Promise<Game[]> => {
-    const games = await buildGamesList(gamesDir, cacheDir, localServer?.port)
-    return gamesForThisKiosk(cabinetGames ? await cabinetGames.addToCatalogue(games, localServer?.port) : games)
+    const scanned = await buildGamesList(gamesDir, cacheDir, localServer?.port)
+    const games = cabinetGames ? await cabinetGames.addToCatalogue(scanned, localServer?.port) : scanned
+    const [pallasite, proofOfPlay] = await Promise.all([
+      desktopGames.linked('pallasite'), desktopGames.linked('btc-proof-of-play'),
+    ])
+    if (pallasite) {
+      const index = games.findIndex(game => game.id === 'pallasite')
+      const previous: Game = index === -1 ? {
+        gameId: 'pallasite', id: 'pallasite', name: 'Pallasite', order: 1, logo: '',
+        kind: 'appimage', inputModes: ['gamepad', 'keyboard'],
+      } : games[index]
+      const game: Game = {
+        ...previous,
+        kind: 'appimage', exec: pallasite, available: true, availabilityReason: undefined,
+        args: undefined, url: undefined, localRoot: undefined, localSite: undefined,
+        cabinetInstall: undefined, network: 'optional',
+      }
+      if (index === -1) games.push(game)
+      else games[index] = game
+    }
+    if (proofOfPlay) {
+      const game: Game = {
+        id: 'btc-proof-of-play', gameId: 'btc-proof-of-play', name: 'BTC: Proof of Play',
+        tagline: 'Build your deck and battle in a Bitcoin strategy card game',
+        developer: 'BTC Proof of Play', kind: 'appimage', exec: proofOfPlay, logo: '',
+        available: true, order: 10, manifestVersion: 2, inputModes: ['keyboard', 'pointer'],
+        controlHints: ['KEYBOARD + MOUSE', 'QUIT FROM THE GAME TO RETURN'],
+      }
+      const index = games.findIndex(existing => existing.id === game.id)
+      if (index === -1) games.push(game)
+      else games[index] = game
+    }
+    return gamesForThisKiosk(games.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name)))
   }
 
   // ── Media protocol handler ──────────────────────────────────────────────
@@ -706,7 +782,7 @@ app.whenReady().then(async () => {
     if (!isPathAllowed(absPath, allowedRoots)) {
       return new Response('Forbidden', { status: 403 })
     }
-    return net.fetch(`file://${resolve(absPath)}`)
+    return net.fetch(pathToFileURL(absPath).href)
   })
 
   // ── IPC handlers ────────────────────────────────────────────────────────
@@ -742,13 +818,45 @@ app.whenReady().then(async () => {
   const requireShell = (event: IpcMainInvokeEvent) => {
     if (!win || event.sender !== win.webContents || event.senderFrame !== win.webContents.mainFrame) throw new Error('Player controls belong to the arcade shell.')
   }
+  ipcMain.handle('games:local-settings', async (event): Promise<LocalGameSettings> => {
+    requireShell(event)
+    const [bundled, pallasite, proofOfPlay] = await Promise.all([
+      cabinetGames?.listPackages() ?? [], desktopGames.linked('pallasite'), desktopGames.linked('btc-proof-of-play'),
+    ])
+    return {
+      bundled, canDownloadPallasite: desktopGames.canDownloadPallasite(),
+      canLinkWindowsGames: process.platform === 'win32',
+      pallasiteDesktopSelected: Boolean(pallasite), proofOfPlayLinked: Boolean(proofOfPlay),
+    }
+  })
+  ipcMain.handle('game:download-pallasite', async event => {
+    requireShell(event)
+    await desktopGames.installPallasite(runWindowsSetup)
+    cachedGames = await readCatalogue()
+    return cachedGames
+  })
+  ipcMain.handle('game:link-windows', async (event, id: unknown) => {
+    requireShell(event)
+    if (process.platform !== 'win32' || !win || (id !== 'pallasite' && id !== 'btc-proof-of-play')) {
+      throw new Error('This installed game cannot be linked.')
+    }
+    const gameId: DesktopGameId = id
+    const executable = gameId === 'pallasite' ? 'Pallasite.exe' : 'BTC Proof of Play.exe'
+    const selection = await dialog.showOpenDialog(win, {
+      title: `Locate ${executable}`, properties: ['openFile'],
+      filters: [{ name: 'Game executable', extensions: ['exe'] }],
+    })
+    if (selection.canceled || !selection.filePaths[0]) return null
+    await desktopGames.linkWindowsGame(gameId, selection.filePaths[0])
+    cachedGames = await readCatalogue()
+    return cachedGames
+  })
   ipcMain.handle('game:install', async (event, id: unknown) => {
     requireShell(event)
     if (typeof id !== 'string' || !localServer || !cabinetGames) throw new Error('This game cannot be installed.')
-    const game = cachedGames?.find(game => game.id === id)
-    if (game?.cabinetInstall !== 'available') throw new Error('This game is unavailable for installation.')
     await cabinetGames.install(id)
-    cachedGames = gamesForThisKiosk(await cabinetGames.addToCatalogue([...(cachedGames ?? [])], localServer.port))
+    if (id === 'pallasite') await desktopGames.useOfflinePallasite()
+    cachedGames = await readCatalogue()
     const installed = cachedGames.find(game => game.id === id && game.cabinetInstall === 'installed')
     if (!installed) throw new Error('The cabinet could not find the installed game.')
     return installed
@@ -853,7 +961,7 @@ app.whenReady().then(async () => {
     // Register force-back hotkeys for the duration of this game session.
     // Covers both web and native - native apps steal OS focus so the arcade
     // renderer's key listeners are inactive; only global shortcuts fire.
-    if (started) registerForceBack()
+    if (started) registerForceBack(game)
   })
 
   // Privileged web-game APIs are resolved in main and bound to the currently

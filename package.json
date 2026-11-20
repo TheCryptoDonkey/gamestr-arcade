@@ -1,11 +1,12 @@
 {
   "name": "gamestr-arcade",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "private": true,
   "type": "module",
   "description": "Gamestr arcade kiosk - Electron front-end for a self-contained arcade machine.",
   "desktopName": "gamestr-arcade",
   "author": "TheCryptoDonkey",
+  "homepage": "https://github.com/TheCryptoDonkey/gamestr-arcade",
   "main": "./out/main/index.js",
   "engines": {
     "node": ">=24 <25"
@@ -29,6 +30,9 @@
     "test:watch": "vitest",
     "build:cabinet-games": "node scripts/build-cabinet-games.mjs",
     "dist": "npm run build:cabinet-games && electron-vite build && electron-builder --linux AppImage --x64 --publish never",
+    "dist:deb": "npm run build:cabinet-games && npm run build && npm run package:deb",
+    "package:deb": "electron-builder --linux deb --x64 --publish never --config.linux.executableName=gamestr-arcade-desktop",
+    "dist:win": "npm run build:cabinet-games && npm run build && electron-builder --win nsis --x64 --publish never",
     "validate:config": "node scripts/validate-config.mjs",
     "validate:manifests": "node scripts/validate-manifests.mjs",
     "validate": "npm run validate:config && npm run validate:manifests && npm run validate:definitions",

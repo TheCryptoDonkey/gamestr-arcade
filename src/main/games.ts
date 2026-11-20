@@ -8,6 +8,7 @@
 
 import { join, resolve, sep } from 'node:path'
 import { stat } from 'node:fs/promises'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { app } from 'electron'
 import { scanGames } from './scanner'
 import { resolveIcon, resolveHero, realIconDeps } from './icons'
@@ -46,9 +47,8 @@ export function isPathAllowed(absPath: string, roots: readonly string[]): boolea
  */
 export function pathToMediaUrl(absPath: string): string {
   if (!absPath) return ''
-  // Strip the leading slash so the URL host is "local" and path is the rest.
-  // e.g. /games/neon/logo.png → media://local/games/neon/logo.png
-  return `${MEDIA_SCHEME}://local${absPath.startsWith('/') ? absPath : '/' + absPath}`
+  const { host, pathname } = pathToFileURL(absPath)
+  return `${MEDIA_SCHEME}://local${host ? `//${host}` : ''}${pathname}`
 }
 
 /**
@@ -56,8 +56,14 @@ export function pathToMediaUrl(absPath: string): string {
  * Returns empty string for any non-media URL.
  */
 export function mediaUrlToPath(url: string): string {
-  if (!url.startsWith(`${MEDIA_SCHEME}://local`)) return ''
-  return url.slice(`${MEDIA_SCHEME}://local`.length) || ''
+  if (!url.startsWith(`${MEDIA_SCHEME}://local/`)) return ''
+  try {
+    const { pathname } = new URL(url)
+    const fileUrl = pathname.startsWith('//') ? `file:${pathname}` : `file://${pathname}`
+    return fileURLToPath(fileUrl)
+  } catch {
+    return ''
+  }
 }
 
 function rewriteGame(game: Game): Game {
