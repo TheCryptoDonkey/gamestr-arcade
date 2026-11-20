@@ -45,6 +45,13 @@ async function openArcade() {
   return page
 }
 
+async function activate(button) {
+  // The Windows runner can suppress compositor frames. Exercise the supported
+  // keyboard action there without waiting for the click stability animation.
+  if (process.platform === 'win32') await button.press('Enter')
+  else await button.click()
+}
+
 async function setTestController(game, { connected = true, pressA = false }) {
   await app.evaluate(async ({ webContents }, { url, connected, pressA }) => {
     const view = webContents.getAllWebContents().find(contents => contents.getURL() === url)
@@ -144,16 +151,16 @@ try {
     await settings.getByRole('button', { name: 'Download and install Pallasite Desktop' }).waitFor()
   }
   if (process.platform === 'win32') await settings.getByRole('button', { name: 'Locate BTC Proof of Play.exe' }).waitFor()
-  await settings.getByRole('button', { name: 'Install Pallasite for offline play' }).click()
+  await activate(settings.getByRole('button', { name: 'Install Pallasite for offline play' }))
   await shell.getByRole('button', { name: 'Play Pallasite', exact: true }).waitFor()
   console.log('PASS: Pallasite installs from Games Settings.')
   for (const [index, [id, name]] of tiles.entries()) {
     if (index) await shell.keyboard.press('ArrowRight')
     if (id === 'pallasite') {
-      await shell.getByRole('button', { name: 'Play Pallasite', exact: true }).click()
+      await activate(shell.getByRole('button', { name: 'Play Pallasite', exact: true }))
     } else {
-      await shell.getByRole('button', { name: `Install ${name}`, exact: true }).click()
-      await shell.getByRole('button', { name: /install on this arcade/i }).click()
+      await activate(shell.getByRole('button', { name: `Install ${name}`, exact: true }))
+      await activate(shell.getByRole('button', { name: /install on this arcade/i }))
     }
     const play = shell.getByRole('button', { name: /start game/i })
     await play.waitFor()
@@ -161,7 +168,7 @@ try {
     const revision = await readFile(join(installed, 'revision'), 'utf8')
     assert.match(revision, /^[a-f0-9]{40}\n$/)
     const view = app.waitForEvent('window', { predicate: page => page !== shell })
-    await play.click()
+    await activate(play)
     const game = await view
     const pageErrors = []
     game.on('pageerror', error => pageErrors.push(error.message))
