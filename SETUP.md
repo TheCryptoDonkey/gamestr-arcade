@@ -69,9 +69,10 @@ copy completes. The install stays available after restarting the arcade.
 
 On 64-bit Windows and Linux, **Download and install Pallasite Desktop** gets
 the publisher's desktop edition and verifies the published checksum. On Windows,
-finish Pallasite Setup. If you choose a custom folder, use **Locate Pallasite.exe**
-to link the installed game. Installing the offline copy in Games Settings selects
-that copy again.
+Gamestr Arcade installs it for your Windows account. Select **Pallasite → Play Now**
+to launch the desktop game. Use **Locate Pallasite.exe** to link a copy installed
+in a custom folder. Installing the offline copy in Games Settings selects that
+copy again.
 
 The cabinet keeps the installed files under `cabinet-games/` in its Electron
 user-data directory. Run the arcade as the same Linux user to keep using that

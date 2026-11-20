@@ -283,8 +283,9 @@ export class GamesPanel {
         return window.arcade.listGames()
       }, `Installing ${game.name}…`)
     }
-    if (settings.canDownloadPallasite && !settings.pallasiteDesktopSelected) {
-      addAction('Download and install Pallasite Desktop', () => window.arcade.downloadPallasite(), 'Downloading Pallasite Desktop…')
+    if (settings.canDownloadPallasite) {
+      const label = settings.pallasiteDesktopSelected ? 'Reinstall Pallasite Desktop' : 'Download and install Pallasite Desktop'
+      addAction(label, () => window.arcade.downloadPallasite(), 'Downloading and installing Pallasite Desktop…')
     }
     if (settings.canLinkWindowsGames) {
       addAction('Locate Pallasite.exe', () => window.arcade.linkWindowsGame('pallasite'))

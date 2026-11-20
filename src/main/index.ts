@@ -152,19 +152,16 @@ function showShell(): void {
 }
 
 async function runWindowsSetup(installer: string): Promise<void> {
-  hideShell()
-  try {
-    await new Promise<void>((done, fail) => {
-      const setup = nodeSpawn(installer, [], { cwd: dirname(installer), stdio: 'ignore' })
-      setup.once('error', fail)
-      setup.once('exit', code => {
-        if (code === 0) done()
-        else fail(new Error('Pallasite Setup was cancelled or failed.'))
-      })
+  await new Promise<void>((done, fail) => {
+    const setup = nodeSpawn(installer, ['/S', '/currentuser'], {
+      cwd: dirname(installer), stdio: 'ignore', windowsHide: true,
     })
-  } finally {
-    showShell()
-  }
+    setup.once('error', fail)
+    setup.once('exit', (code, signal) => {
+      if (code === 0) done()
+      else fail(new Error(`Pallasite setup failed (${code ?? signal}).`))
+    })
+  })
 }
 // Local static server - started once on app ready; serves mirrored game sites.
 let localServer: LocalServer | null = null
@@ -746,7 +743,7 @@ app.whenReady().then(async () => {
         ...previous,
         kind: 'appimage', exec: pallasite, available: true, availabilityReason: undefined,
         args: undefined, url: undefined, localRoot: undefined, localSite: undefined,
-        cabinetInstall: undefined, network: 'optional',
+        cabinetInstall: undefined, network: 'optional', playOnActivate: true,
       }
       if (index === -1) games.push(game)
       else games[index] = game

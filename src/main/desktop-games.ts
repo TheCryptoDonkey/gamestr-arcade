@@ -8,17 +8,17 @@ import { pipeline } from 'node:stream/promises'
 import { promisify } from 'node:util'
 import type { DesktopGameId } from '../shared/types'
 
-const RELEASE = 'https://github.com/TheCryptoDonkey/pallasite-releases/releases/download/v0.1.2'
+const RELEASE = 'https://github.com/TheCryptoDonkey/pallasite-releases/releases/download/v0.1.4'
 const ASSETS = {
   linux: {
     name: 'Pallasite-linux-x86_64.AppImage',
-    size: 393601289,
-    sha256: '76ecabe92fcf46abc238f6b40209db8e0c4dac75ec0a790a642967fc23cb8bb4',
+    size: 408079273,
+    sha256: '57adf116a15f7539a4f5c9c42b47512d332a3080179f19efe0e67d9b5b113fc6',
   },
   win32: {
     name: 'Pallasite-win-x64.exe',
-    size: 366292880,
-    sha256: '53bedbb2cf45a1df1407d7d936226d4a13f89a5ac65612c6646f12cacf6bf65d',
+    size: 379301043,
+    sha256: '3ca7b02b1a7da07e7708cabf098e7558c1332094b49ad6de09bc54287f4359b2',
   },
 }
 

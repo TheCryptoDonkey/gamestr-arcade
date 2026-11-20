@@ -76,28 +76,22 @@ async function click(locator) {
   await locator.evaluate(button => button.click())
 }
 
-async function installFromSettings(page, label, completeSetup) {
+async function installFromSettings(page, label) {
   await page.keyboard.press('g')
   const settings = page.getByRole('dialog', { name: 'GAMES SETTINGS' })
   const status = settings.locator('.gp-local-status')
   const fail = status.filter({ hasText: /Error invoking remote method/ }).waitFor({ timeout: 240_000 })
     .then(async () => { throw new Error(await status.innerText()) })
   const reloaded = page.waitForEvent('domcontentloaded', { timeout: 240_000 })
-  const verify = Promise.race([reloaded, fail])
   await click(settings.getByRole('button', { name: label, exact: true }))
-  if (completeSetup) await Promise.race([verify, completeSetup()])
-  await verify
+  await Promise.race([reloaded, fail])
   await page.locator('.tile-active').waitFor()
   return page.evaluate(async () => (await window.arcade.listGames()).find(game => game.id === 'pallasite'))
 }
 
-async function launchPallasite(page) {
+async function selectPallasite(page) {
   const select = page.getByRole('button', { name: 'Select Pallasite', exact: true })
   if (await select.count()) await click(select)
-  const direct = page.locator('.cta[aria-label="Play now Pallasite"]')
-  if (await direct.count()) return click(direct)
-  await click(page.getByRole('button', { name: 'Play Pallasite', exact: true }))
-  await click(page.getByRole('button', { name: /start game/i }))
 }
 
 async function checkOffline() {
@@ -110,7 +104,9 @@ async function checkOffline() {
     assert.equal(installed.localRoot, site)
     console.log('The installed Gamestr app copied the bundled Pallasite files from Games Settings.')
     const view = app.waitForEvent('window', { predicate: view => view !== page, timeout: 30_000 })
-    await launchPallasite(page)
+    await selectPallasite(page)
+    await click(page.getByRole('button', { name: 'Play Pallasite', exact: true }))
+    await click(page.getByRole('button', { name: /start game/i }))
     const game = await view
     game.on('pageerror', error => console.error('Pallasite renderer:', error.message))
     await game.waitForURL(/^http:\/\/127\.0\.0\.1:\d+\/$/, { waitUntil: 'commit' })
@@ -144,38 +140,6 @@ async function checkOffline() {
   }
 }
 
-async function finishPallasiteSetup(profile) {
-  await until(() => {
-    const result = powershell(String.raw`
-      Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
-      $setup = Get-Process -Name 'Pallasite-win-x64' -ErrorAction SilentlyContinue |
-        Where-Object { $_.Path.StartsWith($env:GAMESTR_TEST_SETUP_ROOT + '\') -and $_.MainWindowHandle } |
-        Select-Object -First 1
-      if (!$setup) { exit 0 }
-      $dialog = [System.Windows.Automation.AutomationElement]::FromHandle($setup.MainWindowHandle)
-      $children = $dialog.FindAll([System.Windows.Automation.TreeScope]::Descendants,
-        [System.Windows.Automation.Condition]::TrueCondition)
-      $next = $children | Where-Object {
-        $_.Current.IsEnabled -and $_.Current.ControlType -eq [System.Windows.Automation.ControlType]::Button -and
-          ($_.Current.Name -replace '&','') -match '^(Next|Install|Finish)( >)?$'
-      } | Select-Object -First 1
-      if (!$next) { exit 0 }
-      $finishing = $next.Current.Name -match 'Finish'
-      if ($finishing) {
-        $run = $children | Where-Object { ($_.Current.Name -replace '&','') -eq 'Run Pallasite' } | Select-Object -First 1
-        if ($run) {
-          $toggle = $run.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern)
-          if ($toggle.Current.ToggleState -eq 'On') { $toggle.Toggle() }
-        }
-      }
-      $next.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
-      if ($finishing) { 'finished' }
-      exit 0
-    `, { GAMESTR_TEST_SETUP_ROOT: join(profile, 'desktop-games') })
-    return result === 'finished'
-  }, 'Could not complete the publisher’s Windows setup wizard.', 235_000)
-}
-
 function playerWindow() {
   const result = powershell(`
     $p = Get-Process -Name 'Pallasite' -ErrorAction SilentlyContinue |
@@ -189,15 +153,19 @@ function playerWindow() {
 }
 
 async function checkDesktop() {
-  const { app, page, profile } = await openArcade('desktop')
+  const { app, page } = await openArcade('desktop')
   try {
-    const installed = await installFromSettings(page, 'Download and install Pallasite Desktop', () => finishPallasiteSetup(profile))
+    const installed = await installFromSettings(page, 'Download and install Pallasite Desktop')
     assert.equal(installed?.kind, 'appimage')
     assert.equal(installed.exec.toLowerCase(), player.toLowerCase())
     assert((await lstat(player)).isFile())
-    console.log(JSON.stringify({ installedPallasiteDesktop: player }))
+    const gameVersion = powershell('(Get-Item -LiteralPath $env:GAMESTR_TEST_PLAYER).VersionInfo.ProductVersion')
+    assert.match(gameVersion, /^0\.1\.4(?:\.|$)/)
+    console.log(JSON.stringify({ installedPallasiteDesktop: player, gameVersion }))
     assert.equal(playerWindow(), undefined, 'Pallasite should launch separately after setup.')
-    await launchPallasite(page)
+    await selectPallasite(page)
+    await click(page.locator('.cta[aria-label="Play now Pallasite"]'))
+    assert.equal(await page.locator('.ready-overlay.is-open').count(), 0)
     const window = await until(playerWindow, 'Gamestr did not open the Pallasite Desktop window')
     assert.match(window.title, /Pallasite/i)
     const response = await fetch('http://127.0.0.1:8123/')
