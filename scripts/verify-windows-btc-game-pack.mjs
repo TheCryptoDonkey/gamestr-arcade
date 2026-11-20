@@ -60,7 +60,8 @@ function nativePlayer() {
     Where-Object { $_.Path -eq $env:GAMESTR_TEST_PLAYER } | Select-Object -First 1
 if ($p) {
     @{ id = $p.Id; title = $p.MainWindowTitle; handle = $p.MainWindowHandle.ToInt64(); path = $p.Path } | ConvertTo-Json -Compress
-}`
+}
+exit 0`
   const output = execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', code], {
     encoding: 'utf8', env: { ...process.env, GAMESTR_TEST_PLAYER: player },
   })
@@ -140,13 +141,11 @@ try {
   await installPack.evaluate(button => button.click())
   // The Games Settings install refreshes the shell once the game is ready.
   const play = page.locator('.cta[aria-label="Play now BTC: Proof of Play"]')
-  try {
-    await play.waitFor({ timeout: 300_000 })
-  } catch (error) {
-    const status = page.locator('.gp-local-status')
-    if (await status.count()) console.error('Install status', await status.innerText())
-    throw error
-  }
+  const installError = page.locator('.gp-local-status').filter({ hasText: /Error invoking remote method/ })
+  await Promise.race([
+    play.waitFor({ timeout: 300_000 }),
+    installError.waitFor({ timeout: 300_000 }).then(async () => { throw new Error(await installError.innerText()) }),
+  ])
   assert((await lstat(player)).isFile())
   console.log(JSON.stringify({ installedPublisherGame: player }))
   await play.evaluate(button => button.click())
