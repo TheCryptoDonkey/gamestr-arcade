@@ -89,8 +89,8 @@ resume. Check both games with the actual controllers before the event using the
 
 Install the [publisher's Windows game](https://btcproofofplay.itch.io/btcproofofplay#download)
 and finish downloading the Unity client. In Gamestr Arcade, press **G**, then
-choose **Locate BTC Proof of Play.exe**. Select the actual game executable in
-the folder containing `BTC Proof of Play_Data` and `UnityPlayer.dll`.
+choose **Locate BTC Proof of Play.exe**. Select the same installed `.exe` you
+can open directly from File Explorer to start the game.
 
 Open the new **BTC: Proof of Play** tile and choose **Start game**. Play with
 keyboard and mouse. Use the game's **Quit** command to return to the arcade.

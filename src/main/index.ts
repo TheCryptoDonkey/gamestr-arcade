@@ -767,6 +767,15 @@ app.whenReady().then(async () => {
       const index = games.findIndex(existing => existing.id === game.id)
       if (index === -1) games.push(game)
       else games[index] = game
+    } else if (process.platform === 'win32') {
+      const index = games.findIndex(game => game.id === 'btc-proof-of-play' && game.kind === 'web')
+      if (index !== -1) {
+        games[index] = {
+          ...games[index],
+          available: false,
+          availabilityReason: 'Press G in Gamestr Arcade and choose Locate BTC Proof of Play.exe to link the installed game.',
+        }
+      }
     }
     return gamesForThisKiosk(games.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name)))
   }

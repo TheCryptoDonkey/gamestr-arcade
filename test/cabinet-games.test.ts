@@ -1,10 +1,10 @@
-import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { CabinetGames } from '../src/main/cabinet-games'
-import { isWindowsGame, writeVerifiedDownload } from '../src/main/desktop-games'
+import { isWindowsGame, resolveSelectedWindowsExe, writeVerifiedDownload } from '../src/main/desktop-games'
 
 describe('cabinet game installation', () => {
   let root: string
@@ -73,6 +73,15 @@ describe('cabinet game installation', () => {
     await writeFile(join(root, 'UnityPlayer.dll'), 'fixture Unity library')
     expect(await isWindowsGame('btc-proof-of-play', player)).toBe(true)
     expect(await isWindowsGame('btc-proof-of-play', join(root, 'BTC Proof of Play Setup.exe'))).toBe(false)
+  })
+
+  it('trusts the installed EXE chosen manually regardless of the game folder layout', async () => {
+    const player = join(root, 'BTCProofOfPlay (Windows).EXE')
+    await writeFile(player, 'fixture player')
+    expect(await resolveSelectedWindowsExe(player)).toBe(await realpath(player))
+    expect(await resolveSelectedWindowsExe(join(root, 'Missing.exe'))).toBeUndefined()
+    await mkdir(join(root, 'folder.exe'))
+    expect(await resolveSelectedWindowsExe(join(root, 'folder.exe'))).toBeUndefined()
   })
 
   it('accepts the exact downloaded game bytes and rejects a mismatched payload', async () => {

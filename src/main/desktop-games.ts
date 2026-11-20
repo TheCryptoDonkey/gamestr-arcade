@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { createWriteStream } from 'node:fs'
-import { mkdir, mkdtemp, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, realpath, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, join } from 'node:path'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
@@ -27,6 +27,14 @@ const WINDOWS_EXE = {
 
 async function fileExists(path: string): Promise<boolean> {
   return stat(path).then(info => info.isFile(), () => false)
+}
+
+/** The cabinet operator selects the installed Windows executable in a file picker. */
+export async function resolveSelectedWindowsExe(path: string): Promise<string | undefined> {
+  if (!isAbsolute(path) || !/\.exe$/i.test(path)) return undefined
+  const executable = await realpath(path).catch(() => undefined)
+  if (!executable || !/\.exe$/i.test(executable) || !await fileExists(executable)) return undefined
+  return executable
 }
 
 export async function isWindowsGame(id: DesktopGameId, executable: string): Promise<boolean> {
@@ -79,14 +87,24 @@ export class DesktopGames {
   async linked(id: DesktopGameId): Promise<string | undefined> {
     const executable = await readFile(join(this.directory, id + '.path'), 'utf8').catch(() => '')
     if (!executable) return undefined
-    if (process.platform === 'win32') return await isWindowsGame(id, executable) ? executable : undefined
+    if (process.platform === 'win32') {
+      if (id === 'btc-proof-of-play') return resolveSelectedWindowsExe(executable)
+      return await isWindowsGame(id, executable) ? executable : undefined
+    }
     return process.platform === 'linux' && id === 'pallasite'
       && executable === join(this.directory, ASSETS.linux.name) && await fileExists(executable)
       ? executable : undefined
   }
 
   async linkWindowsGame(id: DesktopGameId, executable: string): Promise<void> {
-    if (process.platform !== 'win32' || !await isWindowsGame(id, executable)) {
+    if (process.platform !== 'win32') throw new Error('Linking an installed Windows game requires Windows.')
+    if (id === 'btc-proof-of-play') {
+      const selected = await resolveSelectedWindowsExe(executable)
+      if (!selected) throw new Error('Choose the installed Windows .exe that opens the game.')
+      await this.saveLink(id, selected)
+      return
+    }
+    if (!await isWindowsGame(id, executable)) {
       throw new Error('Select ' + WINDOWS_EXE[id] + ' in its installed game folder.')
     }
     await this.saveLink(id, executable)
