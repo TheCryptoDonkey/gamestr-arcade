@@ -1,0 +1,57 @@
+name: Publish Windows 0.2.14
+
+on:
+  push:
+    branches: [codex/publish-windows-btc-0.2.14]
+    paths: [.github/workflows/publish-windows-btc-0.2.14.yml]
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERIFIED_RUN: '44798355148'
+      VERIFIED_SHA: 210fe974274b0eba084d6adf99d4a54ee993787f
+      INSTALLER: gamestr-arcade-0.2.14-x64-setup.exe
+    steps:
+      - name: Verify the completed Windows build and its installer
+        run: |
+          for _ in {1..70}; do
+            read -r commit state outcome < <(
+              gh run view "$VERIFIED_RUN" --json headSha,status,conclusion --jq '[.headSha,.status,.conclusion] | @tsv'
+            )
+            test "$commit" = "$VERIFIED_SHA"
+            if [[ "$state" == "completed" ]]; then break; fi
+            sleep 12
+          done
+          test "$outcome" = "success"
+          mkdir -p release/transfer
+          TMPDIR="$GITHUB_WORKSPACE/release/transfer" gh run download "$VERIFIED_RUN" \
+            --name "gamestr-arcade-windows-btc-game-pack-$VERIFIED_SHA" --dir release
+          cd release
+          sha256sum --check SHA256SUMS
+          mv SHA256SUMS SHA256SUMS-windows.txt
+      - name: Publish the tested installer
+        run: |
+          cat > release/notes.md <<'NOTES'
+          Unsigned Windows x64 prerelease.
+
+          - Select **BTC: Proof of Play → Install on this Arcade** to download and install the publisher's verified 5.1.0 game pack. The same pack is available in **Games Settings**.
+          - Choose **Play Now** after installation to open the Unity game directly. Gamestr rejects setup executables saved as old links.
+          - Play with keyboard and mouse. Quit the game to return to the arcade.
+
+          The Windows check installed the publisher's build through Games Settings, rejected an old setup link, and opened the actual Unity game window from **Play Now**. [Windows verification](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/44798355148)
+          NOTES
+          gh release create v0.2.14 "release/$INSTALLER" release/SHA256SUMS-windows.txt \
+            --target "$VERIFIED_SHA" --title 'Gamestr Arcade 0.2.14 Windows game pack' \
+            --prerelease --notes-file release/notes.md
+          digest="$(sha256sum "release/$INSTALLER" | cut -d ' ' -f 1)"
+          uploaded="$(gh api "repos/$GH_REPO/releases/tags/v0.2.14" --jq ".assets[] | select(.name == \"$INSTALLER\") | .digest")"
+          test "$uploaded" = "sha256:$digest"
+          test "$(gh api "repos/$GH_REPO/git/ref/tags/v0.2.14" --jq .object.sha)" = "$VERIFIED_SHA"
