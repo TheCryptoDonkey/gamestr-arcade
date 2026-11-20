@@ -2,15 +2,15 @@ name: Windows installer verification
 
 on:
   push:
-    branches: [codex/windows-btc-play-now]
+    branches: [codex/windows-btc-game-pack]
 
 permissions:
   contents: read
 
 jobs:
-  btc-play-now:
+  btc-game-pack:
     runs-on: windows-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -22,7 +22,7 @@ jobs:
           npm ci
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm run dist:win
-      - name: Build a native game fixture
+      - name: Create a setup executable for the stale-link regression
         shell: powershell
         run: |
           $fixture = Join-Path $env:GITHUB_WORKSPACE 'release\native fixture'
@@ -30,16 +30,14 @@ jobs:
           Add-Type -TypeDefinition @'
           using System;
           using System.IO;
-          using System.Threading;
-          public static class Game {
+          public static class TestSetup {
             public static void Main() {
               File.WriteAllText(Environment.GetEnvironmentVariable("BTC_PLAY_TEST_MARKER"), Environment.CurrentDirectory);
-              Thread.Sleep(1000);
             }
           }
-          '@ -OutputAssembly (Join-Path $fixture 'BTC Proof of Play Alias.exe') -OutputType ConsoleApplication
-      - name: Verify Play Now from the installed menu
-        run: node scripts/verify-windows-btc-play-now.mjs release
+          '@ -OutputAssembly (Join-Path $fixture 'BTC Proof of Play Setup.exe') -OutputType ConsoleApplication
+      - name: Install and launch the publisher's game pack from Gamestr
+        run: node scripts/verify-windows-btc-game-pack.mjs release
       - name: Record the verified installer checksum
         run: |
           $installer = Get-ChildItem release -Filter '*-setup.exe'
@@ -49,7 +47,7 @@ jobs:
       - name: Upload the verified installer
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: gamestr-arcade-windows-btc-play-now-${{ github.sha }}
+          name: gamestr-arcade-windows-btc-game-pack-${{ github.sha }}
           path: |
             release/*-setup.exe
             release/SHA256SUMS

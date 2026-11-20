@@ -1,9 +1,11 @@
+import { execFile } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { createWriteStream } from 'node:fs'
 import { mkdir, mkdtemp, readFile, realpath, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, join } from 'node:path'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
+import { promisify } from 'node:util'
 import type { DesktopGameId } from '../shared/types'
 
 const RELEASE = 'https://github.com/TheCryptoDonkey/pallasite-releases/releases/download/v0.1.2'
@@ -26,17 +28,16 @@ export const WINDOWS_EXE = {
 }
 
 const PROOF_OF_PLAY = 'btc-proof-of-play'
+const PROOF_OF_PLAY_BUILD = {
+  version: '5.1.0',
+  url: 'https://updates.btcproofofplay.xyz/btcpop/windows/btcpop-windows-5.1.0.zip',
+  size: 409750087,
+  sha256: 'd15d36e73b2d33484577ea4063f142e1638b56386f1a1ec446ed6b773d61cb47',
+}
+const runFile = promisify(execFile)
 
 async function fileExists(path: string): Promise<boolean> {
   return stat(path).then(info => info.isFile(), () => false)
-}
-
-/** The cabinet operator selects the installed Windows executable in a file picker. */
-export async function resolveSelectedWindowsExe(path: string): Promise<string | undefined> {
-  if (!isAbsolute(path) || !/\.exe$/i.test(path)) return undefined
-  const executable = await realpath(path).catch(() => undefined)
-  if (!executable || !/\.exe$/i.test(executable) || !await fileExists(executable)) return undefined
-  return executable
 }
 
 export async function isWindowsGame(id: DesktopGameId, executable: string): Promise<boolean> {
@@ -44,16 +45,22 @@ export async function isWindowsGame(id: DesktopGameId, executable: string): Prom
   if (!await fileExists(executable)) return false
   const directory = dirname(executable)
   if (id === 'pallasite') return fileExists(join(directory, 'resources', 'dist', 'index.html'))
-  const data = await stat(join(directory, 'BTC Proof of Play_Data')).catch(() => null)
-  return !!data?.isDirectory() && await fileExists(join(directory, 'UnityPlayer.dll'))
+  const player = await realpath(executable).catch(() => undefined)
+  if (!player || basename(player).toLowerCase() !== WINDOWS_EXE[id].toLowerCase()) return false
+  const runtime = dirname(player)
+  const data = join(runtime, 'BTC Proof of Play_Data')
+  return await fileExists(join(runtime, 'UnityPlayer.dll'))
+    && await fileExists(join(data, 'boot.config'))
+    && await fileExists(join(data, 'globalgamemanagers'))
 }
 
 export async function writeVerifiedDownload(
   response: Response,
   target: string,
   expected: { size: number; sha256: string },
+  title = 'Pallasite',
 ): Promise<void> {
-  if (!response.ok || !response.body) throw new Error('Pallasite download is unavailable.')
+  if (!response.ok || !response.body) throw new Error(`${title} download is unavailable.`)
   let bytes = 0
   const hash = createHash('sha256')
   const reader = response.body.getReader()
@@ -63,7 +70,7 @@ export async function writeVerifiedDownload(
         const { value, done } = await reader.read()
         if (done) break
         bytes += value.length
-        if (bytes > expected.size) throw new Error('The Pallasite download exceeded the expected size.')
+        if (bytes > expected.size) throw new Error(`The ${title} download exceeded the expected size.`)
         hash.update(value)
         yield value
       }
@@ -73,12 +80,13 @@ export async function writeVerifiedDownload(
   }
   await pipeline(Readable.from(chunks()), createWriteStream(target, { flags: 'wx', mode: 0o700 }))
   if (bytes !== expected.size || hash.digest('hex') !== expected.sha256) {
-    throw new Error('The Pallasite download did not match the publisher’s checksum.')
+    throw new Error(`The ${title} download did not match the publisher’s checksum.`)
   }
 }
 
 export class DesktopGames {
   private installing: Promise<void> | undefined
+  private installingProofOfPlay: Promise<void> | undefined
 
   constructor(private readonly directory: string) {}
 
@@ -86,11 +94,14 @@ export class DesktopGames {
     return process.arch === 'x64' && (process.platform === 'linux' || process.platform === 'win32')
   }
 
+  canDownloadProofOfPlay(): boolean {
+    return process.platform === 'win32' && process.arch === 'x64'
+  }
+
   async linked(id: DesktopGameId): Promise<string | undefined> {
     const executable = await readFile(join(this.directory, id + '.path'), 'utf8').catch(() => '')
     if (!executable) return undefined
     if (process.platform === 'win32') {
-      if (id === 'btc-proof-of-play') return resolveSelectedWindowsExe(executable)
       return await isWindowsGame(id, executable) ? executable : undefined
     }
     return process.platform === 'linux' && id === 'pallasite'
@@ -98,10 +109,20 @@ export class DesktopGames {
       ? executable : undefined
   }
 
+  private proofOfPlayPackDirectory(): string {
+    return join(this.directory, PROOF_OF_PLAY, PROOF_OF_PLAY_BUILD.version)
+  }
+
+  async installedProofOfPlayPack(): Promise<string | undefined> {
+    if (!this.canDownloadProofOfPlay()) return undefined
+    const executable = join(this.proofOfPlayPackDirectory(), WINDOWS_EXE[PROOF_OF_PLAY])
+    return await isWindowsGame(PROOF_OF_PLAY, executable) ? executable : undefined
+  }
+
   async findWindowsProofOfPlay(appData: string, configured?: string): Promise<string | undefined> {
-    const linked = await this.linked(PROOF_OF_PLAY)
+    const linked = await this.installedProofOfPlayPack() ?? await this.linked(PROOF_OF_PLAY)
     if (linked) return linked
-    if (configured && await resolveSelectedWindowsExe(configured)) return configured
+    if (configured && await isWindowsGame(PROOF_OF_PLAY, configured)) return configured
 
     // The publisher's launcher unpacks the playable Unity build into userData/game.
     for (const name of ['btcpop-launcher', 'BTC Proof of Play']) {
@@ -113,13 +134,10 @@ export class DesktopGames {
 
   async linkWindowsGame(id: DesktopGameId, executable: string): Promise<string> {
     if (process.platform !== 'win32') throw new Error('Linking an installed Windows game requires Windows.')
-    if (id === 'btc-proof-of-play') {
-      const selected = await resolveSelectedWindowsExe(executable)
-      if (!selected) throw new Error('Choose the installed Windows .exe that opens the game.')
-      await this.saveLink(id, selected)
-      return selected
-    }
     if (!await isWindowsGame(id, executable)) {
+      if (id === PROOF_OF_PLAY) {
+        throw new Error('Choose BTC Proof of Play.exe in the game folder, or install the game pack in Games Settings.')
+      }
       throw new Error('Select ' + WINDOWS_EXE[id] + ' in its installed game folder.')
     }
     await this.saveLink(id, executable)
@@ -133,6 +151,42 @@ export class DesktopGames {
   installPallasite(runSetup: (installer: string) => Promise<void>): Promise<void> {
     this.installing ??= this.downloadPallasite(runSetup).finally(() => { this.installing = undefined })
     return this.installing
+  }
+
+  installProofOfPlay(): Promise<void> {
+    this.installingProofOfPlay ??= this.downloadProofOfPlay().finally(() => { this.installingProofOfPlay = undefined })
+    return this.installingProofOfPlay
+  }
+
+  private async downloadProofOfPlay(): Promise<void> {
+    if (!this.canDownloadProofOfPlay()) throw new Error('The BTC: Proof of Play game pack requires 64-bit Windows.')
+    if (await this.installedProofOfPlayPack()) return
+    const target = this.proofOfPlayPackDirectory()
+    const parent = dirname(target)
+    await mkdir(parent, { recursive: true, mode: 0o700 })
+    const staging = await mkdtemp(join(parent, '.download-'))
+    try {
+      const archive = join(staging, 'game.zip')
+      const runtime = join(staging, 'game')
+      const response = await fetch(PROOF_OF_PLAY_BUILD.url, { signal: AbortSignal.timeout(20 * 60_000) })
+      await writeVerifiedDownload(response, archive, PROOF_OF_PLAY_BUILD, 'BTC: Proof of Play')
+      // The verified publisher ZIP contains the Unity client at its root.
+      const powershell = join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe')
+      await runFile(powershell, [
+        '-NoProfile', '-NonInteractive', '-Command',
+        '$ErrorActionPreference = "Stop"; Expand-Archive -LiteralPath $env:GAMESTR_GAME_ZIP -DestinationPath $env:GAMESTR_GAME_DEST',
+      ], { windowsHide: true, timeout: 180_000, env: { ...process.env, GAMESTR_GAME_ZIP: archive, GAMESTR_GAME_DEST: runtime } })
+      if (!await isWindowsGame(PROOF_OF_PLAY, join(runtime, WINDOWS_EXE[PROOF_OF_PLAY]))) {
+        throw new Error('The game pack is missing the Unity client.')
+      }
+      try {
+        await rename(runtime, target)
+      } catch (error) {
+        if (!await this.installedProofOfPlayPack()) throw error
+      }
+    } finally {
+      await rm(staging, { recursive: true, force: true })
+    }
   }
 
   private async saveLink(id: DesktopGameId, executable: string): Promise<void> {

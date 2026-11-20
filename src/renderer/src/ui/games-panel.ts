@@ -288,8 +288,18 @@ export class GamesPanel {
     }
     if (settings.canLinkWindowsGames) {
       addAction('Locate Pallasite.exe', () => window.arcade.linkWindowsGame('pallasite'))
-      const label = settings.proofOfPlayLinked ? 'Change BTC Proof of Play location' : 'Locate BTC Proof of Play.exe'
-      addAction(label, () => window.arcade.linkWindowsGame('btc-proof-of-play'))
+      if (settings.proofOfPlayPack === 'installed') {
+        addAction('BTC: Proof of Play game pack installed')
+      } else {
+        if (settings.proofOfPlayPack === 'available') {
+          addAction('Install BTC: Proof of Play game pack', async () => {
+            await window.arcade.install('btc-proof-of-play')
+            return window.arcade.listGames()
+          }, 'Downloading and installing BTC: Proof of Play…')
+        }
+        const label = settings.proofOfPlayLinked ? 'Change BTC Proof of Play location' : 'Locate BTC Proof of Play.exe'
+        addAction(label, () => window.arcade.linkWindowsGame('btc-proof-of-play'))
+      }
     }
     this.localActions.replaceChildren(...actions)
     this.localEl.hidden = actions.length === 0

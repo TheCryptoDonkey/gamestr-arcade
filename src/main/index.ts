@@ -755,14 +755,18 @@ app.whenReady().then(async () => {
       const index = games.findIndex(game => game.id === 'btc-proof-of-play')
       const previous = games[index]
       const configured = previous?.kind === 'appimage' ? previous : undefined
+      const executable = await desktopGames.findWindowsProofOfPlay(app.getPath('appData'), configured?.exec)
+      const available = Boolean(executable) || desktopGames.canDownloadProofOfPlay()
       const game: Game = {
         ...configured,
         id: 'btc-proof-of-play', gameId: 'btc-proof-of-play', name: 'BTC: Proof of Play',
         tagline: 'Build your deck and battle in a Bitcoin strategy card game',
         developer: 'BTC Proof of Play', kind: 'appimage', logo: previous?.logo ?? '',
         hero: previous?.hero, order: previous?.order ?? 10,
-        available: true, availabilityReason: undefined, cabinetInstall: undefined, downloadOnly: false,
-        playOnActivate: true, manifestVersion: 2, inputModes: ['keyboard', 'pointer'],
+        available, availabilityReason: available ? undefined : 'The game pack requires 64-bit Windows.',
+        exec: executable, args: executable && executable === configured?.exec ? configured.args : undefined,
+        cabinetInstall: executable ? 'installed' : 'available', downloadOnly: false,
+        playOnActivate: Boolean(executable), manifestVersion: 2, inputModes: ['keyboard', 'pointer'],
         controlHints: ['KEYBOARD + MOUSE', 'QUIT FROM THE GAME TO RETURN'],
       }
       if (index === -1) games.push(game)
@@ -818,10 +822,10 @@ app.whenReady().then(async () => {
   const requireShell = (event: IpcMainInvokeEvent) => {
     if (!win || event.sender !== win.webContents || event.senderFrame !== win.webContents.mainFrame) throw new Error('Player controls belong to the arcade shell.')
   }
-  const chooseWindowsGame = async (id: DesktopGameId, buttonLabel?: string): Promise<string | undefined> => {
+  const chooseWindowsGame = async (id: DesktopGameId): Promise<string | undefined> => {
     if (!win) return undefined
     const selection = await dialog.showOpenDialog(win, {
-      title: `Locate ${WINDOWS_EXE[id]}`, properties: ['openFile'], buttonLabel,
+      title: `Locate ${WINDOWS_EXE[id]}`, properties: ['openFile'],
       filters: [{ name: 'Game executable', extensions: ['exe'] }],
     })
     if (selection.canceled || !selection.filePaths[0]) return undefined
@@ -830,13 +834,15 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('games:local-settings', async (event): Promise<LocalGameSettings> => {
     requireShell(event)
-    const [bundled, pallasite, proofOfPlay] = await Promise.all([
-      cabinetGames?.listPackages() ?? [], desktopGames.linked('pallasite'), desktopGames.linked('btc-proof-of-play'),
+    const [bundled, pallasite, proofOfPlay, proofOfPlayPack] = await Promise.all([
+      cabinetGames?.listPackages() ?? [], desktopGames.linked('pallasite'),
+      desktopGames.linked('btc-proof-of-play'), desktopGames.installedProofOfPlayPack(),
     ])
     return {
       bundled, canDownloadPallasite: desktopGames.canDownloadPallasite(),
       canLinkWindowsGames: process.platform === 'win32',
       pallasiteDesktopSelected: Boolean(pallasite), proofOfPlayLinked: Boolean(proofOfPlay),
+      proofOfPlayPack: proofOfPlayPack ? 'installed' : desktopGames.canDownloadProofOfPlay() ? 'available' : undefined,
     }
   })
   ipcMain.handle('game:download-pallasite', async event => {
@@ -856,9 +862,13 @@ app.whenReady().then(async () => {
   })
   ipcMain.handle('game:install', async (event, id: unknown) => {
     requireShell(event)
-    if (typeof id !== 'string' || !localServer || !cabinetGames) throw new Error('This game cannot be installed.')
-    await cabinetGames.install(id)
-    if (id === 'pallasite') await desktopGames.useOfflinePallasite()
+    if (id === 'btc-proof-of-play') {
+      await desktopGames.installProofOfPlay()
+    } else {
+      if (typeof id !== 'string' || !localServer || !cabinetGames) throw new Error('This game cannot be installed.')
+      await cabinetGames.install(id)
+      if (id === 'pallasite') await desktopGames.useOfflinePallasite()
+    }
     cachedGames = await readCatalogue()
     const installed = cachedGames.find(game => game.id === id && game.cabinetInstall === 'installed')
     if (!installed) throw new Error('The cabinet could not find the installed game.')
@@ -957,10 +967,12 @@ app.whenReady().then(async () => {
       }
       if (process.platform === 'win32' && id === 'btc-proof-of-play') {
         const executable = await desktopGames.findWindowsProofOfPlay(app.getPath('appData'), game.exec)
-          ?? await chooseWindowsGame(id, 'Play Now')
-        if (!executable) return false
+        if (!executable) {
+          win?.webContents.send('game:error', 'Install the BTC: Proof of Play game pack in Games Settings.')
+          return false
+        }
         const args = executable === game.exec ? game.args : undefined
-        game = { ...game, exec: executable, args }
+        game = { ...game, exec: executable, args, cabinetInstall: 'installed' }
       }
       console.log(`[arcade] launching "${game.name}" (${game.kind})`)
       const started = launcher.launch(game)

@@ -8,6 +8,7 @@ export interface LocalGameSettings {
   canLinkWindowsGames: boolean
   pallasiteDesktopSelected: boolean
   proofOfPlayLinked: boolean
+  proofOfPlayPack: 'available' | 'installed' | undefined
 }
 
 /**

@@ -87,14 +87,16 @@ resume. Check both games with the actual controllers before the event using the
 
 ### Add BTC: Proof of Play to a Windows cabinet
 
-Install the [publisher's Windows game](https://btcproofofplay.itch.io/btcproofofplay#download)
-and finish downloading the Unity client. In Gamestr Arcade, select
-**BTC: Proof of Play** and choose **Play Now**.
+In Gamestr Arcade on 64-bit Windows, select **BTC: Proof of Play**, then
+choose **Install on this Arcade**. You can also press **G** and choose
+**Install BTC: Proof of Play game pack**. Gamestr downloads the publisher's
+Unity build (about 410 MB), checks its SHA-256 and installs it in your arcade
+profile. Once installed, **Play Now** opens the game directly.
 
-If Gamestr asks for a location, select the same installed `.exe` you can
-double-click in File Explorer to open the game. Gamestr starts it immediately
-and remembers the path. Press **G** to change the linked location later.
-Play with keyboard and mouse. Use the game's **Quit** command to return to the arcade.
+If you already have the Unity build in a custom folder, press **G** and choose
+**Locate BTC Proof of Play.exe**. Select the executable that sits beside
+`UnityPlayer.dll` and the `BTC Proof of Play_Data` folder. Play with keyboard
+and mouse. Use the game's **Quit** command to return to the arcade.
 
 ### Add BTC: Proof of Play to a Linux cabinet
 
