@@ -1,0 +1,58 @@
+name: Publish Windows 0.2.15
+
+on:
+  push:
+    branches: [codex/publish-windows-pallasite-0.2.15]
+    paths: [.github/workflows/publish-windows-pallasite-0.2.15.yml]
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      BUILD_RUN: '44834728362'
+      VERIFIED_RUN: '44835528252'
+      VERIFIED_SHA: cba2caeb00cb3876576fa2a8cc1a1eba01fa7ffa
+      TEST_SHA: 647e7aac44e2b038da89d5ecba91da4135c26ac9
+      INSTALLER: gamestr-arcade-0.2.15-x64-setup.exe
+    steps:
+      - name: Download and verify the tested installer
+        run: |
+          read -r commit state outcome < <(
+            gh run view "$VERIFIED_RUN" --json headSha,status,conclusion --jq '[.headSha,.status,.conclusion] | @tsv'
+          )
+          test "$commit" = "$TEST_SHA"
+          test "$state" = "completed"
+          test "$outcome" = "success"
+          test "$(gh run view "$BUILD_RUN" --json headSha --jq .headSha)" = "$VERIFIED_SHA"
+          mkdir -p release/transfer
+          TMPDIR="$GITHUB_WORKSPACE/release/transfer" gh run download "$BUILD_RUN" \
+            --name "gamestr-arcade-windows-pallasite-$VERIFIED_SHA" --dir release
+          cd release
+          sha256sum --check SHA256SUMS
+          mv SHA256SUMS SHA256SUMS-windows.txt
+      - name: Publish and check the release
+        run: |
+          cat > release/notes.md <<'NOTES'
+          Unsigned Windows x64 prerelease.
+
+          - Press **G** for **Games Settings** and select **Download and install Pallasite Desktop**. The arcade installs the publisher's verified Pallasite Desktop 0.1.4 for your Windows account.
+          - Select **Pallasite → Play Now** to open the desktop game directly. Close the game to return to the arcade.
+          - For local practice, **Install Pallasite for offline play** copies the bundled game. Select **Pallasite → Play → Start Game** to begin.
+          - **BTC: Proof of Play → Install on this Arcade → Play Now** remains available.
+
+          The Windows check started an offline Pallasite guest run and confirmed that it remained installed after a restart. It also installed and opened Pallasite Desktop from the arcade and opened the official BTC: Proof of Play window. [Windows verification](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/44835528252)
+          NOTES
+          gh release create v0.2.15 "release/$INSTALLER" release/SHA256SUMS-windows.txt \
+            --target "$VERIFIED_SHA" --title 'Gamestr Arcade 0.2.15 Windows Pallasite install' \
+            --prerelease --notes-file release/notes.md
+          digest="$(sha256sum "release/$INSTALLER" | cut -d ' ' -f 1)"
+          uploaded="$(gh api "repos/$GH_REPO/releases/tags/v0.2.15" --jq ".assets[] | select(.name == \"$INSTALLER\") | .digest")"
+          test "$uploaded" = "sha256:$digest"
+          test "$(gh api "repos/$GH_REPO/git/ref/tags/v0.2.15" --jq .object.sha)" = "$VERIFIED_SHA"
