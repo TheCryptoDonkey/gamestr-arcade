@@ -36,15 +36,13 @@ jobs:
             }
           }
           '@ -OutputAssembly (Join-Path $fixture 'BTC Proof of Play Setup.exe') -OutputType ConsoleApplication
-      - name: Install and launch the publisher's game pack from Gamestr
-        run: node scripts/verify-windows-btc-game-pack.mjs release
-      - name: Record the verified installer checksum
+      - name: Record the installer checksum
         run: |
           $installer = Get-ChildItem release -Filter '*-setup.exe'
           if (@($installer).Count -ne 1) { throw 'Expected one Windows installer' }
           $checksum = (Get-FileHash -Algorithm SHA256 -LiteralPath $installer.FullName).Hash.ToLowerInvariant()
           "$checksum  $($installer.Name)" | Set-Content -Encoding ascii release/SHA256SUMS
-      - name: Upload the verified installer
+      - name: Retain the installer for verification
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: gamestr-arcade-windows-btc-game-pack-${{ github.sha }}
@@ -53,3 +51,5 @@ jobs:
             release/SHA256SUMS
           if-no-files-found: error
           compression-level: 0
+      - name: Install and launch the publisher's game pack from Gamestr
+        run: node scripts/verify-windows-btc-game-pack.mjs release

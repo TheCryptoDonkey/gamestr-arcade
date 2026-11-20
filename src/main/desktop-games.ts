@@ -174,7 +174,8 @@ export class DesktopGames {
       const powershell = join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe')
       await runFile(powershell, [
         '-NoProfile', '-NonInteractive', '-Command',
-        '$ErrorActionPreference = "Stop"; Expand-Archive -LiteralPath $env:GAMESTR_GAME_ZIP -DestinationPath $env:GAMESTR_GAME_DEST',
+        '$ErrorActionPreference = "Stop"; Add-Type -AssemblyName System.IO.Compression.FileSystem; '
+          + '[System.IO.Compression.ZipFile]::ExtractToDirectory($env:GAMESTR_GAME_ZIP, $env:GAMESTR_GAME_DEST)',
       ], { windowsHide: true, timeout: 180_000, env: { ...process.env, GAMESTR_GAME_ZIP: archive, GAMESTR_GAME_DEST: runtime } })
       if (!await isWindowsGame(PROOF_OF_PLAY, join(runtime, WINDOWS_EXE[PROOF_OF_PLAY]))) {
         throw new Error('The game pack is missing the Unity client.')
