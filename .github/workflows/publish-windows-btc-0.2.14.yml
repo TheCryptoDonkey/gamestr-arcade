@@ -16,8 +16,8 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
-      VERIFIED_RUN: '44798355148'
-      VERIFIED_SHA: 210fe974274b0eba084d6adf99d4a54ee993787f
+      VERIFIED_RUN: '44799994673'
+      VERIFIED_SHA: 8134aafe3642abb6bde0a6d7f2132c486d540bd8
       INSTALLER: gamestr-arcade-0.2.14-x64-setup.exe
     steps:
       - name: Verify the completed Windows build and its installer
@@ -46,7 +46,7 @@ jobs:
           - Choose **Play Now** after installation to open the Unity game directly. Gamestr rejects setup executables saved as old links.
           - Play with keyboard and mouse. Quit the game to return to the arcade.
 
-          The Windows check installed the publisher's build through Games Settings, rejected an old setup link, and opened the actual Unity game window from **Play Now**. [Windows verification](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/44798355148)
+          The Windows check installed the publisher's build through Games Settings, rejected an old setup link, and opened the actual Unity game window from **Play Now**. [Windows verification](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/44799994673)
           NOTES
           gh release create v0.2.14 "release/$INSTALLER" release/SHA256SUMS-windows.txt \
             --target "$VERIFIED_SHA" --title 'Gamestr Arcade 0.2.14 Windows game pack' \
