@@ -1,0 +1,55 @@
+name: Windows installer verification
+
+on:
+  push:
+    branches: [codex/windows-btc-play-now]
+
+permissions:
+  contents: read
+
+jobs:
+  released-upgrade:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Fetch and hash the published installers
+        run: |
+          $root = Join-Path $env:GITHUB_WORKSPACE 'release'
+          New-Item -ItemType Directory -Force $root | Out-Null
+          $checksums = @{
+            '0.2.11' = '2d8f0f438e11a1b4f2171a4d80d42e2ff1f818ee6b9a34e597bcf08e3a741ee5'
+            '0.2.12' = '01eb0d064388965fbd9604eb717c5cb2a60174087a8857b415d6467efe453290'
+          }
+          foreach ($version in @('0.2.11', '0.2.12')) {
+            $name = "gamestr-arcade-$version-x64-setup.exe"
+            $target = Join-Path $root $name
+            curl.exe --fail --location --silent --show-error --retry 3 "https://github.com/TheCryptoDonkey/gamestr-arcade/releases/download/v$version/$name" --output $target
+            if ($LASTEXITCODE -ne 0) { throw "Download failed for $name" }
+            if ((Get-FileHash $target -Algorithm SHA256).Hash.ToLowerInvariant() -ne $checksums[$version]) {
+              throw "Checksum mismatch for $name"
+            }
+          }
+      - name: Build a native game fixture
+        shell: powershell
+        run: |
+          $fixture = Join-Path $env:GITHUB_WORKSPACE 'release\native fixture'
+          New-Item -ItemType Directory -Force $fixture | Out-Null
+          Add-Type -TypeDefinition @'
+          using System;
+          using System.IO;
+          using System.Threading;
+          public static class Game {
+            public static void Main() {
+              File.WriteAllText(Environment.GetEnvironmentVariable("BTC_PLAY_TEST_MARKER"), Environment.CurrentDirectory);
+              Thread.Sleep(1000);
+            }
+          }
+          '@ -OutputAssembly (Join-Path $fixture 'BTC Proof of Play Alias.exe') -OutputType ConsoleApplication
+      - name: Exercise the link and launch before and after upgrade
+        run: node scripts/verify-windows-arcade-upgrade.mjs release
