@@ -128,7 +128,7 @@ async function plays({ app, page, play }, expectedExe, expectedPickers, keyboard
   }, 'The game did not open and return to the menu after one activation of Play Now.')
   assert.equal((await readFile(marker, 'utf8')).toLowerCase(), dirname(expectedExe).toLowerCase())
   assert.equal((await shellState(app)).pickers, expectedPickers)
-  assert.equal(await page.locator('.ready-overlay').isVisible(), false)
+  assert.equal(await page.locator('.ready-overlay.is-open').count(), 0)
 }
 
 const launcher = await install()
