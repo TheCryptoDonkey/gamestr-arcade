@@ -46,6 +46,65 @@ on the reconnected controller to reclaim them. Use the game's pause menu to
 resume. Check both games with the actual controllers before the event using the
 [cabinet acceptance runbook](docs/conference-acceptance.md).
 
+### Add BTC: Proof of Play to a Linux cabinet
+
+The [publisher's itch.io AppImage](https://btcproofofplay.itch.io/btcproofofplay#download)
+installs the Linux Unity client. Package the installed game directory, or get
+the ZIP from the [publisher's Linux release feed](https://updates.btcproofofplay.xyz/btcpop/linux/latest.json),
+verify its SHA-256 against the feed, and extract it. Keep the executable and
+its data files together.
+
+```bash
+node scripts/package-btc-proof-of-play.mjs release/btc-proof-of-play/games \
+  "/path/to/extracted game directory" btcproofofplay.x86_64
+```
+
+On an existing cabinet, copy the generated `btc-proof-of-play` folder into the
+configured games directory and press **F5** to rescan.
+
+#### First run on a fresh Ubuntu cabinet
+
+Use an Intel or AMD Ubuntu desktop and sign in to its graphical session as the
+cabinet user. Put the published
+[Gamestr Arcade 0.2.10 AppImage](https://github.com/TheCryptoDonkey/gamestr-arcade/releases/tag/v0.2.10),
+the [AppArmor profile](systemd/apparmor-gamestr-arcade) and the prepared
+`games/btc-proof-of-play` folder together for transfer.
+
+Open a terminal in the prepared folder. These commands install the files for a
+fresh account and extract the arcade to the path covered by the AppArmor profile.
+
+```bash
+(
+  set -eu
+  test "$(uname -m)" = x86_64
+  test ! -e "$HOME/gamestr-arcade.AppImage"
+  test ! -e "$HOME/arcade-app"
+  test ! -e "$HOME/gamestr-games/btc-proof-of-play"
+  mkdir -p "$HOME/gamestr-games"
+  cp -a games/btc-proof-of-play "$HOME/gamestr-games/"
+  chmod u+x "$HOME/gamestr-games/btc-proof-of-play/launch.sh" \
+    "$HOME/gamestr-games/btc-proof-of-play/runtime/btcproofofplay.x86_64"
+  install -m 0755 gamestr-arcade-0.2.10-x86_64.AppImage "$HOME/gamestr-arcade.AppImage"
+  arcade_extract=$(mktemp -d "$HOME/.gamestr-arcade-extract.XXXXXXXX")
+  (cd "$arcade_extract" && "$HOME/gamestr-arcade.AppImage" --appimage-extract >/dev/null)
+  mv -T "$arcade_extract/squashfs-root" "$HOME/arcade-app"
+  rmdir "$arcade_extract"
+)
+```
+
+On Ubuntu 24.04 and later, install and load the bundled profile as an
+administrator, then start the arcade as the cabinet user.
+
+```bash
+sudo install -m 0644 apparmor-gamestr-arcade /etc/apparmor.d/gamestr-arcade
+sudo apparmor_parser -r /etc/apparmor.d/gamestr-arcade
+ARCADE_KIOSK=1 ARCADE_GAMES_DIR="$HOME/gamestr-games" "$HOME/arcade-app/AppRun"
+```
+
+Select **BTC: Proof of Play**, play a match with keyboard and mouse, and use the
+game's Quit command to confirm the arcade grid returns. Launch it again to check
+that a second session starts cleanly.
+
 ---
 
 ## 2. Games folder layout
