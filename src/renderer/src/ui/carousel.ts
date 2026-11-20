@@ -406,7 +406,7 @@ export class Carousel {
     this.ribbonEl.hidden = !downloadOnly
     const unavailable = game.available === false
     this.ctaEl.disabled = unavailable
-    const action = game.cabinetInstall === 'available' ? 'Install' : downloadOnly ? 'Download' : 'Play'
+    const action = game.cabinetInstall === 'available' ? 'Install' : downloadOnly ? 'Download' : game.playOnActivate ? 'Play now' : 'Play'
     this.ctaEl.setAttribute('aria-label', unavailable ? `${game.name} is unavailable` : `${action} ${game.name}`)
     this.ctaTextEl.innerHTML = unavailable
       ? 'NOT&nbsp;AVAILABLE&nbsp;ON&nbsp;THIS&nbsp;CABINET'
@@ -414,7 +414,9 @@ export class Carousel {
         ? 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;TO&nbsp;DOWNLOAD'
         : game.cabinetInstall === 'available'
           ? 'INSTALL&nbsp;ON&nbsp;THIS&nbsp;ARCADE'
-          : 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;FOR&nbsp;DETAILS'
+          : game.playOnActivate
+            ? 'PLAY&nbsp;NOW'
+            : 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;FOR&nbsp;DETAILS'
 
     this.renderLogo(game)
     this.nameEl.textContent = game.name
@@ -525,7 +527,8 @@ export class Carousel {
       tile.className = 'tile' + (offset === 0 ? ' tile-active' : '') + (game.downloadOnly ? ' tile-download' : '')
       tile.dataset.offset = String(offset)
       tile.style.setProperty('--tile-accent', game.accent || this.options.accent)
-      tile.setAttribute('aria-label', offset === 0 ? `Open details for ${game.name}` : `Select ${game.name}`)
+      const activate = game.playOnActivate ? 'Play now' : 'Open details for'
+      tile.setAttribute('aria-label', `${offset === 0 ? activate : 'Select'} ${game.name}`)
       if (offset === 0) tile.setAttribute('aria-current', 'true')
 
       const art = document.createElement('span')

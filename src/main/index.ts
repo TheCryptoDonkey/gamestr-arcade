@@ -29,7 +29,7 @@ import type { ImportDeps } from './gamestr-import'
 import { startLocalServer } from './local-server'
 import type { LocalServer } from './local-server'
 import { CabinetGames } from './cabinet-games'
-import { DesktopGames } from './desktop-games'
+import { DesktopGames, WINDOWS_EXE } from './desktop-games'
 import { DEFAULT_CONFIG, parseConfig } from './config'
 import { controllerRelayHeaders, productionRelayPattern } from './relay-origin'
 import { Launcher } from './launch'
@@ -173,9 +173,6 @@ let localServer: LocalServer | null = null
 // `games:list` populates this so `game:launch` can resolve id → Game without a
 // second filesystem scan.  Set to null until the first `games:list` call.
 let cachedGames: Game[] | null = null
-// Re-entrancy guard: in-flight buildGamesList promise so two rapid game:launch
-// calls at startup share a single scan rather than double-rebuilding.
-let buildingGames: Promise<Game[]> | null = null
 
 // ── Web-game view ─────────────────────────────────────────────────────────────
 // Every launch gets a new WebContentsView, in-memory partition, guest signer and
@@ -738,9 +735,7 @@ app.whenReady().then(async () => {
   const readCatalogue = async (): Promise<Game[]> => {
     const scanned = await buildGamesList(gamesDir, cacheDir, localServer?.port)
     const games = cabinetGames ? await cabinetGames.addToCatalogue(scanned, localServer?.port) : scanned
-    const [pallasite, proofOfPlay] = await Promise.all([
-      desktopGames.linked('pallasite'), desktopGames.linked('btc-proof-of-play'),
-    ])
+    const pallasite = await desktopGames.linked('pallasite')
     if (pallasite) {
       const index = games.findIndex(game => game.id === 'pallasite')
       const previous: Game = index === -1 ? {
@@ -756,26 +751,22 @@ app.whenReady().then(async () => {
       if (index === -1) games.push(game)
       else games[index] = game
     }
-    if (proofOfPlay) {
+    if (process.platform === 'win32') {
+      const index = games.findIndex(game => game.id === 'btc-proof-of-play')
+      const previous = games[index]
+      const configured = previous?.kind === 'appimage' ? previous : undefined
       const game: Game = {
+        ...configured,
         id: 'btc-proof-of-play', gameId: 'btc-proof-of-play', name: 'BTC: Proof of Play',
         tagline: 'Build your deck and battle in a Bitcoin strategy card game',
-        developer: 'BTC Proof of Play', kind: 'appimage', exec: proofOfPlay, logo: '',
-        available: true, order: 10, manifestVersion: 2, inputModes: ['keyboard', 'pointer'],
+        developer: 'BTC Proof of Play', kind: 'appimage', logo: previous?.logo ?? '',
+        hero: previous?.hero, order: previous?.order ?? 10,
+        available: true, availabilityReason: undefined, cabinetInstall: undefined, downloadOnly: false,
+        playOnActivate: true, manifestVersion: 2, inputModes: ['keyboard', 'pointer'],
         controlHints: ['KEYBOARD + MOUSE', 'QUIT FROM THE GAME TO RETURN'],
       }
-      const index = games.findIndex(existing => existing.id === game.id)
       if (index === -1) games.push(game)
       else games[index] = game
-    } else if (process.platform === 'win32') {
-      const index = games.findIndex(game => game.id === 'btc-proof-of-play' && game.kind === 'web')
-      if (index !== -1) {
-        games[index] = {
-          ...games[index],
-          available: false,
-          availabilityReason: 'Press G in Gamestr Arcade and choose Locate BTC Proof of Play.exe to link the installed game.',
-        }
-      }
     }
     return gamesForThisKiosk(games.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name)))
   }
@@ -827,6 +818,16 @@ app.whenReady().then(async () => {
   const requireShell = (event: IpcMainInvokeEvent) => {
     if (!win || event.sender !== win.webContents || event.senderFrame !== win.webContents.mainFrame) throw new Error('Player controls belong to the arcade shell.')
   }
+  const chooseWindowsGame = async (id: DesktopGameId, buttonLabel?: string): Promise<string | undefined> => {
+    if (!win) return undefined
+    const selection = await dialog.showOpenDialog(win, {
+      title: `Locate ${WINDOWS_EXE[id]}`, properties: ['openFile'], buttonLabel,
+      filters: [{ name: 'Game executable', extensions: ['exe'] }],
+    })
+    if (selection.canceled || !selection.filePaths[0]) return undefined
+    return desktopGames.linkWindowsGame(id, selection.filePaths[0])
+  }
+
   ipcMain.handle('games:local-settings', async (event): Promise<LocalGameSettings> => {
     requireShell(event)
     const [bundled, pallasite, proofOfPlay] = await Promise.all([
@@ -849,14 +850,7 @@ app.whenReady().then(async () => {
     if (process.platform !== 'win32' || !win || (id !== 'pallasite' && id !== 'btc-proof-of-play')) {
       throw new Error('This installed game cannot be linked.')
     }
-    const gameId: DesktopGameId = id
-    const executable = gameId === 'pallasite' ? 'Pallasite.exe' : 'BTC Proof of Play.exe'
-    const selection = await dialog.showOpenDialog(win, {
-      title: `Locate ${executable}`, properties: ['openFile'],
-      filters: [{ name: 'Game executable', extensions: ['exe'] }],
-    })
-    if (selection.canceled || !selection.filePaths[0]) return null
-    await desktopGames.linkWindowsGame(gameId, selection.filePaths[0])
+    if (!await chooseWindowsGame(id)) return null
     cachedGames = await readCatalogue()
     return cachedGames
   })
@@ -946,31 +940,36 @@ app.whenReady().then(async () => {
     }
   })
 
-  ipcMain.handle('game:launch', async (event, id: string) => {
+  let preparingLaunch = false
+  ipcMain.handle('game:launch', async (event, id: string): Promise<boolean> => {
     requireShell(event)
-    // Do not depend on the renderer having requested its sanitized config first.
-    if (cachedWebLN === undefined) await loadConfig()
-    // Resolve the game from the cache; rebuild if not yet populated.
-    // Guard against re-entrancy: two rapid presses share a single in-flight scan.
-    if (!cachedGames) {
-      if (!buildingGames) {
-        buildingGames = readCatalogue()
-          .finally(() => { buildingGames = null })
+    if (preparingLaunch || launcher.isRunning) return false
+    preparingLaunch = true
+    try {
+      // Do not depend on the renderer having requested its sanitized config first.
+      if (cachedWebLN === undefined) await loadConfig()
+      cachedGames ??= await readCatalogue()
+      let game = cachedGames.find(g => g.id === id)
+      if (!game) {
+        console.error(`[arcade] game:launch - unknown id "${id}"`)
+        win?.webContents.send('game:error', `Unknown game id: ${id}`)
+        return false
       }
-      cachedGames = await buildingGames
+      if (process.platform === 'win32' && id === 'btc-proof-of-play') {
+        const executable = await desktopGames.findWindowsProofOfPlay(app.getPath('appData'), game.exec)
+          ?? await chooseWindowsGame(id, 'Play Now')
+        if (!executable) return false
+        const args = executable === game.exec ? game.args : undefined
+        game = { ...game, exec: executable, args }
+      }
+      console.log(`[arcade] launching "${game.name}" (${game.kind})`)
+      const started = launcher.launch(game)
+      // Native apps take OS focus, so in-game shortcuts must be global.
+      if (started) registerForceBack(game)
+      return started
+    } finally {
+      preparingLaunch = false
     }
-    const game = cachedGames.find(g => g.id === id)
-    if (!game) {
-      console.error(`[arcade] game:launch - unknown id "${id}"`)
-      win?.webContents.send('game:error', `Unknown game id: ${id}`)
-      return
-    }
-    console.log(`[arcade] launching "${game.name}" (${game.kind})`)
-    const started = launcher.launch(game)
-    // Register force-back hotkeys for the duration of this game session.
-    // Covers both web and native - native apps steal OS focus so the arcade
-    // renderer's key listeners are inactive; only global shortcuts fire.
-    if (started) registerForceBack(game)
   })
 
   // Privileged web-game APIs are resolved in main and bound to the currently

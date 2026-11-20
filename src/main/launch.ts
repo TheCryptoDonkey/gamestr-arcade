@@ -96,6 +96,10 @@ export class Launcher {
     this.deps = deps
   }
 
+  get isRunning(): boolean {
+    return this.running
+  }
+
   /**
    * Launch `game`.
    *   - native (AppImage): chmod → spawn → hideShell; on exit → showShell + notifyReturned.

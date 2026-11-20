@@ -13,7 +13,7 @@ declare global {
       readonly gamepadDiagnostics: boolean
       getConfig(): Promise<ArcadeConfig>
       listGames(): Promise<Game[]>
-      launch(id: string): Promise<void>
+      launch(id: string): Promise<boolean>
       install(id: string): Promise<Game>
       localGames(): Promise<LocalGameSettings>
       downloadPallasite(): Promise<Game[]>

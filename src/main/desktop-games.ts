@@ -20,10 +20,12 @@ const ASSETS = {
   },
 }
 
-const WINDOWS_EXE = {
+export const WINDOWS_EXE = {
   pallasite: 'Pallasite.exe',
   'btc-proof-of-play': 'BTC Proof of Play.exe',
 }
+
+const PROOF_OF_PLAY = 'btc-proof-of-play'
 
 async function fileExists(path: string): Promise<boolean> {
   return stat(path).then(info => info.isFile(), () => false)
@@ -96,18 +98,32 @@ export class DesktopGames {
       ? executable : undefined
   }
 
-  async linkWindowsGame(id: DesktopGameId, executable: string): Promise<void> {
+  async findWindowsProofOfPlay(appData: string, configured?: string): Promise<string | undefined> {
+    const linked = await this.linked(PROOF_OF_PLAY)
+    if (linked) return linked
+    if (configured && await resolveSelectedWindowsExe(configured)) return configured
+
+    // The publisher's launcher unpacks the playable Unity build into userData/game.
+    for (const name of ['btcpop-launcher', 'BTC Proof of Play']) {
+      const executable = join(appData, name, 'game', WINDOWS_EXE[PROOF_OF_PLAY])
+      if (await isWindowsGame(PROOF_OF_PLAY, executable)) return executable
+    }
+    return undefined
+  }
+
+  async linkWindowsGame(id: DesktopGameId, executable: string): Promise<string> {
     if (process.platform !== 'win32') throw new Error('Linking an installed Windows game requires Windows.')
     if (id === 'btc-proof-of-play') {
       const selected = await resolveSelectedWindowsExe(executable)
       if (!selected) throw new Error('Choose the installed Windows .exe that opens the game.')
       await this.saveLink(id, selected)
-      return
+      return selected
     }
     if (!await isWindowsGame(id, executable)) {
       throw new Error('Select ' + WINDOWS_EXE[id] + ' in its installed game folder.')
     }
     await this.saveLink(id, executable)
+    return executable
   }
 
   async useOfflinePallasite(): Promise<void> {
