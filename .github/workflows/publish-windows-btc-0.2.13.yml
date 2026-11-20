@@ -1,0 +1,49 @@
+name: Publish Windows 0.2.13
+
+on:
+  push:
+    branches: [codex/publish-windows-btc-0.2.13]
+    paths: [.github/workflows/publish-windows-btc-0.2.13.yml]
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERIFIED_RUN: '44791095888'
+      VERIFIED_SHA: 2770106a107092dc25e84ea8e95eaf8b2d28ec7f
+      INSTALLER: gamestr-arcade-0.2.13-x64-setup.exe
+    steps:
+      - name: Verify the completed build and its installer
+        run: |
+          test "$(gh run view "$VERIFIED_RUN" --json headSha,conclusion --jq '.headSha + " " + .conclusion')" = "$VERIFIED_SHA success"
+          mkdir -p release/transfer
+          TMPDIR="$GITHUB_WORKSPACE/release/transfer" gh run download "$VERIFIED_RUN" \
+            --name "gamestr-arcade-windows-btc-play-now-$VERIFIED_SHA" --dir release
+          cd release
+          sha256sum --check SHA256SUMS
+          mv SHA256SUMS SHA256SUMS-windows.txt
+      - name: Publish the checked installer from the tested commit
+        run: |
+          cat > release/notes.md <<'NOTES'
+          Unsigned Windows x64 prerelease.
+
+          - Select **BTC: Proof of Play → Play Now** to open the installed game from Gamestr Arcade.
+          - Gamestr looks in the publisher's install location. For a custom location, select the playable EXE once. Gamestr starts it immediately and remembers the path.
+          - Use keyboard and mouse to play. Quit the game to return to Gamestr Arcade.
+
+          The Windows installer check uses a native Windows test executable to exercise automatic discovery, picker cancellation, manual selection and launch from a remembered location. [Windows verification](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/44791095888)
+          NOTES
+          gh release create v0.2.13 "release/$INSTALLER" release/SHA256SUMS-windows.txt \
+            --target "$VERIFIED_SHA" --title 'Gamestr Arcade 0.2.13 Windows' \
+            --prerelease --notes-file release/notes.md
+          digest="$(sha256sum "release/$INSTALLER" | cut -d ' ' -f 1)"
+          uploaded="$(gh api "repos/$GH_REPO/releases/tags/v0.2.13" --jq ".assets[] | select(.name == \"$INSTALLER\") | .digest")"
+          test "$uploaded" = "sha256:$digest"
+          test "$(gh api "repos/$GH_REPO/git/ref/tags/v0.2.13" --jq .object.sha)" = "$VERIFIED_SHA"
