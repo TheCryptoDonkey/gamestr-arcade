@@ -1,0 +1,16 @@
+{
+  "manifestVersion": 2,
+  "name": "BTC: Proof of Play",
+  "tagline": "Stack your deck and battle 1v1 in a Bitcoin card game",
+  "description": "Build a deck, battle 1v1, earn Sparks and Shards, and unlock cards and cosmetics. Bitcoin-themed, with no blockchain and no NFTs.",
+  "developer": "BTC Proof of Play",
+  "genres": ["card", "strategy", "1v1"],
+  "gameId": "btc-proof-of-play",
+  "order": 10,
+  "accent": "#f7a823",
+  "logoUrl": "https://images.squarespace-cdn.com/content/v1/68d64bc3e0c99d41729d22a1/de8349cc-e14d-4b6d-a5c3-b79e8062006d/BTCG+Logo+V2_cropped.png?format=800w",
+  "heroUrl": "https://images.squarespace-cdn.com/content/v1/68d64bc3e0c99d41729d22a1/f0493d8a-8462-4c3d-8484-565313611c43/Website+2026+Banner.png?format=2500w",
+  "inputModes": ["keyboard", "pointer"],
+  "controlHints": ["MOUSE = PLAY CARDS", "KEYBOARD + MOUSE", "QUIT FROM THE GAME MENU TO RETURN"],
+  "players": { "min": 1, "max": 1 }
+}

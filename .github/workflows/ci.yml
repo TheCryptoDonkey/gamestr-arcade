@@ -58,10 +58,20 @@ jobs:
       - name: Verify missing game input still fails the packaged gate
         run: node scripts/appimage-input-negative.mjs release/*.AppImage release/linux-input-negative.json
 
+      - name: Package, install and launch the Linux deb
+        run: |
+          npm run package:deb
+          sudo apt-get install -y --no-install-recommends desktop-file-utils ./release/*.deb
+          desktop-file-validate /usr/share/applications/gamestr-arcade.desktop
+          xvfb-run -a -s '-screen 0 1280x800x24' node scripts/check-installed-games.mjs /usr/bin/gamestr-arcade-desktop --kiosk
+          sudo apt-get remove -y gamestr-arcade
+          test ! -e /usr/share/applications/gamestr-arcade.desktop
+          test ! -L /usr/bin/gamestr-arcade-desktop
+
       - name: Record release checksums
         run: |
           git archive --format=tar.gz --prefix=gamestr-arcade-source/ HEAD > release/gamestr-arcade-source.tar.gz
-          cd release && sha256sum *.AppImage *.tar.gz > SHA256SUMS
+          cd release && sha256sum -- *.AppImage *.deb *.tar.gz > SHA256SUMS
 
       - name: Upload release evidence
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -69,6 +79,7 @@ jobs:
           name: gamestr-arcade-linux-${{ github.sha }}
           path: |
             release/*.AppImage
+            release/*.deb
             release/gamestr-arcade-source.tar.gz
             release/SHA256SUMS
             release/linux-runtime-smoke.json
@@ -78,3 +89,82 @@ jobs:
             dist-web-600/**
           if-no-files-found: error
           retention-days: 90
+
+  windows-installer:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Package the Windows installer
+        run: |
+          npm ci
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run dist:win
+
+      - name: Record the Windows installer checksum
+        run: |
+          $installer = Get-ChildItem release -Filter '*-setup.exe'
+          if (@($installer).Count -ne 1) { throw 'Expected one Windows installer' }
+          $checksum = (Get-FileHash -Algorithm SHA256 -LiteralPath $installer.FullName).Hash.ToLowerInvariant()
+          "$checksum  $($installer.Name)" | Set-Content -Encoding ascii release/SHA256SUMS
+
+      - name: Retain the Windows installer under test
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: gamestr-arcade-windows-${{ github.sha }}
+          path: |
+            release/*-setup.exe
+            release/SHA256SUMS
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 90
+
+      - name: Install Gamestr Arcade
+        run: |
+          $installer = Get-ChildItem release -Filter '*-setup.exe'
+          if (@($installer).Count -ne 1) { throw 'Expected one Windows installer' }
+          $install = Start-Process -FilePath $installer.FullName -ArgumentList '/S' -Wait -PassThru
+          if ($install.ExitCode -ne 0) { throw "Installer exited with $($install.ExitCode)" }
+
+          $shortcut = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Gamestr Arcade.lnk'
+          if (!(Test-Path -LiteralPath $shortcut)) { throw 'Start menu shortcut is missing' }
+          $launcher = (New-Object -ComObject WScript.Shell).CreateShortcut($shortcut).TargetPath
+          if (!(Test-Path -LiteralPath $launcher)) { throw 'Start menu target is missing' }
+          "GAMESTR_TEST_LAUNCHER=$launcher" >> $env:GITHUB_ENV
+          "GAMESTR_TEST_SHORTCUT=$shortcut" >> $env:GITHUB_ENV
+
+      - name: Play the bundled games and launch Pallasite Desktop
+        run: node scripts/verify-windows-pallasite.mjs "$env:GAMESTR_TEST_LAUNCHER" release
+
+      - name: Create a setup executable for the stale-link regression
+        shell: powershell
+        run: |
+          $fixture = Join-Path $env:GITHUB_WORKSPACE 'release\native fixture'
+          New-Item -ItemType Directory -Force $fixture | Out-Null
+          Add-Type -TypeDefinition @'
+          using System;
+          using System.IO;
+          public static class TestSetup {
+            public static void Main() {
+              File.WriteAllText(Environment.GetEnvironmentVariable("BTC_PLAY_TEST_MARKER"), Environment.CurrentDirectory);
+            }
+          }
+          '@ -OutputAssembly (Join-Path $fixture 'BTC Proof of Play Setup.exe') -OutputType ConsoleApplication
+
+      - name: Install and open the publisher's BTC Proof of Play game pack
+        run: node scripts/verify-windows-btc-game-pack.mjs "$env:GAMESTR_TEST_LAUNCHER" release
+
+      - name: Remove Gamestr Arcade
+        run: |
+          $uninstaller = Join-Path (Split-Path $env:GAMESTR_TEST_LAUNCHER) 'Uninstall Gamestr Arcade.exe'
+          $remove = Start-Process -FilePath $uninstaller -ArgumentList '/S' -Wait -PassThru
+          if ($remove.ExitCode -ne 0 -or (Test-Path -LiteralPath $env:GAMESTR_TEST_SHORTCUT)) { throw 'Uninstall did not complete' }

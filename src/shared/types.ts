@@ -1,5 +1,17 @@
 import type { ControllerSpec } from '@forgesworn/joystick-protocol'
 export type GameKind = 'appimage' | 'web'
+export type DesktopGameId = 'pallasite' | 'btc-proof-of-play'
+
+export interface LocalGameSettings {
+  bundled: { id: string; name: string; installed: boolean }[]
+  canDownloadPallasite: boolean
+  canLinkWindowsGames: boolean
+  pallasiteDesktopSelected: boolean
+  proofOfPlayLinked: boolean
+  proofOfPlayPack: 'available' | 'installed' | undefined
+  /** Why this arcade offers no local install actions, when it offers none. */
+  unavailableReason?: string
+}
 
 /**
  * Per-game gamepad→keyboard mapping.
@@ -67,12 +79,14 @@ export interface Game {
   name: string
   tagline?: string
   kind: GameKind
-  exec?: string         // absolute .AppImage path (kind === 'appimage')
+  exec?: string         // absolute native executable path (kind === 'appimage')
   args?: string[]       // extra CLI args for the native exec (game.json `args`, e.g. ['--no-sandbox'])
   url?: string          // web url (kind === 'web')
   localSite?: boolean   // true when url points to the local mirror server
   localRoot?: string    // absolute path to the game's site/ dir (set when localSite is true)
   cabinetInstall?: 'available' | 'installed'
+  /** The play action starts the game from the carousel. */
+  playOnActivate?: boolean
   // Download-only games can't be played in the kiosk (no embeddable web build).
   // They're kept in the carousel for showcase - greyed-out with a DOWNLOAD ONLY
   // ribbon - and pressing play opens a QR panel pointing at `downloadUrl` (or `url`)

@@ -15,7 +15,7 @@
  * so the new tile appears in the carousel.
  */
 
-import type { Game, GamestrCatalogueEntry } from '../../../shared/types'
+import type { Game, GamestrCatalogueEntry, LocalGameSettings } from '../../../shared/types'
 import { createGameDetector, type DetectedGame, type GameDetector } from '../discovery/detector'
 
 export interface GamesPanelOptions {
@@ -26,6 +26,7 @@ export interface GamesPanelOptions {
   /** Called after a successful import with the fresh games list. */
   onAdded: (games: Game[]) => void
   onClose?: () => void
+  enableLocalGames?: boolean
 }
 
 function esc(s: string): string {
@@ -46,6 +47,9 @@ export class GamesPanel {
   private readonly listEl: HTMLElement
   private readonly statusEl: HTMLElement
   private readonly closeBtn: HTMLButtonElement
+  private readonly localEl: HTMLElement
+  private readonly localActions: HTMLElement
+  private readonly localStatus: HTMLElement
   private readonly opts: GamesPanelOptions
   private previousFocus: HTMLElement | null = null
   private inertedSiblings: HTMLElement[] = []
@@ -55,9 +59,11 @@ export class GamesPanel {
   private catalogue: GamestrCatalogueEntry[] = []
   private added = new Set<string>()
   private loading = false
-  // Gamepad/keyboard navigation: index into the current addable list + its slugs.
-  private selectedIndex = 0
-  private addableSlugs: string[] = []
+  private localSettings: LocalGameSettings | undefined
+  private localBusy = false
+  // Gamepad/keyboard navigation walks one list: local install actions first,
+  // then the catalogue rows. Keyed so a re-render keeps the highlight in place.
+  private selectedKey: string | null = null
 
   constructor(host: HTMLElement, opts: GamesPanelOptions) {
     this.host = host
@@ -77,13 +83,18 @@ export class GamesPanel {
         <header class="gp-head">
           <div class="gp-head-inner">
             <span class="gp-cursor" aria-hidden="true">▌</span>
-            <h2 id="games-panel-title" class="gp-title">ADD GAMES · GAMESTR</h2>
+            <h2 id="games-panel-title" class="gp-title">GAMES SETTINGS</h2>
             <button class="gp-close" type="button"><span aria-hidden="true">[ G ]</span> CLOSE</button>
           </div>
           <div class="gp-scanline-bar"></div>
         </header>
+        <section class="gp-local" aria-labelledby="gp-local-title" hidden>
+          <h3 id="gp-local-title">Local games</h3>
+          <div class="gp-local-actions"></div>
+          <div class="gp-local-status" role="status"></div>
+        </section>
         <div id="games-panel-status" class="gp-status" aria-live="polite"></div>
-        <div id="games-panel-hint" class="gp-hint">↕ NAVIGATE · Ⓐ / ENTER = ADD · Ⓑ / START / ESC = CLOSE</div>
+        <div id="games-panel-hint" class="gp-hint">↑ ↓ NAVIGATE · Ⓐ / ENTER = SELECT · Ⓑ / START / ESC = CLOSE</div>
         <ol class="gp-list" aria-label="Available games"></ol>
       </div>
     `
@@ -91,6 +102,9 @@ export class GamesPanel {
     this.listEl = this.overlay.querySelector('.gp-list') as HTMLElement
     this.statusEl = this.overlay.querySelector('.gp-status') as HTMLElement
     this.closeBtn = this.overlay.querySelector('.gp-close') as HTMLButtonElement
+    this.localEl = this.overlay.querySelector('.gp-local') as HTMLElement
+    this.localActions = this.overlay.querySelector('.gp-local-actions') as HTMLElement
+    this.localStatus = this.overlay.querySelector('.gp-local-status') as HTMLElement
     this.closeBtn.addEventListener('click', () => this.close())
     this.overlay.addEventListener('keydown', event => this.handleKeydown(event))
   }
@@ -105,13 +119,14 @@ export class GamesPanel {
     this._open = true
     this.overlay.inert = false
     this.inertBackground()
-    this.selectedIndex = 0
+    this.selectedKey = null
     this.overlay.classList.add('gp-visible')
     this.overlay.setAttribute('aria-hidden', 'false')
     // Focus the dialog itself so the existing Enter/arrow controller route
     // continues to operate; Tab moves into its native controls.
     this.overlay.focus()
     this.startDetector()
+    if (this.opts.enableLocalGames) void this.loadLocalGames()
     void this.loadCatalogue()
   }
 
@@ -134,21 +149,49 @@ export class GamesPanel {
     this._open ? this.close() : this.open()
   }
 
-  /** Move the highlighted ADD row - driven by the gamepad d-pad/stick or arrows. */
+  /** Move the highlight - driven by the gamepad d-pad/stick or the arrow keys. */
   moveSelection(delta: number): void {
-    if (!this._open || this.addableSlugs.length === 0) return
-    const n = this.addableSlugs.length
-    this.selectedIndex = Math.min(n - 1, Math.max(0, this.selectedIndex + delta))
-    this.render()
+    if (!this._open) return
+    const items = this.selectables()
+    if (!items.length) return
+    const current = Math.max(0, items.findIndex(item => item.key === this.selectedKey))
+    const next = Math.min(items.length - 1, Math.max(0, current + delta))
+    this.selectedKey = items[next].key
+    this.applySelection()
   }
 
-  /** Add the highlighted game - driven by gamepad Ⓐ or Enter. */
+  /** Run the highlighted install action or ADD - driven by gamepad Ⓐ or Enter. */
   activateSelected(): void {
     if (!this._open) return
-    const slug = this.addableSlugs[this.selectedIndex]
-    if (!slug) return
-    const btn = this.listEl.querySelector<HTMLButtonElement>(`.gp-row[data-slug="${slug}"] .gp-add`)
-    if (btn && !btn.disabled) void this.add(slug, btn)
+    const items = this.selectables()
+    const item = items.find(entry => entry.key === this.selectedKey) ?? items[0]
+    // Make the target explicit so async list updates cannot move it mid-action.
+    this.selectedKey = item?.key ?? null
+    item?.button.click()
+  }
+
+  private selectables(): { key: string; button: HTMLButtonElement }[] {
+    const local = this.localEl.hidden ? [] : Array.from(this.localActions.querySelectorAll<HTMLButtonElement>('button'))
+      .map(button => ({ key: 'local:' + button.textContent, button }))
+    const rows = Array.from(this.listEl.querySelectorAll<HTMLElement>('.gp-row[data-slug]'))
+      .map(row => ({ key: 'game:' + row.dataset.slug, button: row.querySelector<HTMLButtonElement>('.gp-add')! }))
+    return [...local, ...rows].filter(item => item.button && !item.button.disabled)
+  }
+
+  private applySelection(): void {
+    // Until the player moves, the highlight follows the first item, so the
+    // install actions keep it when they load after the catalogue.
+    const items = this.selectables()
+    const key = items.some(item => item.key === this.selectedKey) ? this.selectedKey : items[0]?.key
+    for (const button of this.overlay.querySelectorAll<HTMLButtonElement>('.gp-add')) {
+      const selected = items.some(item => item.button === button && item.key === key)
+      button.classList.toggle('gp-selected', selected)
+      const row = button.closest('.gp-row')
+      row?.classList.toggle('gp-row-selected', selected)
+      if (selected) (row ?? button).setAttribute('aria-current', 'true')
+      else (row ?? button).removeAttribute('aria-current')
+      if (selected) (row ?? button).scrollIntoView({ block: 'nearest' })
+    }
   }
 
   // ── internals ──────────────────────────────────────────────────────────────
@@ -236,6 +279,80 @@ export class GamesPanel {
     }
   }
 
+  private async loadLocalGames(): Promise<void> {
+    try {
+      this.localSettings = await window.arcade.localGames()
+      this.renderLocalGames()
+    } catch (error) {
+      this.localEl.hidden = false
+      this.localStatus.textContent = String(error)
+    }
+  }
+
+  private renderLocalGames(): void {
+    const settings = this.localSettings
+    if (!settings) return
+    const actions: HTMLButtonElement[] = []
+    const addAction = (label: string, action?: () => Promise<Game[] | null>, pending?: string) => {
+      const button = document.createElement('button')
+      button.className = 'gp-add'
+      button.type = 'button'
+      button.textContent = label
+      button.disabled = this.localBusy || !action
+      if (action) button.addEventListener('click', () => void this.runLocalAction(action, pending ?? 'Updating games…'))
+      actions.push(button)
+    }
+
+    for (const game of settings.bundled) {
+      const selected = game.installed && !(game.id === 'pallasite' && settings.pallasiteDesktopSelected)
+      if (selected) addAction(`${game.name} offline installed`)
+      else addAction(`Install ${game.name} for offline play`, async () => {
+        await window.arcade.install(game.id)
+        return window.arcade.listGames()
+      }, `Installing ${game.name}…`)
+    }
+    if (settings.canDownloadPallasite) {
+      const label = settings.pallasiteDesktopSelected ? 'Reinstall Pallasite Desktop' : 'Download and install Pallasite Desktop'
+      addAction(label, () => window.arcade.downloadPallasite(), 'Downloading and installing Pallasite Desktop…')
+    }
+    if (settings.canLinkWindowsGames) {
+      addAction('Find Pallasite Desktop on this PC', () => window.arcade.linkWindowsGame('pallasite'))
+      if (settings.proofOfPlayPack === 'installed') {
+        addAction('BTC: Proof of Play game pack installed')
+      } else {
+        if (settings.proofOfPlayPack === 'available') {
+          addAction('Install BTC: Proof of Play game pack', async () => {
+            await window.arcade.install('btc-proof-of-play')
+            return window.arcade.listGames()
+          }, 'Downloading and installing BTC: Proof of Play…')
+        }
+        const label = settings.proofOfPlayLinked ? 'Change BTC Proof of Play location' : 'Find BTC Proof of Play on this PC'
+        addAction(label, () => window.arcade.linkWindowsGame('btc-proof-of-play'))
+      }
+    }
+    this.localActions.replaceChildren(...actions)
+    this.localEl.hidden = false
+    this.localStatus.textContent ||= settings.unavailableReason ?? ''
+    this.applySelection()
+  }
+
+  private async runLocalAction(action: () => Promise<Game[] | null>, pending: string): Promise<void> {
+    if (this.localBusy) return
+    this.localBusy = true
+    this.localStatus.textContent = pending
+    this.renderLocalGames()
+    try {
+      const games = await action()
+      this.localStatus.textContent = games ? 'Game ready.' : ''
+      if (games) this.opts.onAdded(games)
+    } catch (error) {
+      this.localStatus.textContent = error instanceof Error ? error.message : String(error)
+    } finally {
+      this.localBusy = false
+      await this.loadLocalGames()
+    }
+  }
+
   private render(): void {
     const installed = new Set([...this.opts.getInstalledIds(), ...this.added])
 
@@ -248,8 +365,6 @@ export class GamesPanel {
           Number(!!b.newRelease) - Number(!!a.newRelease) ||
           a.name.localeCompare(b.name),
       )
-    this.addableSlugs = addable.map(e => e.slug)
-    if (this.selectedIndex >= addable.length) this.selectedIndex = Math.max(0, addable.length - 1)
 
     // Games seen live on the network but absent from the catalogue (no metadata,
     // so no play URL to launch) - surfaced for awareness, not auto-addable.
@@ -269,7 +384,7 @@ export class GamesPanel {
       frag.appendChild(li)
     }
 
-    addable.forEach((e, i) => {
+    addable.forEach(e => {
       const live = this.detected.get(e.slug)
       const badges = [
         live ? '<span class="gp-badge gp-live">● LIVE</span>' : '',
@@ -279,9 +394,8 @@ export class GamesPanel {
         .filter(Boolean)
         .join('')
       const li = document.createElement('li')
-      li.className = 'gp-row' + (i === this.selectedIndex ? ' gp-row-selected' : '')
+      li.className = 'gp-row'
       li.dataset.slug = e.slug
-      if (i === this.selectedIndex) li.setAttribute('aria-current', 'true')
       li.innerHTML = `
         <div class="gp-art" aria-hidden="true"${e.image ? ` style="background-image:url('${esc(e.image)}')"` : ''}></div>
         <div class="gp-meta">
@@ -317,7 +431,7 @@ export class GamesPanel {
     }
 
     this.listEl.replaceChildren(frag)
-    this.listEl.querySelector('.gp-row-selected')?.scrollIntoView({ block: 'nearest' })
+    this.applySelection()
   }
 
   private async add(slug: string, btn: HTMLButtonElement): Promise<void> {

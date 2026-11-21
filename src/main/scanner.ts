@@ -1,6 +1,6 @@
 import { controllerProfileFromGameDefinition } from '@forgesworn/joystick-protocol'
 import { readdir, readFile, stat } from 'node:fs/promises'
-import { join } from 'node:path'
+import { isAbsolute, join } from 'node:path'
 import type {
   Game,
   GameCapabilities,
@@ -151,6 +151,7 @@ export async function scanGames(
   let entries: string[] = []
   try { entries = await readdir(gamesDir) } catch { return [] }
   const games: Game[] = []
+  const windows = process.platform === 'win32'
 
   for (const entry of entries) {
     const full = join(gamesDir, entry)
@@ -158,36 +159,37 @@ export async function scanGames(
     if (!info) continue
 
     // Loose top-level *.AppImage → native game, slug from filename.
-    if (info.isFile() && APPIMAGE_RE.test(entry)) {
+    if (!windows && info.isFile() && APPIMAGE_RE.test(entry)) {
       const slug = entry.replace(APPIMAGE_RE, '')
-      games.push(await build(slug, gamesDir, { kind: 'appimage', exec: full }, null, resolveLogo, resolveHero, undefined))
+      games.push(await buildGame(slug, gamesDir, { kind: 'appimage', exec: full }, null, resolveLogo, resolveHero, undefined))
       continue
     }
     if (!info.isDirectory()) continue
 
     const meta = await readJson(join(full, 'game.json'))
-    const appImage = await firstAppImage(full)
+    const appImage = windows ? undefined : await firstAppImage(full)
     // Precedence: a present local AppImage wins; a declared web URL is the
     // graceful fallback when an optional native build has not been installed.
-    const execPath = !appImage && meta?.exec
-      ? (meta.exec as string).startsWith('/') ? meta.exec : join(full, meta.exec)
+    const exec = typeof meta?.exec === 'string' ? meta.exec : undefined
+    const execPath = !appImage && exec && (!windows || /\.exe$/i.test(exec))
+      ? isAbsolute(exec) ? exec : join(full, exec)
       : undefined
     if (appImage) {
-      games.push(await build(entry, full, { kind: 'appimage', exec: appImage }, meta, resolveLogo, resolveHero, appImage))
+      games.push(await buildGame(entry, full, { kind: 'appimage', exec: appImage }, meta, resolveLogo, resolveHero, appImage))
     } else if (execPath && await exists(execPath)) {
-      games.push(await build(entry, full, { kind: 'appimage', exec: execPath }, meta, resolveLogo, resolveHero, execPath))
+      games.push(await buildGame(entry, full, { kind: 'appimage', exec: execPath }, meta, resolveLogo, resolveHero, execPath))
     } else if (meta?.url) {
-      games.push(await build(entry, full, { kind: 'web', url: meta.url }, meta, resolveLogo, resolveHero, undefined))
+      games.push(await buildGame(entry, full, { kind: 'web', url: meta.url }, meta, resolveLogo, resolveHero, undefined))
     } else if (execPath) {
       // Keep exec-only manifests visible so operators get a concrete readiness
       // diagnosis instead of a silently missing catalogue tile.
-      games.push(await build(entry, full, { kind: 'appimage', exec: execPath }, meta, resolveLogo, resolveHero, execPath))
+      games.push(await buildGame(entry, full, { kind: 'appimage', exec: execPath }, meta, resolveLogo, resolveHero, execPath))
     } // else: neither AppImage, exec, nor url → skip (empty/placeholder folder)
   }
   return games.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
 }
 
-async function build(
+export async function buildGame(
   slug: string, dir: string,
   launch: { kind: 'appimage'; exec: string } | { kind: 'web'; url: string },
   meta: Record<string, any> | null,

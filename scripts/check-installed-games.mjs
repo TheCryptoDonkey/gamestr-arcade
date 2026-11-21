@@ -6,7 +6,8 @@ import { _electron as electron } from 'playwright'
 
 const args = process.argv.slice(2)
 const verifyGameplay = !args.includes('--install-only')
-const artifactPath = args.find(arg => arg !== '--install-only')
+const verifyKiosk = args.includes('--kiosk')
+const artifactPath = args.find(arg => !arg.startsWith('--'))
 const artifact = artifactPath ? resolve(artifactPath) : undefined
 const scratch = await mkdtemp(join(tmpdir(), 'gamestr-installed-games-'))
 const profile = join(scratch, 'profile')
@@ -14,12 +15,12 @@ const tiles = [['pallasite', 'Pallasite'], ['neon-sentinel', 'Neon Sentinel']]
 let app
 
 async function openArcade() {
-  const env = { ...process.env, ARCADE_KIOSK: '0' }
+  const env = { ...process.env, ARCADE_KIOSK: verifyKiosk ? '1' : '0' }
   delete env.ARCADE_GAMES_DIR
   delete env.ARCADE_CONFIG
   delete env.ELECTRON_RUN_AS_NODE
-  if (artifact) env.APPIMAGE_EXTRACT_AND_RUN = '1'
-  else {
+  if (artifact?.endsWith('.AppImage')) env.APPIMAGE_EXTRACT_AND_RUN = '1'
+  if (!artifact) {
     env.ARCADE_GAMES_DIR = join(scratch, 'games')
     env.ARCADE_CABINET_GAMES_DIR = resolve('release/cabinet-games')
   }
@@ -42,6 +43,16 @@ async function openArcade() {
   const page = await app.firstWindow()
   await page.locator('.tile-active').waitFor()
   return page
+}
+
+async function activate(button) {
+  // The Windows runner can suppress compositor frames during an animation.
+  if (process.platform === 'win32') {
+    await button.waitFor()
+    await button.evaluate(element => element.click())
+  } else {
+    await button.click()
+  }
 }
 
 async function setTestController(game, { connected = true, pressA = false }) {
@@ -79,12 +90,23 @@ async function checkPlayable(game, id) {
     await game.locator('body[data-phase="playing"]').waitFor({ timeout: 45000 })
   } else {
     await game.locator('body[data-neon-phase="title"]').waitFor()
-    await game.keyboard.press('Enter')
-    const later = game.locator('#v4v-later')
+    await game.waitForFunction(() => document.hasFocus() && document.visibilityState === 'visible', undefined, { polling: 100 })
+    await game.evaluate(() => window.addEventListener('keydown', event => {
+      document.body.dataset.cabinetTestKey = `${event.code} (trusted: ${event.isTrusted})`
+    }, { capture: true }))
+    const later = game.locator('#v4v-later:visible')
     const playing = game.locator('body[data-neon-phase="playing"]')
-    await later.or(playing).waitFor()
+    const started = later.or(playing).first()
+    await game.keyboard.press('Enter', { delay: 100 })
+    try {
+      await started.waitFor({ timeout: 3_000 })
+    } catch (error) {
+      if (error.name !== 'TimeoutError') throw error
+      await game.keyboard.press('Space', { delay: 100 })
+      await started.waitFor({ timeout: 45_000 })
+    }
     if (await later.isVisible()) await later.click()
-    await playing.waitFor()
+    await playing.waitFor({ timeout: 45_000 })
   }
   await setTestController(game, { pressA: true })
   await game.waitForFunction(() => navigator.getGamepads()[0]?.buttons[0].pressed)
@@ -110,18 +132,68 @@ try {
   await mkdir(gamesDir, { recursive: true })
   await writeFile(join(gamesDir, '.write-test'), '')
   console.log('PASS: the cabinet catalogue writes to the user profile or the configured override.')
+  const missingLogos = await shell.evaluate(async () => {
+    const games = await window.arcade.listGames()
+    const results = await Promise.all(games.map(game => {
+      const logo = new Image()
+      logo.src = game.logo
+      return logo.decode().then(() => null, () => game.id)
+    }))
+    return results.filter(Boolean)
+  })
+  assert.deepEqual(missingLogos, [], 'The bundled game logos should load from the installed app.')
+  if (verifyKiosk) {
+    await app.evaluate(({ BrowserWindow }) => {
+      const window = BrowserWindow.getAllWindows()[0]
+      window.setKiosk(false)
+      window.setFullScreen(false)
+    })
+    let restored = false
+    for (let attempt = 0; attempt < 30 && !restored; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      restored = await app.evaluate(({ BrowserWindow }) => {
+        const window = BrowserWindow.getAllWindows()[0]
+        return window.isKiosk() && window.isFullScreen()
+      })
+    }
+    assert(restored, 'Kiosk mode should recover fullscreen after a window transition.')
+    console.log('PASS: the cabinet restores fullscreen automatically in kiosk mode.')
+  }
+  await shell.keyboard.press('g')
+  const settings = shell.getByRole('dialog', { name: 'GAMES SETTINGS' })
+  if (process.arch === 'x64' && (process.platform === 'linux' || process.platform === 'win32')) {
+    await settings.getByRole('button', { name: 'Download and install Pallasite Desktop' }).waitFor()
+  }
+  if (process.platform === 'win32') await settings.getByRole('button', { name: 'Find BTC Proof of Play on this PC' }).waitFor()
+  const installPallasite = settings.getByRole('button', { name: 'Install Pallasite for offline play', exact: true })
+  await settings.locator('.gp-selected').filter({ hasText: 'Install Pallasite for offline play' }).waitFor()
+  if (process.platform === 'win32') await activate(installPallasite)
+  else await settings.press('Enter')
+  try {
+    await settings.waitFor({ state: 'hidden' })
+  } catch (error) {
+    console.error('Pallasite install status:', await settings.locator('.gp-local-status').textContent({ timeout: 1000 }).catch(() => 'unavailable'))
+    throw error
+  }
+  await shell.getByRole('button', { name: 'Play Pallasite', exact: true }).waitFor()
+  console.log('PASS: Pallasite installs from Games Settings.')
   for (const [index, [id, name]] of tiles.entries()) {
     if (index) await shell.keyboard.press('ArrowRight')
-    await shell.getByRole('button', { name: `Install ${name}`, exact: true }).click()
-    await shell.getByRole('button', { name: /install on this arcade/i }).click()
+    if (id === 'pallasite') {
+      await activate(shell.getByRole('button', { name: 'Play Pallasite', exact: true }))
+    } else {
+      await activate(shell.getByRole('button', { name: `Install ${name}`, exact: true }))
+      await activate(shell.getByRole('button', { name: /install on this arcade/i }))
+    }
     const play = shell.getByRole('button', { name: /start game/i })
     await play.waitFor()
     const installed = join(profile, 'cabinet-games', id)
     const revision = await readFile(join(installed, 'revision'), 'utf8')
     assert.match(revision, /^[a-f0-9]{40}\n$/)
-    const view = app.waitForEvent('window', { predicate: page => page !== shell })
-    await play.click()
-    const game = await view
+    const [game] = await Promise.all([
+      app.waitForEvent('window', { predicate: page => page !== shell }),
+      activate(play),
+    ])
     const pageErrors = []
     game.on('pageerror', error => pageErrors.push(error.message))
     await game.waitForURL(/^http:\/\/127\.0\.0\.1:\d+\/$/, { waitUntil: 'commit' })
@@ -140,6 +212,8 @@ try {
         const viewState = await Promise.race([
           game.evaluate(() => ({
             phase: document.body.dataset.phase ?? document.body.dataset.neonPhase,
+            focus: document.hasFocus(),
+            lastKey: document.body.dataset.cabinetTestKey,
             overlay: [...document.querySelectorAll('.overlay h2, [role="dialog"]:not([hidden]) h2')].map(heading => heading.textContent),
           })).catch(() => undefined),
           new Promise(resolve => setTimeout(resolve, 3000).unref()),
@@ -159,7 +233,9 @@ try {
   app = undefined
   const afterRestart = await openArcade()
   const games = await afterRestart.evaluate(() => window.arcade.listGames())
-  assert.deepEqual(games.map(game => [game.id, game.cabinetInstall]), tiles.map(([id]) => [id, 'installed']))
+  // The Windows catalogue also lists the downloadable BTC: Proof of Play pack.
+  const bundled = games.filter(game => tiles.some(([id]) => id === game.id))
+  assert.deepEqual(bundled.map(game => [game.id, game.cabinetInstall]), tiles.map(([id]) => [id, 'installed']))
   console.log('PASS: both tiles remain installed after restarting the cabinet.')
 } finally {
   if (app) await app.close()

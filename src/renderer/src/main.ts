@@ -266,6 +266,7 @@ async function boot(): Promise<void> {
   // bridge); harmless to construct in the browser preview.
   let installedGames = games
   const gamesPanel = new GamesPanel(host, {
+    enableLocalGames: inElectron,
     getInstalledIds: () => installedGames.map(g => g.id),
     relays: () => relayStore.getEnabled(),
     onAdded: fresh => {
@@ -281,6 +282,27 @@ async function boot(): Promise<void> {
       attract.start()
     },
   })
+
+  // A visible way into Games Settings, so installing offline copies or finding
+  // installed desktop games does not depend on knowing the G shortcut.
+  if (inElectron) {
+    const gamesButton = document.createElement('button')
+    gamesButton.type = 'button'
+    gamesButton.className = 'arcade-games-open'
+    gamesButton.textContent = 'Install games (G)'
+    gamesButton.addEventListener('click', () => {
+      if (inWebGame) return
+      readyPanel.close(false)
+      relayPanel.close()
+      closeDownloadPanel()
+      // Return focus to the shell on close, not this button, which the
+      // navigation keys deliberately ignore.
+      host.focus()
+      gamesPanel.open()
+      attract.stop()
+    })
+    host.append(gamesButton)
+  }
 
   // Download-only games can't run in the kiosk - pressing play opens this panel
   // with a QR of the game's download URL so a visitor can grab it on their phone.
@@ -321,20 +343,42 @@ async function boot(): Promise<void> {
   const donationPanel = new DonationPanel(host, { onClose: () => attract.start() })
   let sessionStartedAt = 0
   let sessionGame: Game | null = null
+  let launchPending = false
+
+  const resetLaunch = (): void => {
+    inWebGame = false
+    phone.setSpec(menuPhoneSpec)
+    sessionStartedAt = 0
+    sessionGame = null
+    launchOverlay.hide()
+    attract.start()
+  }
 
   const startGame = (game: Game): void => {
-    if (inWebGame || downloadPanel.isOpen) return
+    if (launchPending || sessionGame || downloadPanel.isOpen) return
     audio.playSelect()
     attract.stop()
     if (inElectron) {
-      void window.arcade.launch(game.id)
-      sessionStartedAt = Date.now()
+      launchPending = true
       sessionGame = game
       if (game.kind === 'web') {
         inWebGame = true
         phone.setSpec(game.controller?.profile ?? gamePhoneSpec)
         launchOverlay.show(game)
       }
+      void window.arcade.launch(game.id).then(started => {
+        if (!sessionGame) return
+        if (started) {
+          sessionStartedAt = Date.now()
+        } else {
+          resetLaunch()
+          carousel.refocus()
+        }
+      }).catch(error => {
+        resetLaunch()
+        carousel.refocus()
+        showErrorToast(error instanceof Error ? error.message : String(error))
+      }).finally(() => { launchPending = false })
     } else {
       // No-op in the browser preview; pulse the CTA so the press is visible.
       host.classList.add('cta-fired')
@@ -365,6 +409,10 @@ async function boot(): Promise<void> {
       audio.playSelect()
       attract.stop()
       downloadPanel.open(game)
+      return
+    }
+    if (inElectron && game.playOnActivate && game.available !== false) {
+      startGame(game)
       return
     }
     attract.stop()
@@ -506,12 +554,7 @@ async function boot(): Promise<void> {
       launchOverlay.hide()
     })
     window.arcade.onError(msg => {
-      inWebGame = false
-      phone.setSpec(menuPhoneSpec)
-      sessionStartedAt = 0
-      sessionGame = null
-      launchOverlay.hide()
-      attract.start()
+      resetLaunch()
       showErrorToast(msg)
     })
   }

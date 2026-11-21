@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import type { ArcadeConfig, Game, GamestrCatalogueResult, GamestrImportResult } from '../../shared/types'
+import type { ArcadeConfig, DesktopGameId, Game, GamestrCatalogueResult, GamestrImportResult, LocalGameSettings } from '../../shared/types'
 
 declare global {
   interface Window {
@@ -13,8 +13,11 @@ declare global {
       readonly gamepadDiagnostics: boolean
       getConfig(): Promise<ArcadeConfig>
       listGames(): Promise<Game[]>
-      launch(id: string): Promise<void>
+      launch(id: string): Promise<boolean>
       install(id: string): Promise<Game>
+      localGames(): Promise<LocalGameSettings>
+      downloadPallasite(): Promise<Game[]>
+      linkWindowsGame(id: DesktopGameId): Promise<Game[] | null>
       back(): Promise<void>
       markReady(): Promise<boolean>
       gamestrCatalogue(): Promise<GamestrCatalogueResult>

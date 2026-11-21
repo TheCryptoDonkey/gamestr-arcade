@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import {
   buildGamesList,
   isPathAllowed,
@@ -37,12 +38,13 @@ describe('playerVisibleGames', () => {
 describe('pathToMediaUrl', () => {
   it('converts an absolute path to a media:// URL', () => {
     const url = pathToMediaUrl('/games/neon/logo.png')
-    expect(url).toBe('media://local/games/neon/logo.png')
+    expect(url).toBe(`media://local${pathToFileURL('/games/neon/logo.png').pathname}`)
   })
 
   it('round-trips through mediaUrlToPath', () => {
-    const original = '/games/neon/logo.png'
+    const original = resolve('/games/Neon Sentinel/logo #1%.png')
     const url = pathToMediaUrl(original)
+    expect(url).toMatch(/\/Neon%20Sentinel\/logo%20%231%25\.png$/)
     expect(mediaUrlToPath(url)).toBe(original)
   })
 
@@ -53,7 +55,8 @@ describe('pathToMediaUrl', () => {
 
 describe('mediaUrlToPath', () => {
   it('extracts the path from a media URL', () => {
-    expect(mediaUrlToPath('media://local/games/neon/logo.png')).toBe('/games/neon/logo.png')
+    const path = resolve('/games/neon/logo.png')
+    expect(mediaUrlToPath(`media://local${pathToFileURL(path).pathname}`)).toBe(path)
   })
 
   it('returns empty string for non-media URLs', () => {

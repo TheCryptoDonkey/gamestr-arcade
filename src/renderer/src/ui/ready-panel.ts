@@ -35,9 +35,12 @@ export function readyStatusFor(game: Game): ReadyStatus {
     }
   }
   if (game.cabinetInstall === 'available') {
+    if (game.kind === 'appimage') {
+      return { label: 'INSTALL AVAILABLE', detail: 'Download and install the game on this arcade.', tone: 'ready' }
+    }
     return { label: 'INSTALL AVAILABLE', detail: 'Install the bundled game for offline play on this arcade.', tone: 'ready' }
   }
-  if (game.cabinetInstall === 'installed') {
+  if (game.cabinetInstall === 'installed' && game.kind === 'web') {
     return { label: 'INSTALLED', detail: 'Local practice play. Online scores and payments are unavailable in this edition.', tone: 'ready' }
   }
   if (game.localSite || game.network === 'offline') {
@@ -206,7 +209,7 @@ export class ReadyPanel {
     ;(this.statusEl.querySelector('.ready-status-label') as HTMLElement).textContent = status.label
     this.statusDetailEl.textContent = status.detail
     this.statusDetailEl.setAttribute('role', 'status')
-    this.setAction(game.cabinetInstall === 'available' ? 'INSTALL ON THIS ARCADE' : 'START GAME')
+    this.setAction(game.cabinetInstall === 'available' ? 'INSTALL ON THIS ARCADE' : game.playOnActivate ? 'PLAY NOW' : 'START GAME')
     this.startBtn.disabled = status.tone === 'blocked'
 
     const facts = [
@@ -272,13 +275,15 @@ export class ReadyPanel {
     this.startBtn.disabled = true
     this.cancelBtn.disabled = true
     this.setAction('INSTALLING…')
-    this.statusDetailEl.textContent = 'Copying the game to this arcade.'
+    this.statusDetailEl.textContent = game.kind === 'appimage'
+      ? 'Downloading and installing the game…' : 'Copying the game to this arcade.'
     try {
       await this.opts.onInstall!(game)
       this.open(game)
-    } catch {
+    } catch (error) {
       this.setAction('RETRY INSTALL')
-      this.statusDetailEl.textContent = 'Installation failed. Check available storage and try again.'
+      this.statusDetailEl.textContent = game.kind === 'appimage' && error instanceof Error
+        ? error.message : 'Installation failed. Check available storage and try again.'
       this.startBtn.disabled = false
       this.startBtn.focus()
     } finally {
