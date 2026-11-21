@@ -34,7 +34,7 @@ export interface InputHandlers {
 export interface InputControllerOptions {
   keyboard?: boolean
   diagnostics?: boolean
-  desktopDialogs?: boolean
+  desktopPhonePairing?: boolean
 }
 
 export { DPAD, STICK_DEADZONE }
@@ -102,7 +102,7 @@ export class InputController {
   private readonly handlers: InputHandlers
   private readonly diagnostics: boolean
   private readonly keyboard: boolean
-  private readonly desktopDialogs: boolean
+  private readonly desktopPhonePairing: boolean
   private rafId = 0
   private running = false
 
@@ -116,7 +116,7 @@ export class InputController {
     this.handlers = handlers
     this.diagnostics = options.diagnostics === true
     this.keyboard = options.keyboard !== false
-    this.desktopDialogs = options.desktopDialogs === true
+    this.desktopPhonePairing = options.desktopPhonePairing === true
   }
 
   /** Begin listening to keyboard + polling gamepads. */
@@ -223,9 +223,9 @@ export class InputController {
     const pads = Array.from(navigator.getGamepads?.() ?? []).filter(
       (p): p is Gamepad => p != null,
     )
-    const dialog = this.desktopDialogs
-      ? document.querySelector<HTMLDialogElement>('.player-pairing[open], .arcade-phone-dialog[open]')
-      : null
+    const dialog = document.querySelector<HTMLDialogElement>(this.desktopPhonePairing
+      ? '.player-pairing[open], .arcade-phone-dialog[open]'
+      : '.player-pairing[open]')
     if (dialog) {
       // Keep confirmation on the TV with its local physical inputs.
       const dialogPads = Array.from(physicalGamepads?.() ?? []).filter(
