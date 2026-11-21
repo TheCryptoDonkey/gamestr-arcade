@@ -473,7 +473,7 @@ async function boot(): Promise<void> {
       audio.resume()
       attract.onActivity()
     },
-  }, { diagnostics: inElectron && window.arcade.gamepadDiagnostics })
+  }, { diagnostics: inElectron && window.arcade.gamepadDiagnostics, desktopDialogs: inElectron })
   input.start()
   window.addEventListener('gamestr:player-pairing', event => { if ((event as CustomEvent<boolean>).detail) attract.stop(); else attract.start() })
 

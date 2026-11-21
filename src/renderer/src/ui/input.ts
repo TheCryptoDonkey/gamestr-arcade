@@ -34,6 +34,7 @@ export interface InputHandlers {
 export interface InputControllerOptions {
   keyboard?: boolean
   diagnostics?: boolean
+  desktopDialogs?: boolean
 }
 
 export { DPAD, STICK_DEADZONE }
@@ -101,6 +102,7 @@ export class InputController {
   private readonly handlers: InputHandlers
   private readonly diagnostics: boolean
   private readonly keyboard: boolean
+  private readonly desktopDialogs: boolean
   private rafId = 0
   private running = false
 
@@ -114,6 +116,7 @@ export class InputController {
     this.handlers = handlers
     this.diagnostics = options.diagnostics === true
     this.keyboard = options.keyboard !== false
+    this.desktopDialogs = options.desktopDialogs === true
   }
 
   /** Begin listening to keyboard + polling gamepads. */
@@ -220,13 +223,14 @@ export class InputController {
     const pads = Array.from(navigator.getGamepads?.() ?? []).filter(
       (p): p is Gamepad => p != null,
     )
-    const dialog = document.querySelector<HTMLDialogElement>('dialog[open]')
+    const dialog = this.desktopDialogs
+      ? document.querySelector<HTMLDialogElement>('.player-pairing[open], .arcade-phone-dialog[open]')
+      : null
     if (dialog) {
-      // A phone controller may play games but cannot approve another phone's
-      // identity. Only a local physical pad can operate this TV confirmation.
-      const dialogPads = dialog.matches('.player-pairing')
-        ? Array.from(physicalGamepads?.() ?? []).filter((pad): pad is Gamepad => pad != null && pad.id !== 'Gamestr Joystick phone')
-        : pads
+      // Keep confirmation on the TV with its local physical inputs.
+      const dialogPads = Array.from(physicalGamepads?.() ?? []).filter(
+        (pad): pad is Gamepad => pad != null && pad.id !== 'Gamestr Joystick phone',
+      )
       const pressed = (index: number) => dialogPads.some(pad => !!pad.buttons[index]?.pressed)
       const active = document.activeElement
       const controls = [...dialog.querySelectorAll<HTMLElement>('button:not(:disabled), a[href]')]
