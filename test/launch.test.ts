@@ -50,6 +50,7 @@ interface FakeDepsState {
   webClosed: boolean
   chmodPaths: string[]
   spawnedExecs: string[]
+  spawnedEnv?: Record<string, string>
   killCount: number
   /** Mutable fake clock (ms) backing deps.now() - advance it to test cooldowns. */
   clock: number
@@ -84,8 +85,9 @@ function makeFakeDeps(): { deps: LaunchDeps; state: FakeDepsState } {
   }
 
   const deps: LaunchDeps = {
-    spawn: (exec) => {
+    spawn: (exec, _args, env) => {
       state.spawnedExecs.push(exec)
+      state.spawnedEnv = env
       return spawnHandle
     },
     chmodExec: async (path) => { state.chmodPaths.push(path) },
@@ -115,6 +117,13 @@ describe('Launcher - native AppImage', () => {
     expect(state.chmodPaths).toContain('/games/test.AppImage')
     expect(state.spawnedExecs).toContain('/games/test.AppImage')
     expect(state.hidden).toBe(true)
+  })
+
+  it('passes the cabinet launch environment to the native game', async () => {
+    const { deps, state } = makeFakeDeps()
+    new Launcher(deps).launch({ ...makeNativeGame(), launchEnv: { PALLASITE_BOOT_QUERY: 'p1&fullfx=1' } })
+    await Promise.resolve()
+    expect(state.spawnedEnv).toEqual({ PALLASITE_BOOT_QUERY: 'p1&fullfx=1' })
   })
 
   it('shows shell and notifies on exit', async () => {

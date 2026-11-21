@@ -23,6 +23,7 @@ import { ConferencePlayer } from '../shared/conference-player'
 import webEditions from '../../web.editions.json'
 import proofOfPlayManifest from '../../resources/btc-proof-of-play.game.json'
 import { buildGamesList, buildLinkedGame, isPathAllowed, mediaUrlToPath, playerVisibleGames, MEDIA_SCHEME } from './games'
+import { withBoothMode } from './booth-mode'
 import { fetchGamestrCatalogue } from './gamestr-catalogue'
 import type { CatalogueDeps } from './gamestr-catalogue'
 import { importGameToFolder } from './gamestr-import'
@@ -442,7 +443,7 @@ function hasSystemdRun(): boolean {
 /** Build the real `LaunchDeps` for production use. */
 function buildLaunchDeps(): LaunchDeps {
   return {
-    spawn(exec, args = []) {
+    spawn(exec, args = [], extraEnv = {}) {
       // Launch native games via the systemd USER MANAGER, not as a child of this
       // Electron process. Spawned as our child, an Electron-based game (e.g.
       // Pallasite) cannot start its own Chromium subprocesses - controller-ws,
@@ -469,13 +470,17 @@ function buildLaunchDeps(): LaunchDeps {
         // so onExit fires at the right time; --collect garbage-collects the unit.
         child = nodeSpawn(
           SYSTEMD_RUN,
-          ['--user', '--wait', '--collect', '--quiet', '--setenv=APPIMAGE_EXTRACT_AND_RUN=1', '--unit', GAME_UNIT, '--', exec, ...args],
+          [
+            '--user', '--wait', '--collect', '--quiet', '--setenv=APPIMAGE_EXTRACT_AND_RUN=1',
+            ...Object.entries(extraEnv).map(([key, value]) => `--setenv=${key}=${value}`),
+            '--unit', GAME_UNIT, '--', exec, ...args,
+          ],
           { detached: false, env },
         )
       } else if (process.platform === 'win32') {
-        child = nodeSpawn(exec, args, { cwd: dirname(exec), detached: false })
+        child = nodeSpawn(exec, args, { cwd: dirname(exec), detached: false, env: { ...process.env, ...extraEnv } })
       } else {
-        child = nodeSpawn(exec, args, { detached: false, env: { ...process.env, APPIMAGE_EXTRACT_AND_RUN: '1' } })
+        child = nodeSpawn(exec, args, { detached: false, env: { ...process.env, APPIMAGE_EXTRACT_AND_RUN: '1', ...extraEnv } })
       }
       let killTimer: ReturnType<typeof setTimeout> | null = null
       return {
@@ -976,7 +981,8 @@ app.whenReady().then(async () => {
         const args = executable === game.exec ? game.args : undefined
         game = { ...game, exec: executable, args, cabinetInstall: 'installed' }
       }
-      console.log(`[arcade] launching "${game.name}" (${game.kind})`)
+      game = withBoothMode(game, kioskMode)
+      console.log(`[arcade] launching "${game.name}" (${game.kind})${game.url ? ` at ${game.url}` : ''}`)
       const started = launcher.launch(game)
       // Native apps take OS focus, so in-game shortcuts must be global.
       if (started) registerForceBack(game)
