@@ -80,18 +80,23 @@ async function click(locator) {
   await locator.evaluate(button => button.click())
 }
 
-async function installFromSettings(page, label, id = 'pallasite') {
+async function installFromSettings(page, label, id = 'pallasite', timeout = 240_000) {
   await page.keyboard.press('g')
   const settings = page.getByRole('dialog', { name: 'GAMES SETTINGS' })
   const status = settings.locator('.gp-local-status')
-  const fail = status.filter({ hasText: /Error invoking remote method/ }).waitFor({ timeout: 240_000 })
+  const fail = status.filter({ hasText: /Error invoking remote method/ }).waitFor({ timeout })
     .then(async () => { throw new Error(await status.innerText()) })
-  const reloaded = page.waitForEvent('domcontentloaded', { timeout: 240_000 })
-  await Promise.all([
-    Promise.race([reloaded, fail]),
-    click(settings.getByRole('button', { name: label, exact: true })),
-  ])
-  await waitForCabinet(page)
+  const reloaded = page.waitForEvent('domcontentloaded', { timeout })
+  try {
+    await Promise.all([
+      Promise.race([reloaded, fail]),
+      click(settings.getByRole('button', { name: label, exact: true })),
+    ])
+    await waitForCabinet(page)
+  } catch (error) {
+    const detail = await status.textContent({ timeout: 2000 }).catch(() => null)
+    throw new Error(`${label} did not complete. ${detail ?? ''}`.trim(), { cause: error })
+  }
   return page.evaluate(async id => (await window.arcade.listGames()).find(game => game.id === id), id)
 }
 
@@ -192,7 +197,8 @@ function playerWindow() {
 async function checkDesktop() {
   const { app, page } = await openArcade('desktop')
   try {
-    const installed = await installFromSettings(page, 'Download and install Pallasite Desktop')
+    // The publisher's setup is a much larger transfer than the local copies.
+    const installed = await installFromSettings(page, 'Download and install Pallasite Desktop', 'pallasite', 600_000)
     assert.equal(installed?.kind, 'appimage')
     assert.equal(installed.exec.toLowerCase(), player.toLowerCase())
     assert((await lstat(player)).isFile())
