@@ -22,10 +22,10 @@ The installer is written to `release/`.
 ### Ubuntu and Debian installer
 
 Install `gamestr-arcade_<version>_amd64.deb` from the directory containing the
-download. For example, for version 0.2.16:
+download. For example, for version 0.2.17:
 
 ```bash
-sudo apt install ./gamestr-arcade_0.2.16_amd64.deb
+sudo apt install ./gamestr-arcade_0.2.17_amd64.deb
 ```
 
 Open **Gamestr Arcade** from the applications menu. For a windowed session, run
@@ -82,6 +82,11 @@ Gamestr Arcade installs it for your Windows account. Select **Pallasite → Play
 to launch the desktop game. Use **Find Pallasite Desktop on this PC** in Games
 Settings to link a copy you installed separately. Installing the offline copy in
 Games Settings selects that copy again.
+
+Pallasite opens at the **Station 1** booth lobby when launched from Gamestr
+Arcade. Choose **Tap to Start**, join a player slot and pick guest or sign-in
+before selecting your controls. You can join with a controller or by selecting
+a player card. The offline copy supports local guest play.
 
 The cabinet keeps the installed files under `cabinet-games/` in its Electron
 user-data directory. Run the arcade as the same Linux user to keep using that

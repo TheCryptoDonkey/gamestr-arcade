@@ -37,8 +37,8 @@ export interface SpawnHandle {
  * In tests, pass a `FakeDeps` object that records what was called.
  */
 export interface LaunchDeps {
-  /** Spawn the AppImage at `exec` (with optional extra args). Returns a handle for exit/error callbacks. */
-  spawn(exec: string, args?: string[]): SpawnHandle
+  /** Spawn a native game with its launch arguments and cabinet environment. */
+  spawn(exec: string, args?: string[], env?: Record<string, string>): SpawnHandle
   /** Ensure the file at `path` is executable (chmod 755). */
   chmodExec(path: string): Promise<void>
   /** Hide the shell window (native game taking over the display). */
@@ -210,7 +210,7 @@ export class Launcher {
       .then(() => {
         const startedAt = this.deps.now()
         this.intentionalExit = false
-        const child = this.deps.spawn(exec, game.args)
+        const child = this.deps.spawn(exec, game.args, game.launchEnv)
         this.nativeChild = child
         this.deps.hideShell()
 
