@@ -346,3 +346,28 @@
 @media (prefers-reduced-motion: reduce) {
   .gp-panel, .gp-cursor { animation: none !important; transition: none !important; }
 }
+
+/* Keyboard/gamepad highlight for the local install actions. */
+.gp-local-actions .gp-add.gp-selected {
+  background: rgba(124, 243, 255, 0.24);
+  box-shadow: 0 0 0 1px var(--accent, #7cf3ff),
+    0 0 14px color-mix(in srgb, var(--accent, #7cf3ff) 45%, transparent);
+}
+
+/* Launcher entry point into Games Settings, stacked above the player button. */
+.arcade-games-open {
+  position: fixed;
+  left: 20px;
+  bottom: 80px;
+  z-index: 30;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid color-mix(in srgb, var(--accent, #7cf3ff) 70%, transparent);
+  border-radius: 18px;
+  background: rgba(8, 14, 24, 0.82);
+  color: #eafcff;
+  font: 600 14px system-ui;
+  cursor: pointer;
+}
+.arcade-games-open:focus-visible { outline: 2px solid var(--accent, #7cf3ff); outline-offset: 3px; }
+@media (max-width: 600px) { .arcade-games-open { left: 12px; bottom: 72px; } }

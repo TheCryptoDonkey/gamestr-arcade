@@ -10,6 +10,8 @@ import type { Game, GameInputMode } from '../../../shared/types'
 export interface ReadyPanelOptions {
   onConfirm: (game: Game) => void
   onInstall?: (game: Game) => Promise<void>
+  /** Find an installed desktop game. Resolves false when the player cancels. */
+  onLink?: (game: Game) => Promise<boolean>
   onCancel?: () => void
 }
 
@@ -32,6 +34,13 @@ export function readyStatusFor(game: Game): ReadyStatus {
       label: 'NOT READY',
       detail: game.availabilityReason || 'This game is unavailable on the cabinet.',
       tone: 'blocked',
+    }
+  }
+  if (game.desktopLink) {
+    return {
+      label: 'SET UP ON THIS PC',
+      detail: `Install ${game.name} from the publisher, then press Ⓐ / Enter. The arcade finds the installed game or lets you choose it.`,
+      tone: 'ready',
     }
   }
   if (game.cabinetInstall === 'available') {
@@ -206,7 +215,7 @@ export class ReadyPanel {
     ;(this.statusEl.querySelector('.ready-status-label') as HTMLElement).textContent = status.label
     this.statusDetailEl.textContent = status.detail
     this.statusDetailEl.setAttribute('role', 'status')
-    this.setAction(game.cabinetInstall === 'available' ? 'INSTALL ON THIS ARCADE' : 'START GAME')
+    this.setAction(game.desktopLink ? 'FIND INSTALLED GAME' : game.cabinetInstall === 'available' ? 'INSTALL ON THIS ARCADE' : 'START GAME')
     this.startBtn.disabled = status.tone === 'blocked'
 
     const facts = [
@@ -238,6 +247,10 @@ export class ReadyPanel {
   confirm(): void {
     if (!this._open || !this.game || this.startBtn.disabled) return
     const game = this.game
+    if (game.desktopLink) {
+      if (this.opts.onLink) void this.link(game)
+      return
+    }
     if (game.cabinetInstall === 'available' && this.opts.onInstall) {
       void this.install(game)
       return
@@ -284,6 +297,29 @@ export class ReadyPanel {
     } finally {
       this.installing = false
       this.cancelBtn.disabled = false
+    }
+  }
+
+  private async link(game: Game): Promise<void> {
+    this.installing = true
+    this.startBtn.disabled = true
+    this.cancelBtn.disabled = true
+    this.setAction('SEARCHING…')
+    this.statusDetailEl.textContent = 'Looking for the installed game on this PC.'
+    let linked = false
+    try {
+      linked = await this.opts.onLink!(game)
+      if (!linked) this.statusDetailEl.textContent = readyStatusFor(game).detail
+    } catch (error) {
+      this.statusDetailEl.textContent = error instanceof Error ? error.message.replace(/^Error invoking remote method '[^']+': (Error: )?/, '') : String(error)
+    } finally {
+      this.installing = false
+      this.cancelBtn.disabled = false
+      if (!linked) {
+        this.setAction('FIND INSTALLED GAME')
+        this.startBtn.disabled = false
+        this.startBtn.focus()
+      }
     }
   }
 

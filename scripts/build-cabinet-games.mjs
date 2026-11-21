@@ -10,7 +10,7 @@ const sources = [
   {
     id: 'pallasite',
     repository: 'pallasite',
-    revision: '0284b4e04c4b32f744055e570d87fb5dded59bda',
+    revision: '2de0e60fd8f743ecf06fd042e308da10df5ce4fb',
     icon: 'icon-512.png',
   },
   {

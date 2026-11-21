@@ -20,6 +20,13 @@ function game(overrides: Partial<Game> = {}): Game {
 }
 
 describe('Ready to Play facts', () => {
+  it('offers to find an installed desktop game instead of launching it', () => {
+    expect(readyStatusFor(game({ kind: 'appimage', desktopLink: 'btc-proof-of-play' }))).toMatchObject({
+      label: 'SET UP ON THIS PC',
+      tone: 'ready',
+    })
+  })
+
   it('distinguishes offline-ready, online, and blocked games', () => {
     expect(readyStatusFor(game({ localSite: true })).label).toBe('OFFLINE READY')
     expect(readyStatusFor(game()).tone).toBe('online')
@@ -75,6 +82,26 @@ describe('ReadyPanel', () => {
     expect((document.querySelector('.ready-overlay') as HTMLElement).inert).toBe(true)
     expect(onConfirm).toHaveBeenCalledWith(selected)
     expect((document.getElementById('cabinet') as HTMLElement).inert).toBe(false)
+  })
+
+  it('finds an unlinked desktop game rather than launching it, and shows why a search failed', async () => {
+    const onConfirm = vi.fn()
+    const onLink = vi.fn().mockRejectedValueOnce(new Error("Error invoking remote method 'game:link-windows': Error: That is not the game itself."))
+      .mockResolvedValueOnce(false)
+    const panel = new ReadyPanel(document.getElementById('host')!, { onConfirm, onLink })
+    const selected = game({ kind: 'appimage', desktopLink: 'btc-proof-of-play' })
+
+    panel.open(selected)
+    expect(document.querySelector('.ready-action-label')?.textContent).toBe('FIND INSTALLED GAME')
+    panel.confirm()
+    await vi.waitFor(() => expect(document.querySelector('.ready-status-detail')?.textContent).toBe('That is not the game itself.'))
+    expect(onConfirm).not.toHaveBeenCalled()
+    expect(panel.isOpen).toBe(true)
+
+    panel.confirm()
+    await vi.waitFor(() => expect(onLink).toHaveBeenCalledTimes(2))
+    await vi.waitFor(() => expect((document.querySelector('.ready-start') as HTMLButtonElement).disabled).toBe(false))
+    expect(onConfirm).not.toHaveBeenCalled()
   })
 
   it('does not request focus on its Start button after the launch closes it', () => {

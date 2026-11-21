@@ -6,11 +6,11 @@
  * so the renderer can load assets identically in dev and production.
  */
 
-import { join, resolve, sep } from 'node:path'
+import { dirname, join, resolve, sep } from 'node:path'
 import { stat } from 'node:fs/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { app } from 'electron'
-import { scanGames } from './scanner'
+import { buildGame, scanGames, type HeroResolver, type LogoResolver } from './scanner'
 import { resolveIcon, resolveHero, realIconDeps } from './icons'
 import { realFetchUrl } from './art'
 import { localUrlFor } from './local-server'
@@ -99,15 +99,7 @@ export async function buildGamesList(
   cacheDir: string,
   localPort?: number,
 ): Promise<Game[]> {
-  const placeholderPng = resourcePlaceholder()
-  const iconDeps = realIconDeps(placeholderPng, cacheDir, realFetchUrl)
-
-  const logoResolver = (g: { slug: string; appImagePath?: string; siblingLogo?: string; logoUrl?: string; gameUrl?: string }) =>
-    resolveIcon(g, cacheDir, iconDeps)
-
-  const heroResolver = (g: { heroUrl?: string; gameUrl?: string }) =>
-    resolveHero(g, iconDeps)
-
+  const { logoResolver, heroResolver } = artResolvers(cacheDir)
   const games = await scanGames(gamesDir, logoResolver, heroResolver)
   const rewritten = games.map(rewriteGame)
 
@@ -125,6 +117,30 @@ export async function buildGamesList(
       return { ...game, url: localUrlFor(localPort), localSite: true, localRoot }
     }),
   )
+}
+
+function artResolvers(cacheDir: string): { logoResolver: LogoResolver; heroResolver: HeroResolver } {
+  const iconDeps = realIconDeps(resourcePlaceholder(), cacheDir, realFetchUrl)
+  return {
+    logoResolver: g => resolveIcon(g, cacheDir, iconDeps),
+    heroResolver: g => resolveHero(g, iconDeps),
+  }
+}
+
+/**
+ * Build a tile for an installed desktop game from a bundled manifest, resolving
+ * its art exactly as a scanned games folder would.
+ */
+export async function buildLinkedGame(
+  slug: string,
+  manifest: Record<string, unknown>,
+  executable: string | undefined,
+  cacheDir: string,
+): Promise<Game> {
+  const { logoResolver, heroResolver } = artResolvers(cacheDir)
+  const launch = { kind: 'appimage' as const, exec: executable ?? '' }
+  const directory = executable ? dirname(executable) : cacheDir
+  return rewriteGame(await buildGame(slug, directory, launch, manifest, logoResolver, heroResolver, undefined))
 }
 
 /**

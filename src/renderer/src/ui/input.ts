@@ -147,7 +147,7 @@ export class InputController {
   private onKeyDown = (e: KeyboardEvent): void => {
     // Let the global admin shortcuts (Ctrl+Q, F5) pass through untouched.
     if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && (e.key === 'q' || e.key === 'Q'))) return
-    if (e.target instanceof Element && e.target.closest('.arcade-player-open,.player-pairing')) return
+    if (e.target instanceof Element && e.target.closest('.arcade-player-open,.arcade-games-open,.player-pairing')) return
     if (isEditableTarget(e.target)) {
       this.handlers.onActivity?.()
       return
@@ -159,10 +159,14 @@ export class InputController {
       case 'P':
         this.handlers.onPairPlayer?.()
         break
+      // Up/Down match the gamepad's vertical d-pad, which already steps the
+      // same way, so list panels such as Games Settings work from a keyboard.
       case 'ArrowLeft':
+      case 'ArrowUp':
         this.handlers.onPrev()
         break
       case 'ArrowRight':
+      case 'ArrowDown':
         this.handlers.onNext()
         break
       case 'Enter':

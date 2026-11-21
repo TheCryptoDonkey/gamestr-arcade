@@ -406,15 +406,17 @@ export class Carousel {
     this.ribbonEl.hidden = !downloadOnly
     const unavailable = game.available === false
     this.ctaEl.disabled = unavailable
-    const action = game.cabinetInstall === 'available' ? 'Install' : downloadOnly ? 'Download' : 'Play'
+    const action = game.cabinetInstall === 'available' ? 'Install' : game.desktopLink ? 'Set up' : downloadOnly ? 'Download' : 'Play'
     this.ctaEl.setAttribute('aria-label', unavailable ? `${game.name} is unavailable` : `${action} ${game.name}`)
     this.ctaTextEl.innerHTML = unavailable
       ? 'NOT&nbsp;AVAILABLE&nbsp;ON&nbsp;THIS&nbsp;CABINET'
       : downloadOnly
         ? 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;TO&nbsp;DOWNLOAD'
         : game.cabinetInstall === 'available'
-          ? 'INSTALL&nbsp;ON&nbsp;THIS&nbsp;ARCADE'
-          : 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;FOR&nbsp;DETAILS'
+          ? 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;TO&nbsp;INSTALL'
+          : game.desktopLink
+            ? 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;TO&nbsp;SET&nbsp;UP'
+            : 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;FOR&nbsp;DETAILS'
 
     this.renderLogo(game)
     this.nameEl.textContent = game.name
@@ -549,12 +551,16 @@ export class Carousel {
       cap.textContent = game.name
       tile.appendChild(cap)
 
-      // LOCAL badge - shown when the game is served from the local mirror server.
-      if (game.localSite) {
+      // Corner chip: what pressing play does first for games that need setting
+      // up, otherwise LOCAL when the game is served from the local mirror server.
+      const chip = game.cabinetInstall === 'available' ? ['INSTALL', 'ready to install on this arcade']
+        : game.desktopLink ? ['SET UP', 'installed game not found yet']
+          : game.localSite ? ['LOCAL', 'served from local mirror'] : undefined
+      if (chip) {
         const badge = document.createElement('span')
         badge.className = 'tile-local-badge'
-        badge.textContent = 'LOCAL'
-        badge.setAttribute('aria-label', 'served from local mirror')
+        badge.textContent = chip[0]
+        badge.setAttribute('aria-label', chip[1])
         tile.appendChild(badge)
       }
 

@@ -61,16 +61,25 @@ allow it to run as a program, then open it as the user who will run the cabinet.
 
 ### Install Pallasite and Neon Sentinel
 
-The Windows and Linux builds include offline copies of both games. Press **G**
-to open **Games Settings**, then choose **Install Pallasite for offline play**
-or **Install Neon Sentinel for offline play**. You can also select the game in
-the carousel and choose **Install on this arcade**. Choose **Play** when the
-copy completes. The install stays available after restarting the arcade.
+The Windows and Linux builds include offline copies of both games. Their tiles
+show **INSTALL** until installed. Select the tile and press **Enter** or **Ⓐ**
+twice: once to open it, once to install. Choose **Start game** when the copy
+completes. The install stays available after restarting the arcade.
+
+You can also choose **Install games (G)** at the bottom left, or press **G**, to
+open **Games Settings**. Use the arrow keys or the d-pad to highlight **Install
+Pallasite for offline play** or **Install Neon Sentinel for offline play**, then
+press **Enter** or **Ⓐ**. A mouse is not needed.
+
+In a development checkout, run `npm run build:cabinet-games` once, then start
+with `ARCADE_CABINET_GAMES_DIR=release/cabinet-games ARCADE_KIOSK=0 npm run dev`
+to get the same installs. Games Settings explains when a build has no offline
+packages.
 
 On 64-bit Windows and Linux, **Download and install Pallasite Desktop** gets
 the publisher's desktop edition and verifies the published checksum. On Windows,
-finish Pallasite Setup. If you choose a custom folder, use **Locate Pallasite.exe**
-to link the installed game. Installing the offline copy in Games Settings selects
+finish Pallasite Setup. If you choose a custom folder, use **Find Pallasite
+Desktop on this PC** to link the installed game. Installing the offline copy in Games Settings selects
 that copy again.
 
 The cabinet keeps the installed files under `cabinet-games/` in its Electron
@@ -88,12 +97,22 @@ resume. Check both games with the actual controllers before the event using the
 ### Add BTC: Proof of Play to a Windows cabinet
 
 Install the [publisher's Windows game](https://btcproofofplay.itch.io/btcproofofplay#download)
-and finish downloading the Unity client. In Gamestr Arcade, press **G**, then
-choose **Locate BTC Proof of Play.exe**. Select the actual game executable in
-the folder containing `BTC Proof of Play_Data` and `UnityPlayer.dll`.
+and finish downloading the Unity client. Gamestr Arcade on Windows always shows
+a **BTC: Proof of Play** tile. It links itself when the client is in a usual
+install folder (`%LOCALAPPDATA%`, `Program Files`, itch's `apps` folder,
+Desktop, Downloads, Documents or Games).
 
-Open the new **BTC: Proof of Play** tile and choose **Start game**. Play with
-keyboard and mouse. Use the game's **Quit** command to return to the arcade.
+Otherwise the tile shows **SET UP**. Open it and choose **Find installed game**.
+If the arcade still cannot find the client, it asks you to choose
+`BTC Proof of Play.exe`. Choosing the publisher's launcher or installer is fine:
+the arcade looks for the real client beside it. The real client sits in the
+folder that also contains `BTC Proof of Play_Data` and `UnityPlayer.dll`.
+
+Do not add BTC: Proof of Play with **ADD** in the gamestr catalogue. That entry
+opens the itch.io download page, and the Windows tile replaces it.
+
+Choose **Start game**, play with keyboard and mouse, and use the game's **Quit**
+command to return to the arcade.
 
 ### Add BTC: Proof of Play to a Linux cabinet
 
@@ -108,8 +127,11 @@ node scripts/package-btc-proof-of-play.mjs release/btc-proof-of-play/games \
   "/path/to/extracted game directory" btcproofofplay.x86_64
 ```
 
-On an existing cabinet, copy the generated `btc-proof-of-play` folder into the
-configured games directory and press **F5** to rescan.
+The script bundles the publisher's logo and hero art into the tile when the
+machine is online. Its metadata comes from `resources/btc-proof-of-play.game.json`,
+which the Windows tile also uses. On an existing cabinet, copy the generated
+`btc-proof-of-play` folder into the configured games directory and press **F5**
+to rescan.
 
 #### First run on a fresh Ubuntu cabinet
 

@@ -8,6 +8,8 @@ export interface LocalGameSettings {
   canLinkWindowsGames: boolean
   pallasiteDesktopSelected: boolean
   proofOfPlayLinked: boolean
+  /** Why this arcade offers no local install actions, when it offers none. */
+  unavailableReason?: string
 }
 
 /**
@@ -82,6 +84,8 @@ export interface Game {
   localSite?: boolean   // true when url points to the local mirror server
   localRoot?: string    // absolute path to the game's site/ dir (set when localSite is true)
   cabinetInstall?: 'available' | 'installed'
+  /** Installed on this PC but not linked yet: the ready panel finds it instead of launching. */
+  desktopLink?: DesktopGameId
   // Download-only games can't be played in the kiosk (no embeddable web build).
   // They're kept in the carousel for showcase - greyed-out with a DOWNLOAD ONLY
   // ribbon - and pressing play opens a QR panel pointing at `downloadUrl` (or `url`)

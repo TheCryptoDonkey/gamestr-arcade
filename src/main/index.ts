@@ -21,7 +21,8 @@ import { finalizeEvent, generateSecretKey, getPublicKey } from 'nostr-tools/pure
 import type { SignetSession } from 'signet-login'
 import { ConferencePlayer } from '../shared/conference-player'
 import webEditions from '../../web.editions.json'
-import { buildGamesList, isPathAllowed, mediaUrlToPath, playerVisibleGames, MEDIA_SCHEME } from './games'
+import proofOfPlayManifest from '../../resources/btc-proof-of-play.game.json'
+import { buildGamesList, buildLinkedGame, isPathAllowed, mediaUrlToPath, playerVisibleGames, MEDIA_SCHEME } from './games'
 import { fetchGamestrCatalogue } from './gamestr-catalogue'
 import type { CatalogueDeps } from './gamestr-catalogue'
 import { importGameToFolder } from './gamestr-import'
@@ -735,6 +736,7 @@ app.whenReady().then(async () => {
   } catch (err) {
     console.warn(`[arcade] local server: failed to start (${String(err)}) - offline mirrors unavailable`)
   }
+  let proofOfPlayDetection: Promise<boolean> | undefined
   const readCatalogue = async (): Promise<Game[]> => {
     const scanned = await buildGamesList(gamesDir, cacheDir, localServer?.port)
     const games = cabinetGames ? await cabinetGames.addToCatalogue(scanned, localServer?.port) : scanned
@@ -756,13 +758,17 @@ app.whenReady().then(async () => {
       if (index === -1) games.push(game)
       else games[index] = game
     }
-    if (proofOfPlay) {
-      const game: Game = {
-        id: 'btc-proof-of-play', gameId: 'btc-proof-of-play', name: 'BTC: Proof of Play',
-        tagline: 'Build your deck and battle in a Bitcoin strategy card game',
-        developer: 'BTC Proof of Play', kind: 'appimage', exec: proofOfPlay, logo: '',
-        available: true, order: 10, manifestVersion: 2, inputModes: ['keyboard', 'pointer'],
-        controlHints: ['KEYBOARD + MOUSE', 'QUIT FROM THE GAME TO RETURN'],
+    // Windows players install BTC: Proof of Play themselves, so its tile is
+    // always shown there: linked to the client once found, otherwise a set-up
+    // tile. This also replaces a gamestr import that only opens the itch page.
+    proofOfPlayDetection ??= process.platform === 'win32' && !proofOfPlay
+      ? desktopGames.detectWindowsGame('btc-proof-of-play').catch(() => false)
+      : Promise.resolve(false)
+    const executable = proofOfPlay ?? (await proofOfPlayDetection ? await desktopGames.linked('btc-proof-of-play') : undefined)
+    if (executable || process.platform === 'win32') {
+      const game = await buildLinkedGame('btc-proof-of-play', proofOfPlayManifest, executable, cacheDir)
+      if (!executable) {
+        Object.assign(game, { exec: undefined, available: true, availabilityReason: undefined, desktopLink: 'btc-proof-of-play' })
       }
       const index = games.findIndex(existing => existing.id === game.id)
       if (index === -1) games.push(game)
@@ -827,6 +833,9 @@ app.whenReady().then(async () => {
       bundled, canDownloadPallasite: desktopGames.canDownloadPallasite(),
       canLinkWindowsGames: process.platform === 'win32',
       pallasiteDesktopSelected: Boolean(pallasite), proofOfPlayLinked: Boolean(proofOfPlay),
+      unavailableReason: bundled.length ? undefined : app.isPackaged
+        ? 'This arcade build has no offline game packages.'
+        : 'Offline Pallasite and Neon Sentinel ship in the Windows and Linux installers. For development, run npm run build:cabinet-games, then start with ARCADE_CABINET_GAMES_DIR=release/cabinet-games.',
     }
   })
   ipcMain.handle('game:download-pallasite', async event => {
@@ -841,6 +850,12 @@ app.whenReady().then(async () => {
       throw new Error('This installed game cannot be linked.')
     }
     const gameId: DesktopGameId = id
+    // Look in the usual install folders first, so a keyboard or gamepad player
+    // only meets the file picker when the game lives somewhere unusual.
+    if (!await desktopGames.linked(gameId) && await desktopGames.detectWindowsGame(gameId)) {
+      cachedGames = await readCatalogue()
+      return cachedGames
+    }
     const executable = gameId === 'pallasite' ? 'Pallasite.exe' : 'BTC Proof of Play.exe'
     const selection = await dialog.showOpenDialog(win, {
       title: `Locate ${executable}`, properties: ['openFile'],
@@ -954,6 +969,10 @@ app.whenReady().then(async () => {
     if (!game) {
       console.error(`[arcade] game:launch - unknown id "${id}"`)
       win?.webContents.send('game:error', `Unknown game id: ${id}`)
+      return
+    }
+    if (game.desktopLink) {
+      win?.webContents.send('game:error', `Find ${game.name} on this PC before playing.`)
       return
     }
     console.log(`[arcade] launching "${game.name}" (${game.kind})`)

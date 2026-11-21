@@ -126,6 +126,67 @@ describe('GamesPanel accessibility', () => {
   })
 })
 
+describe('GamesPanel keyboard navigation', () => {
+  beforeEach(() => { document.body.innerHTML = '' })
+
+  it('reaches the local install actions and the catalogue with the arrow and Enter routes', async () => {
+    const install = vi.fn().mockResolvedValue(undefined)
+    const gamestrImport = vi.fn().mockResolvedValue({ ok: false, error: 'offline' })
+    Object.defineProperty(window, 'arcade', {
+      configurable: true,
+      value: {
+        localGames: vi.fn().mockImplementation(() => new Promise(resolve => setTimeout(() => resolve({
+          bundled: [{ id: 'pallasite', name: 'Pallasite', installed: false }],
+          canDownloadPallasite: false, canLinkWindowsGames: false,
+          pallasiteDesktopSelected: false, proofOfPlayLinked: false,
+        }), 20))),
+        install,
+        listGames: vi.fn().mockResolvedValue([]),
+        gamestrImport,
+        gamestrCatalogue: vi.fn().mockResolvedValue({
+          entries: [{ slug: 'blockstr', name: 'Blockstr', url: 'https://blockstr.example/', genres: [] }],
+          source: 'cache', fetchedAt: 0,
+        }),
+      } as unknown as Window['arcade'],
+    })
+    const { host } = shell()
+    const panel = new GamesPanel(host, { enableLocalGames: true, getInstalledIds: () => [], relays: () => [], onAdded: vi.fn() })
+
+    panel.open()
+    // The catalogue usually arrives first; the install action must still take the highlight.
+    await vi.waitFor(() => expect(host.querySelectorAll('.gp-add').length).toBe(2))
+    const local = host.querySelector('.gp-local-actions .gp-add') as HTMLButtonElement
+    expect(local.textContent).toBe('Install Pallasite for offline play')
+    expect(local.classList.contains('gp-selected')).toBe(true)
+
+    panel.activateSelected()
+    await vi.waitFor(() => expect(install).toHaveBeenCalledWith('pallasite'))
+
+    panel.moveSelection(1)
+    expect(host.querySelector('.gp-row[data-slug="blockstr"]')?.classList.contains('gp-row-selected')).toBe(true)
+    panel.activateSelected()
+    await vi.waitFor(() => expect(gamestrImport).toHaveBeenCalledWith('blockstr'))
+  })
+
+  it('explains why no local install is offered', async () => {
+    Object.defineProperty(window, 'arcade', {
+      configurable: true,
+      value: {
+        localGames: vi.fn().mockResolvedValue({
+          bundled: [], canDownloadPallasite: false, canLinkWindowsGames: false,
+          pallasiteDesktopSelected: false, proofOfPlayLinked: false,
+          unavailableReason: 'This arcade build has no offline game packages.',
+        }),
+        gamestrCatalogue: vi.fn().mockResolvedValue({ entries: [], source: 'cache', fetchedAt: 0 }),
+      } as unknown as Window['arcade'],
+    })
+    const { host } = shell()
+    new GamesPanel(host, { enableLocalGames: true, getInstalledIds: () => [], relays: () => [], onAdded: vi.fn() }).open()
+    await vi.waitFor(() => expect(host.querySelector('.gp-local-status')?.textContent).toBe('This arcade build has no offline game packages.'))
+    expect((host.querySelector('.gp-local') as HTMLElement).hidden).toBe(false)
+  })
+})
+
 describe('DownloadPanel accessibility', () => {
   beforeEach(() => { document.body.innerHTML = '' })
 

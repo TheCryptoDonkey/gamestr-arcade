@@ -161,7 +161,7 @@ export async function scanGames(
     // Loose top-level *.AppImage → native game, slug from filename.
     if (!windows && info.isFile() && APPIMAGE_RE.test(entry)) {
       const slug = entry.replace(APPIMAGE_RE, '')
-      games.push(await build(slug, gamesDir, { kind: 'appimage', exec: full }, null, resolveLogo, resolveHero, undefined))
+      games.push(await buildGame(slug, gamesDir, { kind: 'appimage', exec: full }, null, resolveLogo, resolveHero, undefined))
       continue
     }
     if (!info.isDirectory()) continue
@@ -175,21 +175,21 @@ export async function scanGames(
       ? isAbsolute(exec) ? exec : join(full, exec)
       : undefined
     if (appImage) {
-      games.push(await build(entry, full, { kind: 'appimage', exec: appImage }, meta, resolveLogo, resolveHero, appImage))
+      games.push(await buildGame(entry, full, { kind: 'appimage', exec: appImage }, meta, resolveLogo, resolveHero, appImage))
     } else if (execPath && await exists(execPath)) {
-      games.push(await build(entry, full, { kind: 'appimage', exec: execPath }, meta, resolveLogo, resolveHero, execPath))
+      games.push(await buildGame(entry, full, { kind: 'appimage', exec: execPath }, meta, resolveLogo, resolveHero, execPath))
     } else if (meta?.url) {
-      games.push(await build(entry, full, { kind: 'web', url: meta.url }, meta, resolveLogo, resolveHero, undefined))
+      games.push(await buildGame(entry, full, { kind: 'web', url: meta.url }, meta, resolveLogo, resolveHero, undefined))
     } else if (execPath) {
       // Keep exec-only manifests visible so operators get a concrete readiness
       // diagnosis instead of a silently missing catalogue tile.
-      games.push(await build(entry, full, { kind: 'appimage', exec: execPath }, meta, resolveLogo, resolveHero, execPath))
+      games.push(await buildGame(entry, full, { kind: 'appimage', exec: execPath }, meta, resolveLogo, resolveHero, execPath))
     } // else: neither AppImage, exec, nor url → skip (empty/placeholder folder)
   }
   return games.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
 }
 
-async function build(
+export async function buildGame(
   slug: string, dir: string,
   launch: { kind: 'appimage'; exec: string } | { kind: 'web'; url: string },
   meta: Record<string, any> | null,

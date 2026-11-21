@@ -150,7 +150,7 @@ try {
   if (process.arch === 'x64' && (process.platform === 'linux' || process.platform === 'win32')) {
     await settings.getByRole('button', { name: 'Download and install Pallasite Desktop' }).waitFor()
   }
-  if (process.platform === 'win32') await settings.getByRole('button', { name: 'Locate BTC Proof of Play.exe' }).waitFor()
+  if (process.platform === 'win32') await settings.getByRole('button', { name: 'Find BTC Proof of Play on this PC' }).waitFor()
   await activate(settings.getByRole('button', { name: 'Install Pallasite for offline play' }))
   await shell.getByRole('button', { name: 'Play Pallasite', exact: true }).waitFor()
   console.log('PASS: Pallasite installs from Games Settings.')
@@ -207,7 +207,9 @@ try {
   app = undefined
   const afterRestart = await openArcade()
   const games = await afterRestart.evaluate(() => window.arcade.listGames())
-  assert.deepEqual(games.map(game => [game.id, game.cabinetInstall]), tiles.map(([id]) => [id, 'installed']))
+  // Windows also lists the BTC: Proof of Play set-up tile; only the bundled games are checked here.
+  const bundled = games.filter(game => tiles.some(([id]) => id === game.id))
+  assert.deepEqual(bundled.map(game => [game.id, game.cabinetInstall]), tiles.map(([id]) => [id, 'installed']))
   console.log('PASS: both tiles remain installed after restarting the cabinet.')
 } finally {
   if (app) await app.close()

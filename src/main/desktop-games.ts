@@ -1,22 +1,22 @@
 import { createHash } from 'node:crypto'
 import { createWriteStream } from 'node:fs'
-import { mkdir, mkdtemp, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, join } from 'node:path'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import type { DesktopGameId } from '../shared/types'
 
-const RELEASE = 'https://github.com/TheCryptoDonkey/pallasite-releases/releases/download/v0.1.2'
+const RELEASE = 'https://github.com/TheCryptoDonkey/pallasite-releases/releases/download/v0.1.4'
 const ASSETS = {
   linux: {
     name: 'Pallasite-linux-x86_64.AppImage',
-    size: 393601289,
-    sha256: '76ecabe92fcf46abc238f6b40209db8e0c4dac75ec0a790a642967fc23cb8bb4',
+    size: 408079273,
+    sha256: '57adf116a15f7539a4f5c9c42b47512d332a3080179f19efe0e67d9b5b113fc6',
   },
   win32: {
     name: 'Pallasite-win-x64.exe',
-    size: 366292880,
-    sha256: '53bedbb2cf45a1df1407d7d936226d4a13f89a5ac65612c6646f12cacf6bf65d',
+    size: 379301043,
+    sha256: '3ca7b02b1a7da07e7708cabf098e7558c1332094b49ad6de09bc54287f4359b2',
   },
 }
 
@@ -36,6 +36,61 @@ export async function isWindowsGame(id: DesktopGameId, executable: string): Prom
   if (id === 'pallasite') return fileExists(join(directory, 'resources', 'dist', 'index.html'))
   const data = await stat(join(directory, 'BTC Proof of Play_Data')).catch(() => null)
   return !!data?.isDirectory() && await fileExists(join(directory, 'UnityPlayer.dll'))
+}
+
+const INSTALL_FOLDER = {
+  pallasite: /pallasite/i,
+  'btc-proof-of-play': /proof.?of.?play|btc.?pop/i,
+}
+
+export interface SearchRoot {
+  path: string
+  /** Search every child folder instead of only folders named after the game. */
+  anyName?: boolean
+}
+
+/** Places publishers, itch and players commonly install Windows games. */
+export function windowsSearchRoots(env: NodeJS.ProcessEnv): SearchRoot[] {
+  const paths = [
+    env.LOCALAPPDATA, env.LOCALAPPDATA && join(env.LOCALAPPDATA, 'Programs'),
+    env.APPDATA, env.APPDATA && join(env.APPDATA, 'itch', 'apps'),
+    env.ProgramFiles, env['ProgramFiles(x86)'],
+    env.USERPROFILE && join(env.USERPROFILE, 'Desktop'), env.USERPROFILE && join(env.USERPROFILE, 'Downloads'),
+    env.USERPROFILE && join(env.USERPROFILE, 'Documents'), env.USERPROFILE && join(env.USERPROFILE, 'Games'),
+    env.SystemDrive && join(env.SystemDrive + '\\', 'Games'),
+  ]
+  return [...new Set(paths.filter((path): path is string => !!path))].map(path => ({ path }))
+}
+
+/**
+ * Find an installed game client below the given roots. Launchers often install
+ * themselves beside the real client, so this checks the folder layout as well
+ * as the executable name. The walk is bounded so a large drive cannot stall it.
+ */
+export async function findInstalledGame(
+  id: DesktopGameId,
+  roots: SearchRoot[],
+  check: (id: DesktopGameId, executable: string) => Promise<boolean> = isWindowsGame,
+): Promise<string | undefined> {
+  const directories = async (path: string) =>
+    (await readdir(path, { withFileTypes: true }).catch(() => [])).filter(entry => entry.isDirectory())
+  for (const root of roots) {
+    const queue = (await directories(root.path))
+      .filter(entry => root.anyName || INSTALL_FOLDER[id].test(entry.name))
+      .map(entry => ({ path: join(root.path, entry.name), depth: 1 }))
+    if (root.anyName) queue.unshift({ path: root.path, depth: 0 })
+    for (let visited = 0; queue.length && visited < 400; visited++) {
+      const { path, depth } = queue.shift()!
+      const executable = join(path, WINDOWS_EXE[id])
+      if (await check(id, executable)) return executable
+      if (depth >= 5) continue
+      for (const entry of await directories(path)) {
+        // Unity data folders hold thousands of assets and never the client.
+        if (!/_Data$/i.test(entry.name)) queue.push({ path: join(path, entry.name), depth: depth + 1 })
+      }
+    }
+  }
+  return undefined
 }
 
 export async function writeVerifiedDownload(
@@ -85,9 +140,25 @@ export class DesktopGames {
       ? executable : undefined
   }
 
-  async linkWindowsGame(id: DesktopGameId, executable: string): Promise<void> {
-    if (process.platform !== 'win32' || !await isWindowsGame(id, executable)) {
-      throw new Error('Select ' + WINDOWS_EXE[id] + ' in its installed game folder.')
+  /** Link an installed client found in the usual install folders. */
+  async detectWindowsGame(id: DesktopGameId, env: NodeJS.ProcessEnv = process.env): Promise<boolean> {
+    if (process.platform !== 'win32') return false
+    const executable = await findInstalledGame(id, windowsSearchRoots(env))
+    if (!executable) return false
+    await this.saveLink(id, executable)
+    return true
+  }
+
+  async linkWindowsGame(id: DesktopGameId, selected: string): Promise<void> {
+    if (process.platform !== 'win32') throw new Error('Linking an installed game requires Windows.')
+    // A launcher or installer is often selected by mistake. Look for the real
+    // client beside it before asking the player to choose again.
+    const executable = await isWindowsGame(id, selected)
+      ? selected
+      : await findInstalledGame(id, [{ path: dirname(selected), anyName: true }])
+    if (!executable) {
+      const data = id === 'pallasite' ? 'resources' : 'BTC Proof of Play_Data and UnityPlayer.dll'
+      throw new Error('That is not the game itself. Choose ' + WINDOWS_EXE[id] + ' in the folder that also contains ' + data + '.')
     }
     await this.saveLink(id, executable)
   }
@@ -143,7 +214,7 @@ export class DesktopGames {
             return
           }
         }
-        throw new Error('Use Locate Pallasite.exe if you installed Pallasite in a different folder.')
+        throw new Error('Use Find Pallasite Desktop on this PC if you installed Pallasite in a different folder.')
       }
     } finally {
       await rm(staging, { recursive: true, force: true })
