@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { _electron as electron } from 'playwright'
+import { playHangOnFren } from './play-hang-on-fren.mjs'
 import { playPallasiteBooth } from './play-pallasite-booth.mjs'
 
 const args = process.argv.slice(2)
@@ -12,7 +13,7 @@ const artifactPath = args.find(arg => !arg.startsWith('--'))
 const artifact = artifactPath ? resolve(artifactPath) : undefined
 const scratch = await mkdtemp(join(tmpdir(), 'gamestr-installed-games-'))
 const profile = join(scratch, 'profile')
-const tiles = [['pallasite', 'Pallasite'], ['neon-sentinel', 'Neon Sentinel']]
+const tiles = [['pallasite', 'Pallasite'], ['neon-sentinel', 'Neon Sentinel'], ['hang-on-fren', 'Hang On, Fren']]
 let app
 
 async function openArcade() {
@@ -56,6 +57,25 @@ async function activate(button) {
   }
 }
 
+async function tapMenuPad(shell, { buttons = [], hat } = {}) {
+  await shell.evaluate(async ({ buttons, hat }) => {
+    const pad = {
+      id: 'Xbox Test Controller', index: 0, connected: true,
+      mapping: hat ? '' : 'standard',
+      axes: hat ? [0, 0, 0, 0, 0, 0, ...hat] : [0, 0, 0, 0],
+      buttons: Array.from({ length: hat ? 11 : 17 }, (_, index) => ({
+        pressed: buttons.includes(index), touched: buttons.includes(index), value: Number(buttons.includes(index)),
+      })),
+    }
+    Object.defineProperty(navigator, 'getGamepads', { configurable: true, value: () => [pad] })
+    const sample = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    await sample()
+    pad.axes.fill(0)
+    pad.buttons = pad.buttons.map(() => ({ pressed: false, touched: false, value: 0 }))
+    await sample()
+  }, { buttons, hat })
+}
+
 async function setTestController(game, { connected = true, pressA = false }) {
   await app.evaluate(async ({ webContents }, { url, connected, pressA }) => {
     const view = webContents.getAllWebContents().find(contents => contents.getURL() === url)
@@ -64,7 +84,7 @@ async function setTestController(game, { connected = true, pressA = false }) {
       Object.defineProperty(navigator, 'getGamepads', {
         configurable: true,
         value: () => [${JSON.stringify(connected ? {
-          index: 0, id: 'Xbox Test Controller', timestamp: 0,
+          index: 0, id: 'Xbox Test Controller', timestamp: 1,
           connected, mapping: 'standard', axes: [0, 0, 0, 0],
           buttons: Array.from({ length: 17 }, (_, index) => {
             const pressed = pressA && index === 0
@@ -81,6 +101,8 @@ async function checkPlayable(game, id) {
   await game.waitForFunction(() => document.hasFocus(), undefined, { polling: 100 })
   if (id === 'pallasite') {
     await playPallasiteBooth(game, activate)
+  } else if (id === 'hang-on-fren') {
+    await playHangOnFren(game)
   } else {
     await game.locator('body[data-neon-phase="title"]').waitFor()
     await game.waitForFunction(() => document.hasFocus() && document.visibilityState === 'visible', undefined, { polling: 100 })
@@ -106,9 +128,11 @@ async function checkPlayable(game, id) {
   await setTestController(game, { connected: false })
   const notice = game.getByText(/Controller disconnected/, { exact: false })
   await notice.waitFor()
-  const paused = id === 'pallasite'
-    ? game.getByRole('heading', { name: 'PAUSED', exact: true })
-    : game.locator('body[data-neon-phase="paused"]')
+  const paused = {
+    pallasite: game.getByRole('heading', { name: 'PAUSED', exact: true }),
+    'neon-sentinel': game.locator('body[data-neon-phase="paused"]'),
+    'hang-on-fren': game.locator('body[data-phase="playing"][data-paused="1"]'),
+  }[id]
   await paused.waitFor()
   await setTestController(game, {})
   await game.waitForFunction(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(true)))))
@@ -116,6 +140,13 @@ async function checkPlayable(game, id) {
   await notice.waitFor({ state: 'detached' })
   assert.equal(await game.evaluate(() => navigator.getGamepads()[0]?.buttons[0].pressed), false)
   await paused.waitFor()
+  if (id === 'hang-on-fren') {
+    await setTestController(game, {})
+    await game.waitForFunction(() => navigator.getGamepads()[0]?.timestamp === 1)
+    await setTestController(game, { pressA: true })
+    await paused.waitFor({ state: 'detached' })
+    await game.locator('body[data-phase="playing"]').waitFor()
+  }
 }
 
 try {
@@ -152,16 +183,33 @@ try {
     assert(restored, 'Kiosk mode should recover fullscreen after a window transition.')
     console.log('PASS: the cabinet restores fullscreen automatically in kiosk mode.')
   }
+  await shell.keyboard.press('Enter')
+  const ready = shell.getByRole('dialog', { name: 'Pallasite', exact: true })
+  await ready.locator('.ready-start:focus').waitFor()
+  await shell.keyboard.press('Shift+Tab')
+  await ready.locator('.ready-cancel:focus').waitFor()
+  await shell.keyboard.press('Enter')
+  await ready.waitFor({ state: 'hidden' })
+  await shell.getByRole('button', { name: 'Install Pallasite', exact: true }).waitFor()
+  console.log('PASS: pressing Enter with Back focused closes the game details without installing.')
+
   await shell.keyboard.press('g')
   const settings = shell.getByRole('dialog', { name: 'GAMES SETTINGS' })
+  await settings.waitFor()
+  await shell.keyboard.press('Escape')
+  await settings.waitFor({ state: 'hidden' })
+  await tapMenuPad(shell, { buttons: [2] })
+  await settings.waitFor()
   if (process.arch === 'x64' && (process.platform === 'linux' || process.platform === 'win32')) {
     await settings.getByRole('button', { name: 'Download and install Pallasite Desktop' }).waitFor()
   }
   if (process.platform === 'win32') await settings.getByRole('button', { name: 'Find BTC Proof of Play on this PC' }).waitFor()
-  const installPallasite = settings.getByRole('button', { name: 'Install Pallasite for offline play', exact: true })
   await settings.locator('.gp-selected').filter({ hasText: 'Install Pallasite for offline play' }).waitFor()
-  if (process.platform === 'win32') await activate(installPallasite)
-  else await settings.press('Enter')
+  await tapMenuPad(shell, { hat: [0, 1] })
+  await settings.locator('.gp-selected:focus').filter({ hasText: 'Install Neon Sentinel for offline play' }).waitFor()
+  await tapMenuPad(shell, { hat: [0, -1] })
+  await settings.locator('.gp-selected:focus').filter({ hasText: 'Install Pallasite for offline play' }).waitFor()
+  await tapMenuPad(shell, { buttons: [0], hat: [0, 0] })
   try {
     await settings.waitFor({ state: 'hidden' })
   } catch (error) {
@@ -169,9 +217,11 @@ try {
     throw error
   }
   await shell.getByRole('button', { name: 'Play Pallasite', exact: true }).waitFor()
-  console.log('PASS: Pallasite installs from Games Settings.')
-  for (const [index, [id, name]] of tiles.entries()) {
-    if (index) await shell.keyboard.press('ArrowRight')
+  console.log('PASS: G and controller X open Games Settings, and a Linux HAT controller can select and install Pallasite.')
+  for (const [id, name] of tiles) {
+    if (id !== 'pallasite') {
+      await activate(shell.locator('button.dot').and(shell.getByRole('button', { name: `Select ${name}`, exact: true })))
+    }
     if (id === 'pallasite') {
       await activate(shell.getByRole('button', { name: 'Play Pallasite', exact: true }))
     } else {
@@ -234,7 +284,7 @@ try {
   // The Windows catalogue also lists the downloadable BTC: Proof of Play pack.
   const bundled = games.filter(game => tiles.some(([id]) => id === game.id))
   assert.deepEqual(bundled.map(game => [game.id, game.cabinetInstall]), tiles.map(([id]) => [id, 'installed']))
-  console.log('PASS: both tiles remain installed after restarting the cabinet.')
+  console.log('PASS: the games remain installed after restarting the cabinet.')
 } finally {
   if (app) await app.close()
   await rm(scratch, { recursive: true, force: true })

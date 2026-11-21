@@ -846,7 +846,7 @@ app.whenReady().then(async () => {
       proofOfPlayPack: proofOfPlayPack ? 'installed' : desktopGames.canDownloadProofOfPlay() ? 'available' : undefined,
       unavailableReason: bundled.length ? undefined : app.isPackaged
         ? 'This arcade build has no offline game packages.'
-        : 'Offline Pallasite and Neon Sentinel ship in the Windows and Linux installers. For development, run npm run build:cabinet-games, then start with ARCADE_CABINET_GAMES_DIR=release/cabinet-games.',
+        : 'Offline game packages ship in the Windows and Linux installers. For development, run npm run build:cabinet-games, then start with ARCADE_CABINET_GAMES_DIR=release/cabinet-games.',
     }
   })
   ipcMain.handle('game:download-pallasite', async event => {

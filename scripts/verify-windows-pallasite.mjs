@@ -4,6 +4,7 @@ import { lstat, readFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { _electron as electron } from 'playwright'
+import { playHangOnFren } from './play-hang-on-fren.mjs'
 import { playPallasiteBooth } from './play-pallasite-booth.mjs'
 
 assert.equal(process.platform, 'win32')
@@ -83,8 +84,8 @@ async function installFromSettings(page, label, id = 'pallasite') {
 }
 
 async function selectGame(page, name) {
-  const select = page.locator('button.tile').and(page.getByRole('button', { name: 'Select ' + name, exact: true }))
-  if (await select.count()) await click(select)
+  const select = page.locator('button.dot').and(page.getByRole('button', { name: 'Select ' + name, exact: true }))
+  await click(select)
 }
 
 async function openOfflineGame(app, page, name, site) {
@@ -139,6 +140,16 @@ async function checkOffline() {
     await playing.waitFor()
     await returnFromOfflineGame(page, neonGame)
     console.log('Neon Sentinel started an offline run and returned to the menu.')
+
+    const fren = await installFromSettings(page, 'Install Hang On, Fren for offline play', 'hang-on-fren')
+    assert.equal(fren?.cabinetInstall, 'installed')
+    assert.equal(fren.network, 'offline')
+    const frenSite = join(profile, 'cabinet-games', 'hang-on-fren', 'site')
+    assert.equal(fren.localRoot, frenSite)
+    const frenGame = await openOfflineGame(app, page, 'Hang On, Fren', frenSite)
+    await playHangOnFren(frenGame)
+    await returnFromOfflineGame(page, frenGame)
+    console.log('Hang On, Fren started an offline ride and returned to the menu.')
   } finally {
     await app.close()
   }
@@ -147,7 +158,8 @@ async function checkOffline() {
     const games = await restarted.page.evaluate(() => window.arcade.listGames())
     assert.equal(games.find(game => game.id === 'pallasite')?.cabinetInstall, 'installed')
     assert.equal(games.find(game => game.id === 'neon-sentinel')?.cabinetInstall, 'installed')
-    console.log('Both offline games stayed installed after restart.')
+    assert.equal(games.find(game => game.id === 'hang-on-fren')?.cabinetInstall, 'installed')
+    console.log('The offline games stayed installed after restart.')
   } finally {
     await restarted.app.close()
   }

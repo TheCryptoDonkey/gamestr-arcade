@@ -19,6 +19,12 @@ const sources = [
     revision: '120b5adc449b1eea2b45cf9e8bc4e1e277586954',
     icon: 'brand/icon-512.png',
   },
+  {
+    id: 'hang-on-fren',
+    repository: 'hang-on-fren-public',
+    revision: '41e63a8717db19fc1e54aad772a3baabab3dbc7d',
+    icon: 'icons/icon-512.png',
+  },
 ]
 
 function run(cwd, command, args, env = process.env) {
@@ -36,7 +42,7 @@ function replaceOnce(source, anchor, replacement) {
   return source.replace(anchor, replacement)
 }
 
-async function addPauseHook(directory, id) {
+async function patchCabinetClient(directory, id) {
   const main = join(directory, 'src', 'main.ts')
   let source = await readFile(main, 'utf8')
   if (id === 'pallasite') {
@@ -44,9 +50,27 @@ async function addPauseHook(directory, id) {
       '// Release keys and pause after losing focus or cabinet input.\nconst pauseForInputLoss = () => {')
     source = replaceOnce(source, '});\n\n// Two-tier silence:',
       "}\nwindow.addEventListener('blur', pauseForInputLoss);\nwindow.addEventListener('gamestr:controller-lost', pauseForInputLoss);\n\n// Two-tier silence:")
-  } else {
+  } else if (id === 'neon-sentinel') {
     source = replaceOnce(source, 'function resumeRun(): void {',
       "window.addEventListener('gamestr:controller-lost', pauseRun);\n\nfunction resumeRun(): void {")
+  } else if (id === 'hang-on-fren') {
+    // Reuse the publisher's guest-only adapters with the regular web assets.
+    source = replaceOnce(source, "from './nostr.js';", "from './napplet/nostr.js';")
+    source = replaceOnce(source, "from './bitcoin.js';", "from './napplet/bitcoin.js';")
+    source = replaceOnce(source, "if (state.phase === 'title' && shouldAskV4v()) {",
+      "if (!NAPPLET && state.phase === 'title' && shouldAskV4v()) {")
+    source = replaceOnce(source, "if (state.phase === 'playing') state.paused = true;\n}\nwindow.addEventListener('blur', onFocusLost);",
+      "if (state.phase === 'playing') setPaused(true);\n}\nwindow.addEventListener('blur', onFocusLost);\nwindow.addEventListener('gamestr:controller-lost', onFocusLost);")
+    // Arcade uses Escape to return to the game list.
+    source = replaceOnce(source, "if (k === 'escape') {\n      setPaused(!state.paused);",
+      "if (k === 'p' || (state.paused && k === 'enter')) {\n      setPaused(!state.paused);")
+    source = replaceOnce(source, "} else if (state.phase === 'gameover' && menuEdge && !state.qualifies) {",
+      "} else if (state.phase === 'playing' && state.paused && menuEdge) {\n    setPaused(false);\n  } else if (state.phase === 'gameover' && menuEdge && !state.qualifies) {")
+    source = replaceOnce(source, 'state.paused = on;\n  clearAllInput();',
+      'state.paused = on;\n  if (on) padPrevMenu = readGamepad().menu;\n  clearAllInput();')
+    source = replaceOnce(source, 'if (state.paused) {\n    updateEngine',
+      'if (state.paused) {\n    pollPadMenu();\n    updateEngine')
+    source = replaceOnce(source, "'ESC \u2014 RESUME'", "'ENTER / A TO RESUME'")
   }
   await writeFile(main, source)
 }
@@ -63,10 +87,10 @@ async function buildGame(work, target, { id, repository, revision, icon }) {
   run(source, 'git', ['remote', 'add', 'origin', remote])
   run(source, 'git', ['config', 'remote.origin.promisor', 'true'])
   run(source, 'git', ['config', 'remote.origin.partialclonefilter', 'blob:none'])
-  run(source, 'git', ['sparse-checkout', 'set', '--no-cone', '/*', '!/originals/'])
+  run(source, 'git', ['sparse-checkout', 'set', '--no-cone', '/*', '!/originals/', '!/art-originals/'])
   run(source, 'git', ['fetch', '--quiet', '--depth=1', '--filter=blob:none', 'origin', revision])
   run(source, 'git', ['checkout', '--quiet', '--detach', revision], { ...process.env, GIT_LFS_SKIP_SMUDGE: '1' })
-  await addPauseHook(source, id)
+  await patchCabinetClient(source, id)
   if (id === 'pallasite') {
     const pnpm = ['exec', '--yes', '--package=pnpm@9.0.0', '--', 'pnpm']
     runNpm(source, [...pnpm, 'install', '--frozen-lockfile'])
@@ -74,10 +98,13 @@ async function buildGame(work, target, { id, repository, revision, icon }) {
     // game assets. The publisher's moving-latest gate is for website releases.
     runNpm(source, [...pnpm, 'exec', 'tsc', '--noEmit'])
     runNpm(source, [...pnpm, 'exec', 'vite', 'build'], { ...process.env, GITHUB_ACTIONS: 'true', GITHUB_SHA: revision })
-  } else {
+  } else if (id === 'neon-sentinel') {
     runNpm(source, ['ci'])
     runNpm(source, ['run', 'typecheck'])
     runNpm(source, ['run', 'build:client'], { ...process.env, NEON_SOURCE_REVISION: revision })
+  } else if (id === 'hang-on-fren') {
+    runNpm(source, ['ci'])
+    runNpm(source, ['run', 'build', '--', '--mode', 'napplet'], { ...process.env, HOF_SOURCE_REVISION: revision })
   }
   await mkdir(bundled, { recursive: true })
   await cp(join(source, 'dist'), site, { recursive: true })
@@ -94,7 +121,7 @@ try {
   const staging = join(working, 'packages')
   for (const game of sources) await buildGame(working, staging, game)
   // This exact directory is generated by this script. Keep the previous build
-  // available until both replacement packages have completed successfully.
+  // available until all replacement packages have completed successfully.
   await rm(output, { recursive: true, force: true })
   await rename(staging, output)
 } finally {

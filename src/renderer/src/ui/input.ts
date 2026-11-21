@@ -1,9 +1,8 @@
 /**
  * gamestr-arcade - input layer (keyboard primary, gamepad additive).
  *
- * Translates raw keyboard and gamepad events into four high-level intents
- * (prev / next / launch / back) and dispatches them to handlers. Keeps a single
- * source of truth so keyboard and gamepad never double-fire the same action.
+ * Translates raw keyboard and gamepad events into menu intents and dispatches
+ * them to handlers. Focused controls keep their native keyboard activation.
  *
  * Reserved by the main process and deliberately NOT handled here:
  *   Ctrl+Q (quit) and F5 (reload) are registered as global shortcuts in main.
@@ -26,6 +25,7 @@ export interface InputHandlers {
   onNext(): void
   onLaunch(): void
   onBack(): void
+  onGamesSettings?(): void
   onPairPlayer?(): void
   /** Fired on ANY input (key / gamepad / pointer) - used to wake from attract. */
   onActivity?(): void
@@ -41,6 +41,7 @@ export type { Direction }
 
 /** Standard-mapping face-button indices. */
 export const BTN_A = 0 // bottom face button → launch
+const BTN_X = 2 // left face button → Games Settings
 
 /**
  * Shell "back / close" buttons. Kept aligned with web/native game exits, with B
@@ -147,14 +148,29 @@ export class InputController {
   private onKeyDown = (e: KeyboardEvent): void => {
     // Let the global admin shortcuts (Ctrl+Q, F5) pass through untouched.
     if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && (e.key === 'q' || e.key === 'Q'))) return
-    if (e.target instanceof Element && e.target.closest('.arcade-player-open,.arcade-games-open,.player-pairing')) return
+    if (e.defaultPrevented || (e.target instanceof Element && e.target.closest('dialog[open]'))) return
     if (isEditableTarget(e.target)) {
       this.handlers.onActivity?.()
       return
     }
+    if (e.key === 'Enter' || e.key === ' ') {
+      if (e.repeat) {
+        e.preventDefault()
+        return
+      }
+      if (e.target instanceof Element && e.target.closest('button, a[href], select, summary')) {
+        this.handlers.onActivity?.()
+        return
+      }
+    }
 
     let handled = true
     switch (e.key) {
+      case 'g':
+      case 'G':
+        if (!this.handlers.onGamesSettings) { handled = false; break }
+        if (!e.repeat) this.handlers.onGamesSettings()
+        break
       case 'p':
       case 'P':
         this.handlers.onPairPlayer?.()
@@ -204,18 +220,24 @@ export class InputController {
     const pads = Array.from(navigator.getGamepads?.() ?? []).filter(
       (p): p is Gamepad => p != null,
     )
-    const approvalDialog = document.querySelector<HTMLDialogElement>('.player-pairing[open]')
-    if (approvalDialog) {
+    const dialog = document.querySelector<HTMLDialogElement>('dialog[open]')
+    if (dialog) {
       // A phone controller may play games but cannot approve another phone's
       // identity. Only a local physical pad can operate this TV confirmation.
-      const local = Array.from(physicalGamepads?.() ?? []).filter((pad): pad is Gamepad => pad != null && pad.id !== 'Gamestr Joystick phone')
-      const pressed = (index: number) => local.some(pad => !!pad.buttons[index]?.pressed)
-      if (pressed(BTN_A) && !this.prevButtons[BTN_A] && document.activeElement instanceof HTMLButtonElement && approvalDialog.contains(document.activeElement)) document.activeElement.click()
-      if (BACK_BUTTON_INDICES.some(index => pressed(index) && !this.prevButtons[index])) approvalDialog.close()
-      const direction = directionFromGamepads(local)
-      if (direction && (direction !== this.heldDir || now >= this.nextRepeatAt)) {
-        const controls = [...approvalDialog.querySelectorAll<HTMLButtonElement>('button')].filter(button => !button.hidden && !button.disabled)
-        controls[(controls.indexOf(document.activeElement as HTMLButtonElement) + direction + controls.length) % controls.length]?.focus()
+      const dialogPads = dialog.matches('.player-pairing')
+        ? Array.from(physicalGamepads?.() ?? []).filter((pad): pad is Gamepad => pad != null && pad.id !== 'Gamestr Joystick phone')
+        : pads
+      const pressed = (index: number) => dialogPads.some(pad => !!pad.buttons[index]?.pressed)
+      const active = document.activeElement
+      const controls = [...dialog.querySelectorAll<HTMLElement>('button:not(:disabled), a[href]')]
+        .filter(control => !control.closest('[hidden], [inert]'))
+      if (pressed(BTN_A) && !this.prevButtons[BTN_A] && active instanceof HTMLElement && controls.includes(active)) active.click()
+      if (BACK_BUTTON_INDICES.some(index => pressed(index) && !this.prevButtons[index])) dialog.close()
+      const direction = directionFromGamepads(dialogPads)
+      if (controls.length && direction && (direction !== this.heldDir || now >= this.nextRepeatAt)) {
+        let current = controls.findIndex(control => control === active)
+        if (current === -1 && direction < 0) current = 0
+        controls[(current + direction + controls.length) % controls.length].focus()
         this.nextRepeatAt = now + (direction === this.heldDir ? REPEAT_INTERVAL_MS : REPEAT_INITIAL_MS)
       }
       this.heldDir = direction
@@ -242,8 +264,10 @@ export class InputController {
     const justPressed = (i: number): boolean => anyPressed(i) && !this.prevButtons[i]
 
     if (justPressed(3) && Array.from(physicalGamepads?.() ?? []).some(pad => pad?.buttons[3]?.pressed)) { this.handlers.onPairPlayer?.(); activity = true }
-
-    if (justPressed(BTN_A)) {
+    if (justPressed(BTN_X) && this.handlers.onGamesSettings) {
+      this.handlers.onGamesSettings()
+      activity = true
+    } else if (justPressed(BTN_A)) {
       this.handlers.onLaunch()
       activity = true
     }

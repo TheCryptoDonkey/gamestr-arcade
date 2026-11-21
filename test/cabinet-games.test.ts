@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { CabinetGames } from '../src/main/cabinet-games'
 import { findInstalledGame, isWindowsGame, windowsSearchRoots, writeVerifiedDownload } from '../src/main/desktop-games'
+import type { Game } from '../src/shared/types'
 
 describe('cabinet game installation', () => {
   let root: string
@@ -63,6 +64,31 @@ describe('cabinet game installation', () => {
     await rm(link)
     await expect(cabinet.install('pallasite')).resolves.toBeUndefined()
     await expect(cabinet.install('../pallasite')).rejects.toThrow('no cabinet package')
+  })
+
+  it('keeps the hosted Hang On, Fren tile playable until the offline copy is installed', async () => {
+    const online: Game = {
+      id: 'hang-on-fren', gameId: 'hangonfren', name: 'Hang On, Fren', kind: 'web',
+      order: 4, logo: '', url: 'https://hang-on-fren.playechoseven.com/', network: 'required',
+    }
+    expect(await cabinet.addToCatalogue([online], 31234)).toContainEqual(online)
+
+    const pack = join(root, 'packages', online.id)
+    await mkdir(join(pack, 'site'), { recursive: true })
+    await writeFile(join(pack, 'revision'), '0'.repeat(40))
+    await writeFile(join(pack, 'game.json'), JSON.stringify(online))
+    await writeFile(join(pack, 'site', 'index.html'), '<canvas>local ride</canvas>')
+
+    expect(await cabinet.addToCatalogue([online], 31234)).toContainEqual(online)
+    expect(await cabinet.addToCatalogue([], 31234)).toContainEqual(expect.objectContaining({
+      id: online.id, cabinetInstall: 'available', network: 'offline',
+    }))
+    expect(await cabinet.listPackages()).toContainEqual({ id: online.id, name: online.name, installed: false })
+
+    await cabinet.install(online.id)
+    expect(await cabinet.addToCatalogue([online], 31234)).toContainEqual(expect.objectContaining({
+      id: online.id, cabinetInstall: 'installed', network: 'offline', url: 'http://127.0.0.1:31234/',
+    }))
   })
 
   it('requires the installed Unity player and companion files when linking BTC Proof of Play', async () => {
