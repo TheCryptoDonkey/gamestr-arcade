@@ -134,6 +134,16 @@ which the Windows tile also uses. On an existing cabinet, copy the generated
 `btc-proof-of-play` folder into the configured games directory and press **F5**
 to rescan.
 
+The Linux Unity player starts with the OpenGL core profile (`-force-glcore`).
+If your existing tile runs `launch.sh`, replace it with
+[btc-proof-of-play-linux-launch.sh](scripts/btc-proof-of-play-linux-launch.sh)
+and keep the filename `launch.sh`. For the prepared `~/gamestr-games` library,
+run this from the directory where you downloaded the replacement launcher.
+
+```bash
+install -m 0755 btc-proof-of-play-linux-launch.sh "$HOME/gamestr-games/btc-proof-of-play/launch.sh"
+```
+
 #### First run on a fresh Ubuntu cabinet
 
 Use an Intel or AMD Ubuntu desktop and sign in to its graphical session as the

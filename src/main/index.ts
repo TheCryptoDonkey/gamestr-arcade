@@ -31,7 +31,7 @@ import type { ImportDeps } from './gamestr-import'
 import { startLocalServer } from './local-server'
 import type { LocalServer } from './local-server'
 import { CabinetGames } from './cabinet-games'
-import { DesktopGames, WINDOWS_EXE } from './desktop-games'
+import { DesktopGames, WINDOWS_EXE, withProofOfPlayGraphics } from './desktop-games'
 import { DEFAULT_CONFIG, parseConfig } from './config'
 import { controllerRelayHeaders, productionRelayPattern } from './relay-origin'
 import { Launcher } from './launch'
@@ -982,6 +982,7 @@ app.whenReady().then(async () => {
         game = { ...game, exec: executable, args, cabinetInstall: 'installed' }
       }
       game = withBoothMode(game, kioskMode)
+      game = withProofOfPlayGraphics(game)
       console.log(`[arcade] launching "${game.name}" (${game.kind})`)
       const started = launcher.launch(game)
       // Native apps take OS focus, so in-game shortcuts must be global.

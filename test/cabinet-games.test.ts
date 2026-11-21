@@ -1,10 +1,11 @@
-import { mkdir, mkdtemp, readFile, rename, rm, symlink, writeFile } from 'node:fs/promises'
+import { execFileSync } from 'node:child_process'
+import { cp, mkdir, mkdtemp, readFile, realpath, rename, rm, symlink, writeFile } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { CabinetGames } from '../src/main/cabinet-games'
-import { findInstalledGame, isWindowsGame, windowsSearchRoots, writeVerifiedDownload } from '../src/main/desktop-games'
+import { findInstalledGame, isWindowsGame, windowsSearchRoots, withProofOfPlayGraphics, writeVerifiedDownload } from '../src/main/desktop-games'
 import type { Game } from '../src/shared/types'
 
 describe('cabinet game installation', () => {
@@ -130,6 +131,35 @@ describe('cabinet game installation', () => {
   it('searches the usual Windows install folders once each', () => {
     const roots = windowsSearchRoots({ LOCALAPPDATA: 'L', APPDATA: 'A', ProgramFiles: 'P', 'ProgramFiles(x86)': 'P' })
     expect(roots.map(root => root.path)).toEqual(['L', join('L', 'Programs'), 'A', join('A', 'itch', 'apps'), 'P'])
+  })
+
+  it('uses OpenGL for a directly linked Linux BTC player and preserves Windows graphics flags', () => {
+    const game: Game = {
+      id: 'btc-proof-of-play', gameId: 'btc-proof-of-play', name: 'BTC: Proof of Play', kind: 'appimage',
+      order: 10, logo: '', exec: '/games/btc/btcproofofplay.x86_64', args: ['-force-vulkan', '-screen-fullscreen', '0'],
+    }
+    expect(withProofOfPlayGraphics(game, 'linux').args).toEqual(['-screen-fullscreen', '0', '-force-glcore'])
+    expect(withProofOfPlayGraphics({ ...game, args: ['-force-glcore45', '-force-vulkan'] }, 'linux').args)
+      .toEqual(['-force-glcore45'])
+    const windowsGame = { ...game, exec: 'C:\\Games\\BTC Proof of Play.exe' }
+    expect(withProofOfPlayGraphics(windowsGame, 'win32')).toBe(windowsGame)
+  })
+
+  it.skipIf(process.platform === 'win32')('launches packaged Linux Unity games with OpenGL from the runtime directory', async () => {
+    const tile = join(root, 'BTC tile')
+    const game = join(tile, 'runtime', 'Unity game')
+    const launcher = join(tile, 'launch.sh')
+    await mkdir(game, { recursive: true })
+    await cp('scripts/btc-proof-of-play-linux-launch.sh', launcher)
+    await writeFile(join(game, 'UnityPlayer.so'), 'fixture Unity library')
+    const probe = '#!/bin/sh\nprintf "%s\\n" "$PWD" "$*"\n'
+    await writeFile(join(game, 'btcproofofplay.x86_64'), probe, { mode: 0o755 })
+    const result = execFileSync('sh', [launcher, 'Unity game/btcproofofplay.x86_64', '-force-vulkan'], { encoding: 'utf8' })
+    expect(result.trim().split('\n')).toEqual([await realpath(game), '-force-glcore'])
+
+    await writeFile(join(tile, 'runtime', 'Fixture.AppImage'), probe, { mode: 0o755 })
+    const appImage = execFileSync('sh', [launcher, 'Fixture.AppImage'], { encoding: 'utf8' })
+    expect(appImage.trim()).toBe(await realpath(join(tile, 'runtime')))
   })
 
   it('accepts the exact downloaded game bytes and rejects a mismatched payload', async () => {

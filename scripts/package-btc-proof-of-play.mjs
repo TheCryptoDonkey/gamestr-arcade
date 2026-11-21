@@ -5,16 +5,10 @@ import { fileURLToPath } from 'node:url'
 const gameId = 'btc-proof-of-play'
 const usage = 'Usage: node scripts/package-btc-proof-of-play.mjs <output-games-dir> <AppImage-or-installed-game-dir> [relative-player-path]'
 
-// The native launcher may start the game with a different working directory.
-// exec keeps the player in the foreground so the arcade can track its exit.
-const launcher = `#!/bin/sh
-set -eu
-cd "$(dirname -- "$0")/runtime/$(dirname -- "$1")"
-exec "./$(basename -- "$1")"
-`
-
+const scripts = dirname(fileURLToPath(import.meta.url))
+const launcher = join(scripts, 'btc-proof-of-play-linux-launch.sh')
 // One manifest feeds this Linux tile and the linked Windows tile in the arcade.
-const manifestPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources', 'btc-proof-of-play.game.json')
+const manifestPath = join(scripts, '..', 'resources', 'btc-proof-of-play.game.json')
 
 function imageExtension(bytes) {
   if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return '.png'
@@ -73,7 +67,9 @@ async function packageGame(output, input, playerPath) {
     await chmod(runtime, 0o755)
     const executable = join(runtime, player)
     await chmod(executable, (await stat(executable)).mode | 0o111)
-    await writeFile(join(tile, 'launch.sh'), launcher, { mode: 0o755 })
+    const launcherPath = join(tile, 'launch.sh')
+    await cp(launcher, launcherPath)
+    await chmod(launcherPath, 0o755)
     const manifest = { ...JSON.parse(await readFile(manifestPath, 'utf8')), exec: 'launch.sh', args: [player] }
     await Promise.all([bundleArt(tile, 'logo', manifest.logoUrl), bundleArt(tile, 'hero', manifest.heroUrl)])
     await writeFile(join(tile, 'game.json'), `${JSON.stringify(manifest, null, 2)}\n`)
