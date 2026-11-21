@@ -84,7 +84,7 @@ export class GamesPanel {
           <div class="gp-head-inner">
             <span class="gp-cursor" aria-hidden="true">▌</span>
             <h2 id="games-panel-title" class="gp-title">GAMES SETTINGS</h2>
-            <button class="gp-close" type="button"><span aria-hidden="true">[ G ]</span> CLOSE</button>
+            <button class="gp-close" type="button"><span aria-hidden="true">[ G / Ⓧ ]</span> CLOSE</button>
           </div>
           <div class="gp-scanline-bar"></div>
         </header>
@@ -107,6 +107,12 @@ export class GamesPanel {
     this.localStatus = this.overlay.querySelector('.gp-local-status') as HTMLElement
     this.closeBtn.addEventListener('click', () => this.close())
     this.overlay.addEventListener('keydown', event => this.handleKeydown(event))
+    this.overlay.addEventListener('focusin', event => {
+      const item = this.selectables().find(entry => entry.button === event.target)
+      if (!item || item.key === this.selectedKey) return
+      this.selectedKey = item.key
+      this.applySelection()
+    })
   }
 
   get isOpen(): boolean {
@@ -145,10 +151,6 @@ export class GamesPanel {
     this.opts.onClose?.()
   }
 
-  toggle(): void {
-    this._open ? this.close() : this.open()
-  }
-
   /** Move the highlight - driven by the gamepad d-pad/stick or the arrow keys. */
   moveSelection(delta: number): void {
     if (!this._open) return
@@ -158,6 +160,7 @@ export class GamesPanel {
     const next = Math.min(items.length - 1, Math.max(0, current + delta))
     this.selectedKey = items[next].key
     this.applySelection()
+    items[next].button.focus({ preventScroll: true })
   }
 
   /** Run the highlighted install action or ADD - driven by gamepad Ⓐ or Enter. */
@@ -198,17 +201,9 @@ export class GamesPanel {
 
   private handleKeydown(event: KeyboardEvent): void {
     if (!this._open) return
-    if ((event.key === 'Enter' || event.key === ' ') && event.target instanceof HTMLButtonElement) {
-      event.preventDefault()
-      event.stopPropagation()
-      event.target.click()
-      return
-    }
     if (event.key === 'Escape') {
       event.preventDefault()
-      // Preserve the shell's established Escape route when mounted there, while
-      // still making the panel self-closing when used independently.
-      queueMicrotask(() => { if (this._open) this.close() })
+      this.close()
       return
     }
     if (event.key !== 'Tab') return

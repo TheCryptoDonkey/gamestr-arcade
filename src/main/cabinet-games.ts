@@ -5,7 +5,7 @@ import { pathToMediaUrl } from './games'
 import { localUrlFor } from './local-server'
 import { scanGames } from './scanner'
 
-const CABINET_IDS = ['pallasite', 'neon-sentinel']
+const CABINET_IDS = ['pallasite', 'neon-sentinel', 'hang-on-fren']
 
 async function hasBundle(directory: string): Promise<boolean> {
   try {
@@ -45,7 +45,9 @@ export class CabinetGames {
       const existing = games[index]
       const directory = join(this.library, id)
       const installed = await hasBundle(directory)
-      if (!installed && existing?.kind === 'appimage' && existing.available !== false) continue
+      // Operators with a Hang On, Fren tile can switch to the offline copy in Games Settings.
+      if (!installed && existing?.available !== false &&
+        (existing?.kind === 'appimage' || (id === 'hang-on-fren' && existing?.kind === 'web'))) continue
       let pack = bundled.find(game => game.id === id)
       if (!await hasBundle(join(this.packages, id))) pack = undefined
       if (!pack && installed) pack = (await scanGames(this.library)).find(game => game.id === id)

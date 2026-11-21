@@ -26,7 +26,7 @@ import './styles/ready-panel.css'
 import './styles/launch-overlay.css'
 import './styles/donation-panel.css'
 import { Carousel } from './ui/carousel'
-import { InputController } from './ui/input'
+import { InputController, isEditableTarget } from './ui/input'
 import { formatScore, mountLeaderboard } from './ui/leaderboard-panel'
 import { readCachedBoard } from './leaderboard/cache'
 import { boardFor } from './leaderboard/gamestr-reduce'
@@ -45,11 +45,14 @@ import { AttractMode } from './ui/attract'
 import { CrtOverlay } from './ui/crt'
 import type { ArcadeConfig, Game } from '../../shared/types'
 
+const inElectron = typeof window.arcade !== 'undefined'
+const launcherPhoneSpec = inElectron
+  ? { ...menuPhoneSpec, slots: { ...menuPhoneSpec.slots, X: { label: 'Install games' } } }
+  : menuPhoneSpec
 let controllerRelay = DEFAULT_CONTROLLER_RELAY
 const phone = mountPhoneController(snapshot=> {applyPhoneGamepad(snapshot);if(typeof window.arcade !== 'undefined')window.arcade.phoneInput(snapshot)},()=>controllerRelay)
-if(typeof window.arcade !== 'undefined')window.arcade.onPhoneProfile(spec=> {phone.setSpec(isControllerSpec(spec) ? spec : menuPhoneSpec)})
-
-const inElectron = typeof window.arcade !== 'undefined'
+phone.setSpec(launcherPhoneSpec)
+if (inElectron) window.arcade.onPhoneProfile(spec => { phone.setSpec(isControllerSpec(spec) ? spec : launcherPhoneSpec) })
 
 if (inElectron) {
   const playerButton = document.createElement('button'); playerButton.type = 'button'; playerButton.className = 'arcade-player-open'; playerButton.textContent = 'Player · guest (Y / P)'
@@ -260,7 +263,7 @@ async function boot(): Promise<void> {
     },
   })
 
-  // Add-games overlay: press 'g' to open/close. Lists gamestr games the kiosk
+  // Games Settings opens with G or controller X and lists games the kiosk
   // is missing (catalogue from the gamestr bundle, liveness from the score feed)
   // and adds them with one tap. Only meaningful under Electron (needs the IPC
   // bridge); harmless to construct in the browser preview.
@@ -283,24 +286,12 @@ async function boot(): Promise<void> {
     },
   })
 
-  // A visible way into Games Settings, so installing offline copies or finding
-  // installed desktop games does not depend on knowing the G shortcut.
   if (inElectron) {
     const gamesButton = document.createElement('button')
     gamesButton.type = 'button'
     gamesButton.className = 'arcade-games-open'
-    gamesButton.textContent = 'Install games (G)'
-    gamesButton.addEventListener('click', () => {
-      if (inWebGame) return
-      readyPanel.close(false)
-      relayPanel.close()
-      closeDownloadPanel()
-      // Return focus to the shell on close, not this button, which the
-      // navigation keys deliberately ignore.
-      host.focus()
-      gamesPanel.open()
-      attract.stop()
-    })
+    gamesButton.textContent = 'Install games (G / Ⓧ)'
+    gamesButton.addEventListener('click', toggleGamesSettings)
     host.append(gamesButton)
   }
 
@@ -347,7 +338,7 @@ async function boot(): Promise<void> {
 
   const resetLaunch = (): void => {
     inWebGame = false
-    phone.setSpec(menuPhoneSpec)
+    phone.setSpec(launcherPhoneSpec)
     sessionStartedAt = 0
     sessionGame = null
     launchOverlay.hide()
@@ -429,10 +420,26 @@ async function boot(): Promise<void> {
     void window.arcade.back()
   }
 
+  function toggleGamesSettings(): void {
+    if (sessionGame || document.querySelector('dialog[open]')) return
+    if (gamesPanel.isOpen) {
+      gamesPanel.close()
+      return
+    }
+    readyPanel.close(false)
+    if (readyPanel.isOpen) return // An install is still running.
+    donationPanel.close()
+    relayPanel.close()
+    closeDownloadPanel()
+    gamesPanel.open()
+    attract.stop()
+  }
+
   // When the add-games panel is open it captures navigation so the operator can
   // pick + add a game with the gamepad (or keyboard) - a kiosk has no usable mouse
   // cursor. up/left → previous row, down/right → next, Ⓐ/Enter → ADD, Ⓑ/Start/Esc → close.
   const input = new InputController({
+    onGamesSettings: inElectron ? toggleGamesSettings : undefined,
     onPairPlayer: () => { if (!inWebGame) document.querySelector<HTMLButtonElement>('.arcade-player-open:not(:disabled)')?.click() },
     onPrev: () => {
       if (inWebGame) return
@@ -466,7 +473,7 @@ async function boot(): Promise<void> {
       audio.resume()
       attract.onActivity()
     },
-  }, { diagnostics: inElectron && window.arcade.gamepadDiagnostics })
+  }, { diagnostics: inElectron && window.arcade.gamepadDiagnostics, desktopPhonePairing: inElectron })
   input.start()
   window.addEventListener('gamestr:player-pairing', event => { if ((event as CustomEvent<boolean>).detail) attract.stop(); else attract.start() })
 
@@ -484,8 +491,7 @@ async function boot(): Promise<void> {
     // Ignore single-key shortcuts while typing in a field (e.g. the relay panel's
     // URL input - "wss://main.relay.gamestr.io" contains 'g', 'c', 'm', 'r'). Escape is
     // handled by the focused input's own handler.
-    const t = e.target as HTMLElement | null
-    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
+    if (e.defaultPrevented || isEditableTarget(e.target) || document.querySelector('dialog[open]')) return
     if (e.key === 'c' || e.key === 'C') crt.toggle()
     else if (e.key === 'm' || e.key === 'M') audio.toggleMute()
     else if (e.key === 'r' || e.key === 'R') {
@@ -494,13 +500,6 @@ async function boot(): Promise<void> {
       closeDownloadPanel()
       relayPanel.toggle()
       if (relayPanel.isOpen) attract.stop(); else attract.start()
-    }
-    else if (e.key === 'g' || e.key === 'G') {
-      readyPanel.close(false)
-      relayPanel.close()
-      closeDownloadPanel()
-      gamesPanel.toggle()
-      if (gamesPanel.isOpen) attract.stop(); else attract.start()
     }
     else if (e.key === 'Escape') {
       donationPanel.close()
@@ -515,7 +514,7 @@ async function boot(): Promise<void> {
   if (inElectron) {
     window.arcade.onReturn(() => {
       inWebGame = false
-      phone.setSpec(menuPhoneSpec)
+      phone.setSpec(launcherPhoneSpec)
       launchOverlay.hide()
       // Resume attract watching - the timeout restarts from now so the player
       // gets the full idle period before demo mode kicks in again.

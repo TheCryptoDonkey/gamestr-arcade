@@ -6,7 +6,7 @@ import { basename, dirname, isAbsolute, join } from 'node:path'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { promisify } from 'node:util'
-import type { DesktopGameId } from '../shared/types'
+import type { DesktopGameId, Game } from '../shared/types'
 
 const RELEASE = 'https://github.com/TheCryptoDonkey/pallasite-releases/releases/download/v0.1.4'
 const ASSETS = {
@@ -35,6 +35,15 @@ const PROOF_OF_PLAY_BUILD = {
   sha256: 'd15d36e73b2d33484577ea4063f142e1638b56386f1a1ec446ed6b773d61cb47',
 }
 const runFile = promisify(execFile)
+
+export function withProofOfPlayGraphics(game: Game, platform: NodeJS.Platform = process.platform): Game {
+  if (platform !== 'linux' || game.kind !== 'appimage' || game.gameId !== PROOF_OF_PLAY ||
+    !game.exec || basename(game.exec) !== 'btcproofofplay.x86_64') return game
+
+  const args = (game.args ?? []).filter(arg => arg !== '-force-vulkan')
+  if (!args.some(arg => /^-force-glcore(?:32|33|40|41|42|43|44|45)?$/.test(arg))) args.push('-force-glcore')
+  return { ...game, args }
+}
 
 async function fileExists(path: string): Promise<boolean> {
   return stat(path).then(info => info.isFile(), () => false)

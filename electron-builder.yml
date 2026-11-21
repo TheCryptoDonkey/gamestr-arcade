@@ -13,7 +13,7 @@ files:
 # the leaderboard / attract timeout / CRT without rebuilding (read from
 # process.resourcesPath at runtime).
 #
-# The two curated offline packages are staged by build:cabinet-games.
+# The offline packages are staged by build:cabinet-games.
 # Additional games still come from the operator's ARCADE_GAMES_DIR.
 extraResources:
   - from: arcade.config.json

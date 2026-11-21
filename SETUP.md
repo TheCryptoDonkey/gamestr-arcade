@@ -22,10 +22,10 @@ The installer is written to `release/`.
 ### Ubuntu and Debian installer
 
 Install `gamestr-arcade_<version>_amd64.deb` from the directory containing the
-download. For example, for version 0.2.17:
+download. For example, for version 0.2.18:
 
 ```bash
-sudo apt install ./gamestr-arcade_0.2.17_amd64.deb
+sudo apt install ./gamestr-arcade_0.2.18_amd64.deb
 ```
 
 Open **Gamestr Arcade** from the applications menu. For a windowed session, run
@@ -59,17 +59,18 @@ artifactName: gamestr-arcade-${version}-${arch}.AppImage
 Copy the self-contained AppImage to the booth laptop. In the file's properties,
 allow it to run as a program, then open it as the user who will run the cabinet.
 
-### Install Pallasite and Neon Sentinel
+### Install games for offline play
 
-The Windows and Linux builds include offline copies of both games. Their tiles
-show **INSTALL** until installed. Select the tile and press **Enter** or **Ⓐ**
-twice: once to open it, once to install. Choose **Start game** when the copy
-completes. The install stays available after restarting the arcade.
+The Windows and Linux builds include offline copies of Pallasite, Neon Sentinel
+and Hang On, Fren. Open a tile marked **INSTALL** and choose **Install on this
+Arcade**. Choose **Start game** when the copy completes. The install stays
+available after restarting the arcade.
 
-You can also choose **Install games (G)** at the bottom left, or press **G**, to
-open **Games Settings**. Use the arrow keys or the d-pad to highlight **Install
-Pallasite for offline play** or **Install Neon Sentinel for offline play**, then
-press **Enter** or **Ⓐ**. A mouse is not needed.
+Open **Games Settings** with **G** on the keyboard, **Ⓧ** on the controller or
+**Install games** at the bottom left. Use the arrow keys or the d-pad to highlight
+**Install … for offline play**, then press **Enter** or **Ⓐ**. If the
+cabinet already has a hosted Hang On, Fren tile, its Settings action switches
+the tile to the offline copy.
 
 In a development checkout, run `npm run build:cabinet-games` once, then start
 with `ARCADE_CABINET_GAMES_DIR=release/cabinet-games ARCADE_KIOSK=0 npm run dev`
@@ -97,7 +98,8 @@ payments unavailable.
 Plug an Xbox controller in by USB before starting. Press **A** in the game to
 take control. If it disconnects during play, release the controls and press **A**
 on the reconnected controller to reclaim them. Use the game's pause menu to
-resume. Check both games with the actual controllers before the event using the
+resume. In Hang On, Fren, **P** pauses and **Enter** or **Ⓐ** resumes the ride.
+Check the games with the actual controllers before the event using the
 [cabinet acceptance runbook](docs/conference-acceptance.md).
 
 ### Add BTC: Proof of Play to a Windows cabinet
@@ -131,6 +133,16 @@ machine is online. Its metadata comes from `resources/btc-proof-of-play.game.jso
 which the Windows tile also uses. On an existing cabinet, copy the generated
 `btc-proof-of-play` folder into the configured games directory and press **F5**
 to rescan.
+
+The Linux Unity player starts with the OpenGL core profile (`-force-glcore`).
+If your existing tile runs `launch.sh`, replace it with
+[btc-proof-of-play-linux-launch.sh](scripts/btc-proof-of-play-linux-launch.sh)
+and keep the filename `launch.sh`. For the prepared `~/gamestr-games` library,
+run this from the directory where you downloaded the replacement launcher.
+
+```bash
+install -m 0755 btc-proof-of-play-linux-launch.sh "$HOME/gamestr-games/btc-proof-of-play/launch.sh"
+```
 
 #### First run on a fresh Ubuntu cabinet
 

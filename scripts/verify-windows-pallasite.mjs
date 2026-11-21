@@ -4,6 +4,7 @@ import { lstat, readFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { _electron as electron } from 'playwright'
+import { playHangOnFren } from './play-hang-on-fren.mjs'
 import { playPallasiteBooth } from './play-pallasite-booth.mjs'
 
 assert.equal(process.platform, 'win32')
@@ -37,7 +38,12 @@ async function openArcade(name) {
   delete env.ARCADE_CONFIG
   delete env.ARCADE_GAMES_DIR
   const app = await electron.launch({
-    executablePath: executable, args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--user-data-dir=' + profile],
+    executablePath: executable,
+    args: [
+      '--enable-unsafe-swiftshader', '--use-angle=swiftshader',
+      '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding',
+      '--disable-background-timer-throttling', '--user-data-dir=' + profile,
+    ],
     env, timeout: 60_000,
   })
   app.process().once('exit', (code, signal) => console.log(`Gamestr ${name} process exited`, { code, signal }))
@@ -48,7 +54,8 @@ async function openArcade(name) {
     })
     const page = await app.firstWindow()
     page.once('crash', () => console.error(`Gamestr ${name} shell renderer crashed`))
-    await page.locator('.tile-active').waitFor()
+    page.on('pageerror', error => console.error(`Gamestr ${name} shell renderer`, error.message))
+    await waitForCabinet(page)
     const details = await app.evaluate(({ app }) => ({
       profile: app.getPath('userData'), version: app.getVersion(), executable: process.execPath,
     }))
@@ -62,29 +69,40 @@ async function openArcade(name) {
   }
 }
 
+async function waitForCabinet(page) {
+  // The runner can suppress compositor frames while the game view closes or
+  // the shell reloads. Wait for the new catalogue DOM before using its controls.
+  await page.locator('.tile-active').waitFor({ state: 'attached', timeout: 90_000 })
+}
+
 async function click(locator) {
   await locator.waitFor()
   await locator.evaluate(button => button.click())
 }
 
-async function installFromSettings(page, label, id = 'pallasite') {
+async function installFromSettings(page, label, id = 'pallasite', timeout = 240_000) {
   await page.keyboard.press('g')
   const settings = page.getByRole('dialog', { name: 'GAMES SETTINGS' })
   const status = settings.locator('.gp-local-status')
-  const fail = status.filter({ hasText: /Error invoking remote method/ }).waitFor({ timeout: 240_000 })
+  const fail = status.filter({ hasText: /Error invoking remote method/ }).waitFor({ timeout })
     .then(async () => { throw new Error(await status.innerText()) })
-  const reloaded = page.waitForEvent('domcontentloaded', { timeout: 240_000 })
-  await Promise.all([
-    Promise.race([reloaded, fail]),
-    click(settings.getByRole('button', { name: label, exact: true })),
-  ])
-  await page.locator('.tile-active').waitFor()
+  const reloaded = page.waitForEvent('domcontentloaded', { timeout })
+  try {
+    await Promise.all([
+      Promise.race([reloaded, fail]),
+      click(settings.getByRole('button', { name: label, exact: true })),
+    ])
+    await waitForCabinet(page)
+  } catch (error) {
+    const detail = await status.textContent({ timeout: 2000 }).catch(() => null)
+    throw new Error(`${label} did not complete. ${detail ?? ''}`.trim(), { cause: error })
+  }
   return page.evaluate(async id => (await window.arcade.listGames()).find(game => game.id === id), id)
 }
 
 async function selectGame(page, name) {
-  const select = page.locator('button.tile').and(page.getByRole('button', { name: 'Select ' + name, exact: true }))
-  if (await select.count()) await click(select)
+  const select = page.locator('button.dot').and(page.getByRole('button', { name: 'Select ' + name, exact: true }))
+  await click(select)
 }
 
 async function openOfflineGame(app, page, name, site) {
@@ -105,7 +123,7 @@ async function openOfflineGame(app, page, name, site) {
 
 async function returnFromOfflineGame(page, game) {
   await Promise.all([game.waitForEvent('close'), page.evaluate(() => window.arcade.back())])
-  await page.locator('.tile-active').waitFor()
+  await waitForCabinet(page)
 }
 
 async function checkOffline() {
@@ -132,13 +150,23 @@ async function checkOffline() {
     const neonGame = await openOfflineGame(app, page, 'Neon Sentinel', neonSite)
     await neonGame.locator('body[data-neon-phase="title"]').waitFor({ timeout: 45_000 })
     await neonGame.keyboard.press('Enter')
-    const laterReward = neonGame.locator('#v4v-later')
+    const laterReward = neonGame.locator('#v4v-later:visible')
     const playing = neonGame.locator('body[data-neon-phase="playing"]')
-    await laterReward.or(playing).waitFor()
+    await laterReward.or(playing).first().waitFor()
     if (await laterReward.isVisible()) await click(laterReward)
     await playing.waitFor()
     await returnFromOfflineGame(page, neonGame)
     console.log('Neon Sentinel started an offline run and returned to the menu.')
+
+    const fren = await installFromSettings(page, 'Install Hang On, Fren for offline play', 'hang-on-fren')
+    assert.equal(fren?.cabinetInstall, 'installed')
+    assert.equal(fren.network, 'offline')
+    const frenSite = join(profile, 'cabinet-games', 'hang-on-fren', 'site')
+    assert.equal(fren.localRoot, frenSite)
+    const frenGame = await openOfflineGame(app, page, 'Hang On, Fren', frenSite)
+    await playHangOnFren(frenGame)
+    await returnFromOfflineGame(page, frenGame)
+    console.log('Hang On, Fren started an offline ride and returned to the menu.')
   } finally {
     await app.close()
   }
@@ -147,7 +175,8 @@ async function checkOffline() {
     const games = await restarted.page.evaluate(() => window.arcade.listGames())
     assert.equal(games.find(game => game.id === 'pallasite')?.cabinetInstall, 'installed')
     assert.equal(games.find(game => game.id === 'neon-sentinel')?.cabinetInstall, 'installed')
-    console.log('Both offline games stayed installed after restart.')
+    assert.equal(games.find(game => game.id === 'hang-on-fren')?.cabinetInstall, 'installed')
+    console.log('The offline games stayed installed after restart.')
   } finally {
     await restarted.app.close()
   }
@@ -168,7 +197,8 @@ function playerWindow() {
 async function checkDesktop() {
   const { app, page } = await openArcade('desktop')
   try {
-    const installed = await installFromSettings(page, 'Download and install Pallasite Desktop')
+    // The publisher's setup is a much larger transfer than the local copies.
+    const installed = await installFromSettings(page, 'Download and install Pallasite Desktop', 'pallasite', 600_000)
     assert.equal(installed?.kind, 'appimage')
     assert.equal(installed.exec.toLowerCase(), player.toLowerCase())
     assert((await lstat(player)).isFile())
