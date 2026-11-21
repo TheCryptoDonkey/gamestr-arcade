@@ -1,0 +1,28 @@
+name: Check Neon Sentinel launch on Ubuntu
+on:
+  push:
+    branches: [codex/verify-ubuntu-title-0.2.16]
+permissions:
+  actions: read
+  contents: read
+jobs:
+  installed-games:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Check the revised title input on a previously verified package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p release/transfer
+          TMPDIR="$GITHUB_WORKSPACE/release/transfer" gh run download 44864601646 \
+            --name gamestr-arcade-linux-fb69e9bad81b765bdb22c9b70c629dfd62963901 --dir release/reference
+          (cd release/reference/release && sha256sum --check SHA256SUMS)
+          sudo apt-get install -y --no-install-recommends xvfb ./release/reference/release/gamestr-arcade_0.2.16_amd64.deb
+          xvfb-run -a -s '-screen 0 1280x800x24' node scripts/check-installed-games.mjs /usr/bin/gamestr-arcade-desktop --kiosk
