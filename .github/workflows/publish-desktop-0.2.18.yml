@@ -1,0 +1,112 @@
+name: Publish Gamestr Arcade 0.2.18
+
+on:
+  push:
+    branches: [codex/publish-desktop-0.2.18]
+    paths: [.github/workflows/publish-desktop-0.2.18.yml]
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERIFIED_RUN: '44887760477'
+      VERIFIED_SHA: c89591860ed4b4d17ae0983e0a563bf81a00189d
+      LINUX_ARTIFACT: '14701211482'
+      LINUX_ARCHIVE_SHA256: 494d9f86f90e4c30401689d3b1787ef3d19fb8213872f286d35507f517632866
+      WINDOWS_ARTIFACT: '14700942820'
+      WINDOWS_ARCHIVE_SHA256: fb70668f07d2f9b537235498870f9e2dbea4c656efc336a091f95a7685117aaf
+    steps:
+      - name: Verify the successful main build
+        run: |
+          read -r commit branch event state outcome < <(
+            gh run view "$VERIFIED_RUN" --json headSha,headBranch,event,status,conclusion \
+              --jq '[.headSha,.headBranch,.event,.status,.conclusion] | @tsv'
+          )
+          test "$commit" = "$VERIFIED_SHA"
+          test "$branch" = main
+          test "$event" = push
+          test "$state" = completed
+          test "$outcome" = success
+          relation="$(gh api "repos/$GH_REPO/compare/$VERIFIED_SHA...main" --jq .status)"
+          [[ "$relation" == identical || "$relation" == ahead ]]
+      - name: Collect and verify the tested release assets
+        run: |
+          mkdir -p release/linux release/windows release/transfer release/publish
+          export TMPDIR="$GITHUB_WORKSPACE/release/transfer"
+          download_artifact() {
+            local id="$1" digest="$2" platform="$3"
+            local endpoint="repos/$GH_REPO/actions/artifacts/$id"
+            local archive="release/transfer/$platform.zip"
+            local run commit recorded_digest
+            read -r run commit recorded_digest < <(
+              gh api "$endpoint" --jq '[.workflow_run.id,.workflow_run.head_sha,.digest] | @tsv'
+            )
+            test "$run" = "$VERIFIED_RUN"
+            test "$commit" = "$VERIFIED_SHA"
+            test "$recorded_digest" = "sha256:$digest"
+            curl --fail --silent --show-error --location --retry 2 \
+              -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/$endpoint/zip" -o "$archive"
+            printf '%s  %s\n' "$digest" "$archive" | sha256sum --check --strict
+            unzip -q "$archive" -d "release/$platform"
+          }
+          download_artifact "$LINUX_ARTIFACT" "$LINUX_ARCHIVE_SHA256" linux
+          download_artifact "$WINDOWS_ARTIFACT" "$WINDOWS_ARCHIVE_SHA256" windows
+          (cd release/linux/release && sha256sum --check --strict SHA256SUMS)
+          (cd release/windows && sha256sum --check --strict SHA256SUMS)
+          archive_commit="$(gzip -dc release/linux/release/gamestr-arcade-source.tar.gz | git get-tar-commit-id)"
+          test "$archive_commit" = "$VERIFIED_SHA"
+
+          cp release/linux/release/gamestr-arcade-0.2.18-x86_64.AppImage \
+             release/linux/release/gamestr-arcade_0.2.18_amd64.deb \
+             release/linux/release/gamestr-arcade-source.tar.gz \
+             release/linux/release/linux-runtime-smoke.json \
+             release/linux/release/linux-input-negative.json \
+             release/linux/gamestr-arcade.cdx.json \
+             release/windows/gamestr-arcade-0.2.18-x64-setup.exe \
+             release/publish/
+          tar -xOzf release/linux/release/gamestr-arcade-source.tar.gz \
+            gamestr-arcade-source/scripts/btc-proof-of-play-linux-launch.sh > release/publish/btc-proof-of-play-linux-launch.sh
+          sh -n release/publish/btc-proof-of-play-linux-launch.sh
+          (
+            cd release/publish
+            sha256sum -- * > SHA256SUMS
+            sha256sum --check --strict SHA256SUMS
+          )
+      - name: Publish the verified release
+        run: |
+          cat > release/notes.md <<'NOTES'
+          Gamestr Arcade 0.2.18 adds **Hang On, Fren** for offline guest play alongside Pallasite and Neon Sentinel.
+
+          - Open **Games Settings** with **X** on the controller or **G** on the keyboard. Select **Install Hang On, Fren for offline play**, then play it from the carousel.
+          - **Enter** activates the focused button. The D-pad and arrow keys move the highlight and focus together in Games Settings.
+          - **BTC: Proof of Play on Linux** now starts the Unity player in OpenGL mode. Use the downloadable launcher as `launch.sh` next to `game.json` in an existing packaged tile.
+          - **Windows x64** uses the unsigned Setup EXE. **Linux x86-64** uses the Debian/Ubuntu package or the portable AppImage.
+
+          CI installed and launched all three local games on Windows and Ubuntu and checked that the installs survived restart. The Linux tests also exercised simulated controller input and kiosk recovery. Windows CI opened the native Pallasite Desktop and BTC: Proof of Play game windows.
+
+          [Setup guide](https://github.com/TheCryptoDonkey/gamestr-arcade/blob/v0.2.18/SETUP.md) · [Build and test results](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/44887760477)
+          NOTES
+          release_url="$(gh release create v0.2.18 release/publish/* --draft \
+            --target "$VERIFIED_SHA" --title 'Gamestr Arcade 0.2.18' --notes-file release/notes.md)"
+          echo "$release_url"
+
+          release_id="$(gh api "repos/$GH_REPO/releases?per_page=20" --jq '.[] | select(.tag_name == "v0.2.18" and .draft) | .id')"
+          test -n "$release_id"
+          digests="$(gh api "repos/$GH_REPO/releases/$release_id/assets" --jq '.[] | [.name,.digest] | @tsv')"
+          test "$(printf '%s\n' "$digests" | wc -l)" -eq 9
+          for asset in release/publish/*; do
+            name="$(basename "$asset")"
+            digest="$(sha256sum "$asset" | cut -d ' ' -f 1)"
+            test "$(printf '%s\n' "$digests" | awk -F '\t' -v name="$name" '$1 == name { print $2 }')" = "sha256:$digest"
+          done
+
+          gh api "repos/$GH_REPO/releases/$release_id" --method PATCH \
+            --field draft=false --raw-field make_latest=true --jq .html_url
+          test "$(gh api "repos/$GH_REPO/git/ref/tags/v0.2.18" --jq .object.sha)" = "$VERIFIED_SHA"
