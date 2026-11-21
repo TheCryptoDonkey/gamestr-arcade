@@ -1,0 +1,90 @@
+name: Publish Gamestr Arcade 0.2.16
+
+on:
+  push:
+    branches: [codex/publish-desktop-0.2.16]
+    paths: [.github/workflows/publish-desktop-0.2.16.yml]
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERIFIED_RUN: '44868021528'
+      VERIFIED_SHA: 8f2c12dc70c5d12cb0ca7332f049feac0a732f47
+    steps:
+      - name: Verify the successful main build
+        run: |
+          read -r commit branch event state outcome < <(
+            gh run view "$VERIFIED_RUN" --json headSha,headBranch,event,status,conclusion \
+              --jq '[.headSha,.headBranch,.event,.status,.conclusion] | @tsv'
+          )
+          test "$commit" = "$VERIFIED_SHA"
+          test "$branch" = main
+          test "$event" = push
+          test "$state" = completed
+          test "$outcome" = success
+          relation="$(gh api "repos/$GH_REPO/compare/$VERIFIED_SHA...main" --jq .status)"
+          [[ "$relation" == identical || "$relation" == ahead ]]
+      - name: Collect and verify the tested release assets
+        run: |
+          mkdir -p release/linux release/windows release/transfer release/publish
+          export TMPDIR="$GITHUB_WORKSPACE/release/transfer"
+          gh run download "$VERIFIED_RUN" --name "gamestr-arcade-linux-$VERIFIED_SHA" --dir release/linux
+          gh run download "$VERIFIED_RUN" --name "gamestr-arcade-windows-$VERIFIED_SHA" --dir release/windows
+          (cd release/linux/release && sha256sum --check --strict SHA256SUMS)
+          (cd release/windows && sha256sum --check --strict SHA256SUMS)
+          archive_commit="$(gzip -dc release/linux/release/gamestr-arcade-source.tar.gz | git get-tar-commit-id)"
+          test "$archive_commit" = "$VERIFIED_SHA"
+
+          cp release/linux/release/gamestr-arcade-0.2.16-x86_64.AppImage \
+             release/linux/release/gamestr-arcade_0.2.16_amd64.deb \
+             release/linux/release/gamestr-arcade-source.tar.gz \
+             release/linux/release/linux-runtime-smoke.json \
+             release/linux/release/linux-input-negative.json \
+             release/linux/gamestr-arcade.cdx.json \
+             release/windows/gamestr-arcade-0.2.16-x64-setup.exe \
+             release/publish/
+          (
+            cd release/publish
+            sha256sum -- * > SHA256SUMS
+            sha256sum --check --strict SHA256SUMS
+          )
+      - name: Publish the verified release
+        run: |
+          cat > release/notes.md <<'NOTES'
+          Gamestr Arcade 0.2.16 brings the Windows and Linux installers together in one release.
+
+          - **Windows x64**. Close Gamestr Arcade, run Setup, and launch **Gamestr Arcade** from the Start menu. The Windows setup is unsigned.
+          - **Linux x86-64**. Install the Ubuntu/Debian package with the package manager or run the portable AppImage. The arcade restores kiosk fullscreen after a window transition.
+          - **Pallasite and Neon Sentinel**. Open **Install games (G)** to copy either bundled game for offline play. On Windows, **Download and install Pallasite Desktop** installs the verified 0.1.4 build, and **Play Now** opens it directly.
+          - **BTC: Proof of Play on Windows**. Choose **Install on this Arcade**, then **Play Now**. Arcade verifies and installs the publisher's Unity build. **Find BTC Proof of Play on this PC** can link an existing copy.
+          - The release includes the source archive, SBOM, Linux runtime reports and SHA-256 checksums.
+
+          CI used the merged source to test the Windows Setup and both Linux packages. The Windows check started an offline Pallasite guest run and opened the real Pallasite Desktop and BTC: Proof of Play windows. The Ubuntu check exercised kiosk fullscreen recovery and local gameplay.
+
+          [Setup guide](https://github.com/TheCryptoDonkey/gamestr-arcade/blob/v0.2.16/SETUP.md) · [Build and test results](https://github.com/TheCryptoDonkey/gamestr-arcade/actions/runs/44868021528)
+          NOTES
+          release_url="$(gh release create v0.2.16 release/publish/* --draft \
+            --target "$VERIFIED_SHA" --title 'Gamestr Arcade 0.2.16' --notes-file release/notes.md)"
+          echo "$release_url"
+
+          release_id="$(gh api "repos/$GH_REPO/releases?per_page=20" --jq '.[] | select(.tag_name == "v0.2.16" and .draft) | .id')"
+          test -n "$release_id"
+          digests="$(gh api "repos/$GH_REPO/releases/$release_id/assets" --jq '.[] | [.name,.digest] | @tsv')"
+          test "$(printf '%s\n' "$digests" | wc -l)" -eq 8
+          for asset in release/publish/*; do
+            name="$(basename "$asset")"
+            digest="$(sha256sum "$asset" | cut -d ' ' -f 1)"
+            test "$(printf '%s\n' "$digests" | awk -F '\t' -v name="$name" '$1 == name { print $2 }')" = "sha256:$digest"
+          done
+
+          gh api "repos/$GH_REPO/releases/$release_id" --method PATCH \
+            --field draft=false --raw-field make_latest=true --jq .html_url
+          test "$(gh api "repos/$GH_REPO/git/ref/tags/v0.2.16" --jq .object.sha)" = "$VERIFIED_SHA"
