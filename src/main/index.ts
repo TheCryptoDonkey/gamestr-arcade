@@ -982,7 +982,7 @@ app.whenReady().then(async () => {
         game = { ...game, exec: executable, args, cabinetInstall: 'installed' }
       }
       game = withBoothMode(game, kioskMode)
-      console.log(`[arcade] launching "${game.name}" (${game.kind})${game.url ? ` at ${game.url}` : ''}`)
+      console.log(`[arcade] launching "${game.name}" (${game.kind})`)
       const started = launcher.launch(game)
       // Native apps take OS focus, so in-game shortcuts must be global.
       if (started) registerForceBack(game)

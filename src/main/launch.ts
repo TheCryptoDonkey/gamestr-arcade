@@ -37,7 +37,7 @@ export interface SpawnHandle {
  * In tests, pass a `FakeDeps` object that records what was called.
  */
 export interface LaunchDeps {
-  /** Spawn the AppImage at `exec` (with optional extra args). Returns a handle for exit/error callbacks. */
+  /** Spawn a native game with its launch arguments and cabinet environment. */
   spawn(exec: string, args?: string[], env?: Record<string, string>): SpawnHandle
   /** Ensure the file at `path` is executable (chmod 755). */
   chmodExec(path: string): Promise<void>

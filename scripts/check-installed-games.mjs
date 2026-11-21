@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { _electron as electron } from 'playwright'
+import { playPallasiteBooth } from './play-pallasite-booth.mjs'
 
 const args = process.argv.slice(2)
 const verifyGameplay = !args.includes('--install-only')
@@ -79,15 +80,7 @@ async function checkPlayable(game, id) {
   game.setDefaultTimeout(12000)
   await game.waitForFunction(() => document.hasFocus(), undefined, { polling: 100 })
   if (id === 'pallasite') {
-    await game.getByRole('button', { name: 'PLAY ▶', exact: true }).click()
-    await game.getByRole('button', { name: /play as guest/i }).click()
-    await game.keyboard.type('CABINET')
-    await game.getByRole('button', { name: /done/i }).click()
-    await game.getByRole('button', { name: /^IGNITE/ }).click()
-    await game.getByRole('button', { name: 'Skip intro', exact: true }).click()
-    const later = game.getByRole('button', { name: 'NEXT TIME', exact: true })
-    if (await later.isVisible()) await later.click()
-    await game.locator('body[data-phase="playing"]').waitFor({ timeout: 45000 })
+    await playPallasiteBooth(game, activate)
   } else {
     await game.locator('body[data-neon-phase="title"]').waitFor()
     await game.waitForFunction(() => document.hasFocus() && document.visibilityState === 'visible', undefined, { polling: 100 })
@@ -196,7 +189,12 @@ try {
     ])
     const pageErrors = []
     game.on('pageerror', error => pageErrors.push(error.message))
-    await game.waitForURL(/^http:\/\/127\.0\.0\.1:\d+\/$/, { waitUntil: 'commit' })
+    const launchUrl = id === 'pallasite' ? /^http:\/\/127\.0\.0\.1:\d+\/\?p1&fullfx=1$/ : /^http:\/\/127\.0\.0\.1:\d+\/$/
+    await game.waitForURL(launchUrl, { waitUntil: 'commit' })
+    if (id === 'pallasite') {
+      await game.getByText('PALLASITE · STATION 1', { exact: true }).waitFor()
+      console.log('PASS: installed Pallasite opened the Station 1 lobby.')
+    }
     const response = await fetch(game.url())
     assert.equal(response.status, 200)
     assert.equal(await response.text(), await readFile(join(installed, 'site', 'index.html'), 'utf8'))
