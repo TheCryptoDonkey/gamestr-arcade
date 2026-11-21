@@ -66,7 +66,7 @@ async function click(locator) {
   await locator.evaluate(button => button.click())
 }
 
-async function installFromSettings(page, label) {
+async function installFromSettings(page, label, id = 'pallasite') {
   await page.keyboard.press('g')
   const settings = page.getByRole('dialog', { name: 'GAMES SETTINGS' })
   const status = settings.locator('.gp-local-status')
@@ -78,12 +78,32 @@ async function installFromSettings(page, label) {
     click(settings.getByRole('button', { name: label, exact: true })),
   ])
   await page.locator('.tile-active').waitFor()
-  return page.evaluate(async () => (await window.arcade.listGames()).find(game => game.id === 'pallasite'))
+  return page.evaluate(async id => (await window.arcade.listGames()).find(game => game.id === id), id)
 }
 
-async function selectPallasite(page) {
-  const select = page.getByRole('button', { name: 'Select Pallasite', exact: true })
+async function selectGame(page, name) {
+  const select = page.getByRole('button', { name: 'Select ' + name, exact: true })
   if (await select.count()) await click(select)
+}
+
+async function openOfflineGame(app, page, name, site) {
+  await selectGame(page, name)
+  await click(page.getByRole('button', { name: 'Play ' + name, exact: true }))
+  const [game] = await Promise.all([
+    app.waitForEvent('window', { predicate: view => view !== page, timeout: 45_000 }),
+    click(page.getByRole('button', { name: /start game/i })),
+  ])
+  game.on('pageerror', error => console.error(name + ' renderer:', error.message))
+  await game.waitForURL(/^http:\/\/127\.0\.0\.1:\d+\/$/, { waitUntil: 'commit' })
+  const response = await fetch(game.url())
+  assert.equal(response.status, 200)
+  assert.equal(await response.text(), await readFile(join(site, 'index.html'), 'utf8'))
+  return game
+}
+
+async function returnFromOfflineGame(page, game) {
+  await Promise.all([game.waitForEvent('close'), page.evaluate(() => window.arcade.back())])
+  await page.locator('.tile-active').waitFor()
 }
 
 async function checkOffline() {
@@ -95,17 +115,7 @@ async function checkOffline() {
     const site = join(profile, 'cabinet-games', 'pallasite', 'site')
     assert.equal(installed.localRoot, site)
     console.log('The installed Gamestr app copied the bundled Pallasite files from Games Settings.')
-    await selectPallasite(page)
-    await click(page.getByRole('button', { name: 'Play Pallasite', exact: true }))
-    const [game] = await Promise.all([
-      app.waitForEvent('window', { predicate: view => view !== page, timeout: 30_000 }),
-      click(page.getByRole('button', { name: /start game/i })),
-    ])
-    game.on('pageerror', error => console.error('Pallasite renderer:', error.message))
-    await game.waitForURL(/^http:\/\/127\.0\.0\.1:\d+\/$/, { waitUntil: 'commit' })
-    const response = await fetch(game.url())
-    assert.equal(response.status, 200)
-    assert.equal(await response.text(), await readFile(join(site, 'index.html'), 'utf8'))
+    const game = await openOfflineGame(app, page, 'Pallasite', site)
     await click(game.getByRole('button', { name: 'PLAY ▶', exact: true }))
     await click(game.getByRole('button', { name: /play as guest/i }))
     await game.keyboard.type('CABINET')
@@ -116,10 +126,23 @@ async function checkOffline() {
     if (await later.isVisible()) await click(later)
     await game.locator('body[data-phase="playing"]').waitFor({ timeout: 45_000 })
     console.log('Pallasite started an offline guest run from the installed copy.')
-    const closed = game.waitForEvent('close')
-    await page.evaluate(() => window.arcade.back())
-    await closed
-    await page.locator('.tile-active').waitFor()
+    await returnFromOfflineGame(page, game)
+
+    const neon = await installFromSettings(page, 'Install Neon Sentinel for offline play', 'neon-sentinel')
+    assert.equal(neon?.cabinetInstall, 'installed')
+    assert.equal(neon.network, 'offline')
+    const neonSite = join(profile, 'cabinet-games', 'neon-sentinel', 'site')
+    assert.equal(neon.localRoot, neonSite)
+    const neonGame = await openOfflineGame(app, page, 'Neon Sentinel', neonSite)
+    await neonGame.locator('body[data-neon-phase="title"]').waitFor({ timeout: 45_000 })
+    await neonGame.keyboard.press('Enter')
+    const laterReward = neonGame.locator('#v4v-later')
+    const playing = neonGame.locator('body[data-neon-phase="playing"]')
+    await laterReward.or(playing).waitFor()
+    if (await laterReward.isVisible()) await click(laterReward)
+    await playing.waitFor()
+    await returnFromOfflineGame(page, neonGame)
+    console.log('Neon Sentinel started an offline run and returned to the menu.')
   } finally {
     await app.close()
   }
@@ -127,7 +150,8 @@ async function checkOffline() {
   try {
     const games = await restarted.page.evaluate(() => window.arcade.listGames())
     assert.equal(games.find(game => game.id === 'pallasite')?.cabinetInstall, 'installed')
-    console.log('Pallasite returned to the Gamestr menu and stayed installed after restart.')
+    assert.equal(games.find(game => game.id === 'neon-sentinel')?.cabinetInstall, 'installed')
+    console.log('Both offline games stayed installed after restart.')
   } finally {
     await restarted.app.close()
   }
@@ -156,7 +180,7 @@ async function checkDesktop() {
     assert.match(gameVersion, /^0\.1\.4(?:\.|$)/)
     console.log(JSON.stringify({ installedPallasiteDesktop: player, gameVersion }))
     assert.equal(playerWindow(), undefined, 'Pallasite should launch separately after setup.')
-    await selectPallasite(page)
+    await selectGame(page, 'Pallasite')
     await click(page.locator('.cta[aria-label="Play now Pallasite"]'))
     assert.equal(await page.locator('.ready-overlay.is-open').count(), 0)
     const window = await until(playerWindow, 'Gamestr did not open the Pallasite Desktop window')

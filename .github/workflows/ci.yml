@@ -110,6 +110,24 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm run dist:win
 
+      - name: Record the Windows installer checksum
+        run: |
+          $installer = Get-ChildItem release -Filter '*-setup.exe'
+          if (@($installer).Count -ne 1) { throw 'Expected one Windows installer' }
+          $checksum = (Get-FileHash -Algorithm SHA256 -LiteralPath $installer.FullName).Hash.ToLowerInvariant()
+          "$checksum  $($installer.Name)" | Set-Content -Encoding ascii release/SHA256SUMS
+
+      - name: Retain the Windows installer under test
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: gamestr-arcade-windows-${{ github.sha }}
+          path: |
+            release/*-setup.exe
+            release/SHA256SUMS
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 90
+
       - name: Install Gamestr Arcade
         run: |
           $installer = Get-ChildItem release -Filter '*-setup.exe'
@@ -124,10 +142,7 @@ jobs:
           "GAMESTR_TEST_LAUNCHER=$launcher" >> $env:GITHUB_ENV
           "GAMESTR_TEST_SHORTCUT=$shortcut" >> $env:GITHUB_ENV
 
-      - name: Install and load both bundled games
-        run: node scripts/check-installed-games.mjs "$env:GAMESTR_TEST_LAUNCHER" --install-only
-
-      - name: Start a Pallasite guest run and launch Pallasite Desktop
+      - name: Play the bundled games and launch Pallasite Desktop
         run: node scripts/verify-windows-pallasite.mjs "$env:GAMESTR_TEST_LAUNCHER" release
 
       - name: Create a setup executable for the stale-link regression
@@ -148,22 +163,8 @@ jobs:
       - name: Install and open the publisher's BTC Proof of Play game pack
         run: node scripts/verify-windows-btc-game-pack.mjs "$env:GAMESTR_TEST_LAUNCHER" release
 
-      - name: Remove Gamestr Arcade and record the checked installer
+      - name: Remove Gamestr Arcade
         run: |
           $uninstaller = Join-Path (Split-Path $env:GAMESTR_TEST_LAUNCHER) 'Uninstall Gamestr Arcade.exe'
           $remove = Start-Process -FilePath $uninstaller -ArgumentList '/S' -Wait -PassThru
           if ($remove.ExitCode -ne 0 -or (Test-Path -LiteralPath $env:GAMESTR_TEST_SHORTCUT)) { throw 'Uninstall did not complete' }
-          $installer = Get-ChildItem release -Filter '*-setup.exe'
-          $checksum = (Get-FileHash -Algorithm SHA256 -LiteralPath $installer.FullName).Hash.ToLowerInvariant()
-          "$checksum  $($installer.Name)" | Set-Content -Encoding ascii release/SHA256SUMS
-
-      - name: Upload the checked Windows installer
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: gamestr-arcade-windows-${{ github.sha }}
-          path: |
-            release/*-setup.exe
-            release/SHA256SUMS
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 90
