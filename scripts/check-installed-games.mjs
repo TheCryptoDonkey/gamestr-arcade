@@ -90,12 +90,23 @@ async function checkPlayable(game, id) {
     await game.locator('body[data-phase="playing"]').waitFor({ timeout: 45000 })
   } else {
     await game.locator('body[data-neon-phase="title"]').waitFor()
-    await game.keyboard.press('Enter')
-    const later = game.locator('#v4v-later')
+    await game.waitForFunction(() => document.hasFocus() && document.visibilityState === 'visible', undefined, { polling: 100 })
+    await game.evaluate(() => window.addEventListener('keydown', event => {
+      document.body.dataset.cabinetTestKey = `${event.code} (trusted: ${event.isTrusted})`
+    }, { capture: true }))
+    const later = game.locator('#v4v-later:visible')
     const playing = game.locator('body[data-neon-phase="playing"]')
-    await later.or(playing).waitFor()
+    const started = later.or(playing).first()
+    await game.keyboard.press('Enter', { delay: 100 })
+    try {
+      await started.waitFor({ timeout: 3_000 })
+    } catch (error) {
+      if (error.name !== 'TimeoutError') throw error
+      await game.keyboard.press('Space', { delay: 100 })
+      await started.waitFor({ timeout: 45_000 })
+    }
     if (await later.isVisible()) await later.click()
-    await playing.waitFor()
+    await playing.waitFor({ timeout: 45_000 })
   }
   await setTestController(game, { pressA: true })
   await game.waitForFunction(() => navigator.getGamepads()[0]?.buttons[0].pressed)
@@ -201,6 +212,8 @@ try {
         const viewState = await Promise.race([
           game.evaluate(() => ({
             phase: document.body.dataset.phase ?? document.body.dataset.neonPhase,
+            focus: document.hasFocus(),
+            lastKey: document.body.dataset.cabinetTestKey,
             overlay: [...document.querySelectorAll('.overlay h2, [role="dialog"]:not([hidden]) h2')].map(heading => heading.textContent),
           })).catch(() => undefined),
           new Promise(resolve => setTimeout(resolve, 3000).unref()),
