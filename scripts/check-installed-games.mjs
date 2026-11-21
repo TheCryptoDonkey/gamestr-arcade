@@ -154,9 +154,16 @@ try {
     await settings.getByRole('button', { name: 'Download and install Pallasite Desktop' }).waitFor()
   }
   if (process.platform === 'win32') await settings.getByRole('button', { name: 'Find BTC Proof of Play on this PC' }).waitFor()
+  const installPallasite = settings.getByRole('button', { name: 'Install Pallasite for offline play', exact: true })
   await settings.locator('.gp-selected').filter({ hasText: 'Install Pallasite for offline play' }).waitFor()
-  await shell.keyboard.press('Enter')
-  await settings.waitFor({ state: 'hidden' })
+  if (process.platform === 'win32') await activate(installPallasite)
+  else await settings.press('Enter')
+  try {
+    await settings.waitFor({ state: 'hidden' })
+  } catch (error) {
+    console.error('Pallasite install status:', await settings.locator('.gp-local-status').textContent({ timeout: 1000 }).catch(() => 'unavailable'))
+    throw error
+  }
   await shell.getByRole('button', { name: 'Play Pallasite', exact: true }).waitFor()
   console.log('PASS: Pallasite installs from Games Settings.')
   for (const [index, [id, name]] of tiles.entries()) {
