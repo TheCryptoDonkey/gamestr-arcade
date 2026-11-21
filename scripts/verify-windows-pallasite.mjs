@@ -82,7 +82,7 @@ async function installFromSettings(page, label, id = 'pallasite') {
 }
 
 async function selectGame(page, name) {
-  const select = page.getByRole('button', { name: 'Select ' + name, exact: true })
+  const select = page.locator('button.tile').and(page.getByRole('button', { name: 'Select ' + name, exact: true }))
   if (await select.count()) await click(select)
 }
 

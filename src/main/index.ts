@@ -759,7 +759,7 @@ app.whenReady().then(async () => {
       const game: Game = {
         ...metadata,
         logo: configured?.logo || metadata.logo, hero: configured?.hero ?? metadata.hero,
-        order: configured?.order ?? metadata.order, operatorOnly: configured?.operatorOnly,
+        order: previous?.order ?? metadata.order, operatorOnly: previous?.operatorOnly,
         available, availabilityReason: available ? undefined : 'The game pack requires 64-bit Windows.',
         exec: executable, args: executable && executable === configured?.exec ? configured.args : undefined,
         cabinetInstall: executable ? 'installed' : 'available',

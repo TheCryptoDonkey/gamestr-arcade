@@ -29,6 +29,11 @@ await mkdir(appData, { recursive: true })
 await mkdir(desktopGames, { recursive: true })
 await writeFile(join(desktopGames, id + '.path'), staleSetup)
 
+async function selectGame(page) {
+  const tile = page.locator('button.tile').and(page.getByRole('button', { name: 'Select BTC: Proof of Play', exact: true }))
+  if (await tile.count()) await tile.evaluate(button => button.click())
+}
+
 function nativePlayer() {
   const code = `$p = Get-Process -Name 'BTC Proof of Play' -ErrorAction SilentlyContinue |
     Where-Object { $_.Path -eq $env:GAMESTR_TEST_PLAYER } | Select-Object -First 1
@@ -72,8 +77,7 @@ async function open(executable) {
     assert.equal(entries[0].kind, 'appimage')
     assert.equal(entries[0].url, undefined)
     assert.deepEqual(entries[0].inputModes, ['keyboard', 'pointer'])
-    const select = page.getByRole('button', { name: 'Select BTC: Proof of Play', exact: true })
-    if (await select.count()) await select.evaluate(button => button.click())
+    await selectGame(page)
     console.log(JSON.stringify({ installedMenu: build, nativeTile: entries[0].name }))
     return { app, page, game: entries[0] }
   } catch (error) {
@@ -112,14 +116,17 @@ try {
   await page.keyboard.press('g')
   const installPack = page.getByRole('button', { name: 'Install BTC: Proof of Play game pack', exact: true })
   await installPack.waitFor()
-  await installPack.evaluate(button => button.click())
   // The Games Settings install refreshes the shell once the game is ready.
-  const play = page.locator('.cta[aria-label="Play now BTC: Proof of Play"]')
-  const installError = page.locator('.gp-local-status').filter({ hasText: /Error invoking remote method/ })
-  await Promise.race([
-    play.waitFor({ timeout: 300_000 }),
-    installError.waitFor({ timeout: 300_000 }).then(async () => { throw new Error(await installError.innerText()) }),
+  const status = page.locator('.gp-local-status').filter({ hasText: /Error invoking remote method/ })
+  const reloaded = page.waitForEvent('domcontentloaded', { timeout: 300_000 })
+  const failed = status.waitFor({ timeout: 300_000 }).then(async () => { throw new Error(await status.innerText()) })
+  await Promise.all([
+    Promise.race([reloaded, failed]),
+    installPack.evaluate(button => button.click()),
   ])
+  await page.locator('.tile-active').waitFor()
+  await selectGame(page)
+  const play = page.locator('.cta[aria-label="Play now BTC: Proof of Play"]')
   assert((await lstat(player)).isFile())
   console.log(JSON.stringify({ installedPublisherGame: player }))
   await play.evaluate(button => button.click())
