@@ -38,7 +38,12 @@ async function openArcade(name) {
   delete env.ARCADE_CONFIG
   delete env.ARCADE_GAMES_DIR
   const app = await electron.launch({
-    executablePath: executable, args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--user-data-dir=' + profile],
+    executablePath: executable,
+    args: [
+      '--enable-unsafe-swiftshader', '--use-angle=swiftshader',
+      '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding',
+      '--disable-background-timer-throttling', '--user-data-dir=' + profile,
+    ],
     env, timeout: 60_000,
   })
   app.process().once('exit', (code, signal) => console.log(`Gamestr ${name} process exited`, { code, signal }))
@@ -49,7 +54,8 @@ async function openArcade(name) {
     })
     const page = await app.firstWindow()
     page.once('crash', () => console.error(`Gamestr ${name} shell renderer crashed`))
-    await page.locator('.tile-active').waitFor()
+    page.on('pageerror', error => console.error(`Gamestr ${name} shell renderer`, error.message))
+    await waitForCabinet(page)
     const details = await app.evaluate(({ app }) => ({
       profile: app.getPath('userData'), version: app.getVersion(), executable: process.execPath,
     }))
@@ -61,6 +67,12 @@ async function openArcade(name) {
     await app.close()
     throw error
   }
+}
+
+async function waitForCabinet(page) {
+  // The runner can suppress compositor frames while the game view closes or
+  // the shell reloads. Wait for the new catalogue DOM before using its controls.
+  await page.locator('.tile-active').waitFor({ state: 'attached', timeout: 90_000 })
 }
 
 async function click(locator) {
@@ -79,7 +91,7 @@ async function installFromSettings(page, label, id = 'pallasite') {
     Promise.race([reloaded, fail]),
     click(settings.getByRole('button', { name: label, exact: true })),
   ])
-  await page.locator('.tile-active').waitFor()
+  await waitForCabinet(page)
   return page.evaluate(async id => (await window.arcade.listGames()).find(game => game.id === id), id)
 }
 
@@ -106,7 +118,7 @@ async function openOfflineGame(app, page, name, site) {
 
 async function returnFromOfflineGame(page, game) {
   await Promise.all([game.waitForEvent('close'), page.evaluate(() => window.arcade.back())])
-  await page.locator('.tile-active').waitFor()
+  await waitForCabinet(page)
 }
 
 async function checkOffline() {
