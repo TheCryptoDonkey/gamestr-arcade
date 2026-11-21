@@ -21,7 +21,8 @@ import { finalizeEvent, generateSecretKey, getPublicKey } from 'nostr-tools/pure
 import type { SignetSession } from 'signet-login'
 import { ConferencePlayer } from '../shared/conference-player'
 import webEditions from '../../web.editions.json'
-import { buildGamesList, isPathAllowed, mediaUrlToPath, playerVisibleGames, MEDIA_SCHEME } from './games'
+import proofOfPlayManifest from '../../resources/btc-proof-of-play.game.json'
+import { buildGamesList, buildLinkedGame, isPathAllowed, mediaUrlToPath, playerVisibleGames, MEDIA_SCHEME } from './games'
 import { fetchGamestrCatalogue } from './gamestr-catalogue'
 import type { CatalogueDeps } from './gamestr-catalogue'
 import { importGameToFolder } from './gamestr-import'
@@ -754,17 +755,15 @@ app.whenReady().then(async () => {
       const configured = previous?.kind === 'appimage' ? previous : undefined
       const executable = await desktopGames.findWindowsProofOfPlay(app.getPath('appData'), configured?.exec)
       const available = Boolean(executable) || desktopGames.canDownloadProofOfPlay()
+      const metadata = await buildLinkedGame('btc-proof-of-play', proofOfPlayManifest, executable, cacheDir)
       const game: Game = {
-        ...configured,
-        id: 'btc-proof-of-play', gameId: 'btc-proof-of-play', name: 'BTC: Proof of Play',
-        tagline: 'Build your deck and battle in a Bitcoin strategy card game',
-        developer: 'BTC Proof of Play', kind: 'appimage', logo: previous?.logo ?? '',
-        hero: previous?.hero, order: previous?.order ?? 10,
+        ...metadata,
+        logo: configured?.logo || metadata.logo, hero: configured?.hero ?? metadata.hero,
+        order: configured?.order ?? metadata.order, operatorOnly: configured?.operatorOnly,
         available, availabilityReason: available ? undefined : 'The game pack requires 64-bit Windows.',
         exec: executable, args: executable && executable === configured?.exec ? configured.args : undefined,
-        cabinetInstall: executable ? 'installed' : 'available', downloadOnly: false,
-        playOnActivate: Boolean(executable), manifestVersion: 2, inputModes: ['keyboard', 'pointer'],
-        controlHints: ['KEYBOARD + MOUSE', 'QUIT FROM THE GAME TO RETURN'],
+        cabinetInstall: executable ? 'installed' : 'available',
+        playOnActivate: Boolean(executable),
       }
       if (index === -1) games.push(game)
       else games[index] = game
@@ -840,6 +839,9 @@ app.whenReady().then(async () => {
       canLinkWindowsGames: process.platform === 'win32',
       pallasiteDesktopSelected: Boolean(pallasite), proofOfPlayLinked: Boolean(proofOfPlay),
       proofOfPlayPack: proofOfPlayPack ? 'installed' : desktopGames.canDownloadProofOfPlay() ? 'available' : undefined,
+      unavailableReason: bundled.length ? undefined : app.isPackaged
+        ? 'This arcade build has no offline game packages.'
+        : 'Offline Pallasite and Neon Sentinel ship in the Windows and Linux installers. For development, run npm run build:cabinet-games, then start with ARCADE_CABINET_GAMES_DIR=release/cabinet-games.',
     }
   })
   ipcMain.handle('game:download-pallasite', async event => {
@@ -853,7 +855,10 @@ app.whenReady().then(async () => {
     if (process.platform !== 'win32' || !win || (id !== 'pallasite' && id !== 'btc-proof-of-play')) {
       throw new Error('This installed game cannot be linked.')
     }
-    if (!await chooseWindowsGame(id)) return null
+    // Look in the usual install folders first, so a keyboard or gamepad player
+    // only meets the file picker when the game lives somewhere unusual.
+    const found = !await desktopGames.linked(id) && await desktopGames.detectWindowsGame(id)
+    if (!found && !await chooseWindowsGame(id)) return null
     cachedGames = await readCatalogue()
     return cachedGames
   })

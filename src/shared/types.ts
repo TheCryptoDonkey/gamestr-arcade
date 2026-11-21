@@ -9,6 +9,8 @@ export interface LocalGameSettings {
   pallasiteDesktopSelected: boolean
   proofOfPlayLinked: boolean
   proofOfPlayPack: 'available' | 'installed' | undefined
+  /** Why this arcade offers no local install actions, when it offers none. */
+  unavailableReason?: string
 }
 
 /**

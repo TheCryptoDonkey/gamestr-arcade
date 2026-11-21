@@ -1,10 +1,10 @@
-import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rename, rm, symlink, writeFile } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { CabinetGames } from '../src/main/cabinet-games'
-import { isWindowsGame, writeVerifiedDownload } from '../src/main/desktop-games'
+import { findInstalledGame, isWindowsGame, windowsSearchRoots, writeVerifiedDownload } from '../src/main/desktop-games'
 
 describe('cabinet game installation', () => {
   let root: string
@@ -78,6 +78,32 @@ describe('cabinet game installation', () => {
     const setup = join(root, 'BTC Proof of Play Setup.exe')
     await writeFile(setup, 'fixture setup')
     expect(await isWindowsGame('btc-proof-of-play', setup)).toBe(false)
+  })
+
+  it('finds the BTC Proof of Play client a launcher installed below its own folder', async () => {
+    const programs = join(root, 'Programs')
+    const launcher = join(programs, 'BTC Proof of Play Launcher')
+    const client = join(launcher, 'game', '5.1.0')
+    const data = join(client, 'BTC Proof of Play_Data')
+    await mkdir(data, { recursive: true })
+    await writeFile(join(data, 'boot.config'), 'fixture boot config')
+    await writeFile(join(data, 'globalgamemanagers'), 'fixture Unity project')
+    await writeFile(join(client, 'UnityPlayer.dll'), 'fixture Unity library')
+    await writeFile(join(client, 'BTC Proof of Play.exe'), 'fixture player')
+    await mkdir(join(programs, 'Unrelated Game', 'game'), { recursive: true })
+
+    expect(await findInstalledGame('btc-proof-of-play', [{ path: programs }])).toBe(join(client, 'BTC Proof of Play.exe'))
+    // Folders not named after the game are skipped unless the player chose that folder.
+    const elsewhere = join(programs, 'Launchers')
+    await rename(launcher, elsewhere)
+    expect(await findInstalledGame('btc-proof-of-play', [{ path: programs }])).toBeUndefined()
+    expect(await findInstalledGame('btc-proof-of-play', [{ path: elsewhere, anyName: true }]))
+      .toBe(join(elsewhere, 'game', '5.1.0', 'BTC Proof of Play.exe'))
+  })
+
+  it('searches the usual Windows install folders once each', () => {
+    const roots = windowsSearchRoots({ LOCALAPPDATA: 'L', APPDATA: 'A', ProgramFiles: 'P', 'ProgramFiles(x86)': 'P' })
+    expect(roots.map(root => root.path)).toEqual(['L', join('L', 'Programs'), 'A', join('A', 'itch', 'apps'), 'P'])
   })
 
   it('accepts the exact downloaded game bytes and rejects a mismatched payload', async () => {

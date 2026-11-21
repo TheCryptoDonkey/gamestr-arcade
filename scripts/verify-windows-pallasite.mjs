@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { execFileSync, spawn } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 import { lstat, readFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
@@ -7,7 +7,8 @@ import { _electron as electron } from 'playwright'
 
 assert.equal(process.platform, 'win32')
 const { version } = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'))
-const root = resolve(process.argv[2])
+const executable = resolve(process.argv[2])
+const root = resolve(process.argv[3])
 const player = join(process.env.LOCALAPPDATA, 'Programs', 'Pallasite', 'Pallasite.exe')
 
 function powershell(code, extraEnv = {}) {
@@ -26,24 +27,6 @@ async function until(check, message, timeout = 45_000) {
   throw new Error(message)
 }
 
-async function installArcade() {
-  const setup = spawn(join(root, `gamestr-arcade-${version}-x64-setup.exe`), ['/S'], { stdio: 'ignore' })
-  await new Promise((done, fail) => {
-    const timer = setTimeout(() => { setup.kill(); fail(new Error('Gamestr setup timed out')) }, 120_000)
-    setup.once('error', error => { clearTimeout(timer); fail(error) })
-    setup.once('exit', code => {
-      clearTimeout(timer)
-      if (code === 0) done()
-      else fail(new Error('Gamestr setup exited with code ' + code))
-    })
-  })
-  return powershell(String.raw`
-    $shortcut = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Gamestr Arcade.lnk'
-    (New-Object -ComObject WScript.Shell).CreateShortcut($shortcut).TargetPath
-  `)
-}
-
-const executable = await installArcade()
 assert((await lstat(executable)).isFile())
 
 async function openArcade(name) {
@@ -56,14 +39,21 @@ async function openArcade(name) {
     executablePath: executable, args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--user-data-dir=' + profile],
     env, timeout: 60_000,
   })
+  app.process().once('exit', (code, signal) => console.log(`Gamestr ${name} process exited`, { code, signal }))
+  app.process().stderr?.on('data', data => process.stderr.write(data))
   try {
     await app.context().addInitScript(() => {
       if (location.hostname === '127.0.0.1') localStorage.setItem('pallasite:quality', 'low')
     })
     const page = await app.firstWindow()
+    page.once('crash', () => console.error(`Gamestr ${name} shell renderer crashed`))
     await page.locator('.tile-active').waitFor()
-    const details = await app.evaluate(({ app }) => ({ profile: app.getPath('userData'), version: app.getVersion() }))
-    assert.deepEqual(details, { profile, version })
+    const details = await app.evaluate(({ app }) => ({
+      profile: app.getPath('userData'), version: app.getVersion(), executable: process.execPath,
+    }))
+    assert.equal(details.profile, profile)
+    assert.equal(details.version, version)
+    assert.equal(details.executable.toLowerCase(), executable.toLowerCase())
     return { app, page, profile }
   } catch (error) {
     await app.close()
@@ -83,8 +73,10 @@ async function installFromSettings(page, label) {
   const fail = status.filter({ hasText: /Error invoking remote method/ }).waitFor({ timeout: 240_000 })
     .then(async () => { throw new Error(await status.innerText()) })
   const reloaded = page.waitForEvent('domcontentloaded', { timeout: 240_000 })
-  await click(settings.getByRole('button', { name: label, exact: true }))
-  await Promise.race([reloaded, fail])
+  await Promise.all([
+    Promise.race([reloaded, fail]),
+    click(settings.getByRole('button', { name: label, exact: true })),
+  ])
   await page.locator('.tile-active').waitFor()
   return page.evaluate(async () => (await window.arcade.listGames()).find(game => game.id === 'pallasite'))
 }
@@ -103,11 +95,12 @@ async function checkOffline() {
     const site = join(profile, 'cabinet-games', 'pallasite', 'site')
     assert.equal(installed.localRoot, site)
     console.log('The installed Gamestr app copied the bundled Pallasite files from Games Settings.')
-    const view = app.waitForEvent('window', { predicate: view => view !== page, timeout: 30_000 })
     await selectPallasite(page)
     await click(page.getByRole('button', { name: 'Play Pallasite', exact: true }))
-    await click(page.getByRole('button', { name: /start game/i }))
-    const game = await view
+    const [game] = await Promise.all([
+      app.waitForEvent('window', { predicate: view => view !== page, timeout: 30_000 }),
+      click(page.getByRole('button', { name: /start game/i })),
+    ])
     game.on('pageerror', error => console.error('Pallasite renderer:', error.message))
     await game.waitForURL(/^http:\/\/127\.0\.0\.1:\d+\/$/, { waitUntil: 'commit' })
     const response = await fetch(game.url())
@@ -143,7 +136,7 @@ async function checkOffline() {
 function playerWindow() {
   const result = powershell(`
     $p = Get-Process -Name 'Pallasite' -ErrorAction SilentlyContinue |
-      Where-Object { $_.Path -eq $env:GAMESTR_TEST_PLAYER -and $_.MainWindowHandle } | Select-Object -First 1
+      Where-Object { $_.Path -eq $env:GAMESTR_TEST_PLAYER -and $_.MainWindowHandle.ToInt64() -ne 0 } | Select-Object -First 1
     if ($p) {
       @{ id = $p.Id; title = $p.MainWindowTitle; path = $p.Path } | ConvertTo-Json -Compress
     }
@@ -187,7 +180,7 @@ async function checkDesktop() {
 }
 
 const errors = []
-for (const check of [checkOffline, checkDesktop]) {
+for (const check of [checkDesktop, checkOffline]) {
   try {
     await check()
   } catch (error) {

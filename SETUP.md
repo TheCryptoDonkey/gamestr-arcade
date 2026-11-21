@@ -1,6 +1,6 @@
 # gamestr-arcade - Booth Setup
 
-Install Gamestr Arcade and set up a Linux booth cabinet.
+Install Gamestr Arcade and set up a Windows or Linux cabinet.
 
 For Bitfest release preparation, machine selection, physical acceptance and
 recovery evidence, use [the Bitfest readiness checklist](docs/bitfest-readiness.md).
@@ -22,10 +22,10 @@ The installer is written to `release/`.
 ### Ubuntu and Debian installer
 
 Install `gamestr-arcade_<version>_amd64.deb` from the directory containing the
-download. For example, for version 0.2.11:
+download. For example, for version 0.2.16:
 
 ```bash
-sudo apt install ./gamestr-arcade_0.2.11_amd64.deb
+sudo apt install ./gamestr-arcade_0.2.16_amd64.deb
 ```
 
 Open **Gamestr Arcade** from the applications menu. For a windowed session, run
@@ -61,18 +61,27 @@ allow it to run as a program, then open it as the user who will run the cabinet.
 
 ### Install Pallasite and Neon Sentinel
 
-The Windows and Linux builds include offline copies of both games. Press **G**
-to open **Games Settings**, then choose **Install Pallasite for offline play**
-or **Install Neon Sentinel for offline play**. You can also select the game in
-the carousel and choose **Install on this arcade**. Choose **Play** when the
-copy completes. The install stays available after restarting the arcade.
+The Windows and Linux builds include offline copies of both games. Their tiles
+show **INSTALL** until installed. Select the tile and press **Enter** or **Ⓐ**
+twice: once to open it, once to install. Choose **Start game** when the copy
+completes. The install stays available after restarting the arcade.
+
+You can also choose **Install games (G)** at the bottom left, or press **G**, to
+open **Games Settings**. Use the arrow keys or the d-pad to highlight **Install
+Pallasite for offline play** or **Install Neon Sentinel for offline play**, then
+press **Enter** or **Ⓐ**. A mouse is not needed.
+
+In a development checkout, run `npm run build:cabinet-games` once, then start
+with `ARCADE_CABINET_GAMES_DIR=release/cabinet-games ARCADE_KIOSK=0 npm run dev`
+to get the same installs. Games Settings explains when a build has no offline
+packages.
 
 On 64-bit Windows and Linux, **Download and install Pallasite Desktop** gets
 the publisher's desktop edition and verifies the published checksum. On Windows,
 Gamestr Arcade installs it for your Windows account. Select **Pallasite → Play Now**
-to launch the desktop game. Use **Locate Pallasite.exe** to link a copy installed
-in a custom folder. Installing the offline copy in Games Settings selects that
-copy again.
+to launch the desktop game. Use **Find Pallasite Desktop on this PC** in Games
+Settings to link a copy you installed separately. Installing the offline copy in
+Games Settings selects that copy again.
 
 The cabinet keeps the installed files under `cabinet-games/` in its Electron
 user-data directory. Run the arcade as the same Linux user to keep using that
@@ -94,10 +103,10 @@ choose **Install on this Arcade**. You can also press **G** and choose
 Unity build (about 410 MB), checks its SHA-256 and installs it in your arcade
 profile. Once installed, **Play Now** opens the game directly.
 
-If you already have the Unity build in a custom folder, press **G** and choose
-**Locate BTC Proof of Play.exe**. Select the executable that sits beside
-`UnityPlayer.dll` and the `BTC Proof of Play_Data` folder. Play with keyboard
-and mouse. Use the game's **Quit** command to return to the arcade.
+If you already have the Unity build, press **G** and choose **Find BTC Proof of
+Play on this PC**. If Gamestr asks for a file, select `BTC Proof of Play.exe` in
+the folder containing `UnityPlayer.dll` and `BTC Proof of Play_Data`. Play with
+keyboard and mouse. Use the game's **Quit** command to return to the arcade.
 
 ### Add BTC: Proof of Play to a Linux cabinet
 
@@ -112,8 +121,11 @@ node scripts/package-btc-proof-of-play.mjs release/btc-proof-of-play/games \
   "/path/to/extracted game directory" btcproofofplay.x86_64
 ```
 
-On an existing cabinet, copy the generated `btc-proof-of-play` folder into the
-configured games directory and press **F5** to rescan.
+The script bundles the publisher's logo and hero art into the tile when the
+machine is online. Its metadata comes from `resources/btc-proof-of-play.game.json`,
+which the Windows tile also uses. On an existing cabinet, copy the generated
+`btc-proof-of-play` folder into the configured games directory and press **F5**
+to rescan.
 
 #### First run on a fresh Ubuntu cabinet
 

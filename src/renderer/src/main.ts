@@ -283,6 +283,27 @@ async function boot(): Promise<void> {
     },
   })
 
+  // A visible way into Games Settings, so installing offline copies or finding
+  // installed desktop games does not depend on knowing the G shortcut.
+  if (inElectron) {
+    const gamesButton = document.createElement('button')
+    gamesButton.type = 'button'
+    gamesButton.className = 'arcade-games-open'
+    gamesButton.textContent = 'Install games (G)'
+    gamesButton.addEventListener('click', () => {
+      if (inWebGame) return
+      readyPanel.close(false)
+      relayPanel.close()
+      closeDownloadPanel()
+      // Return focus to the shell on close, not this button, which the
+      // navigation keys deliberately ignore.
+      host.focus()
+      gamesPanel.open()
+      attract.stop()
+    })
+    host.append(gamesButton)
+  }
+
   // Download-only games can't run in the kiosk - pressing play opens this panel
   // with a QR of the game's download URL so a visitor can grab it on their phone.
   const downloadPanel = new DownloadPanel(host, {

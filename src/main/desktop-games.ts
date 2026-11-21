@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { createWriteStream } from 'node:fs'
-import { mkdir, mkdtemp, readFile, realpath, rename, rm, stat, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readdir, readFile, realpath, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, join } from 'node:path'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
@@ -52,6 +52,63 @@ export async function isWindowsGame(id: DesktopGameId, executable: string): Prom
   return await fileExists(join(runtime, 'UnityPlayer.dll'))
     && await fileExists(join(data, 'boot.config'))
     && await fileExists(join(data, 'globalgamemanagers'))
+}
+
+const INSTALL_FOLDER = {
+  pallasite: /pallasite/i,
+  'btc-proof-of-play': /proof.?of.?play|btc.?pop/i,
+}
+
+export interface SearchRoot {
+  path: string
+  /** Search every child folder instead of only folders named after the game. */
+  anyName?: boolean
+}
+
+/** Places publishers, itch and players commonly install Windows games. */
+export function windowsSearchRoots(env: NodeJS.ProcessEnv): SearchRoot[] {
+  const paths = [
+    env.LOCALAPPDATA, env.LOCALAPPDATA && join(env.LOCALAPPDATA, 'Programs'),
+    env.APPDATA, env.APPDATA && join(env.APPDATA, 'itch', 'apps'),
+    env.ProgramFiles, env['ProgramFiles(x86)'],
+    env.USERPROFILE && join(env.USERPROFILE, 'Desktop'), env.USERPROFILE && join(env.USERPROFILE, 'Downloads'),
+    env.USERPROFILE && join(env.USERPROFILE, 'Documents'), env.USERPROFILE && join(env.USERPROFILE, 'Games'),
+    env.SystemDrive && join(env.SystemDrive + '\\', 'Games'),
+  ]
+  return [...new Set(paths.filter((path): path is string => !!path))].map(path => ({ path }))
+}
+
+/**
+ * Find an installed game client below the given roots. Launchers often install
+ * themselves beside the real client, so this checks the folder layout as well
+ * as the executable name. The walk is bounded so a large drive cannot stall it.
+ */
+export async function findInstalledGame(
+  id: DesktopGameId,
+  roots: SearchRoot[],
+): Promise<string | undefined> {
+  const limit = 400
+  const directories = async (path: string) =>
+    (await readdir(path, { withFileTypes: true }).catch(() => [])).filter(entry => entry.isDirectory())
+  for (const root of roots) {
+    const queue = (await directories(root.path))
+      .filter(entry => root.anyName || INSTALL_FOLDER[id].test(entry.name))
+      .slice(0, limit)
+      .map(entry => ({ path: join(root.path, entry.name), depth: 1 }))
+    if (root.anyName) queue.unshift({ path: root.path, depth: 0 })
+    for (let visited = 0; visited < Math.min(queue.length, limit); visited++) {
+      const { path, depth } = queue[visited]
+      const executable = join(path, WINDOWS_EXE[id])
+      if (await isWindowsGame(id, executable)) return executable
+      if (depth >= 5 || queue.length >= limit) continue
+      for (const entry of await directories(path)) {
+        // Unity data folders hold thousands of assets and never the client.
+        if (!/_Data$/i.test(entry.name)) queue.push({ path: join(path, entry.name), depth: depth + 1 })
+        if (queue.length >= limit) break
+      }
+    }
+  }
+  return undefined
 }
 
 export async function writeVerifiedDownload(
@@ -132,13 +189,26 @@ export class DesktopGames {
     return undefined
   }
 
-  async linkWindowsGame(id: DesktopGameId, executable: string): Promise<string> {
-    if (process.platform !== 'win32') throw new Error('Linking an installed Windows game requires Windows.')
-    if (!await isWindowsGame(id, executable)) {
+  async detectWindowsGame(id: DesktopGameId): Promise<boolean> {
+    if (process.platform !== 'win32') return false
+    const executable = await findInstalledGame(id, windowsSearchRoots(process.env))
+    if (!executable) return false
+    await this.saveLink(id, executable)
+    return true
+  }
+
+  async linkWindowsGame(id: DesktopGameId, selected: string): Promise<string> {
+    if (process.platform !== 'win32') throw new Error('Linking an installed game requires Windows.')
+    // A launcher or installer is often selected by mistake. Look for the real
+    // client beside it before asking the player to choose again.
+    const executable = await isWindowsGame(id, selected)
+      ? selected
+      : await findInstalledGame(id, [{ path: dirname(selected), anyName: true }])
+    if (!executable) {
       if (id === PROOF_OF_PLAY) {
         throw new Error('Choose BTC Proof of Play.exe in the game folder, or install the game pack in Games Settings.')
       }
-      throw new Error('Select ' + WINDOWS_EXE[id] + ' in its installed game folder.')
+      throw new Error('Select Pallasite.exe in its installed game folder.')
     }
     await this.saveLink(id, executable)
     return executable
@@ -232,7 +302,8 @@ export class DesktopGames {
             return
           }
         }
-        throw new Error('Use Locate Pallasite.exe if you installed Pallasite in a different folder.')
+        if (await this.detectWindowsGame('pallasite')) return
+        throw new Error('Use Find Pallasite Desktop on this PC if you installed Pallasite in a different folder.')
       }
     } finally {
       await rm(staging, { recursive: true, force: true })

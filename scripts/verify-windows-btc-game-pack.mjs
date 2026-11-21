@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { execFileSync, spawn } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 import { lstat, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
@@ -8,7 +8,8 @@ import { _electron as electron } from 'playwright'
 if (process.platform !== 'win32') throw new Error('This installer check requires Windows')
 
 const { version } = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'))
-const root = resolve(process.argv[2])
+const executable = resolve(process.argv[2])
+const root = resolve(process.argv[3])
 const profile = join(root, 'arcade test profile')
 const appData = join(root, 'publisher test appdata')
 const games = join(root, 'catalogue')
@@ -27,33 +28,6 @@ await writeFile(join(games, id, 'game.json'), JSON.stringify({
 await mkdir(appData, { recursive: true })
 await mkdir(desktopGames, { recursive: true })
 await writeFile(join(desktopGames, id + '.path'), staleSetup)
-
-function targetFromStartMenu() {
-  const code = String.raw`$p = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Gamestr Arcade.lnk'
-if (!(Test-Path -LiteralPath $p)) { throw 'Gamestr Arcade Start shortcut missing' }
-[Console]::Write((New-Object -ComObject WScript.Shell).CreateShortcut($p).TargetPath)`
-  return execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', code], { encoding: 'utf8' }).trim()
-}
-
-async function install() {
-  const installer = join(root, `gamestr-arcade-${version}-x64-setup.exe`)
-  await new Promise((resolve, reject) => {
-    const proc = spawn(installer, ['/S'], { stdio: 'ignore' })
-    const timer = setTimeout(() => {
-      proc.kill()
-      reject(new Error(`Setup ${version} did not finish within 120 seconds`))
-    }, 120_000)
-    proc.once('error', error => { clearTimeout(timer); reject(error) })
-    proc.once('exit', code => {
-      clearTimeout(timer)
-      if (code === 0) resolve()
-      else reject(new Error(`Setup ${version} exited with code ${code}`))
-    })
-  })
-  const executable = targetFromStartMenu()
-  assert((await lstat(executable)).isFile())
-  return executable
-}
 
 function nativePlayer() {
   const code = `$p = Get-Process -Name 'BTC Proof of Play' -ErrorAction SilentlyContinue |
@@ -118,8 +92,8 @@ async function until(check, message, timeout = 45_000) {
   throw new Error(message)
 }
 
-const launcher = await install()
-const { app, page, game } = await open(launcher)
+assert((await lstat(executable)).isFile())
+const { app, page, game } = await open(executable)
 try {
   assert.equal(game.cabinetInstall, 'available')
   assert.equal(game.exec, undefined)

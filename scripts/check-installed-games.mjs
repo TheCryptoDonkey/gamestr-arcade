@@ -46,10 +46,13 @@ async function openArcade() {
 }
 
 async function activate(button) {
-  // The Windows runner can suppress compositor frames. Exercise the supported
-  // keyboard action there without waiting for the click stability animation.
-  if (process.platform === 'win32') await button.press('Enter')
-  else await button.click()
+  // The Windows runner can suppress compositor frames during an animation.
+  if (process.platform === 'win32') {
+    await button.waitFor()
+    await button.evaluate(element => element.click())
+  } else {
+    await button.click()
+  }
 }
 
 async function setTestController(game, { connected = true, pressA = false }) {
@@ -150,8 +153,10 @@ try {
   if (process.arch === 'x64' && (process.platform === 'linux' || process.platform === 'win32')) {
     await settings.getByRole('button', { name: 'Download and install Pallasite Desktop' }).waitFor()
   }
-  if (process.platform === 'win32') await settings.getByRole('button', { name: 'Locate BTC Proof of Play.exe' }).waitFor()
-  await activate(settings.getByRole('button', { name: 'Install Pallasite for offline play' }))
+  if (process.platform === 'win32') await settings.getByRole('button', { name: 'Find BTC Proof of Play on this PC' }).waitFor()
+  await settings.locator('.gp-selected').filter({ hasText: 'Install Pallasite for offline play' }).waitFor()
+  await shell.keyboard.press('Enter')
+  await settings.waitFor({ state: 'hidden' })
   await shell.getByRole('button', { name: 'Play Pallasite', exact: true }).waitFor()
   console.log('PASS: Pallasite installs from Games Settings.')
   for (const [index, [id, name]] of tiles.entries()) {
@@ -167,9 +172,10 @@ try {
     const installed = join(profile, 'cabinet-games', id)
     const revision = await readFile(join(installed, 'revision'), 'utf8')
     assert.match(revision, /^[a-f0-9]{40}\n$/)
-    const view = app.waitForEvent('window', { predicate: page => page !== shell })
-    await activate(play)
-    const game = await view
+    const [game] = await Promise.all([
+      app.waitForEvent('window', { predicate: page => page !== shell }),
+      activate(play),
+    ])
     const pageErrors = []
     game.on('pageerror', error => pageErrors.push(error.message))
     await game.waitForURL(/^http:\/\/127\.0\.0\.1:\d+\/$/, { waitUntil: 'commit' })
@@ -207,7 +213,9 @@ try {
   app = undefined
   const afterRestart = await openArcade()
   const games = await afterRestart.evaluate(() => window.arcade.listGames())
-  assert.deepEqual(games.map(game => [game.id, game.cabinetInstall]), tiles.map(([id]) => [id, 'installed']))
+  // The Windows catalogue also lists the downloadable BTC: Proof of Play pack.
+  const bundled = games.filter(game => tiles.some(([id]) => id === game.id))
+  assert.deepEqual(bundled.map(game => [game.id, game.cabinetInstall]), tiles.map(([id]) => [id, 'installed']))
   console.log('PASS: both tiles remain installed after restarting the cabinet.')
 } finally {
   if (app) await app.close()

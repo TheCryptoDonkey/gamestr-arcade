@@ -413,7 +413,7 @@ export class Carousel {
       : downloadOnly
         ? 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;TO&nbsp;DOWNLOAD'
         : game.cabinetInstall === 'available'
-          ? 'INSTALL&nbsp;ON&nbsp;THIS&nbsp;ARCADE'
+          ? 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;TO&nbsp;INSTALL'
           : game.playOnActivate
             ? 'PLAY&nbsp;NOW'
             : 'PRESS&nbsp;ENTER&nbsp;/&nbsp;Ⓐ&nbsp;FOR&nbsp;DETAILS'
@@ -552,12 +552,15 @@ export class Carousel {
       cap.textContent = game.name
       tile.appendChild(cap)
 
-      // LOCAL badge - shown when the game is served from the local mirror server.
-      if (game.localSite) {
+      // Corner chip: what pressing play does first for games that need setting
+      // up, otherwise LOCAL when the game is served from the local mirror server.
+      const chip = game.cabinetInstall === 'available' ? ['INSTALL', 'ready to install on this arcade']
+        : game.localSite ? ['LOCAL', 'served from local mirror'] : undefined
+      if (chip) {
         const badge = document.createElement('span')
         badge.className = 'tile-local-badge'
-        badge.textContent = 'LOCAL'
-        badge.setAttribute('aria-label', 'served from local mirror')
+        badge.textContent = chip[0]
+        badge.setAttribute('aria-label', chip[1])
         tile.appendChild(badge)
       }
 
